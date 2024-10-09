@@ -5,8 +5,8 @@ using UnityEngine;
 public class AutoBattleManager : MonoBehaviour
 {
     // 예시 유닛, 추후 삭제
-    private int[] _myUnitIds = { 3, 4 };
-    private int[] _enemyUnitIds = { 1, 2 };
+    private int[] _myUnitIds = { 3, 4,5,6 };
+    private int[] _enemyUnitIds = { 1, 2,8,7,6 };
 
 
     // 유닛 id들로 유닛 데이터를 정리하는 함수
