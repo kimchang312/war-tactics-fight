@@ -26,7 +26,8 @@ public class FightStartBtn : MonoBehaviour
             // Inspector에서 연결된 battleManager 사용
             if (battleManager != null)
             {
-                battleManager.StartBattle();
+                int result= battleManager.StartBattle();
+                Debug.Log(result);
             }
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
