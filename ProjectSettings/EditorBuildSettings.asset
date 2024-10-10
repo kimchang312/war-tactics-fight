@@ -9,9 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
-    path: Assets/Scenes/AutoBattleScene.unity
+    path: Assets/KimChang/KimScenes/AutoBattleScene.unity
     guid: b21f81178fcd6d44dbc5f380d85e5724
   - enabled: 1
-    path: Assets/Scenes/ArrangeUnitsSecene.unity
+    path: Assets/KimChang/KimScenes/ArrangeUnitsSecene.unity
     guid: e85f892caf75ea542809e74119273e64
   m_configObjects: {}
