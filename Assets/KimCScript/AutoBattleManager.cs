@@ -4,10 +4,6 @@ using UnityEngine;
 
 public class AutoBattleManager : MonoBehaviour
 {
-    // 예시 유닛, 추후 삭제
-    private int[] _myUnitIds = { 3, 4,5,6 };
-    private int[] _enemyUnitIds = { 1, 2,8,7,6 };
-
 
     // 유닛 id들로 유닛 데이터를 정리하는 함수
     // Tuple을 사용하여 두 개의 배열을 반환
@@ -18,6 +14,7 @@ public class AutoBattleManager : MonoBehaviour
 
         // 적의 유닛 저장
         List<UnitDataBase> enemyUnits = new List<UnitDataBase>();
+
 
         // 내 유닛 ID들을 기반으로 유닛을 가져와서 MyUnits에 저장
         foreach (int unitId in myUnitIds)
@@ -45,7 +42,7 @@ public class AutoBattleManager : MonoBehaviour
 
 
     //자동전투
-    private int AutoBattle()
+    private int AutoBattle(int[] _myUnitIds, int[] _enemyUnitIds)
     {
         // 나의 피해량
         float myDamage;
@@ -102,9 +99,9 @@ public class AutoBattleManager : MonoBehaviour
 
 
     //자동전투를 다른코드에서 호출할수 있게끔 대신 호출해주는 함수
-    public int StartBattle()
+    public int StartBattle(int[] _myUnitIds, int[] _enemyUnitIds)
     {
-        int result = AutoBattle();
+        int result = AutoBattle(_myUnitIds,_enemyUnitIds);
         return result;
     }
 

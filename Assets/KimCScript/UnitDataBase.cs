@@ -29,7 +29,7 @@ public class UnitDataBase
     public bool strongCharge;   // 강한 돌격 유무
     public bool perfectAccuracy;// 필중 유무
 
-    // 생성자
+    //유닛 생성자
     public UnitDataBase(string name, int branch, int faction,
                 float health, float armor, float attackPower,
                 float speed, float range, float antiCavalry,
@@ -56,6 +56,7 @@ public class UnitDataBase
     }
 
     // 유닛 생성 함수들
+    //이름, 병종, 진영, 체력, 장갑, 공격력, 기동력, 사거리, 대기병, 경갑, 중갑, 원거리 공격, 둔기, 관통, 날쌤, 강한 돌격, 필중
     private static UnitDataBase AddSpearman()
     {
         return new UnitDataBase("민병대 창병", 0, 0, 110.0f, 3.0f, 30.0f, 4.0f, 1.0f, 25.0f,
@@ -151,6 +152,8 @@ public class UnitDataBase
         return new UnitDataBase("드레이크 기수", 5, 1, 240.0f, 7.0f, 120.0f, 10.0f, 1.0f, 30.0f,
             false, true, false, false, false, false, false, true);
     }
+
+
 
     // 유닛 id를 기반으로 유닛을 반환하는 함수
     public static UnitDataBase GetUnitById(int unitId)
