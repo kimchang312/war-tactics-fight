@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class FightStartBtn : MonoBehaviour
 {
     [SerializeField] private AutoBattleManager battleManager;  // Inspector에서 직접 연결할 AutoBattleManager
+    [SerializeField] private UnitCount unitCount;              // Inspector에서 직접 연결할 UnitCount
+
 
     [SerializeField] private Button fightButton;               //ArranageUnitsScene에 있는 Fight 버튼과 연결
 
@@ -35,7 +37,8 @@ public class FightStartBtn : MonoBehaviour
             // Inspector에서 연결된 battleManager 사용
             if (battleManager != null)
             {
-                int result= battleManager.StartBattle(_myUnitIds,_enemyUnitIds);
+                unitCount.CounttingUnits(_myUnitIds.Length,_enemyUnitIds.Length);//유닛 수 UI업데이트
+                int result= battleManager.StartBattle(_myUnitIds,_enemyUnitIds); //자동전투 실행
                 Debug.Log(result);
             }
 
