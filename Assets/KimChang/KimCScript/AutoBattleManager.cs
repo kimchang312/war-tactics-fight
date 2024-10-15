@@ -1,9 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using System;
+
 
 public class AutoBattleManager : MonoBehaviour
 {
+    [SerializeField] private TextMeshProUGUI myUnitContUI;      //내 유닛수UI에 연결할 변수
+    [SerializeField] private TextMeshProUGUI enemyUnitCountUI;  //상대 유닛수UI에 연결할 변수
+    [SerializeField] private TextMeshProUGUI myUnitHpUI;        //내 유닛 HP UI에 연결할 변수
+    [SerializeField] private TextMeshProUGUI enemyUnitHpUI;     //상대 유닛 HP UI에 연결할 변수
+    private float waittingTime=0.2f; //    
 
     // 유닛 id들로 유닛 데이터를 정리하는 함수
     // Tuple을 사용하여 두 개의 배열을 반환
@@ -44,6 +52,7 @@ public class AutoBattleManager : MonoBehaviour
     //자동전투
     private int AutoBattle(int[] _myUnitIds, int[] _enemyUnitIds)
     {
+
         // 나의 피해량
         float myDamage;
         // 적의 피해량
@@ -57,6 +66,18 @@ public class AutoBattleManager : MonoBehaviour
         // 인덱스를 사용해서 현재 전투에 참여하는 유닛 추적
         int myUnitIndex = 0;
         int enemyUnitIndex = 0;
+
+        //최초의 유닛 갯수
+        int myUnitMax= _myUnitIds.Length;
+        int enemyUnitMax= _enemyUnitIds.Length;
+
+
+
+        //유닛 수 UI 초기화 함수 호출
+        UpdateUnitCount(_myUnitIds.Length,_enemyUnitIds.Length);
+
+        //유닛 Hp UI 초기화 함수 호출
+        UpdateUnitHp(myUnits[0].health, enemyUnits[0].health);
 
         // 전투 반복
         while (myUnitIndex < myUnits.Length && enemyUnitIndex < enemyUnits.Length)
@@ -80,6 +101,26 @@ public class AutoBattleManager : MonoBehaviour
                 Debug.Log("적 유닛" + enemyUnits[enemyUnitIndex].name + "사망");
                 enemyUnitIndex++;  // 다음 적 유닛
             }
+
+            UpdateUnitCount(myUnitMax - myUnitIndex, enemyUnitMax - enemyUnitIndex);
+            if(myUnitIndex== myUnitMax)
+            {
+                UpdateUnitHp(myUnits[myUnitMax - 1].health, enemyUnits[enemyUnitIndex].health);
+            }
+            else if (enemyUnitIndex==enemyUnitMax)
+            {
+                UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitMax-1].health);
+            }
+            else
+            {
+                UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health);
+            }
+            
+
+            if (this.gameObject.activeInHierarchy)
+            {
+                StartCoroutine(WaitForSecondsExample());
+            }        
         }
 
         // 전투 종료 후 승리 여부 판단
@@ -105,6 +146,37 @@ public class AutoBattleManager : MonoBehaviour
         return result;
     }
 
+    //유닛 수 UI 초기화 함수
+    private void UpdateUnitCount(int myUnitLength,int enemyUnitLength)
+    {
+        myUnitContUI.text= $"{myUnitLength}";
+        enemyUnitCountUI.text = $"{enemyUnitLength}";
+    }
 
+
+    //유닛 Hp UI 초기화 함수
+    private void UpdateUnitHp(float myUnitHp,float enemyHp)
+    {
+        if(myUnitHp < 0)
+        {
+            myUnitHp = 0;
+        }
+        if (enemyHp < 0)
+        {
+            enemyHp = 0;
+        }
+        myUnitHpUI.text=$"{ Math.Floor(myUnitHp)}";
+        enemyUnitHpUI.text=$"{ Math.Floor(enemyHp)}";
+    }
+
+
+    //기다리게 하는 함수
+    IEnumerator WaitForSecondsExample()
+    {
+       
+        // 0.2초 대기
+        yield return new WaitForSeconds(waittingTime);
+       
+    }
 
 }
