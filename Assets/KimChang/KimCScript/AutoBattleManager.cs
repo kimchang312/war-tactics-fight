@@ -78,7 +78,7 @@ public class AutoBattleManager : MonoBehaviour
         int myUnitMax= _myUnitIds.Length;
         int enemyUnitMax= _enemyUnitIds.Length;
 
-
+        
 
         //유닛 수 UI 초기화 함수 호출
         UpdateUnitCount(_myUnitIds.Length,_enemyUnitIds.Length);
@@ -100,16 +100,20 @@ public class AutoBattleManager : MonoBehaviour
             // 유닛의 체력이 0 이하일 경우, 다음 유닛으로 넘어감
             if (myUnits[myUnitIndex].health <= 0)
             {
+                UpdateUnitCount(myUnitMax - myUnitIndex, enemyUnitMax - enemyUnitIndex);
+
                 Debug.Log("내 유닛 " + myUnits[myUnitIndex].name+"사망");
                 myUnitIndex++;  // 다음 내 유닛
             }
             if (enemyUnits[enemyUnitIndex].health <= 0)
             {
+                UpdateUnitCount(myUnitMax - myUnitIndex, enemyUnitMax - enemyUnitIndex);
+
                 Debug.Log("적 유닛 " + enemyUnits[enemyUnitIndex].name + "사망");
                 enemyUnitIndex++;  // 다음 적 유닛
             }
 
-            UpdateUnitCount(myUnitMax - myUnitIndex, enemyUnitMax - enemyUnitIndex);
+            
             if(myUnitIndex== myUnitMax)
             {
                 UpdateUnitHp(myUnits[myUnitMax - 1].health, enemyUnits[enemyUnitIndex].health);
@@ -162,7 +166,9 @@ public class AutoBattleManager : MonoBehaviour
     {
         myUnitContUI.text= $"{myUnitLength}";
         enemyUnitCountUI.text = $"{enemyUnitLength}";
-       
+
+        
+
     }
 
 

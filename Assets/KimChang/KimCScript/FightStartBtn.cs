@@ -6,7 +6,6 @@ public class FightStartBtn : MonoBehaviour
 {
     [SerializeField] private AutoBattleManager battleManager;  // Inspector에서 직접 연결할 AutoBattleManager
 
-
     [SerializeField] private Button fightButton;               //ArranageUnitsScene에 있는 Fight 버튼과 연결
 
 

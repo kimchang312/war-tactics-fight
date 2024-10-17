@@ -45,4 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   battleManager: {fileID: 5258423219322878226, guid: c9e9989e44154e947ba2a426ed1ad175, type: 3}
-  fightButton: {fileID: 0}
+  fightButton: {fileID: 5384326047997206721, guid: 32b2e83eb53a90b48a9d12290f0b8112, type: 3}
