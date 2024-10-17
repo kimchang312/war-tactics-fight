@@ -41,8 +41,6 @@ public class FightStartBtn : MonoBehaviour
             {
                 
                 int result= battleManager.StartBattle(_myUnitIds,_enemyUnitIds); //자동전투 실행
-                
-                Debug.Log(result);
             }
 
             SceneManager.sceneLoaded -= OnSceneLoaded;

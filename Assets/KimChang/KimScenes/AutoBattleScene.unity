@@ -405,9 +405,9 @@ RectTransform:
   - {fileID: 1971233091}
   - {fileID: 492266650}
   - {fileID: 942898581}
-  - {fileID: 1534200571}
   - {fileID: 1115930586}
   - {fileID: 695888076}
+  - {fileID: 1534200571}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2104,6 +2104,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 315888062}
     m_Modifications:
+    - target: {fileID: 1175807359262725777, guid: 7343f09434a38e34cb3e45e76ad1f90a, type: 3}
+      propertyPath: m_text
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6133326533137843147, guid: 7343f09434a38e34cb3e45e76ad1f90a, type: 3}
       propertyPath: m_Name
       value: EnemyUnitCountText
@@ -2378,6 +2382,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7741873433407319705, guid: 1f792555b7db59c40ac58b3d04da486f, type: 3}
+      propertyPath: m_text
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8593969959036513218, guid: 1f792555b7db59c40ac58b3d04da486f, type: 3}
       propertyPath: m_Name
       value: MyHpText
@@ -2478,6 +2486,10 @@ PrefabInstance:
     - target: {fileID: 4743989088271519021, guid: 561ca11d7fd4b6441b710ddbb4d32861, type: 3}
       propertyPath: m_Name
       value: EnemyHpText
+      objectReference: {fileID: 0}
+    - target: {fileID: 6354112712108466793, guid: 561ca11d7fd4b6441b710ddbb4d32861, type: 3}
+      propertyPath: m_text
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -13,6 +13,13 @@ public class AutoBattleManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI enemyUnitHpUI;     //상대 유닛 HP UI에 연결할 변수
     private float waittingTime=0.2f; //    
 
+    private void Start()
+    {
+        //myUnitContUI.text = "10";
+    }
+
+
+
     // 유닛 id들로 유닛 데이터를 정리하는 함수
     // Tuple을 사용하여 두 개의 배열을 반환
     private (UnitDataBase[] myUnits, UnitDataBase[] enemyUnits) GetUnits(int[] myUnitIds, int[] enemyUnitIds)
@@ -93,12 +100,12 @@ public class AutoBattleManager : MonoBehaviour
             // 유닛의 체력이 0 이하일 경우, 다음 유닛으로 넘어감
             if (myUnits[myUnitIndex].health <= 0)
             {
-                Debug.Log("내 유닛" + myUnits[myUnitIndex].name+"사망");
+                Debug.Log("내 유닛 " + myUnits[myUnitIndex].name+"사망");
                 myUnitIndex++;  // 다음 내 유닛
             }
             if (enemyUnits[enemyUnitIndex].health <= 0)
             {
-                Debug.Log("적 유닛" + enemyUnits[enemyUnitIndex].name + "사망");
+                Debug.Log("적 유닛 " + enemyUnits[enemyUnitIndex].name + "사망");
                 enemyUnitIndex++;  // 다음 적 유닛
             }
 
@@ -116,24 +123,28 @@ public class AutoBattleManager : MonoBehaviour
                 UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health);
             }
             
-
+            /*
             if (this.gameObject.activeInHierarchy)
             {
                 StartCoroutine(WaitForSecondsExample());
             }        
+            */
         }
 
         // 전투 종료 후 승리 여부 판단
         if (myUnitIndex < myUnits.Length && enemyUnitIndex >= enemyUnits.Length)
         {
+            Debug.Log($"나의 승리 {myUnits[myUnitIndex].name + myUnits[myUnitIndex].health}");
             return 0;  // 내가 승리
         }
         else if (enemyUnitIndex < enemyUnits.Length && myUnitIndex >= myUnits.Length)
         {
+            Debug.Log($"나의 승리 {enemyUnits[enemyUnitIndex].name + enemyUnits[enemyUnitIndex].health}");
             return 1;  // 적이 승리
         }
         else
         {
+            Debug.Log("무승부");
             return 2;  // 양쪽 모두 사망
         }
     }
@@ -151,6 +162,7 @@ public class AutoBattleManager : MonoBehaviour
     {
         myUnitContUI.text= $"{myUnitLength}";
         enemyUnitCountUI.text = $"{enemyUnitLength}";
+       
     }
 
 
@@ -165,6 +177,7 @@ public class AutoBattleManager : MonoBehaviour
         {
             enemyHp = 0;
         }
+        
         myUnitHpUI.text=$"{ Math.Floor(myUnitHp)}";
         enemyUnitHpUI.text=$"{ Math.Floor(enemyHp)}";
     }
