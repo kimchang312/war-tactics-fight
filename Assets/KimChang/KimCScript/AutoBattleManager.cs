@@ -47,6 +47,7 @@ public class AutoBattleManager : MonoBehaviour
         foreach (int unitId in enemyUnitIds)
         {
             List<string> rowData = sheetLoader.GetRowData(unitId); // rowData는 List<string> 형식
+
             if (rowData != null)
             {
                 // rowData를 UnitDataBase로 변환
@@ -143,7 +144,6 @@ public class AutoBattleManager : MonoBehaviour
             }
            
             
-
             await WaitForSecondsAsync(0.5f);
 
         }
@@ -203,6 +203,7 @@ public class AutoBattleManager : MonoBehaviour
         
  
     }
+
 
     //기다리는 함수
     private async Task WaitForSecondsAsync(float seconds)

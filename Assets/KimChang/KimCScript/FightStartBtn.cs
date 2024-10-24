@@ -12,8 +12,8 @@ public class FightStartBtn : MonoBehaviour
     private GoogleSheetLoader sheetLoader = new GoogleSheetLoader();
 
     // 예시 유닛, 추후 삭제
-    private int[] _myUnitIds = { 1,2 };
-    private int[] _enemyUnitIds = { 1, 2 };
+    private int[] _myUnitIds = { 2,2,2,2 };
+    private int[] _enemyUnitIds = { 15 };
 
 
     void Start()
