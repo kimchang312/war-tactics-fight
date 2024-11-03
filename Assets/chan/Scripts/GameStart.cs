@@ -14,4 +14,9 @@ public class GameStart : MonoBehaviour
     {
         SceneManager.LoadScene("Unit_UI");
     }
+
+    public void LoadDifficultyScene()
+    {
+        SceneManager.LoadScene("Difficulty");
+    }
 }

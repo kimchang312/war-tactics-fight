@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 368911297}
   - component: {fileID: 368911296}
   - component: {fileID: 368911295}
+  - component: {fileID: 368911298}
   m_Layer: 5
   m_Name: "\uC5B4\uB824\uC6C0Btn"
   m_TagString: Untagged
@@ -204,7 +205,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 368911296}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 368911298}
+        m_TargetAssemblyTypeName: Difficulty, Assembly-CSharp
+        m_MethodName: SetHardDifficulty
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &368911296
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -243,6 +256,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 368911293}
   m_CullTransparentMesh: 1
+--- !u!114 &368911298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368911293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09eaf30fae49d5843b3b07752755ab73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &544141757
 GameObject:
   m_ObjectHideFlags: 0
@@ -255,6 +280,7 @@ GameObject:
   - component: {fileID: 544141761}
   - component: {fileID: 544141760}
   - component: {fileID: 544141759}
+  - component: {fileID: 544141762}
   m_Layer: 5
   m_Name: "\uC26C\uC6C0Btn"
   m_TagString: Untagged
@@ -324,7 +350,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 544141760}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 544141762}
+        m_TargetAssemblyTypeName: Difficulty, Assembly-CSharp
+        m_MethodName: SetEasyDifficulty
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &544141760
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -363,6 +401,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 544141757}
   m_CullTransparentMesh: 1
+--- !u!114 &544141762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 544141757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09eaf30fae49d5843b3b07752755ab73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &754765057
 GameObject:
   m_ObjectHideFlags: 0
@@ -375,6 +425,7 @@ GameObject:
   - component: {fileID: 754765061}
   - component: {fileID: 754765060}
   - component: {fileID: 754765059}
+  - component: {fileID: 754765062}
   m_Layer: 5
   m_Name: "\uBCF4\uD1B5Btn"
   m_TagString: Untagged
@@ -444,7 +495,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 754765060}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 754765062}
+        m_TargetAssemblyTypeName: Difficulty, Assembly-CSharp
+        m_MethodName: SetNormalDifficulty
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &754765060
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -483,6 +546,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 754765057}
   m_CullTransparentMesh: 1
+--- !u!114 &754765062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 754765057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09eaf30fae49d5843b3b07752755ab73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &901464429
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,6 +790,7 @@ GameObject:
   - component: {fileID: 1664881041}
   - component: {fileID: 1664881040}
   - component: {fileID: 1664881039}
+  - component: {fileID: 1664881042}
   m_Layer: 5
   m_Name: "\uB3C4\uC804Btn"
   m_TagString: Untagged
@@ -784,7 +860,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1664881040}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1664881042}
+        m_TargetAssemblyTypeName: Difficulty, Assembly-CSharp
+        m_MethodName: SetChallengeDifficulty
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1664881040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -823,6 +911,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1664881037}
   m_CullTransparentMesh: 1
+--- !u!114 &1664881042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664881037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09eaf30fae49d5843b3b07752755ab73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1866476674
 GameObject:
   m_ObjectHideFlags: 0
