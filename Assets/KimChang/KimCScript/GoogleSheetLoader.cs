@@ -8,6 +8,13 @@ public class GoogleSheetLoader
     private List<List<string>> excel; // 데이터를 저장할 리스트
     private const string googleSheetURL = "https://docs.google.com/spreadsheets/d/1B_imPK0NF8GQ4tmMgGxOykMRguaBjDgnou8zLAYejCU/export?format=tsv&range=A4:AH";
 
+
+    //메서드를 추가하여 접근할 수 있게 하는방법 (임시) UnitDataManager 접근불가
+    public List<List<string>> GetExcelData()
+    {
+        return excel;
+    }
+
     // 데이터를 로드하는 비동기 메서드
     public async Task LoadGoogleSheetData()
     {
@@ -58,4 +65,5 @@ public class GoogleSheetLoader
             return null;
         }
     }
+    
 }

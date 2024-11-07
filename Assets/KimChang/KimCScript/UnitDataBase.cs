@@ -4,24 +4,28 @@ using UnityEngine;
 public class UnitDataBase
 {
     // 기본 정보
-    public string name;         // 유닛 이름
-    public int branch;          // 유닛 병종 (예: 0 = 보병)
-    public int unitId;          // 유닛 ID
-    public int unitImg;         // 유닛 이미지
-    public int faction;         // 유닛 진영
-    public int unitPrice;       // 유닛 가격
+    public int idx;            // 유닛의 고유 인덱스
+    public string unitName;    // 유닛 이름
+    public string unitBranch;  // 병종 이름
+    public int branchIdx;      // 병종 인덱스
+    public int unitId;         // 유닛 ID
+    public string unitExplain; // 유닛 설명
+    public int unitImg;        // 유닛 이미지 ID
+    public string unitFaction; // 유닛이 속한 진영
+    public int factionIdx;     // 진영 인덱스
+    public int unitPrice;      // 유닛 가격
 
     // 스탯 정보
-    public float health;        // 유닛 체력
-    public float attackPower;   // 유닛 공격력
-    public float armor;         // 유닛 장갑
-    public float speed;         // 유닛 기동력
-    public float range;         // 유닛 사거리
-    public float antiCavalry;   // 유닛 대기병 능력
+    public float health;       // 유닛 체력
+    public float armor;        // 유닛 장갑
+    public float attackDamage; // 공격력
+    public float mobility;     // 기동성
+    public float range;        // 사거리
+    public float antiCavalry;  // 대기병 능력
 
     // 특성 및 기술
     public bool lightArmor;     // 경갑 유무
-    public bool heavyArmor;     // 중갑 유무   
+    public bool heavyArmor;     // 중갑 유무
     public bool rangedAttack;   // 원거리 공격 유무
     public bool bluntWeapon;    // 둔기 유무
     public bool pierce;         // 관통 유무
@@ -29,20 +33,42 @@ public class UnitDataBase
     public bool strongCharge;   // 강한 돌격 유무
     public bool perfectAccuracy;// 필중 유무
 
-    //유닛 생성자
-    public UnitDataBase(string name, int branch, int faction,
-                float health, float armor, float attackPower,
-                float speed, float range, float antiCavalry,
-                bool lightArmor, bool heavyArmor, bool rangedAttack, bool bluntWeapon, bool pierce, bool agility,
-                bool strongCharge, bool perfectAccuracy)
+    public string blink = "빈";           //빈칸
+
+    // 추가적인 능력치
+    public bool charge;         // 돌격
+    public bool defense;        // 방어
+    public bool throwSpear;     // 창 던지기
+    public bool slaughter;      // 학살
+    public bool guerrilla;      // 게릴라
+    public bool guard;          // 경호
+    public bool assassination;  // 암살
+    public bool drain;          // 흡수
+    public bool overwhelm;      // 압도
+
+    // 생성자
+    public UnitDataBase(int idx, string unitName, string unitBranch, int branchIdx, int unitId,
+                        string unitExplain, int unitImg, string unitFaction, int factionIdx, int unitPrice,
+                        float health, float armor, float attackDamage, float mobility, float range, float antiCavalry,
+                        bool lightArmor, bool heavyArmor, bool rangedAttack, bool bluntWeapon, bool pierce,
+                        bool agility, bool strongCharge, bool perfectAccuracy, string blink,
+                        bool charge, bool defense, bool throwSpear, bool slaughter, bool guerrilla,
+                        bool guard, bool assassination, bool drain, bool overwhelm)
     {
-        this.name = name;
-        this.faction = faction;
-        this.branch = branch;
+        this.idx = idx;
+        this.unitName = unitName;
+        this.unitBranch = unitBranch;
+        this.branchIdx = branchIdx;
+        this.unitId = unitId;
+        this.unitExplain = unitExplain;
+        this.unitImg = unitImg;
+        this.unitFaction = unitFaction;
+        this.factionIdx = factionIdx;
+        this.unitPrice = unitPrice;
         this.health = health;
         this.armor = armor;
-        this.attackPower = attackPower;
-        this.speed = speed;
+        this.attackDamage = attackDamage;
+        this.mobility = mobility;
         this.range = range;
         this.antiCavalry = antiCavalry;
         this.lightArmor = lightArmor;
@@ -53,130 +79,72 @@ public class UnitDataBase
         this.agility = agility;
         this.strongCharge = strongCharge;
         this.perfectAccuracy = perfectAccuracy;
+        this.blink = blink;                         //빈칸
+        this.charge = charge;
+        this.defense = defense;
+        this.throwSpear = throwSpear;
+        this.slaughter = slaughter;
+        this.guerrilla = guerrilla;
+        this.guard = guard;
+        this.assassination = assassination;
+        this.drain = drain;
+        this.overwhelm = overwhelm;
+
     }
 
-    // 유닛 생성 함수들
-    //이름, 병종, 진영, 체력, 장갑, 공격력, 기동력, 사거리, 대기병, 경갑, 중갑, 원거리 공격, 둔기, 관통, 날쌤, 강한 돌격, 필중
-    private static UnitDataBase AddSpearman()
+
+    public static UnitDataBase ConvertToUnitDataBase(List<string> rowData)
     {
-        return new UnitDataBase("민병대 창병", 0, 0, 110.0f, 3.0f, 30.0f, 4.0f, 1.0f, 25.0f,
-            true, false, false, false, false, false, false, false);
+        if (rowData == null || rowData.Count == 0) return null;
+
+        int idx, branchIdx, unitId, unitImg, factionIdx, unitPrice;
+        float health, armor, attackDamage, mobility, range, antiCavalry, chargeDamage = 0;
+        bool lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy;
+        bool charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm;
+
+        // 파싱 시도, 실패할 경우 기본값 할당
+        int.TryParse(rowData[0], out idx); // idx
+        int.TryParse(rowData[3], out branchIdx); // branchIdx
+        int.TryParse(rowData[4], out unitId); // unitId
+        int.TryParse(rowData[6], out unitImg); // unitImg
+        int.TryParse(rowData[8], out factionIdx); // factionIdx
+        int.TryParse(rowData[9], out unitPrice); // unitPrice
+
+        float.TryParse(rowData[10], out health); // health
+        float.TryParse(rowData[11], out armor); // armor
+        float.TryParse(rowData[12], out attackDamage); // attackDamage
+        float.TryParse(rowData[13], out mobility); // mobility
+        float.TryParse(rowData[14], out range); // range
+        float.TryParse(rowData[15], out antiCavalry); // antiCavalry
+        float.TryParse(rowData[33], out chargeDamage); // chargeDamage
+
+        // Bool 값 파싱 (문자열이 "True" 또는 "False"이어야 함)
+        bool.TryParse(rowData[16], out lightArmor); // lightArmor
+        bool.TryParse(rowData[17], out heavyArmor); // heavyArmor
+        bool.TryParse(rowData[18], out rangedAttack); // rangedAttack
+        bool.TryParse(rowData[19], out bluntWeapon); // bluntWeapon
+        bool.TryParse(rowData[20], out pierce); // pierce
+        bool.TryParse(rowData[21], out agility); // agility
+        bool.TryParse(rowData[22], out strongCharge); // strongCharge
+        bool.TryParse(rowData[23], out perfectAccuracy); // perfectAccuracy
+        bool.TryParse(rowData[25], out charge); // charge
+        bool.TryParse(rowData[26], out defense); // defense
+        bool.TryParse(rowData[27], out throwSpear); // throwSpear
+        bool.TryParse(rowData[28], out slaughter); // slaughter
+        bool.TryParse(rowData[29], out guerrilla); // guerrilla
+        bool.TryParse(rowData[30], out guard); // guard
+        bool.TryParse(rowData[31], out assassination); // assassination
+        bool.TryParse(rowData[32], out drain); // drain
+        bool.TryParse(rowData[33], out overwhelm); // overwhelm
+
+        // rowData에서 값을 추출하여 UnitDataBase 객체 생성
+        return new UnitDataBase(
+            idx, rowData[1], rowData[2], branchIdx, unitId,
+            rowData[5], unitImg, rowData[7], factionIdx, unitPrice,
+            health, armor, attackDamage, mobility, range, antiCavalry,
+            lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy, "빈",
+            charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm
+        );
     }
 
-    private static UnitDataBase AddPikeman()
-    {
-        return new UnitDataBase("장창병", 0, 0, 130.0f, 3.0f, 35.0f, 3.0f, 1.0f, 35.0f,
-            true, false, false, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddSwordsman()
-    {
-        return new UnitDataBase("도병", 0, 0, 130.0f, 3.0f, 60.0f, 5.0f, 1.0f, 0.0f,
-            true, false, false, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddMilitiaBowman()
-    {
-        return new UnitDataBase("민병대 궁병", 1, 0, 90.0f, 1.0f, 20.0f, 5.0f, 3.0f, 0.0f,
-            true, false, true, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddSkirmisher()
-    {
-        return new UnitDataBase("척후병", 1, 0, 100.0f, 1.0f, 25.0f, 6.0f, 3.0f, 0.0f,
-            true, false, true, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddShieldBearer()
-    {
-        return new UnitDataBase("방패병", 2, 0, 150.0f, 9.0f, 35.0f, 1.0f, 1.0f, 0.0f,
-            false, true, false, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddMaceBearer()
-    {
-        return new UnitDataBase("철퇴병", 2, 0, 130.0f, 6.0f, 60.0f, 2.0f, 1.0f, 0.0f,
-            false, true, false, true, false, false, false, false);
-    }
-
-    private static UnitDataBase AddAssassin()
-    {
-        return new UnitDataBase("암살단원", 3, 0, 100.0f, 1.0f, 100.0f, 6.0f, 1.0f, 0.0f,
-            true, false, false, false, false, true, false, false);
-    }
-
-    private static UnitDataBase AddLancer()
-    {
-        return new UnitDataBase("창기병", 4, 0, 170.0f, 3.0f, 40.0f, 10.0f, 0.0f, 15.0f,
-            true, false, false, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddHorseArcher()
-    {
-        return new UnitDataBase("궁기병", 4, 0, 160.0f, 2.0f, 35.0f, 9.0f, 2.0f, 0.0f,
-            true, false, true, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddGuard()
-    {
-        return new UnitDataBase("친위대", 5, 0, 180.0f, 7.0f, 60.0f, 7.0f, 1.0f, 10.0f,
-            false, true, false, false, true, false, false, false);
-    }
-
-    private static UnitDataBase AddJavelinThrower()
-    {
-        return new UnitDataBase("투창병", 0, 1, 130.0f, 5.0f, 40.0f, 3.0f, 1.0f, 15.0f,
-            true, false, false, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddDoubleAxeBearer()
-    {
-        return new UnitDataBase("양손 도끼병", 0, 1, 140.0f, 1.0f, 90.0f, 6.0f, 1.0f, 0.0f,
-            true, false, false, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddVanguard()
-    {
-        return new UnitDataBase("선봉장", 2, 1, 150.0f, 7.0f, 80.0f, 3.0f, 1.0f, 0.0f,
-            false, true, false, false, false, false, false, false);
-    }
-
-    private static UnitDataBase AddRaider()
-    {
-        return new UnitDataBase("습격자", 4, 1, 190.0f, 3.0f, 30.0f, 9.0f, 1.0f, 0.0f,
-            true, false, false, false, false, false, true, false);
-    }
-
-    private static UnitDataBase AddDrakeRider()
-    {
-        return new UnitDataBase("드레이크 기수", 5, 1, 240.0f, 7.0f, 120.0f, 10.0f, 1.0f, 30.0f,
-            false, true, false, false, false, false, false, true);
-    }
-
-
-
-    // 유닛 id를 기반으로 유닛을 반환하는 함수
-    public static UnitDataBase GetUnitById(int unitId)
-    {
-        switch (unitId)
-        {
-            case 1: return AddSpearman();
-            case 2: return AddPikeman();
-            case 3: return AddSwordsman();
-            case 4: return AddMilitiaBowman();
-            case 5: return AddSkirmisher();
-            case 6: return AddShieldBearer();
-            case 7: return AddMaceBearer();
-            case 8: return AddAssassin();
-            case 9: return AddLancer();
-            case 10: return AddHorseArcher();
-            case 11: return AddGuard();
-            case 12: return AddJavelinThrower();
-            case 13: return AddDoubleAxeBearer();
-            case 14: return AddVanguard();
-            case 15: return AddRaider();
-            case 16: return AddDrakeRider();
-            default: return null;  // 유효하지 않은 unitId일 경우 null 반환
-        }
-    }
 }
