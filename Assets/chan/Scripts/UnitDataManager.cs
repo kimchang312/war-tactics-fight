@@ -47,6 +47,7 @@ public class UnitDataManager : MonoBehaviour
                 UnitDataBase unitData = UnitDataBase.ConvertToUnitDataBase(rowData);
                 if (unitData != null)
                 {
+                    if (IsValidUnitData(unitData)) { 
                     // 중복된 유닛 데이터가 있는지 확인 후 추가
                     if (!unitDataList.Exists(u => u.unitName == unitData.unitName))
                     {
@@ -56,6 +57,7 @@ public class UnitDataManager : MonoBehaviour
                         Debug.Log("유닛 이미지 값 확인: " + unitData.unitImg);// 유닛 데이터의 unitImg 값 확인
                     }
                 }
+                }
                 else
                 {
                     Debug.LogWarning("유닛 데이터 변환 실패");
@@ -63,6 +65,7 @@ public class UnitDataManager : MonoBehaviour
             }
             
         }
+
         // 유닛 로드 후 처리
         if (unitDataList.Count > 0)
         {
@@ -74,8 +77,16 @@ public class UnitDataManager : MonoBehaviour
         }
     }
 
+    // 유효한 유닛 데이터인지 체크하는 메서드
+    private bool IsValidUnitData(UnitDataBase unit)
+    {
+        return !string.IsNullOrEmpty(unit.unitName) && unit.unitPrice > 0 && !string.IsNullOrEmpty(unit.unitImg);
+    }
+
+
     public List<UnitDataBase> GetAllUnits()
     {
         return unitDataList;
     }
+
 }

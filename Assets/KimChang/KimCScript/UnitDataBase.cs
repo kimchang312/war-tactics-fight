@@ -10,7 +10,7 @@ public class UnitDataBase
     public int branchIdx;      // 병종 인덱스
     public int unitId;         // 유닛 ID
     public string unitExplain; // 유닛 설명
-    public int unitImg;        // 유닛 이미지 ID
+    public string unitImg;        // 유닛 이미지 ID
     public string unitFaction; // 유닛이 속한 진영
     public int factionIdx;     // 진영 인덱스
     public int unitPrice;      // 유닛 가격
@@ -48,7 +48,7 @@ public class UnitDataBase
 
     // 생성자
     public UnitDataBase(int idx, string unitName, string unitBranch, int branchIdx, int unitId,
-                        string unitExplain, int unitImg, string unitFaction, int factionIdx, int unitPrice,
+                        string unitExplain, string unitImg, string unitFaction, int factionIdx, int unitPrice,
                         float health, float armor, float attackDamage, float mobility, float range, float antiCavalry,
                         bool lightArmor, bool heavyArmor, bool rangedAttack, bool bluntWeapon, bool pierce,
                         bool agility, bool strongCharge, bool perfectAccuracy, string blink,
@@ -97,7 +97,7 @@ public class UnitDataBase
     {
         if (rowData == null || rowData.Count == 0) return null;
 
-        int idx, branchIdx, unitId, unitImg, factionIdx, unitPrice;
+        int idx, branchIdx, unitId, factionIdx, unitPrice;
         float health, armor, attackDamage, mobility, range, antiCavalry, chargeDamage = 0;
         bool lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy;
         bool charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm;
@@ -106,7 +106,7 @@ public class UnitDataBase
         int.TryParse(rowData[0], out idx); // idx
         int.TryParse(rowData[3], out branchIdx); // branchIdx
         int.TryParse(rowData[4], out unitId); // unitId
-        int.TryParse(rowData[6], out unitImg); // unitImg
+        //int.TryParse(rowData[6], out unitImg); // unitImg
         int.TryParse(rowData[8], out factionIdx); // factionIdx
         int.TryParse(rowData[9], out unitPrice); // unitPrice
 
@@ -140,7 +140,7 @@ public class UnitDataBase
         // rowData에서 값을 추출하여 UnitDataBase 객체 생성
         return new UnitDataBase(
             idx, rowData[1], rowData[2], branchIdx, unitId,
-            rowData[5], unitImg, rowData[7], factionIdx, unitPrice,
+            rowData[5], rowData[6], rowData[7], factionIdx, unitPrice,
             health, armor, attackDamage, mobility, range, antiCavalry,
             lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy, "빈",
             charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm

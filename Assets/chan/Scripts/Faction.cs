@@ -6,19 +6,19 @@ public class Faction : MonoBehaviour
     // Emfire 진영 선택
     public void SelectEmfire()
     {
-        SetFactionAndLoadScene("Emfire");
+        SetFactionAndLoadScene("제국");
     }
 
     // Heptachy 진영 선택
     public void SelectHeptachy()
     {
-        SetFactionAndLoadScene("Heptachy");
+        SetFactionAndLoadScene("칠성연합");
     }
 
     // Divinitas 진영 선택
     public void SelectDivinitas()
     {
-        SetFactionAndLoadScene("Divinitas");
+        SetFactionAndLoadScene("신성국");
     }
 
     // 진영을 설정하고 다음 씬을 로드하는 공통 함수

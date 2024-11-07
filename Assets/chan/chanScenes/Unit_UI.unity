@@ -8397,12 +8397,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32427c835435ec149b3c660810a08f33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  emptyUnitPrefab: {fileID: 226112281245195989, guid: 41c2a34d928f17e4c963613db0c4600e, type: 3}
   unitPrefab: {fileID: 7884760029074622961, guid: 5a81b25742cdd0d48ac190db6c844f3f, type: 3}
   content: {fileID: 1566716148}
   currencyText: {fileID: 460161047}
   factionText: {fileID: 145788133}
   playerData: {fileID: 0}
-  UnitDataManager: {fileID: 0}
+  unitDataManager: {fileID: 0}
 --- !u!4 &1020790775
 Transform:
   m_ObjectHideFlags: 0
@@ -9365,50 +9366,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8058404890542003837, guid: 7375178ba3dd72b45915bf1cc81f3259, type: 3}
   m_PrefabInstance: {fileID: 639263438}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1153756746
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1153756748}
-  - component: {fileID: 1153756747}
-  m_Layer: 0
-  m_Name: UnitDataManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1153756747
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1153756746}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a2622ae527ae3664997d3c82d01e481c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1153756748
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1153756746}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 259.898, y: 565.62067, z: 3.7768326}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &1161154913 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 410218834110504552, guid: 19860f719e0156f41bf00f62b6aa7678, type: 3}
@@ -15115,4 +15072,3 @@ SceneRoots:
   - {fileID: 82643590}
   - {fileID: 1833463438}
   - {fileID: 1020790775}
-  - {fileID: 1153756748}
