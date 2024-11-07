@@ -415,6 +415,7 @@ GameObject:
   - component: {fileID: 448241972}
   - component: {fileID: 448241974}
   - component: {fileID: 448241975}
+  - component: {fileID: 448241976}
   m_Layer: 5
   m_Name: "\uCE60\uC131\uC5F0\uD569"
   m_TagString: Untagged
@@ -538,7 +539,31 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 448241972}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 448241976}
+        m_TargetAssemblyTypeName: Faction, Assembly-CSharp
+        m_MethodName: SelectHeptachy
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &448241976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 448241970}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6643dde703a259a47886b4fe943e9fb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &537147260
 GameObject:
   m_ObjectHideFlags: 0
@@ -702,6 +727,7 @@ GameObject:
   - component: {fileID: 1010917567}
   - component: {fileID: 1010917569}
   - component: {fileID: 1010917570}
+  - component: {fileID: 1010917571}
   m_Layer: 5
   m_Name: "\uC2E0\uC131\uAD6D"
   m_TagString: Untagged
@@ -812,7 +838,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1010917567}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010917571}
+        m_TargetAssemblyTypeName: Faction, Assembly-CSharp
+        m_MethodName: SelectDivinitas
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1010917570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -826,6 +864,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   overlayImage: {fileID: 1144566922}
+--- !u!114 &1010917571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010917565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6643dde703a259a47886b4fe943e9fb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1144566920
 GameObject:
   m_ObjectHideFlags: 0
@@ -1748,6 +1798,7 @@ GameObject:
   - component: {fileID: 2098920975}
   - component: {fileID: 2098920977}
   - component: {fileID: 2098920978}
+  - component: {fileID: 2098920979}
   m_Layer: 5
   m_Name: "\uC81C\uAD6D"
   m_TagString: Untagged
@@ -1871,7 +1922,31 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2098920975}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2098920979}
+        m_TargetAssemblyTypeName: Faction, Assembly-CSharp
+        m_MethodName: SelectEmfire
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &2098920979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2098920973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6643dde703a259a47886b4fe943e9fb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

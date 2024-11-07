@@ -15,12 +15,24 @@ public class UnitUI : MonoBehaviour
     {
         unitData = unit;
 
+        // 로그 찍어보자
+        Debug.Log($"유닛 이름: {unit.unitName}, 가격: {unit.unitPrice}");
+
         // 유닛 이름과 가격 텍스트 설정
         unitNameText.text = unit.unitName;
         unitPriceText.text = unit.unitPrice.ToString()+"G";
 
-        // 유닛 이미지 설정 (유닛 이미지 ID로부터 실제 이미지를 불러오는 방식)
-        unitImage.sprite = Resources.Load<Sprite>("UnitImages/" + unit.unitImg);
+        // 유닛 이미지 설정
+        Sprite loadedSprite = Resources.Load<Sprite>("UnitImages/" + unit.unitImg);
+        if (loadedSprite != null)
+        {
+            unitImage.sprite = loadedSprite;
+            Debug.Log("유닛 이미지 로드 성공: " + unit.unitImg);
+        }
+        else
+        {
+            Debug.LogError("유닛 이미지 로드 실패: " + unit.unitImg);
+        }
 
         // 구매 버튼의 클릭 이벤트 처리
         buyButton.onClick.AddListener(() => BuyUnit());
@@ -29,6 +41,7 @@ public class UnitUI : MonoBehaviour
     private void BuyUnit()
     {
         // ShopManager에서 유닛을 구매하는 메서드 호출
-        FindObjectOfType<ShopManager>().BuyUnit(unitData);
+        ShopManager.Instance.BuyUnit(unitData);
+        Debug.Log("유닛 구매");
     }
 }

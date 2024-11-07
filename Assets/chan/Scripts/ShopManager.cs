@@ -11,7 +11,10 @@ public class ShopManager : MonoBehaviour
     public GameObject unitPrefab;           // 유닛 Prefab
     public Transform content;               // 유닛이 표시될 위치 (ScrollView의 Content)
     public TextMeshProUGUI currencyText;    // 현재 자금을 표시할 Text
+    public TextMeshProUGUI factionText;     // 플레이어의 진영을 표시할 Text
     public PlayerData playerData;           // PlayerData를 통해 자금 및 구매한 유닛 확인
+    public UnitDataManager UnitDataManager; // UnitDataManager를 통해 유닛데이터 로드하기 위함
+
 
 
     private void Awake()
@@ -19,6 +22,7 @@ public class ShopManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -28,14 +32,28 @@ public class ShopManager : MonoBehaviour
 
     // 유닛 데이터를 로드하는 시점에 맞춰 DisplayUnits 호출
     private async void Start()
-    {   
+    {
+
+        // PlayerData 싱글톤 인스턴스를 연결
+        if (PlayerData.Instance != null)
+        {
+            playerData = PlayerData.Instance;
+            Debug.Log("PlayerData 연결 완료: " + playerData.faction);
+        }
+        else
+        {
+            Debug.LogError("PlayerData 싱글톤 인스턴스가 존재하지 않습니다.");
+        }
         Debug.Log("ShopManager Start()");
         
 
         // 데이터가 로드되었는지 확인하고, 로드된 후 DisplayUnits 호출
         if (UnitDataManager.Instance != null && UnitDataManager.Instance.unitDataList.Count == 0)
         {
+            UnitDataManager = UnitDataManager.Instance;
+            
             await UnitDataManager.Instance.LoadUnitDataAsync(); // 비동기적으로 데이터를 로드
+
             DisplayUnits(); // 데이터를 로드한 후 유닛을 표시
         }
         
@@ -58,6 +76,8 @@ public class ShopManager : MonoBehaviour
                 if (unitUI != null)
                 {
                     unitUI.SetUnitData(unit); // 유닛 정보를 UI에 세팅
+                    FactionDisplay();
+                    currencyDisplay();
                 }
                 else
                 {
@@ -85,6 +105,7 @@ public class ShopManager : MonoBehaviour
 
             // UI 업데이트
             UpdateCurrencyDisplay();
+            
         }
         else
         {
@@ -97,4 +118,12 @@ public class ShopManager : MonoBehaviour
         {
         currencyText.text =  PlayerData.currency.ToString()+"G";
         }
+        private void FactionDisplay()
+        { 
+           factionText.text = "진영 : "+ playerData.faction.ToString();
+        }
+    private void currencyDisplay()
+    {
+        currencyText.text = PlayerData.currency.ToString() + "G";
+    }
 }

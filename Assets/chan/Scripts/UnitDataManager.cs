@@ -14,9 +14,11 @@ public class UnitDataManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("UnitDataManager가 초기화되었습니다.", this);
         }
         else
         {
+            Debug.LogWarning("UnitDataManager가 중복 생성되었습니다.", this);
             Destroy(gameObject);
         }
     }
@@ -50,6 +52,8 @@ public class UnitDataManager : MonoBehaviour
                     {
                         unitDataList.Add(unitData); // 데이터를 리스트에 추가
                         Debug.Log($"유닛 추가됨: {unitData.unitName}"); // 추가된 유닛을 출력
+                                                                   
+                        Debug.Log("유닛 이미지 값 확인: " + unitData.unitImg);// 유닛 데이터의 unitImg 값 확인
                     }
                 }
                 else
@@ -57,12 +61,7 @@ public class UnitDataManager : MonoBehaviour
                     Debug.LogWarning("유닛 데이터 변환 실패");
                 }
             }
-            // 첫 번째 유닛 데이터 출력 (리스트에 유닛이 존재하는 경우)
-            if (unitDataList.Count > 0)
-            {
-                UnitDataBase firstUnit = unitDataList[0];
-                Debug.Log($"첫 번째 유닛 데이터 확인: 이름 = {firstUnit.unitName}, 가격 = {firstUnit.unitPrice}, 이미지 = {firstUnit.unitImg}");
-            }
+            
         }
         // 유닛 로드 후 처리
         if (unitDataList.Count > 0)

@@ -1,0 +1,39 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class Faction : MonoBehaviour
+{
+    // Emfire 진영 선택
+    public void SelectEmfire()
+    {
+        SetFactionAndLoadScene("Emfire");
+    }
+
+    // Heptachy 진영 선택
+    public void SelectHeptachy()
+    {
+        SetFactionAndLoadScene("Heptachy");
+    }
+
+    // Divinitas 진영 선택
+    public void SelectDivinitas()
+    {
+        SetFactionAndLoadScene("Divinitas");
+    }
+
+    // 진영을 설정하고 다음 씬을 로드하는 공통 함수
+    private void SetFactionAndLoadScene(string factionName)
+    {
+        if (PlayerData.Instance != null)
+        {
+            PlayerData.Instance.faction = factionName;
+        }
+        else
+        {
+            Debug.LogWarning("PlayerData 인스턴스를 찾을 수 없습니다.");
+        }
+
+        // Unit_UI 씬으로 전환
+        SceneManager.LoadScene("Unit_UI");
+    }
+}
