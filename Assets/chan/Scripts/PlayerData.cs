@@ -5,10 +5,12 @@ public class PlayerData : MonoBehaviour
 {
     public static PlayerData Instance { get; private set; } // 싱글톤 인스턴스
 
+    private Dictionary<UnitDataBase, int> purchasedUnits = new Dictionary<UnitDataBase, int>();
+
     public string faction;                // 플레이어가 선택한 진영
     public string difficulty;             // 플레이어가 선택한 난이도
     public int enemyFunds;                // 난이도에 따른 적의 자금
-    public List<UnitDataBase> purchasedUnits; // 상점에서 구매한 유닛 리스트
+    
     public static int currency = 3000;    // 플레이어 자금 (static으로 관리)
 
     private void Awake()
@@ -18,7 +20,7 @@ public class PlayerData : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject); // 씬 전환 시에도 유지
-            purchasedUnits = new List<UnitDataBase>(); // 구매한 유닛 리스트 초기화
+            
         }
         else
         {
@@ -46,11 +48,45 @@ public class PlayerData : MonoBehaviour
             _ => 2500 // 나머지 경우에 대한 기본값  쉬움과 같음
         };
     }
-
-    // 상점에서 유닛 구매 후 구매 내역을 리스트에 추가
+    // 유닛을 구매하고 리스트에 추가
     public void AddPurchasedUnit(UnitDataBase unit)
     {
-        purchasedUnits.Add(unit);
+        if (purchasedUnits.ContainsKey(unit))
+        {
+            purchasedUnits[unit]++;
+        }
+        else
+        {
+            purchasedUnits[unit] = 1;
+        }
+    }
+    // 특정 유닛을 판매하여 자금 환불 및 수량 감소
+    public void SellUnit(UnitDataBase unit)
+    {
+        if (purchasedUnits.ContainsKey(unit) && purchasedUnits[unit] > 0)
+        {
+            currency += unit.unitPrice;
+            purchasedUnits[unit]--;
+
+            if (purchasedUnits[unit] == 0)
+            {
+                purchasedUnits.Remove(unit);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("판매할 유닛이 없습니다.");
+        }
+    }
+    // 특정 유닛의 수량을 가져옴
+    public int GetUnitCount(UnitDataBase unit)
+    {
+        return purchasedUnits.ContainsKey(unit) ? purchasedUnits[unit] : 0;
     }
 
+    // 플레이어의 모든 유닛 목록을 반환
+    public Dictionary<UnitDataBase, int> GetAllPurchasedUnits()
+    {
+        return new Dictionary<UnitDataBase, int>(purchasedUnits);
+    }
 }
