@@ -17,7 +17,8 @@ public class ShopManager : MonoBehaviour
     public TextMeshProUGUI factionText;     // 플레이어의 진영을 표시할 Text
     public PlayerData playerData;           // PlayerData를 통해 자금 및 구매한 유닛 확인
     public UnitDataManager unitDataManager; // UnitDataManager를 통해 유닛데이터 로드하기 위함
-
+    public Button placeButton; // 배치버튼
+    public GameObject FundsWarning; // 자금 부족 경고
 
 
     private void Awake()
@@ -117,17 +118,22 @@ public class ShopManager : MonoBehaviour
     }
     public void BuyUnit(UnitDataBase unit)
     {
-        if (PlayerData.currency >= unit.unitPrice)
-        {
-            PlayerData.currency -= unit.unitPrice;
+        // 자금이 부족해도 유닛 구매 가능
+            PlayerData.currency -= unit.unitPrice; //자금 차감 (음수로 내려감)
             PlayerData.Instance.AddPurchasedUnit(unit);
+
             UpdateCurrencyDisplay();
             AddOrUpdateUnitInMyUnitUI(unit);
-        }
-        else
+
+        // 자금이 양수로 돌아오면 경고 메시지 숨기고 배치 버튼 활성화
+        UpdateUIState();
+        // 자금 부족 시 경고 표시
+        if (PlayerData.currency < 0)
         {
-            Debug.Log("자금이 부족합니다.");
+            ShowFundsWarning(true);    // 자금 부족 경고 표시
+            DisablePlaceButton(true);  // 배치 버튼 비활성화
         }
+       
     }
 
     // 자금 업데이트 UI 표시
@@ -139,20 +145,7 @@ public class ShopManager : MonoBehaviour
         { 
            factionText.text = "진영 : "+ playerData.faction.ToString();
         }
-    /*private void AddUnitToMyUnitUI(UnitDataBase unit)
-    {
-        GameObject unitObj = Instantiate(MyUnitPrefab, myUnitUIcontent);
-        MyUnitUI myUnitUI = unitObj.GetComponent<MyUnitUI>();
-        if (myUnitUI != null)
-        {
-            Debug.Log("Setup 메서드 호출됨");
-            myUnitUI.Setup(unit);
-        }
-        else
-        {
-            Debug.LogError("MyUnitUI 컴포넌트를 찾을 수 없습니다.");
-        }
-    }*/
+
     // MyUnit UI에 유닛 추가 또는 소지 개수 증가
     private void AddOrUpdateUnitInMyUnitUI(UnitDataBase unit)
     {
@@ -180,6 +173,37 @@ public class ShopManager : MonoBehaviour
             {
                 myUnitUI.Setup(unit);
             }
+        }
+    }
+    // 자금 부족 경고 메시지 표시/숨기기
+    public void ShowFundsWarning(bool show)
+    {
+        if (FundsWarning != null)
+        {
+            FundsWarning.SetActive(show);
+        }
+    }
+    // 배치 버튼을 비활성화하는 메서드
+    public void DisablePlaceButton(bool disable)
+    {
+        // 배치 버튼 비활성화
+        if (placeButton != null)
+        {
+            placeButton.interactable = !disable;
+        }
+    }
+    // 자금 상태에 따라 UI 업데이트 (경고 메시지와 배치 버튼 상태)
+    public void UpdateUIState()
+    {
+        if (PlayerData.currency < 0)
+        {
+            ShowFundsWarning(true);
+            DisablePlaceButton(true);
+        }
+        else
+        {
+            ShowFundsWarning(false);
+            DisablePlaceButton(false);
         }
     }
 }
