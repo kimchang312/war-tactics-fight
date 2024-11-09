@@ -146,6 +146,7 @@ GameObject:
   - component: {fileID: 6419801148139764297}
   - component: {fileID: 3357466701840905779}
   - component: {fileID: 6388321025374423247}
+  - component: {fileID: -2310923382921118053}
   m_Layer: 5
   m_Name: Myunit
   m_TagString: Untagged
@@ -255,3 +256,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &-2310923382921118053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6958134036380219426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d361682d5efb834bb1529ce505ec776, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitImage: {fileID: 3357466701840905779}
+  unitText: {fileID: 6187903906942579418}
+  sellButton: {fileID: 6388321025374423247}

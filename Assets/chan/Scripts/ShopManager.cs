@@ -11,6 +11,7 @@ public class ShopManager : MonoBehaviour
     public GameObject emptyUnitPrefab;      // 레이아웃 자리차지를 위한 빈 프리팹
     public GameObject unitPrefab;           // 유닛 Prefab
     public Transform content;               // 유닛이 표시될 위치 (ScrollView의 Content)
+    public GameObject MyUnitPrefab;
     public Transform myUnitUIcontent;       // MyUnit UI 위치
     public TextMeshProUGUI currencyText;    // 현재 자금을 표시할 Text
     public TextMeshProUGUI factionText;     // 플레이어의 진영을 표시할 Text
@@ -121,7 +122,7 @@ public class ShopManager : MonoBehaviour
             PlayerData.currency -= unit.unitPrice;
             PlayerData.Instance.AddPurchasedUnit(unit);
             UpdateCurrencyDisplay();
-            //AddUnitToMyUnitUI(unit);
+            AddOrUpdateUnitInMyUnitUI(unit);
         }
         else
         {
@@ -140,11 +141,45 @@ public class ShopManager : MonoBehaviour
         }
     /*private void AddUnitToMyUnitUI(UnitDataBase unit)
     {
-        GameObject unitObj = Instantiate(unitPrefab, myUnitUIcontent);
+        GameObject unitObj = Instantiate(MyUnitPrefab, myUnitUIcontent);
         MyUnitUI myUnitUI = unitObj.GetComponent<MyUnitUI>();
         if (myUnitUI != null)
         {
+            Debug.Log("Setup 메서드 호출됨");
             myUnitUI.Setup(unit);
         }
+        else
+        {
+            Debug.LogError("MyUnitUI 컴포넌트를 찾을 수 없습니다.");
+        }
     }*/
+    // MyUnit UI에 유닛 추가 또는 소지 개수 증가
+    private void AddOrUpdateUnitInMyUnitUI(UnitDataBase unit)
+    {
+        bool unitExists = false;
+
+        // 이미 MyUnitUI에 해당 유닛이 있는지 확인
+        foreach (Transform child in myUnitUIcontent)
+        {
+            MyUnitUI myUnitUI = child.GetComponent<MyUnitUI>();
+            if (myUnitUI != null && myUnitUI.UnitData == unit)
+            {
+                // 소지 개수 업데이트
+                myUnitUI.UpdateUnitCount();
+                unitExists = true;
+                break;
+            }
+        }
+
+        // MyUnitUI에 해당 유닛이 없다면 새로 생성
+        if (!unitExists)
+        {
+            GameObject unitObj = Instantiate(MyUnitPrefab, myUnitUIcontent);
+            MyUnitUI myUnitUI = unitObj.GetComponent<MyUnitUI>();
+            if (myUnitUI != null)
+            {
+                myUnitUI.Setup(unit);
+            }
+        }
+    }
 }
