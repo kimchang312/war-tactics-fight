@@ -13,6 +13,8 @@ public class PlayerData : MonoBehaviour
     
     public static int currency = 3000;    // 플레이어 자금 (static으로 관리)
 
+    
+
     private void Awake()
     {
         // 싱글톤 인스턴스 설정
@@ -115,4 +117,19 @@ public class PlayerData : MonoBehaviour
     {
         return new Dictionary<UnitDataBase, int>(purchasedUnits);
     }
+    // 플레이어 데이터 초기화
+    public void ResetPlayerData()
+    {
+        // 유닛 목록 초기화
+        purchasedUnits.Clear();
+
+        // 자금 초기화
+        currency = 3000;
+
+        // 기타 초기화할 데이터가 있다면 여기에 추가
+        faction = "기본 진영";
+        difficulty = "기본 난이도";
+        enemyFunds = CalculateEnemyFunds(difficulty); // 난이도에 따른 자금 초기화
+    }
+    
 }

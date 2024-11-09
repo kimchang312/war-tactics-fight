@@ -11,7 +11,7 @@ public class ShopManager : MonoBehaviour
     public GameObject emptyUnitPrefab;      // 레이아웃 자리차지를 위한 빈 프리팹
     public GameObject unitPrefab;           // 유닛 Prefab
     public Transform content;               // 유닛이 표시될 위치 (ScrollView의 Content)
-    public GameObject MyUnitPrefab;
+    public GameObject MyUnitPrefab;         // MyUnit 프리팹
     public Transform myUnitUIcontent;       // MyUnit UI 위치
     public TextMeshProUGUI currencyText;    // 현재 자금을 표시할 Text
     public TextMeshProUGUI factionText;     // 플레이어의 진영을 표시할 Text
@@ -20,7 +20,9 @@ public class ShopManager : MonoBehaviour
     public Button placeButton; // 배치버튼
     public GameObject FundsWarning; // 자금 부족 경고
 
-
+    [SerializeField] private Transform unitPlacementArea;  // 유닛 배치할 UI 영역
+    [SerializeField] private GameObject placeunitPrefab;       // 배치할 유닛 프리팹
+    private bool isPlacingUnits = false;
     private void Awake()
     {
         if (Instance == null)
@@ -70,10 +72,11 @@ public class ShopManager : MonoBehaviour
         {
             Debug.LogWarning("유닛 데이터가 비어 있습니다.");
         }
-// 로딩이 완료된 후 바로 상점 화면을 표시
+        // 로딩이 완료된 후 바로 상점 화면을 표시
 
-    UpdateCurrencyDisplay(); // 자금 UI 업데이트
-    FactionDisplay();// 진영 UI 업데이트
+        UpdateCurrencyDisplay(); // 자금 UI 업데이트
+        FactionDisplay();// 진영 UI 업데이트
+
 
     }
     
@@ -141,7 +144,7 @@ public class ShopManager : MonoBehaviour
         {
         currencyText.text =  PlayerData.currency.ToString()+"G";
         }
-        private void FactionDisplay()
+    private void FactionDisplay()
         { 
            factionText.text = "진영 : "+ playerData.faction.ToString();
         }
@@ -205,5 +208,40 @@ public class ShopManager : MonoBehaviour
             ShowFundsWarning(false);
             DisablePlaceButton(false);
         }
+    }
+
+    
+    // 유닛 클릭시 호출되는 메서드
+    public void OnUnitClicked(UnitDataBase unit)
+    {
+        
+        if (isPlacingUnits)
+        {
+            PlaceUnit(unit);  // 배치 모드일 때 유닛 배치
+        }
+        else
+        {
+            PlayerData.Instance.SellUnit(unit); // 배치 모드가 아니면 다른 처리 (예: 판매 등)
+        }
+    }
+    // 선택된 유닛을 배치하는 메서드
+    private void PlaceUnit(UnitDataBase unit)
+    {
+        // 유닛의 이미지와 이름을 가지고 새로운 UI 프리팹을 생성
+        GameObject unitObject = Instantiate(placeunitPrefab, unitPlacementArea);
+        UnitUI unitUI = unitObject.GetComponent<UnitUI>();
+
+        // 유닛 데이터 설정
+        unitUI.Setup(unit);  // UnitUI의 Setup 메서드에서 유닛 데이터와 UI 업데이트
+
+        // 배치 후 해당 유닛의 개수를 차감
+        PlayerData.Instance.SellUnit(unit);
+        Debug.Log($"배치된 유닛: {unit.unitName}");
+    }
+    // 배치 모드 활성화 / 비활성화 토글
+    public void TogglePlacingUnits()
+    {
+        isPlacingUnits = !isPlacingUnits;
+        placeButton.interactable = isPlacingUnits;  // 배치 버튼 활성화 / 비활성화
     }
 }

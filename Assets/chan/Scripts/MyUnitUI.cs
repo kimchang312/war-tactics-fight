@@ -6,7 +6,9 @@ public class MyUnitUI : MonoBehaviour
 {
     [SerializeField] private Image unitImage;               // 유닛 이미지 표시
     [SerializeField] private TextMeshProUGUI unitText;   // 유닛 이름 , 소지개수 표시
-    [SerializeField] private Button sellButton;              // 유닛 판매 버튼
+    [SerializeField] private Button actionButton;              // 유닛 판매 버튼
+    
+
 
     private UnitDataBase unitData;         // 해당 유닛의 데이터
 
@@ -42,7 +44,12 @@ public class MyUnitUI : MonoBehaviour
         UpdateUnitCount();
 
         // 판매 버튼 클릭 이벤트 처리
-        sellButton.onClick.AddListener(SellUnit);
+        actionButton.onClick.AddListener(OnActionButtonClicked);
+    }
+    private void OnActionButtonClicked()
+    {
+        // ShopManager에서 배치 버튼 눌렀을 때 유닛 배치 호출
+        ShopManager.Instance.OnUnitClicked(unitData);
     }
 
     // 유닛 개수를 업데이트하는 메서드
