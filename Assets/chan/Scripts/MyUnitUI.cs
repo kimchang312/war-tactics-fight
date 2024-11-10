@@ -6,7 +6,7 @@ public class MyUnitUI : MonoBehaviour
 {
     [SerializeField] private Image unitImage;               // 유닛 이미지 표시
     [SerializeField] private TextMeshProUGUI unitText;   // 유닛 이름 , 소지개수 표시
-    [SerializeField] private Button actionButton;              // 유닛 판매 버튼
+    [SerializeField] private Button MyUnitButton;              // 유닛 판매 버튼
     
 
 
@@ -43,13 +43,26 @@ public class MyUnitUI : MonoBehaviour
         // 유닛 개수를 업데이트
         UpdateUnitCount();
 
-        // 판매 버튼 클릭 이벤트 처리
-        actionButton.onClick.AddListener(OnActionButtonClicked);
+        // MyUnit 클릭 이벤트 처리
+        MyUnitButton.onClick.AddListener(OnMyUnitButtonClicked);
     }
-    private void OnActionButtonClicked()
+    private void OnMyUnitButtonClicked()
     {
-        // ShopManager에서 배치 버튼 눌렀을 때 유닛 배치 호출
-        ShopManager.Instance.OnUnitClicked(unitData);
+        if (ShopManager.Instance.IsPlacingUnits) // 배치 모드일 때
+        {
+            if (unitData == null)
+            {
+                Debug.LogError("UnitData is null in OnMyUnitButtonClicked.");
+                return;
+            }
+            ShopManager.Instance.OnUnitClicked(unitData); // 유닛 배치
+        }
+        else // 배치 모드가 아닐 때
+        {
+            PlayerData.Instance.SellUnit(unitData);      // 유닛 판매
+            UpdateUnitCount();                           // 개수 업데이트
+            ShopManager.Instance.UpdateCurrencyDisplay(); // 자금 UI 업데이트
+        }
     }
 
     // 유닛 개수를 업데이트하는 메서드
@@ -64,12 +77,16 @@ public class MyUnitUI : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-    // 유닛 판매하는 메서드
+    // 유닛의 수량을 반환하는 메서드
+    public int GetUnitCount()
+    {
+        return PlayerData.Instance.GetUnitCount(UnitData);
+    }
+    /* 유닛 판매하는 메서드
     public void SellUnit()
     {
         PlayerData.Instance.SellUnit(unitData);  // PlayerData에서 유닛 판매
         UpdateUnitCount();  // 개수 업데이트
         ShopManager.Instance.UpdateCurrencyDisplay();  // 자금 UI 업데이트
-    }
+    }*/
 }

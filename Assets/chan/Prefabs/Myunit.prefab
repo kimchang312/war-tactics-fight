@@ -346,5 +346,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitImage: {fileID: 3357466701840905779}
   unitText: {fileID: 6187903906942579418}
-  actionButton: {fileID: 6388321025374423247}
-  unitPlacementArea: {fileID: 0}
+  MyUnitButton: {fileID: 6388321025374423247}

@@ -17,12 +17,14 @@ public class ShopManager : MonoBehaviour
     public TextMeshProUGUI factionText;     // 플레이어의 진영을 표시할 Text
     public PlayerData playerData;           // PlayerData를 통해 자금 및 구매한 유닛 확인
     public UnitDataManager unitDataManager; // UnitDataManager를 통해 유닛데이터 로드하기 위함
-    public Button placeButton; // 배치버튼
+    public Button placeButton; // 배치버튼 = 배치BTN
     public GameObject FundsWarning; // 자금 부족 경고
 
     [SerializeField] private Transform unitPlacementArea;  // 유닛 배치할 UI 영역
-    [SerializeField] private GameObject placeunitPrefab;       // 배치할 유닛 프리팹
-    private bool isPlacingUnits = false;
+    [SerializeField] private GameObject placeunitPrefab;   // 배치할 유닛 프리팹
+    public bool isPlacingUnits = false;                   // 배치 모드 확인
+
+    public bool IsPlacingUnits => isPlacingUnits;
     private void Awake()
     {
         if (Instance == null)
@@ -76,7 +78,7 @@ public class ShopManager : MonoBehaviour
 
         UpdateCurrencyDisplay(); // 자금 UI 업데이트
         FactionDisplay();// 진영 UI 업데이트
-
+        placeButton.onClick.AddListener(TogglePlacingUnits);
 
     }
     
@@ -210,32 +212,35 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    
+
     // 유닛 클릭시 호출되는 메서드
     public void OnUnitClicked(UnitDataBase unit)
     {
-        
-        if (isPlacingUnits)
-        {
-            PlaceUnit(unit);  // 배치 모드일 때 유닛 배치
-        }
-        else
-        {
-            PlayerData.Instance.SellUnit(unit); // 배치 모드가 아니면 다른 처리 (예: 판매 등)
-        }
+        PlaceUnit(unit);  // 유닛 배치
     }
     // 선택된 유닛을 배치하는 메서드
     private void PlaceUnit(UnitDataBase unit)
     {
         // 유닛의 이미지와 이름을 가지고 새로운 UI 프리팹을 생성
-        GameObject unitObject = Instantiate(placeunitPrefab, unitPlacementArea);
-        UnitUI unitUI = unitObject.GetComponent<UnitUI>();
+        GameObject placeunitObject = Instantiate(placeunitPrefab, unitPlacementArea);
+        // PlacedUnit 스크립트 컴포넌트를 가져옴
+        PlacedUnit placedUnit = placeunitObject.GetComponent<PlacedUnit>();
+        
 
         // 유닛 데이터 설정
-        unitUI.Setup(unit);  // UnitUI의 Setup 메서드에서 유닛 데이터와 UI 업데이트
+        placedUnit.SetUnitData(unit);  // PlacedUnit의 SetUnitData 메서드에서 유닛 데이터와 UI 업데이트
+
+        // 배치 후 해당 유닛을 PlayerData의 배치된 유닛 리스트에 추가
+        PlayerData.Instance.AddPlacedUnit(unit);  // 유닛을 배치된 유닛 목록에 추가
 
         // 배치 후 해당 유닛의 개수를 차감
         PlayerData.Instance.SellUnit(unit);
+        // 소지 개수 업데이트
+        MyUnitUI myUnitUI = FindObjectOfType<MyUnitUI>();  // MyUnitUI를 찾아서 참조
+        if (myUnitUI != null)
+        {
+            myUnitUI.UpdateUnitCount();  // UI에서 유닛 수량을 업데이트
+        }
         Debug.Log($"배치된 유닛: {unit.unitName}");
     }
     // 배치 모드 활성화 / 비활성화 토글
@@ -243,5 +248,10 @@ public class ShopManager : MonoBehaviour
     {
         isPlacingUnits = !isPlacingUnits;
         placeButton.interactable = isPlacingUnits;  // 배치 버튼 활성화 / 비활성화
+    }
+    public void ReturnUnit(UnitDataBase unit)
+    {
+        PlayerData.Instance.AddPurchasedUnit(unit);
+        AddOrUpdateUnitInMyUnitUI(unit);
     }
 }

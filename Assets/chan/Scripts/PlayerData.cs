@@ -6,7 +6,7 @@ public class PlayerData : MonoBehaviour
     public static PlayerData Instance { get; private set; } // 싱글톤 인스턴스
 
     private Dictionary<UnitDataBase, int> purchasedUnits = new Dictionary<UnitDataBase, int>();
-
+    private List<UnitDataBase> placedUnits = new List<UnitDataBase>(); // 배치된 유닛 목록. 이후 전투 씬에 필요한 형태로 전달해야함.
     public string faction;                // 플레이어가 선택한 진영
     public string difficulty;             // 플레이어가 선택한 난이도
     public int enemyFunds;                // 난이도에 따른 적의 자금
@@ -37,10 +37,10 @@ public class PlayerData : MonoBehaviour
         difficulty = "기본 난이도"; // 기본 난이도 또는 선택된 난이도
         enemyFunds = CalculateEnemyFunds(difficulty); // 난이도에 따른 자금 설정
     }
-
+    // 난이도에 따른 자금 계산
     private int CalculateEnemyFunds(string difficulty)
     {
-        // 난이도에 따른 자금 계산
+        
         return difficulty switch
         {
             "쉬움" => 2500,
@@ -97,9 +97,20 @@ public class PlayerData : MonoBehaviour
             {
                 purchasedUnits.Remove(unit);
             }
-            
+
             // 자금 상태가 변경되면 ShopManager에서 UI 업데이트 호출
             ShopManager.Instance.UpdateUIState();
+
+            //UI에서 유닛 수량을 업데이트하거나 삭제 -------------오류 수정해야함
+            /*MyUnitUI myUnitUI = FindUnitUI(unit);
+            if (myUnitUI != null)
+            {
+                myUnitUI.UpdateUnitCount();
+                if (myUnitUI.GetUnitCount() == 0) // 유닛 수가 0이면 삭제
+                {
+                    Destroy(myUnitUI.gameObject);
+                }
+            }*/
         }
         else
         {
@@ -131,5 +142,22 @@ public class PlayerData : MonoBehaviour
         difficulty = "기본 난이도";
         enemyFunds = CalculateEnemyFunds(difficulty); // 난이도에 따른 자금 초기화
     }
+
     
+    
+    // 배치된 유닛 목록에 유닛을 추가하는 메서드
+    public void AddPlacedUnit(UnitDataBase unit)
+    {
+        placedUnits.Add(unit);
+        Debug.Log($"배치된 유닛 추가: {unit.unitName}");
+    }
+    // 배치된 유닛 목록을 확인
+    public void ShowPlacedUnitList()
+    {
+        Debug.Log("배치된 유닛 목록:");
+        foreach (var unit in placedUnits)
+        {
+            Debug.Log($"유닛 이름: {unit.unitName}");
+        }
+    }
 }
