@@ -22,6 +22,7 @@ public class ShopManager : MonoBehaviour
 
     [SerializeField] private Transform unitPlacementArea;  // 유닛 배치할 UI 영역
     [SerializeField] private GameObject placeunitPrefab;   // 배치할 유닛 프리팹
+    [SerializeField] private Image currencyTextImg;
     public bool isPlacingUnits = false;                   // 배치 모드 확인
 
     public bool IsPlacingUnits => isPlacingUnits;
@@ -132,13 +133,7 @@ public class ShopManager : MonoBehaviour
 
         // 자금이 양수로 돌아오면 경고 메시지 숨기고 배치 버튼 활성화
         UpdateUIState();
-        // 자금 부족 시 경고 표시
-        if (PlayerData.currency < 0)
-        {
-            ShowFundsWarning(true);    // 자금 부족 경고 표시
-            DisablePlaceButton(true);  // 배치 버튼 비활성화
-        }
-       
+        
     }
 
     // 자금 업데이트 UI 표시
@@ -204,11 +199,14 @@ public class ShopManager : MonoBehaviour
         {
             ShowFundsWarning(true);
             DisablePlaceButton(true);
+            ChangeBackgroundColor("#f4cccc"); //헥스코드로 플레이어 골드 배경색 변경
+
         }
         else
         {
             ShowFundsWarning(false);
             DisablePlaceButton(false);
+            ChangeBackgroundColor("#ffffFF"); //헥스코드로 플레이어 골드 배경색 변경
         }
     }
 
@@ -253,5 +251,26 @@ public class ShopManager : MonoBehaviour
     {
         PlayerData.Instance.AddPurchasedUnit(unit);
         AddOrUpdateUnitInMyUnitUI(unit);
+    }
+
+    // 헥스코드로 배경을 변경하는 메서드
+    public void ChangeBackgroundColor(string hexColor)
+    {
+        if (currencyTextImg != null)
+        {
+            Color newColor;
+            if (ColorUtility.TryParseHtmlString(hexColor, out newColor))
+            {
+                currencyTextImg.color = newColor;
+            }
+            else
+            {
+                Debug.LogWarning("유효하지 않은 헥스코드입니다: " + hexColor);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("backgroundImage가 설정되지 않았습니다.");
+        }
     }
 }

@@ -5,10 +5,10 @@ using TMPro;
 public class PlacedUnit : MonoBehaviour
 {
     public TextMeshProUGUI unitNameText;    // 유닛 이름 표시
-    public Image unitImage;      // 유닛 이미지 표시
-    public Button ReturnButton;     // 구매 버튼
+    public Image unitImage;                 // 유닛 이미지 표시
+    public Button ReturnButton;             // 되돌리기 버튼
 
-    private UnitDataBase unitData;
+    private UnitDataBase unitData;          
 
     public void SetUnitData(UnitDataBase unit)
     {

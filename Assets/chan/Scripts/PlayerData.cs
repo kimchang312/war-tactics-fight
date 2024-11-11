@@ -102,15 +102,12 @@ public class PlayerData : MonoBehaviour
             ShopManager.Instance.UpdateUIState();
 
             //UI에서 유닛 수량을 업데이트하거나 삭제 -------------오류 수정해야함
-            /*MyUnitUI myUnitUI = FindUnitUI(unit);
+            // MyUnit UI에서 유닛 수량을 업데이트 또는 삭제
+            MyUnitUI myUnitUI = FindObjectOfType<MyUnitUI>();  // MyUnitUI를 찾아서 참조
             if (myUnitUI != null)
             {
                 myUnitUI.UpdateUnitCount();
-                if (myUnitUI.GetUnitCount() == 0) // 유닛 수가 0이면 삭제
-                {
-                    Destroy(myUnitUI.gameObject);
-                }
-            }*/
+            }
         }
         else
         {
@@ -160,4 +157,30 @@ public class PlayerData : MonoBehaviour
             Debug.Log($"유닛 이름: {unit.unitName}");
         }
     }
+    /*public void ReturnUnit(UnitDataBase unit)
+    {
+        if (purchasedUnits.ContainsKey(unit) && purchasedUnits[unit] > 0)
+        {
+            
+            purchasedUnits[unit]--;
+
+            if (purchasedUnits[unit] == 0)
+            {
+                purchasedUnits.Remove(unit);
+            }
+
+
+            //UI에서 유닛 수량을 업데이트하거나 삭제 -------------오류 수정해야함
+            // MyUnit UI에서 유닛 수량을 업데이트 또는 삭제
+            MyUnitUI myUnitUI = FindObjectOfType<MyUnitUI>();  // MyUnitUI를 찾아서 참조
+            if (myUnitUI != null)
+            {
+                myUnitUI.UpdateUnitCount();
+            }
+        }
+        else
+        {
+            Debug.LogWarning("판매할 유닛이 없습니다.");
+        }
+    }*/
 }

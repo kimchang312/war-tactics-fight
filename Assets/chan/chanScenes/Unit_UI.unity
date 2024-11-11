@@ -7706,6 +7706,7 @@ MonoBehaviour:
   FundsWarning: {fileID: 1174372932}
   unitPlacementArea: {fileID: 470589245}
   placeunitPrefab: {fileID: 4596429318133894428, guid: 7c100bc75fe8b6d4d84d973707913a0a, type: 3}
+  currencyTextImg: {fileID: 1820880672}
   isPlacingUnits: 0
 --- !u!4 &1020790775
 Transform:
