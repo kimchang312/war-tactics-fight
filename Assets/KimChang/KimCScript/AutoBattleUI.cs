@@ -13,6 +13,13 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshPro _myUnitName;
     [SerializeField] private TextMeshPro _enemyUnitName;
 
+    [SerializeField] private ObjectPool objectPool;         //  objǮ�� ����
+
+    private Vector3 myTeam = new(11, -1, 0);                 // ���� �ִ� ������ ��ġ
+    private Vector3 enemyTeam = new(6, -1, 0);           // ��밡 �ִ� ������ ��ġ
+
+
+    //���� �� �ʱ�ȭ
 
     public void UpdateUnitCountUI(int myUnitCount,int enemyUnitCount)
 
@@ -24,6 +31,9 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
+
+    //ü�� �ʱ�ȭ
+
     public void UpateUnitHPUI(float myUnitHP,float enemyUnitHP)
 
     {
@@ -33,13 +43,33 @@ public class AutoBattleUI : MonoBehaviour
             _emyUnitHPUI.text = $"{enemyUnitHP}";
         }
 
-        
     }
 
+    //�̸� �ʱ�ȭ
     public void UpdateName(string myUnitName,string enemyUnitName)
     {
         _myUnitName.text = $"{myUnitName}";
         _enemyUnitName.text=$"{enemyUnitName}";
+    }
+
+    //������ �����ִ� �Լ�
+    public void ShowDamage(float damage, string text, bool team)
+    {
+        GameObject damageObj = objectPool.GetDamageText();
+        TextMeshPro damagetext = damageObj.GetComponent<TextMeshPro>();
+
+        damagetext.text = $"-{damage} {text}";
+
+        //team = true== �� false == ���
+        damageObj.transform.position = team ? myTeam : enemyTeam;
+        // ���� �ð� �� ��Ȱ��ȭ
+        StartCoroutine(HideAfterDelay(damageObj));
+    }
+
+    private IEnumerator HideAfterDelay(GameObject damageObj)
+    {
+        yield return new WaitForSeconds(0.5f);
+        objectPool.ReturnDamageText(damageObj);
     }
 }
 
