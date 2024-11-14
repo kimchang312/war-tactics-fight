@@ -10,105 +10,107 @@ using Unity.Mathematics;
 public class AutoBattleManager : MonoBehaviour
 {
 
-    [SerializeField] private AutoBattleUI autoBattleUI;       //UI °ü¸® ½ºÅ©¸³Æ®
+    [SerializeField] private AutoBattleUI autoBattleUI;       //UI ê´€ë¦¬ ìŠ¤í¬ë¦½íŠ¸
+
 
     private readonly GoogleSheetLoader sheetLoader = new();
     
-    private readonly float heavyArmorValue=15.0f;                //Áß°© °íÁ¤ µ¥¹ÌÁö °¨¼Ò·®
-    private readonly float bluntWeaponValue = 15.0f;             //µĞ±â °íÁ¤ µ¥¹ÌÁö
-    private readonly float throwSpearValue = 50.0f;              //ÅõÃ¢ °íÁ¤ µ¥¹ÌÁö
-    private readonly float overwhelmValue = 1.0f;                //À§¾Ğ ±âµ¿·Â °íÁ¤°ª
-    private readonly float strongChargeValue = 0.5f;             //°­ÇÑ µ¹°İ µ¥¹ÌÁö ¹è¼ö
-    private readonly float defenseValue = 15.0f;                 //¼ö¹è ÅÂ¼¼ °íÁ¤ µ¥¹ÌÁö °¨¼Ò·®
-    private readonly float slaughterValue = 10.0f;               //µµ»ì °íÁ¤ µ¥¹ÌÁö
-    private readonly float assassinationValue = 2.0f;            //¾Ï»ì µ¥¹ÌÁö ¹èÀ²
-    private readonly float drainHealValue = 20.0f;               //ÂøÃë °íÁ¤ È¸º¹·®
-    private readonly float drainGainAttackValue = 10.0f;         //ÂøÃë °íÁ¤ °ø°İ·Â Áõ°¡·®
+    private readonly float heavyArmorValue=15.0f;                //ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò·ï¿½
+    private readonly float bluntWeaponValue = 15.0f;             //ï¿½Ğ±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    private readonly float throwSpearValue = 50.0f;              //ï¿½ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    private readonly float overwhelmValue = 1.0f;                //ï¿½ï¿½ï¿½ï¿½ ï¿½âµ¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    private readonly float strongChargeValue = 0.5f;             //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+    private readonly float defenseValue = 15.0f;                 //ï¿½ï¿½ï¿½ï¿½ ï¿½Â¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò·ï¿½
+    private readonly float slaughterValue = 10.0f;               //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    private readonly float assassinationValue = 2.0f;            //ï¿½Ï»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    private readonly float drainHealValue = 20.0f;               //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½
+    private readonly float drainGainAttackValue = 10.0f;         //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½İ·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-    //À¯´Ö »ı¼º
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+
     private async Task<(UnitDataBase[], UnitDataBase[])> GetUnits(int[] myUnitIds, int[] enemyUnitIds)
     {
         List<UnitDataBase> myUnits = new List<UnitDataBase>();
         List<UnitDataBase> enemyUnits = new List<UnitDataBase>();
 
-        // ±¸±Û ½ÃÆ® µ¥ÀÌÅÍ¸¦ ·Îµå
+        // êµ¬ê¸€ ì‹œíŠ¸ ë°ì´í„°ë¥¼ ë¡œë“œ
         await sheetLoader.LoadGoogleSheetData();
 
-        // ³» À¯´Ö IDµéÀ» ±â¹İÀ¸·Î À¯´ÖÀ» °¡Á®¿Í¼­ MyUnits¿¡ ÀúÀå
+        // ë‚´ ìœ ë‹› IDë“¤ì„ ê¸°ë°˜ìœ¼ë¡œ ìœ ë‹›ì„ ê°€ì ¸ì™€ì„œ MyUnitsì— ì €ì¥
         foreach (int unitId in myUnitIds)
         {
-            List<string> rowData = sheetLoader.GetRowData(unitId); // rowData´Â List<string> Çü½Ä
-           
+            List<string> rowData = sheetLoader.GetRowData(unitId); // rowDataëŠ” List<string> í˜•ì‹
+
             if (rowData != null)
             {
-                // rowData¸¦ UnitDataBase·Î º¯È¯
+                // rowDataë¥¼ UnitDataBaseë¡œ ë³€í™˜
                 UnitDataBase unit = UnitDataBase.ConvertToUnitDataBase(rowData);
-            
+
                 if (unit != null)
                 {
-                    myUnits.Add(unit);  // List¿¡ À¯´Ö Ãß°¡
+                    myUnits.Add(unit);  // Listì— ìœ ë‹› ì¶”ê°€
                 }
             }
         }
 
-        // ÀûÀÇ À¯´Ö IDµéÀ» ±â¹İÀ¸·Î À¯´ÖÀ» °¡Á®¿Í¼­ enemyUnits¿¡ ÀúÀå
+        // ì ì˜ ìœ ë‹› IDë“¤ì„ ê¸°ë°˜ìœ¼ë¡œ ìœ ë‹›ì„ ê°€ì ¸ì™€ì„œ enemyUnitsì— ì €ì¥
         foreach (int unitId in enemyUnitIds)
         {
-            List<string> rowData = sheetLoader.GetRowData(unitId); // rowData´Â List<string> Çü½Ä
+            List<string> rowData = sheetLoader.GetRowData(unitId); // rowDataëŠ” List<string> í˜•ì‹
 
             if (rowData != null)
             {
-                // rowData¸¦ UnitDataBase·Î º¯È¯
+                // rowDataë¥¼ UnitDataBaseë¡œ ë³€í™˜
                 UnitDataBase unit = UnitDataBase.ConvertToUnitDataBase(rowData);
                 if (unit != null)
                 {
-                    enemyUnits.Add(unit);  // List¿¡ À¯´Ö Ãß°¡
+                    enemyUnits.Add(unit);  // Listì— ìœ ë‹› ì¶”ê°€
                 }
             }
         }
 
-        // List¸¦ ¹è¿­·Î º¯È¯ÇÑ ÈÄ Æ©ÇÃ·Î ¹İÈ¯
+        // Listë¥¼ ë°°ì—´ë¡œ ë³€í™˜í•œ í›„ íŠœí”Œë¡œ ë°˜í™˜
         return (myUnits.ToArray(), enemyUnits.ToArray());
     }
 
 
-    //ÀÚµ¿ÀüÅõ
+    //ìë™ì „íˆ¬
     private async Task<int> AutoBattle(int[] _myUnitIds, int[] _enemyUnitIds)
     {
-        // ³ª¿Í ÀûÀÇ À¯´ÖÀ» È£Ãâ
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½
         (UnitDataBase[] myUnits, UnitDataBase[] enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
 
-        // ÀÎµ¦½º¸¦ »ç¿ëÇØ¼­ ÇöÀç ÀüÅõ¿¡ Âü¿©ÇÏ´Â À¯´Ö ÃßÀû
+        // ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         int myUnitIndex = 0;
         int enemyUnitIndex = 0;
 
-        //ÃÖÃÊÀÇ À¯´Ö °¹¼ö
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         int myUnitMax = _myUnitIds.Length;
         int enemyUnitMax = _enemyUnitIds.Length;
 
-        //³ªÀÇ ¿ø°Å¸® À¯´Ö À§Ä¡
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
         List<int> myRangeUnits= new List<int>();
-        //»ó´ë ¿ø°Å¸® À¯´Ö À§Ä¡
+        //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
         List<int> enemyRangeUnits= new List<int>();
-        //³ªÀÇ À¯´Ö ÃÖ´ë Ã¼·Â
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Ã¼ï¿½ï¿½
         float myUnitMaxHp = myUnits[myUnitIndex].health;
-        //»ó´ë À¯´Ö ÃÖ´ë Ã¼·Â
+        //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Ã¼ï¿½ï¿½
         float enemyUnitMaxHp=enemyUnits[enemyUnitIndex].health;
 
-        // Ã¹ °ø°İ
+        // Ã¹ ï¿½ï¿½ï¿½ï¿½
         bool isFirstAttack = true;
         
-        // ³ªÀÇ Áß°© °è»ê
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½
         bool isMyHeavyArmor = CalculateHeavyArmor(myUnits[myUnitIndex].heavyArmor, enemyUnits[enemyUnitIndex].branchIdx);
-        //ÀûÀÇ Áß°© °è»ê
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½
         bool isEnemyHeavyArmor=CalculateHeavyArmor(enemyUnits[myUnitIndex].heavyArmor, myUnits[enemyUnitIndex].branchIdx);
 
-        //³ªÀÇ µĞ±â °è»ê
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½Ğ±ï¿½ ï¿½ï¿½ï¿½
         bool isMyBluntWeapon = CalculateBluntWeapon(myUnits[myUnitIndex].bluntWeapon, enemyUnits[enemyUnitIndex].heavyArmor);
-        //ÀûÀÇ µĞ±â °è»ê
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½Ğ±ï¿½ ï¿½ï¿½ï¿½
         bool isEnemyBluntWeapon = CalculateBluntWeapon(enemyUnits[myUnitIndex].bluntWeapon, myUnits[enemyUnitIndex].heavyArmor);
 
-        //³ªÀÇ ¿ø°Å¸® À¯´Ö À§Ä¡°ª ÃÊ±âÈ­
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ê±ï¿½È­
         for (int i = 0; i < myUnitMax; i++)
         {
             if (myUnits[i].rangedAttack)
@@ -116,7 +118,7 @@ public class AutoBattleManager : MonoBehaviour
                 myRangeUnits.Add(i);
             }
         }
-        //»ó´ë ¿ø°Å¸® À¯´Ö À§Ä¡°ª ÃÊ±âÈ­
+        //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ê±ï¿½È­
         for (int i = 0; i < enemyUnitMax; i++)
         {
             if (enemyUnits[i].rangedAttack)
@@ -125,31 +127,32 @@ public class AutoBattleManager : MonoBehaviour
             }
         }
 
-        //À¯´Ö ¼ö UI ÃÊ±âÈ­ ÇÔ¼ö È£Ãâ
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ UI ï¿½Ê±ï¿½È­ ï¿½Ô¼ï¿½ È£ï¿½ï¿½
         UpdateUnitCount(_myUnitIds.Length,_enemyUnitIds.Length);
 
-        //À¯´Ö ÀÌ¸§ UIÇÔ¼ö ÃßÈÄ ÀÌ¹ÌÁö·Î º¯°æ
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ UIï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         UpdateUnitName(myUnits[0].unitBranch, enemyUnits[0].unitBranch);
 
-        //À¯´Ö Hp UI ÃÊ±âÈ­ ÇÔ¼ö È£Ãâ
+        //ï¿½ï¿½ï¿½ï¿½ Hp UI ï¿½Ê±ï¿½È­ ï¿½Ô¼ï¿½ È£ï¿½ï¿½
+
         UpdateUnitHp(myUnits[0].health, enemyUnits[0].health);
         await WaitForSecondsAsync();
 
-        // ÀüÅõ ¹İº¹
+        // ì „íˆ¬ ë°˜ë³µ
         while (myUnitIndex < myUnits.Length && enemyUnitIndex < enemyUnits.Length)
         {
             
             UpdateUnitName(myUnits[myUnitIndex].unitBranch, enemyUnits[enemyUnitIndex].unitBranch);
 
-            //ÀüÅõ
-            //ÁØºñ
+            //ï¿½ï¿½ï¿½ï¿½
+            //ï¿½Øºï¿½
             (myUnits, enemyUnits) =  PreparationPhase(
                         myUnits, enemyUnits, isFirstAttack, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
                     
             UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health);
             await WaitForSecondsAsync();
             
-            //Ãæµ¹
+            //ï¿½æµ¹
             (myUnits, enemyUnits) =  CombatPhase(
                             myUnits, enemyUnits, isFirstAttack, myUnitIndex, enemyUnitIndex, isMyBluntWeapon, isEnemyBluntWeapon, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
                     
@@ -157,7 +160,7 @@ public class AutoBattleManager : MonoBehaviour
             await WaitForSecondsAsync();
 
 
-            //Áö¿ø
+            //ï¿½ï¿½ï¿½ï¿½
             if (!(myRangeUnits.Count == 0 && enemyRangeUnits.Count == 0))
             {
                 (myUnits, enemyUnits) = SupportPhase(
@@ -165,18 +168,20 @@ public class AutoBattleManager : MonoBehaviour
 
             }
 
+
             UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health);
             await WaitForSecondsAsync();
 
-            //ÅÏ Á¾·á
+            //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             isFirstAttack = false;
 
-            // À¯´ÖÀÇ Ã¼·ÂÀÌ 0 ÀÌÇÏÀÏ °æ¿ì, ´ÙÀ½ À¯´ÖÀ¸·Î ³Ñ¾î°¨
-            if (myUnits[myUnitIndex].health <1) //³» À¯´Ö »ç¸Á
-            {
-                Debug.Log("³» À¯´Ö " + myUnits[myUnitIndex].unitName + "»ç¸Á");
 
-                myUnitIndex++;  // ´ÙÀ½ ³» À¯´Ö
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ï¿½ï¿½ 0 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾î°¨
+            if (myUnits[myUnitIndex].health <1) //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+            {
+                Debug.Log("ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ " + myUnits[myUnitIndex].unitName + "ï¿½ï¿½ï¿½");
+
+                myUnitIndex++;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 isFirstAttack = true;
                 if(myUnitIndex!= myUnitMax)
                 {
@@ -185,13 +190,14 @@ public class AutoBattleManager : MonoBehaviour
                     isMyBluntWeapon = CalculateBluntWeapon(myUnits[myUnitIndex].bluntWeapon, enemyUnits[enemyUnitIndex].heavyArmor);
 
                 }
+
                 UpdateUnitCount(myUnitMax - myUnitIndex, enemyUnitMax - enemyUnitIndex);
             }
-            if (enemyUnits[enemyUnitIndex].health <1) //Àû À¯´Ö »ç¸Á
+            if (enemyUnits[enemyUnitIndex].health <1) //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
             {
-                Debug.Log("Àû À¯´Ö " + enemyUnits[enemyUnitIndex].unitName + "»ç¸Á");
+                Debug.Log("ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ " + enemyUnits[enemyUnitIndex].unitName + "ï¿½ï¿½ï¿½");
 
-                enemyUnitIndex++;  // ´ÙÀ½ Àû À¯´Ö
+                enemyUnitIndex++;  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 isFirstAttack = true;
 
                 if (enemyUnitIndex != enemyUnitMax)
@@ -201,11 +207,14 @@ public class AutoBattleManager : MonoBehaviour
                     isEnemyBluntWeapon = CalculateBluntWeapon( enemyUnits[enemyUnitIndex].bluntWeapon, myUnits[myUnitIndex].heavyArmor);
 
                 }
+
                 UpdateUnitCount(myUnitMax - myUnitIndex, enemyUnitMax - enemyUnitIndex);
                 
             }
 
-            //index¹üÀ§ ¹ÛÀ¸·Î ³ª°¬À» ¶§
+
+            //indexï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+
             if(myUnitIndex == myUnitMax && enemyUnitIndex == enemyUnitMax)
             {
                 UpdateUnitName(myUnits[myUnitMax - 1].unitBranch, enemyUnits[enemyUnitIndex-1].unitBranch);
@@ -214,12 +223,14 @@ public class AutoBattleManager : MonoBehaviour
                 await WaitForSecondsAsync();
             }
             else if (myUnitIndex== myUnitMax)
+
             {
                 UpdateUnitName(myUnits[myUnitMax - 1].unitBranch, enemyUnits[enemyUnitIndex].unitBranch);
 
                 UpdateUnitHp(myUnits[myUnitMax - 1].health, enemyUnits[enemyUnitIndex].health);
                 await WaitForSecondsAsync();
             }
+
             else if (enemyUnitIndex==enemyUnitMax)
             {
                 UpdateUnitName(myUnits[myUnitIndex].unitBranch, enemyUnits[enemyUnitMax - 1].unitBranch);
@@ -227,47 +238,55 @@ public class AutoBattleManager : MonoBehaviour
                 UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitMax-1].health);
                 await WaitForSecondsAsync();
             }
+
         }
 
-        // ÀüÅõ Á¾·á ÈÄ ½Â¸® ¿©ºÎ ÆÇ´Ü
+        // ì „íˆ¬ ì¢…ë£Œ í›„ ìŠ¹ë¦¬ ì—¬ë¶€ íŒë‹¨
         if (myUnitIndex < myUnits.Length && enemyUnitIndex >= enemyUnits.Length)
         {
-            Debug.Log($"³ªÀÇ ½Â¸® {myUnits[myUnitIndex].unitName + myUnits[myUnitIndex].health}");
-            return 0;  // ³»°¡ ½Â¸®
+            Debug.Log($"ë‚˜ì˜ ìŠ¹ë¦¬ {myUnits[myUnitIndex].unitName + myUnits[myUnitIndex].health}");
+            return 0;  // ë‚´ê°€ ìŠ¹ë¦¬
         }
         else if (enemyUnitIndex < enemyUnits.Length && myUnitIndex >= myUnits.Length)
         {
-            Debug.Log($"³ªÀÇ ½Â¸® {enemyUnits[enemyUnitIndex].unitName + enemyUnits[enemyUnitIndex].health}");
-            return 1;  // ÀûÀÌ ½Â¸®
+            Debug.Log($"ë‚˜ì˜ ìŠ¹ë¦¬ {enemyUnits[enemyUnitIndex].unitName + enemyUnits[enemyUnitIndex].health}");
+            return 1;  // ì ì´ ìŠ¹ë¦¬
         }
         else
         {
-            Debug.Log("¹«½ÂºÎ");
-            return 2;  // ¾çÂÊ ¸ğµÎ »ç¸Á
+            Debug.Log("ë¬´ìŠ¹ë¶€");
+            return 2;  // ì–‘ìª½ ëª¨ë‘ ì‚¬ë§
         }
         
     }
 
-    //ÀÚµ¿ÀüÅõ¸¦ ´Ù¸¥ÄÚµå¿¡¼­ È£ÃâÇÒ¼ö ÀÖ°Ô²û ´ë½Å È£ÃâÇØÁÖ´Â ÇÔ¼ö
+    //ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½Úµå¿¡ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ò¼ï¿½ ï¿½Ö°Ô²ï¿½ ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ô¼ï¿½
+
     public async Task<int> StartBattle(int[] _myUnitIds, int[] _enemyUnitIds)
     {
         if (autoBattleUI == null)
         {
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
         }
+
         int result = await AutoBattle(_myUnitIds,_enemyUnitIds);
+
         return result;
     }
 
 
-    //À¯´Ö ¼ö UI ÃÊ±âÈ­ ÇÔ¼ö
+
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ UI ï¿½Ê±ï¿½È­ ï¿½Ô¼ï¿½
+
     private void UpdateUnitCount(int myUnitLength,int enemyUnitLength)
     {
           autoBattleUI.UpdateUnitCountUI(myUnitLength, enemyUnitLength);
     }
 
-    //À¯´Ö Hp UI ÃÊ±âÈ­ ÇÔ¼ö
+
+    //ï¿½ï¿½ï¿½ï¿½ Hp UI ï¿½Ê±ï¿½È­ ï¿½Ô¼ï¿½
     private void  UpdateUnitHp(float myUnitHp,float enemyHp)
+
     {
         if(myUnitHp < 0)
         {
@@ -281,19 +300,22 @@ public class AutoBattleManager : MonoBehaviour
 
     }
 
-    //±â´Ù¸®´Â ÇÔ¼ö
+
+    //ï¿½ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
     private async Task WaitForSecondsAsync(float seconds= 0.5f)
+
     {
-        await Task.Delay((int)(seconds * 1000)); // ¹Ğ¸®ÃÊ ´ÜÀ§
+        await Task.Delay((int)(seconds * 1000)); // ë°€ë¦¬ì´ˆ ë‹¨ìœ„
     }
 
-    //À¯´Ö ÀÌ¸§ °»½Å
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½
     private void UpdateUnitName(string myUnitName, string enemyUnitName)
     {
         autoBattleUI.UpdateName(myUnitName, enemyUnitName);
     }
 
-    //È¸ÇÇÀ² °è»ê
+
+    //È¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
     private float CalculateDodge(UnitDataBase unit)
     {
         float dodge ;
@@ -302,7 +324,7 @@ public class AutoBattleManager : MonoBehaviour
         return dodge;
     }
 
-    //È¸ÇÇ °è»ê
+    //È¸ï¿½ï¿½ ï¿½ï¿½ï¿½
     private bool CalculateAccuracy(UnitDataBase unit,bool isPerfectAccuracy)
     {
         bool result=false;
@@ -310,14 +332,14 @@ public class AutoBattleManager : MonoBehaviour
         {
             result = CalculateDodge(unit) >= Random.Range(1, 101);
 
-            if (result) Debug.Log("È¸ÇÇ");
+            if (result) Debug.Log("È¸ï¿½ï¿½");
 
             return result;
         }
         return result;
     }
 
-    //Áß°© °è»ê
+    //ï¿½ß°ï¿½ ï¿½ï¿½ï¿½
     private bool CalculateHeavyArmor(bool offendingUnitHeavyArmor, int deffendingUnitBranchIdx)
     {
         if (offendingUnitHeavyArmor && deffendingUnitBranchIdx == 2)
@@ -327,7 +349,7 @@ public class AutoBattleManager : MonoBehaviour
         return false;
     }
 
-    //µĞ±â °è»ê
+    //ï¿½Ğ±ï¿½ ï¿½ï¿½ï¿½
     private bool CalculateBluntWeapon(bool offendingUnitBluntWeapon, bool deffendingUnitHeavyArmor)
     {
         if (offendingUnitBluntWeapon && deffendingUnitHeavyArmor)
@@ -337,7 +359,7 @@ public class AutoBattleManager : MonoBehaviour
         return false;
     }
 
-    //µ¹°İ °è»ê
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
     private float CalculateCharge(bool isCharge,float mobility)
     {
         float result=1.0f;
@@ -349,7 +371,7 @@ public class AutoBattleManager : MonoBehaviour
         return result;
     }
 
-    //¾Ï»ì °è»ê
+    //ï¿½Ï»ï¿½ ï¿½ï¿½ï¿½
     private int CalculateAssassination(List<float> unitHealth)
     {
         int minHealthNumber = 1;
@@ -370,27 +392,27 @@ public class AutoBattleManager : MonoBehaviour
         return minHealthNumber;
     }
 
-    //µ¥¹ÌÁöui È£Ãâ
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ui È£ï¿½ï¿½
     private void CallDamageText(float damage,string text,bool team)
     {
         autoBattleUI.ShowDamage(MathF.Floor( damage), text, team);
     }
 
-    //ÁØºñ ÆäÀÌÁî
+    //ï¿½Øºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private (UnitDataBase[], UnitDataBase[]) PreparationPhase(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits, bool isFirstAttack,int myUnitIndex,int enemyUnitIndex, int myUnitMax,int enemyUnitMax,float myUnitMaxHp, float enemyUnitMaxHp)
     {
         string mySkills ="";
         string enemySkills="" ;
 
-        //Ã¹ °ø°İ ÀÏ¶§
+        //Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¶ï¿½
         if (isFirstAttack)
         {
-            //¾Ï»ì ´ë»ó hp ¾øÀ¸¸é ±âº»°ª 1À» ÇÔ¼ö°¡ ÇÒ´çÇØÁÜ
+            //ï¿½Ï»ï¿½ ï¿½ï¿½ï¿½ hp ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº»ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½Ò´ï¿½ï¿½ï¿½ï¿½ï¿½
             float myBackUnitHP ;
             float enemyBackUnitHP ;
 
-            //³» ±â¼ú ¸ÕÀú
-            //À§¾Ğ
+            //ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            //ï¿½ï¿½ï¿½ï¿½
             if (myUnits[myUnitIndex].overwhelm)
             {
                 mySkills +="overwhelm ";
@@ -399,22 +421,22 @@ public class AutoBattleManager : MonoBehaviour
 
                 CallDamageText(0, mySkills, true);
             }
-            //¾Ï»ì
-            if (myUnits[myUnitIndex].assassination || enemyUnitMax - enemyUnitIndex > 1)//¾Ï»ì ÀÖ°í »ó´ë À¯´Ö 1¸¶¸® ÃÊ°ú
+            //ï¿½Ï»ï¿½
+            if (myUnits[myUnitIndex].assassination || enemyUnitMax - enemyUnitIndex > 1)//ï¿½Ï»ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½
             {
                 mySkills += "assassination ";
 
                 List<float> enemyUnitHealth = new ();
                 foreach (var unit in enemyUnits)
                 {
-                    enemyUnitHealth.Add(unit.health);   //»ó´ë À¯´Ö Ã¼·Â ¼ø¼­´ë·Î ¹è¿­È­
+                    enemyUnitHealth.Add(unit.health);   //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­È­
                 }
-                //¼öÈ£
+                //ï¿½ï¿½È£
                 if (enemyUnits[enemyUnitIndex].guard)
                 {
                     enemySkills += "guard ";
 
-                    if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //»ó´ë È¸ÇÇ ½ÇÆĞ ½Ã
+                    if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
                     {
                         CallDamageText(myUnits[myUnitIndex].attackDamage * (1 - (enemyUnits[enemyUnitIndex].armor) / (10 + enemyUnits[enemyUnitIndex].armor)) * assassinationValue, mySkills, true);
 
@@ -431,10 +453,10 @@ public class AutoBattleManager : MonoBehaviour
 
 
             }
-            //ÅõÃ¢
+            //ï¿½ï¿½Ã¢
             if (myUnits[myUnitIndex].throwSpear)
             {
-                if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //»ó´ë È¸ÇÇ ½ÇÆĞ ½Ã
+                if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
                 {
                     mySkills += "throwSpear ";
 
@@ -444,8 +466,8 @@ public class AutoBattleManager : MonoBehaviour
                 }
             }
 
-            //Àû ±â¼ú
-            //À§¾Ğ
+            //ï¿½ï¿½ ï¿½ï¿½ï¿½
+            //ï¿½ï¿½ï¿½ï¿½
             if (enemyUnits[enemyUnitIndex].overwhelm)
             {
                 enemySkills += "overwhelm ";
@@ -455,22 +477,22 @@ public class AutoBattleManager : MonoBehaviour
                 CallDamageText(0, mySkills, false);
             }
 
-            //¾Ï»ì
-            if (enemyUnits[enemyUnitIndex].assassination || myUnitMax - myUnitIndex > 1)//¾Ï»ì ÀÖ°í »ó´ë À¯´Ö 1¸¶¸® ÃÊ°ú
+            //ï¿½Ï»ï¿½
+            if (enemyUnits[enemyUnitIndex].assassination || myUnitMax - myUnitIndex > 1)//ï¿½Ï»ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½
             {
                 enemySkills += "assassination ";
 
                 List<float> myUnitHealth = new ();
                 foreach (var unit in enemyUnits)
                 {
-                    myUnitHealth.Add(unit.health);   //»ó´ë À¯´Ö Ã¼·Â ¼ø¼­´ë·Î ¹è¿­È­
+                    myUnitHealth.Add(unit.health);   //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­È­
                 }
-                //¼öÈ£
+                //ï¿½ï¿½È£
                 if (myUnits[myUnitIndex].guard)
                 {
                     mySkills += "guard ";
 
-                    if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))    //³»°¡ È¸ÇÇ ½ÇÆĞ ½Ã
+                    if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))    //ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
                     {
                         CallDamageText(enemyUnits[enemyUnitIndex].attackDamage * (1 - (myUnits[myUnitIndex].armor) / (10 + myUnits[myUnitIndex].armor)) * assassinationValue, mySkills, false);
 
@@ -486,12 +508,12 @@ public class AutoBattleManager : MonoBehaviour
                 }
             }
 
-            //ÅõÃ¢
+            //ï¿½ï¿½Ã¢
             if (enemyUnits[enemyUnitIndex].throwSpear)
             {
                 enemySkills += "throwSpear ";
 
-                if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))    //³»°¡ È¸ÇÇ ½ÇÆĞ ½Ã
+                if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))    //ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
                 {
                     CallDamageText(throwSpearValue, mySkills, false);
 
@@ -504,7 +526,7 @@ public class AutoBattleManager : MonoBehaviour
         return (myUnits, enemyUnits);
     }
 
-    //Ãæµ¹ ÆäÀÌÁî
+    //ï¿½æµ¹ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private (UnitDataBase[], UnitDataBase[]) CombatPhase(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits ,bool isFirstAttack, int myUnitIndex, int enemyUnitIndex,bool isMyBluntWeapon,bool isEnemyBluntWeapon,int myUnitMax,int enemyUnitMax,float myUnitMaxHp,float enemyUnitMaxHp)
     {
         float myMultiDamage = 1.0f;
@@ -523,27 +545,27 @@ public class AutoBattleManager : MonoBehaviour
 
         if (isFirstAttack)
         {
-            //³» Æ¯¼º °è»ê
-            // µ¹°İ
+            //ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½
+            // ï¿½ï¿½ï¿½ï¿½
             myMultiDamage = CalculateCharge(myUnits[myUnitIndex].charge, myUnits[myUnitIndex].mobility);
 
             if (myMultiDamage > 1) mySkills+="charge ";
 
-            //°­ÇÑ µ¹°İ
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (myUnits[myUnitIndex].strongCharge)
             {
                 mySkills += "strongCharge ";
 
                 myMultiDamage += strongChargeValue;
             }
-            //¼öºñ ÅÂ¼¼ ³ªÀÇ µ¥¹ÌÁö °¨¼Ò
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½Â¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (myUnits[myUnitIndex].charge && enemyUnits[enemyUnitIndex].defense)
             {
                 enemySkills += "defense ";
 
                 myReduceDamage += defenseValue;
             }
-            //¼öºñ ÅÂ¼¼ ³ªÀÇ µ¥¹ÌÁö Áõ°¡
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½Â¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (enemyUnits[enemyUnitIndex].charge && myUnits[myUnitIndex].defense)
             {
                 mySkills += "defense ";
@@ -551,27 +573,27 @@ public class AutoBattleManager : MonoBehaviour
                 myAddDamage += defenseValue;
             }
 
-            //»ó´ë Æ¯¼º °è»ê
-            // µ¹°İ
+            //ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½
+            // ï¿½ï¿½ï¿½ï¿½
             enemyMultiDamage = CalculateCharge(enemyUnits[enemyUnitIndex].charge, enemyUnits[enemyUnitIndex].mobility);
 
             if (enemyMultiDamage > 1) enemySkills += "charge ";
 
-            //°­ÇÑ µ¹°İ
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (enemyUnits[enemyUnitIndex].strongCharge)
             {
                 enemySkills += "strongCharge ";
 
                 enemyMultiDamage += strongChargeValue;
             }
-            //¼öºñ ÅÂ¼¼ »ó´ë µ¥¹ÌÁö °¨¼Ò
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½Â¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (enemyUnits[enemyUnitIndex].charge && myUnits[myUnitIndex].defense)
             {
                 mySkills += "defense ";
 
                 enemyReduceDamage += defenseValue;
             }
-            //¼öºñ ÅÂ¼¼ »ó´ë µ¥¹ÌÁö Áõ°¡
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½Â¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (myUnits[myUnitIndex].charge && enemyUnits[enemyUnitIndex].defense)
             {
                 enemySkills += "defense ";
@@ -580,32 +602,32 @@ public class AutoBattleManager : MonoBehaviour
             }
         }
 
-        //³» ÀüÅõ Ãæµ¹ µ¥¹ÌÁö
-        if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //»ó´ë È¸ÇÇ ½ÇÆĞ ½Ã
+        //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½æµ¹ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
         {
 
-            //µĞ±â
+            //ï¿½Ğ±ï¿½
             if (isMyBluntWeapon)
             {
                 mySkills += "bluntWeapon ";
 
                 myAddDamage += bluntWeaponValue;
             }
-            //µµ»ì
+            //ï¿½ï¿½ï¿½ï¿½
             if (myUnits[myUnitIndex].slaughter && enemyUnits[enemyUnitIndex].lightArmor)
             {
                 mySkills += "slaughter ";
 
                 myAddDamage += slaughterValue;
             }
-            //´ë±âº´
+            //ï¿½ï¿½âº´
             if (enemyUnits[enemyUnitIndex].branchIdx == 5)
             {
                 mySkills += "antiCavalry ";
 
                 myAddDamage += myUnits[myUnitIndex].antiCavalry;
             }
-            //°üÅë
+            //ï¿½ï¿½ï¿½ï¿½
             if (myUnits[myUnitIndex].pierce)
             {
                 mySkills += "pierce ";
@@ -624,32 +646,32 @@ public class AutoBattleManager : MonoBehaviour
             CallDamageText(myDamage, mySkills, true);
         }
 
-            //»ó´ë ÀüÅõ Ãæµ¹ µ¥¹ÌÁö
-            if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))        //³»°¡ È¸ÇÇ ½ÇÆĞ ½Ã
+            //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½æµ¹ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))        //ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
             {
                 
-                //µĞ±â
+                //ï¿½Ğ±ï¿½
                 if (isEnemyBluntWeapon)
                 {
                     enemySkills += "bluntWeapon ";
 
                     enemyAddDamage += bluntWeaponValue;
                 }
-                //µµ»ì
+                //ï¿½ï¿½ï¿½ï¿½
                 if (enemyUnits[enemyUnitIndex].slaughter && myUnits[myUnitIndex].lightArmor)
                 {
                     enemySkills += "slaughter ";
 
                     enemyAddDamage += slaughterValue;
                 }
-                //´ë±âº´
+                //ï¿½ï¿½âº´
                 if (myUnits[myUnitIndex].branchIdx == 5)
                 {
                     enemySkills += "antiCavalry ";
 
                     enemyAddDamage += enemyUnits[enemyUnitIndex].antiCavalry;
                 }
-                //°üÅë
+                //ï¿½ï¿½ï¿½ï¿½
                 if (enemyUnits[enemyUnitIndex].pierce)
                 {
                     enemySkills += "pierce ";
@@ -672,26 +694,26 @@ public class AutoBattleManager : MonoBehaviour
          return UnitDeathSkill(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
     }
 
-    //Áö¿ø ÆäÀÌÁî
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private (UnitDataBase[], UnitDataBase[]) SupportPhase(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits, List<int> myRangeUnits, List<int> enemyRangeUnits, int myUnitIndex,int enemyUnitIndex,bool isEnemyHeavyArmor, bool isMyHeavyArmor, int myUnitMax, int enemyUnitMax, float myUnitMaxHp, float enemyUnitMaxHp)
     {
-        //³» À¯´Ö Áö¿ø
-        //¿ø°Å¸® °ø°İ
+        //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (myRangeUnits.Count>0)
         {
             for (int i = 0; i < myRangeUnits.Count; i++)
             {
                 if (myRangeUnits[i] > myUnitIndex && myUnits[myRangeUnits[i]].range - (myRangeUnits[i] - myUnitIndex) >= 1)
                 {
-                    if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myRangeUnits[i]].perfectAccuracy))    //»ó´ë È¸ÇÇ ½ÇÆĞ ½Ã
+                    if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myRangeUnits[i]].perfectAccuracy))    //ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
                     {
-                        //Áß°©
+                        //ï¿½ß°ï¿½
                         if (isEnemyHeavyArmor)
                         {
                             if (myUnits[myRangeUnits[i]].attackDamage > heavyArmorValue)
                             {
-                                Debug.Log("»ó´ë Áß°© ¹ßµ¿");
-                                Debug.Log("³» Áö¿øµ©" + (myUnits[myRangeUnits[i]].attackDamage- heavyArmorValue));
+                                Debug.Log("ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ßµï¿½");
+                                Debug.Log("ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + (myUnits[myRangeUnits[i]].attackDamage- heavyArmorValue));
                                 CallDamageText(myUnits[myRangeUnits[i]].attackDamage + heavyArmorValue, "rangeAttack heavyArmor", true);
 
                                 enemyUnits[enemyUnitIndex].health -= myUnits[myRangeUnits[i]].attackDamage + heavyArmorValue;
@@ -699,7 +721,7 @@ public class AutoBattleManager : MonoBehaviour
                         }
                         else
                         {
-                            Debug.Log("³» Áö¿øµ©" + myUnits[myRangeUnits[i]].attackDamage);
+                            Debug.Log("ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + myUnits[myRangeUnits[i]].attackDamage);
                             CallDamageText(myUnits[myRangeUnits[i]].attackDamage , "rangeAttack", true);
 
                             enemyUnits[enemyUnitIndex].health -= myUnits[myRangeUnits[i]].attackDamage;
@@ -709,23 +731,23 @@ public class AutoBattleManager : MonoBehaviour
 
             }
         }
-        //»ó´ë À¯´Ö Áö¿ø
-        //¿ø°Å¸® °ø°İ
+        //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (enemyRangeUnits.Count>0)
         {
             for (int i = 0; i < enemyRangeUnits.Count; i++)
             {
                 if (i > enemyUnitIndex && enemyUnits[i].range - (i - enemyUnitIndex) >= 1)
                 {
-                    if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyRangeUnits[i]].perfectAccuracy))    //»ó´ë È¸ÇÇ ½ÇÆĞ ½Ã
+                    if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyRangeUnits[i]].perfectAccuracy))    //ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
                     {
-                        //Áß°©
+                        //ï¿½ß°ï¿½
                         if (isMyHeavyArmor)
                         {
                             if (enemyUnits[enemyRangeUnits[i]].attackDamage > heavyArmorValue)
                             {
-                                Debug.Log("³ª Áß°© ¹ßµ¿");
-                                Debug.Log("»ó´ë Áö¿øµ©" + (enemyUnits[enemyRangeUnits[i]].attackDamage + heavyArmorValue));
+                                Debug.Log("ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ßµï¿½");
+                                Debug.Log("ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + (enemyUnits[enemyRangeUnits[i]].attackDamage + heavyArmorValue));
                                 CallDamageText(enemyUnits[enemyRangeUnits[i]].attackDamage + heavyArmorValue, "rangeAttack heavyArmor", false);
 
                                 myUnits[myUnitIndex].health -= enemyUnits[enemyRangeUnits[i]].attackDamage + heavyArmorValue;
@@ -733,7 +755,7 @@ public class AutoBattleManager : MonoBehaviour
                         }
                         else
                         {
-                            Debug.Log("»ó´ë Áö¿øµ©" +enemyUnits[enemyRangeUnits[i]].attackDamage );
+                            Debug.Log("ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" +enemyUnits[enemyRangeUnits[i]].attackDamage );
                             CallDamageText(enemyUnits[enemyRangeUnits[i]].attackDamage , "rangeAttack", false);
 
                             myUnits[myUnitIndex].health -= enemyUnits[enemyRangeUnits[i]].attackDamage;
@@ -748,13 +770,13 @@ public class AutoBattleManager : MonoBehaviour
 
     }
 
-    //À¯´Ö »ç¸Á ½Ã ¹ßµ¿ ½ºÅ³ Ã³¸® ÇÔ¼ö
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ßµï¿½ ï¿½ï¿½Å³ Ã³ï¿½ï¿½ ï¿½Ô¼ï¿½
     private (UnitDataBase[], UnitDataBase[]) UnitDeathSkill(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits, int myUnitIndex,int enemyUnitIndex, int myUnitMax,int enemyUnitMax, float myUnitMaxHp,float enemyUnitMaxHp)
     {
-        //À¯´Ö »ç¸Á½Ã 
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ 
         if (enemyUnits[enemyUnitIndex].health <= 0 || myUnits[myUnitIndex].health <= 0)
         {
-            //³ªÀÇ À¯°İ
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (myUnits[myUnitIndex].guerrilla && myUnitMax - myUnitIndex > 1 && enemyUnits[enemyUnitIndex].health <= 0)
             {
                 CallDamageText(0, "guerrilla", true);
@@ -763,7 +785,7 @@ public class AutoBattleManager : MonoBehaviour
                 myUnits[myUnitIndex] = myUnits[myUnitIndex + 1];
                 myUnits[myUnitIndex + 1] = thisUnit;
             }
-            //³ªÀÇ ÂøÃë
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (myUnits[myUnitIndex].drain && enemyUnits[enemyUnitIndex].health <= 0 && myUnits[myUnitIndex].health > 0)
             {
                 CallDamageText(0, "drain", true);
@@ -771,7 +793,7 @@ public class AutoBattleManager : MonoBehaviour
                 myUnits[myUnitIndex].health = drainHealValue + myUnits[myUnitIndex].health > myUnitMaxHp ? myUnitMaxHp : drainHealValue + myUnits[myUnitIndex].health;
                 myUnits[myUnitIndex].attackDamage += drainGainAttackValue;
             }
-            //»ó´ë À¯°İ
+            //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (enemyUnits[enemyUnitIndex].guerrilla && enemyUnitMax - enemyUnitIndex > 1 && myUnits[myUnitIndex].health <= 0)
             {
                 CallDamageText(0, "guerrilla", false);
@@ -780,7 +802,7 @@ public class AutoBattleManager : MonoBehaviour
                 enemyUnits[myUnitIndex] = enemyUnits[enemyUnitIndex + 1];
                 enemyUnits[enemyUnitIndex + 1] = thisUnit;
             }
-            //»ó´ë ÂøÃë
+            //ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (enemyUnits[enemyUnitIndex].drain && myUnits[myUnitIndex].health <= 0 && enemyUnits[enemyUnitIndex].health > 0)
             {
                 CallDamageText(0, "drain", false);
@@ -794,3 +816,4 @@ public class AutoBattleManager : MonoBehaviour
     }
 
 }
+

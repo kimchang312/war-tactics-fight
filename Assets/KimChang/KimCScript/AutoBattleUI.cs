@@ -13,14 +13,16 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshPro _myUnitName;
     [SerializeField] private TextMeshPro _enemyUnitName;
 
-    [SerializeField] private ObjectPool objectPool;         //  objÇ®¸µ ¿¬°á
+    [SerializeField] private ObjectPool objectPool;         //  objÇ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-    private Vector3 myTeam = new(11, -1, 0);                 // ³»°¡ ÁÖ´Â µ¥¹ÌÁö À§Ä¡
-    private Vector3 enemyTeam = new(6, -1, 0);           // »ó´ë°¡ ÁÖ´Â µ¥¹ÌÁö À§Ä¡
+    private Vector3 myTeam = new(11, -1, 0);                 // ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
+    private Vector3 enemyTeam = new(6, -1, 0);           // ï¿½ï¿½ë°¡ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
 
 
-    //À¯´Ö ¼ö ÃÊ±âÈ­
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­
+
     public void UpdateUnitCountUI(int myUnitCount,int enemyUnitCount)
+
     {
         if (_myUnitCountUI != null && _enemyUnitCountUI)
         {
@@ -29,24 +31,28 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
-    //Ã¼·Â ÃÊ±âÈ­
+
+    //Ã¼ï¿½ï¿½ ï¿½Ê±ï¿½È­
+
     public void UpateUnitHPUI(float myUnitHP,float enemyUnitHP)
+
     {
         if (_myUnitHPUI != null && _emyUnitHPUI)
         {
             _myUnitHPUI.text = $"{myUnitHP}";
             _emyUnitHPUI.text = $"{enemyUnitHP}";
         }
+
     }
 
-    //ÀÌ¸§ ÃÊ±âÈ­
+    //ï¿½Ì¸ï¿½ ï¿½Ê±ï¿½È­
     public void UpdateName(string myUnitName,string enemyUnitName)
     {
         _myUnitName.text = $"{myUnitName}";
         _enemyUnitName.text=$"{enemyUnitName}";
     }
 
-    //µ¥¹ÌÁö º¸¿©ÁÖ´Â ÇÔ¼ö
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ô¼ï¿½
     public void ShowDamage(float damage, string text, bool team)
     {
         GameObject damageObj = objectPool.GetDamageText();
@@ -54,9 +60,9 @@ public class AutoBattleUI : MonoBehaviour
 
         damagetext.text = $"-{damage} {text}";
 
-        //team = true== ³ª false == »ó´ë
+        //team = true== ï¿½ï¿½ false == ï¿½ï¿½ï¿½
         damageObj.transform.position = team ? myTeam : enemyTeam;
-        // ÀÏÁ¤ ½Ã°£ ÈÄ ºñÈ°¼ºÈ­
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­
         StartCoroutine(HideAfterDelay(damageObj));
     }
 
@@ -66,3 +72,4 @@ public class AutoBattleUI : MonoBehaviour
         objectPool.ReturnDamageText(damageObj);
     }
 }
+
