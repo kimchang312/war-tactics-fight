@@ -5,6 +5,7 @@ using UnityEngine;
 using System;
 using System.Threading.Tasks;
 using Random = UnityEngine.Random;
+using Unity.Mathematics;
 
 public class AutoBattleManager : MonoBehaviour
 {
@@ -94,7 +95,6 @@ public class AutoBattleManager : MonoBehaviour
         //상대 유닛 최대 체력
         float enemyUnitMaxHp=enemyUnits[enemyUnitIndex].health;
 
-
         // 첫 공격
         bool isFirstAttack = true;
         
@@ -140,7 +140,7 @@ public class AutoBattleManager : MonoBehaviour
         {
             
             UpdateUnitName(myUnits[myUnitIndex].unitBranch, enemyUnits[enemyUnitIndex].unitBranch);
-            
+
             //전투
             //준비
             (myUnits, enemyUnits) =  PreparationPhase(
@@ -246,7 +246,6 @@ public class AutoBattleManager : MonoBehaviour
             return 2;  // 양쪽 모두 사망
         }
         
-        
     }
 
     //자동전투를 다른코드에서 호출할수 있게끔 대신 호출해주는 함수
@@ -297,7 +296,7 @@ public class AutoBattleManager : MonoBehaviour
     //회피율 계산
     private float CalculateDodge(UnitDataBase unit)
     {
-        float dodge = 0.0f;
+        float dodge ;
         dodge = (2 + (13 / 9) * (unit.mobility - 1)) +(unit.agility?10.0f:0);
 
         return dodge;
@@ -310,7 +309,9 @@ public class AutoBattleManager : MonoBehaviour
         if (!isPerfectAccuracy)
         {
             result = CalculateDodge(unit) >= Random.Range(1, 101);
+
             if (result) Debug.Log("회피");
+
             return result;
         }
         return result;
@@ -369,36 +370,41 @@ public class AutoBattleManager : MonoBehaviour
         return minHealthNumber;
     }
 
+    //데미지ui 호출
+    private void CallDamageText(float damage,string text,bool team)
+    {
+        autoBattleUI.ShowDamage(MathF.Floor( damage), text, team);
+    }
+
     //준비 페이즈
     private (UnitDataBase[], UnitDataBase[]) PreparationPhase(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits, bool isFirstAttack,int myUnitIndex,int enemyUnitIndex, int myUnitMax,int enemyUnitMax,float myUnitMaxHp, float enemyUnitMaxHp)
     {
-        List<string> mySkills=new ();
-        List<string> enemySkills = new ();
-
+        string mySkills ="";
+        string enemySkills="" ;
 
         //첫 공격 일때
         if (isFirstAttack)
         {
-
-            //암살 대상 hp 없으면 기본값 1
-            float myBackUnitHP = 1;
-            float enemyBackUnitHP = 1;
-            
+            //암살 대상 hp 없으면 기본값 1을 함수가 할당해줌
+            float myBackUnitHP ;
+            float enemyBackUnitHP ;
 
             //내 기술 먼저
             //위압
             if (myUnits[myUnitIndex].overwhelm)
             {
-                mySkills.Add("위압 ");
+                mySkills +="overwhelm ";
 
                 enemyUnits[enemyUnitIndex].mobility = overwhelmValue;
+
+                CallDamageText(0, mySkills, true);
             }
             //암살
             if (myUnits[myUnitIndex].assassination || enemyUnitMax - enemyUnitIndex > 1)//암살 있고 상대 유닛 1마리 초과
             {
-                mySkills.Add("암살 ");
+                mySkills += "assassination ";
 
-                List<float> enemyUnitHealth = new List<float>();
+                List<float> enemyUnitHealth = new ();
                 foreach (var unit in enemyUnits)
                 {
                     enemyUnitHealth.Add(unit.health);   //상대 유닛 체력 순서대로 배열화
@@ -406,27 +412,35 @@ public class AutoBattleManager : MonoBehaviour
                 //수호
                 if (enemyUnits[enemyUnitIndex].guard)
                 {
-                    mySkills.Add("수호 ");
+                    enemySkills += "guard ";
 
                     if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //상대 회피 실패 시
                     {
+                        CallDamageText(myUnits[myUnitIndex].attackDamage * (1 - (enemyUnits[enemyUnitIndex].armor) / (10 + enemyUnits[enemyUnitIndex].armor)) * assassinationValue, mySkills, true);
+
                         enemyUnits[enemyUnitIndex].health -= myUnits[myUnitIndex].attackDamage * (1 - (enemyUnits[enemyUnitIndex].armor) / (10 + enemyUnits[enemyUnitIndex].armor)) * assassinationValue;
                     }
                 }
                 else
                 {
+                    CallDamageText(myUnits[myUnitIndex].attackDamage * assassinationValue, mySkills, true);
+
                     enemyBackUnitHP = enemyUnits[CalculateAssassination(enemyUnitHealth)].health;
                     enemyBackUnitHP -= myUnits[myUnitIndex].attackDamage * assassinationValue;
                 }
+
+
             }
             //투창
             if (myUnits[myUnitIndex].throwSpear)
             {
                 if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //상대 회피 실패 시
                 {
-                    mySkills.Add("투창 ");
+                    mySkills += "throwSpear ";
 
                     enemyUnits[enemyUnitIndex].health -= throwSpearValue;
+
+                    CallDamageText(throwSpearValue, mySkills, true);
                 }
             }
 
@@ -434,13 +448,19 @@ public class AutoBattleManager : MonoBehaviour
             //위압
             if (enemyUnits[enemyUnitIndex].overwhelm)
             {
+                enemySkills += "overwhelm ";
+
                 myUnits[myUnitIndex].mobility = overwhelmValue;
+
+                CallDamageText(0, mySkills, false);
             }
 
             //암살
             if (enemyUnits[enemyUnitIndex].assassination || myUnitMax - myUnitIndex > 1)//암살 있고 상대 유닛 1마리 초과
             {
-                List<float> myUnitHealth = new List<float>();
+                enemySkills += "assassination ";
+
+                List<float> myUnitHealth = new ();
                 foreach (var unit in enemyUnits)
                 {
                     myUnitHealth.Add(unit.health);   //상대 유닛 체력 순서대로 배열화
@@ -448,13 +468,19 @@ public class AutoBattleManager : MonoBehaviour
                 //수호
                 if (myUnits[myUnitIndex].guard)
                 {
+                    mySkills += "guard ";
+
                     if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))    //내가 회피 실패 시
                     {
+                        CallDamageText(enemyUnits[enemyUnitIndex].attackDamage * (1 - (myUnits[myUnitIndex].armor) / (10 + myUnits[myUnitIndex].armor)) * assassinationValue, mySkills, false);
+
                         myUnits[enemyUnitIndex].health -= enemyUnits[enemyUnitIndex].attackDamage * (1 - (myUnits[myUnitIndex].armor) / (10 + myUnits[myUnitIndex].armor)) * assassinationValue;
                     }
                 }
                 else
                 {
+                    CallDamageText(enemyUnits[myUnitIndex].attackDamage * assassinationValue, mySkills, false);
+
                     myBackUnitHP = enemyUnits[CalculateAssassination(myUnitHealth)].health;
                     myBackUnitHP -= enemyUnits[myUnitIndex].attackDamage * assassinationValue;
                 }
@@ -463,42 +489,17 @@ public class AutoBattleManager : MonoBehaviour
             //투창
             if (enemyUnits[enemyUnitIndex].throwSpear)
             {
+                enemySkills += "throwSpear ";
+
                 if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))    //내가 회피 실패 시
                 {
+                    CallDamageText(throwSpearValue, mySkills, false);
+
                     myUnits[myUnitIndex].health -= throwSpearValue;
                 }
-
             }
 
-            //유닛 사망시
-            if (enemyUnits[enemyUnitIndex].health <= 0 || myUnits[myUnitIndex].health <= 0)
-            {
-
-                //나의 유격
-                if (myUnits[myUnitIndex].guerrilla && myUnitMax - myUnitIndex > 1 && (enemyUnits[enemyUnitIndex].health <= 0 || enemyBackUnitHP <= 0))
-                {
-                    UnitDataBase thisUnit = myUnits[myUnitIndex];
-                    myUnits[myUnitIndex] = myUnits[myUnitIndex + 1];
-                    myUnits[myUnitIndex + 1] = thisUnit;
-                }
-                //나의 착취
-                if (myUnits[myUnitIndex].drain && (enemyUnits[enemyUnitIndex].health <= 0 || enemyBackUnitHP <= 0) && myUnits[myUnitIndex].health > 0)
-                {
-                    myUnits[myUnitIndex].health = drainHealValue + myUnits[myUnitIndex].health > myUnitMaxHp ? myUnitMaxHp : drainHealValue + myUnits[myUnitIndex].health;
-                }
-                //상대 유격
-                if (enemyUnits[enemyUnitIndex].guerrilla && enemyUnitMax - enemyUnitIndex > 1 && (myUnits[myUnitIndex].health <= 0 || myBackUnitHP <= 0))
-                {
-                    UnitDataBase thisUnit = enemyUnits[enemyUnitIndex];
-                    enemyUnits[myUnitIndex] = enemyUnits[enemyUnitIndex + 1];
-                    enemyUnits[enemyUnitIndex + 1] = thisUnit;
-                }
-                //상대 착취
-                if (enemyUnits[enemyUnitIndex].drain && (myUnits[myUnitIndex].health <= 0 || myBackUnitHP <= 0) && enemyUnits[enemyUnitIndex].health > 0)
-                {
-                    enemyUnits[enemyUnitIndex].health = drainHealValue + enemyUnits[enemyUnitIndex].health > enemyUnitMaxHp ? enemyUnitMaxHp : drainHealValue + enemyUnits[enemyUnitIndex].health;
-                }
-            }
+            return UnitDeathSkill(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
         }
         return (myUnits, enemyUnits);
     }
@@ -517,43 +518,64 @@ public class AutoBattleManager : MonoBehaviour
         float myDamage;
         float enemyDamage;
 
+        string mySkills ="";
+        string enemySkills ="";
+
         if (isFirstAttack)
         {
             //내 특성 계산
             // 돌격
             myMultiDamage = CalculateCharge(myUnits[myUnitIndex].charge, myUnits[myUnitIndex].mobility);
+
+            if (myMultiDamage > 1) mySkills+="charge ";
+
             //강한 돌격
             if (myUnits[myUnitIndex].strongCharge)
             {
+                mySkills += "strongCharge ";
+
                 myMultiDamage += strongChargeValue;
             }
-            //수비 태세 상대 데미지 감소
+            //수비 태세 나의 데미지 감소
             if (myUnits[myUnitIndex].charge && enemyUnits[enemyUnitIndex].defense)
             {
+                enemySkills += "defense ";
+
                 myReduceDamage += defenseValue;
             }
             //수비 태세 나의 데미지 증가
             if (enemyUnits[enemyUnitIndex].charge && myUnits[myUnitIndex].defense)
             {
+                mySkills += "defense ";
+
                 myAddDamage += defenseValue;
             }
 
             //상대 특성 계산
             // 돌격
             enemyMultiDamage = CalculateCharge(enemyUnits[enemyUnitIndex].charge, enemyUnits[enemyUnitIndex].mobility);
+
+            if (enemyMultiDamage > 1) enemySkills += "charge ";
+
             //강한 돌격
             if (enemyUnits[enemyUnitIndex].strongCharge)
             {
+                enemySkills += "strongCharge ";
+
                 enemyMultiDamage += strongChargeValue;
             }
-            //수비 태세 나의 데미지 감소
+            //수비 태세 상대 데미지 감소
             if (enemyUnits[enemyUnitIndex].charge && myUnits[myUnitIndex].defense)
             {
+                mySkills += "defense ";
+
                 enemyReduceDamage += defenseValue;
             }
             //수비 태세 상대 데미지 증가
             if (myUnits[myUnitIndex].charge && enemyUnits[enemyUnitIndex].defense)
             {
+                enemySkills += "defense ";
+
                 myAddDamage += defenseValue;
             }
         }
@@ -561,25 +583,33 @@ public class AutoBattleManager : MonoBehaviour
         //내 전투 충돌 데미지
         if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    //상대 회피 실패 시
         {
-            
+
             //둔기
             if (isMyBluntWeapon)
             {
+                mySkills += "bluntWeapon ";
+
                 myAddDamage += bluntWeaponValue;
             }
             //도살
             if (myUnits[myUnitIndex].slaughter && enemyUnits[enemyUnitIndex].lightArmor)
             {
+                mySkills += "slaughter ";
+
                 myAddDamage += slaughterValue;
             }
             //대기병
             if (enemyUnits[enemyUnitIndex].branchIdx == 5)
             {
+                mySkills += "antiCavalry ";
+
                 myAddDamage += myUnits[myUnitIndex].antiCavalry;
             }
             //관통
             if (myUnits[myUnitIndex].pierce)
             {
+                mySkills += "pierce ";
+
                 myDamage = myUnits[myUnitIndex].attackDamage * myMultiDamage + myAddDamage - myReduceDamage;
             }
             else
@@ -591,6 +621,9 @@ public class AutoBattleManager : MonoBehaviour
                 enemyUnits[enemyUnitIndex].health -= myDamage;
             }
 
+            CallDamageText(myDamage, mySkills, true);
+        }
+
             //상대 전투 충돌 데미지
             if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))        //내가 회피 실패 시
             {
@@ -598,21 +631,29 @@ public class AutoBattleManager : MonoBehaviour
                 //둔기
                 if (isEnemyBluntWeapon)
                 {
+                    enemySkills += "bluntWeapon ";
+
                     enemyAddDamage += bluntWeaponValue;
                 }
                 //도살
                 if (enemyUnits[enemyUnitIndex].slaughter && myUnits[myUnitIndex].lightArmor)
                 {
+                    enemySkills += "slaughter ";
+
                     enemyAddDamage += slaughterValue;
                 }
                 //대기병
                 if (myUnits[myUnitIndex].branchIdx == 5)
                 {
+                    enemySkills += "antiCavalry ";
+
                     enemyAddDamage += enemyUnits[enemyUnitIndex].antiCavalry;
                 }
                 //관통
                 if (enemyUnits[enemyUnitIndex].pierce)
                 {
+                    enemySkills += "pierce ";
+
                     enemyDamage = enemyUnits[enemyUnitIndex].attackDamage * enemyMultiDamage + enemyAddDamage - enemyReduceDamage;
                 }
                 else
@@ -623,40 +664,12 @@ public class AutoBattleManager : MonoBehaviour
                 {
                     myUnits[myUnitIndex].health -= enemyDamage;
                 }
-            }
+
+            CallDamageText(enemyDamage, mySkills, false);
         }
+        
 
-        //유닛 사망 시
-        if (enemyUnits[enemyUnitIndex].health <= 0 || myUnits[myUnitIndex].health <= 0)
-        {
-
-            //나의 유격
-            if (myUnits[myUnitIndex].guerrilla && myUnitMax - myUnitIndex > 1 && enemyUnits[enemyUnitIndex].health <= 0)
-            {
-                UnitDataBase thisUnit = myUnits[myUnitIndex];
-                myUnits[myUnitIndex] = myUnits[myUnitIndex + 1];
-                myUnits[myUnitIndex + 1] = thisUnit;
-            }
-            //나의 착취
-            if (myUnits[myUnitIndex].drain && enemyUnits[enemyUnitIndex].health <= 0 && myUnits[myUnitIndex].health > 0)
-            {
-                myUnits[myUnitIndex].health = drainHealValue + myUnits[myUnitIndex].health > myUnitMaxHp ? myUnitMaxHp : drainHealValue + myUnits[myUnitIndex].health;
-            }
-            //상대 유격
-            if (enemyUnits[enemyUnitIndex].guerrilla && enemyUnitMax - enemyUnitIndex > 1 && myUnits[myUnitIndex].health <= 0)
-            {
-                UnitDataBase thisUnit = enemyUnits[enemyUnitIndex];
-                enemyUnits[myUnitIndex] = enemyUnits[enemyUnitIndex + 1];
-                enemyUnits[enemyUnitIndex + 1] = thisUnit;
-            }
-            //상대 착취
-            if (enemyUnits[enemyUnitIndex].drain && myUnits[myUnitIndex].health <= 0 && enemyUnits[enemyUnitIndex].health > 0)
-            {
-                enemyUnits[enemyUnitIndex].health = drainHealValue + enemyUnits[enemyUnitIndex].health > enemyUnitMaxHp ? enemyUnitMaxHp : drainHealValue + enemyUnits[enemyUnitIndex].health;
-            }
-        }
-
-        return (myUnits, enemyUnits);
+         return UnitDeathSkill(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
     }
 
     //지원 페이즈
@@ -679,12 +692,16 @@ public class AutoBattleManager : MonoBehaviour
                             {
                                 Debug.Log("상대 중갑 발동");
                                 Debug.Log("내 지원뎀" + (myUnits[myRangeUnits[i]].attackDamage- heavyArmorValue));
+                                CallDamageText(myUnits[myRangeUnits[i]].attackDamage + heavyArmorValue, "rangeAttack heavyArmor", true);
+
                                 enemyUnits[enemyUnitIndex].health -= myUnits[myRangeUnits[i]].attackDamage + heavyArmorValue;
                             }
                         }
                         else
                         {
                             Debug.Log("내 지원뎀" + myUnits[myRangeUnits[i]].attackDamage);
+                            CallDamageText(myUnits[myRangeUnits[i]].attackDamage , "rangeAttack", true);
+
                             enemyUnits[enemyUnitIndex].health -= myUnits[myRangeUnits[i]].attackDamage;
                         }
                     }
@@ -709,12 +726,16 @@ public class AutoBattleManager : MonoBehaviour
                             {
                                 Debug.Log("나 중갑 발동");
                                 Debug.Log("상대 지원뎀" + (enemyUnits[enemyRangeUnits[i]].attackDamage + heavyArmorValue));
+                                CallDamageText(enemyUnits[enemyRangeUnits[i]].attackDamage + heavyArmorValue, "rangeAttack heavyArmor", false);
+
                                 myUnits[myUnitIndex].health -= enemyUnits[enemyRangeUnits[i]].attackDamage + heavyArmorValue;
                             }
                         }
                         else
                         {
                             Debug.Log("상대 지원뎀" +enemyUnits[enemyRangeUnits[i]].attackDamage );
+                            CallDamageText(enemyUnits[enemyRangeUnits[i]].attackDamage , "rangeAttack", false);
+
                             myUnits[myUnitIndex].health -= enemyUnits[enemyRangeUnits[i]].attackDamage;
                         }
                     }
@@ -723,12 +744,21 @@ public class AutoBattleManager : MonoBehaviour
             }
         }
 
+        return UnitDeathSkill(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
+
+    }
+
+    //유닛 사망 시 발동 스킬 처리 함수
+    private (UnitDataBase[], UnitDataBase[]) UnitDeathSkill(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits, int myUnitIndex,int enemyUnitIndex, int myUnitMax,int enemyUnitMax, float myUnitMaxHp,float enemyUnitMaxHp)
+    {
         //유닛 사망시 
         if (enemyUnits[enemyUnitIndex].health <= 0 || myUnits[myUnitIndex].health <= 0)
         {
             //나의 유격
             if (myUnits[myUnitIndex].guerrilla && myUnitMax - myUnitIndex > 1 && enemyUnits[enemyUnitIndex].health <= 0)
             {
+                CallDamageText(0, "guerrilla", true);
+
                 UnitDataBase thisUnit = myUnits[myUnitIndex];
                 myUnits[myUnitIndex] = myUnits[myUnitIndex + 1];
                 myUnits[myUnitIndex + 1] = thisUnit;
@@ -736,11 +766,16 @@ public class AutoBattleManager : MonoBehaviour
             //나의 착취
             if (myUnits[myUnitIndex].drain && enemyUnits[enemyUnitIndex].health <= 0 && myUnits[myUnitIndex].health > 0)
             {
+                CallDamageText(0, "drain", true);
+
                 myUnits[myUnitIndex].health = drainHealValue + myUnits[myUnitIndex].health > myUnitMaxHp ? myUnitMaxHp : drainHealValue + myUnits[myUnitIndex].health;
+                myUnits[myUnitIndex].attackDamage += drainGainAttackValue;
             }
             //상대 유격
             if (enemyUnits[enemyUnitIndex].guerrilla && enemyUnitMax - enemyUnitIndex > 1 && myUnits[myUnitIndex].health <= 0)
             {
+                CallDamageText(0, "guerrilla", false);
+
                 UnitDataBase thisUnit = enemyUnits[enemyUnitIndex];
                 enemyUnits[myUnitIndex] = enemyUnits[enemyUnitIndex + 1];
                 enemyUnits[enemyUnitIndex + 1] = thisUnit;
@@ -748,12 +783,14 @@ public class AutoBattleManager : MonoBehaviour
             //상대 착취
             if (enemyUnits[enemyUnitIndex].drain && myUnits[myUnitIndex].health <= 0 && enemyUnits[enemyUnitIndex].health > 0)
             {
+                CallDamageText(0, "drain", false);
+
                 enemyUnits[enemyUnitIndex].health = drainHealValue + enemyUnits[enemyUnitIndex].health > enemyUnitMaxHp ? enemyUnitMaxHp : drainHealValue + enemyUnits[enemyUnitIndex].health;
+                enemyUnits[enemyUnitIndex].attackDamage += drainGainAttackValue;
             }
-
         }
-        return (myUnits, enemyUnits);
 
+        return (myUnits, enemyUnits);
     }
 
 }
