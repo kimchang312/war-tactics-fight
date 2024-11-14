@@ -5,25 +5,27 @@ using System.Threading.Tasks;
 
 public class FightStartBtn : MonoBehaviour
 {
-    [SerializeField] private AutoBattleManager battleManager;  // Inspector¿¡¼­ Á÷Á¢ ¿¬°áÇÒ AutoBattleManager
+    [SerializeField] private AutoBattleManager battleManager;  // Inspectorì—ì„œ ì§ì ‘ ì—°ê²°í•  AutoBattleManager
 
-    [SerializeField] private Button fightButton;               //ArranageUnitsScene¿¡ ÀÖ´Â Fight ¹öÆ°°ú ¿¬°á
+    [SerializeField] private Button fightButton;               //ArranageUnitsSceneì— ìˆëŠ” Fight ë²„íŠ¼ê³¼ ì—°ê²°
 
     private GoogleSheetLoader sheetLoader = new GoogleSheetLoader();
 
-    // ¿¹½Ã À¯´Ö, ÃßÈÄ »èÁ¦
-    private int[] _myUnitIds = { 2, 2, 2, 2 };
+    // ì˜ˆì‹œ ìœ ë‹›, ì¶”í›„ ì‚­ì œ
+
+    private int[] _myUnitIds = { 2,2,2,2 };
+
     private int[] _enemyUnitIds = { 15 };
 
 
     void Start()
     {
 
-        //¹öÆ°À» ´­·¶À»¶§ AutoBattleSceneÀ¸·Î ÀÌµ¿ÈÄ ÀüÅõ¸¦ ½ÇÇà½ÃÅ°¶ó´Â ¸í·ÉÀ» ¹öÆ°¿¡ Ãß°¡ÇØÁÜ
+        //ë²„íŠ¼ì„ ëˆŒë €ì„ë•Œ AutoBattleSceneìœ¼ë¡œ ì´ë™í›„ ì „íˆ¬ë¥¼ ì‹¤í–‰ì‹œí‚¤ë¼ëŠ” ëª…ë ¹ì„ ë²„íŠ¼ì— ì¶”ê°€í•´ì¤Œ
         fightButton.onClick.AddListener(OnFightButtonClick);
     }
 
-    //¹öÆ°À» ´­·¶À»¶§ AutoBattleSceneÀ¸·Î ÀÌµ¿ÈÄ ÀÚµ¿ÀüÅõ ÇÔ¼ö¸¦ È£Ãâ
+    //ë²„íŠ¼ì„ ëˆŒë €ì„ë•Œ AutoBattleSceneìœ¼ë¡œ ì´ë™í›„ ìë™ì „íˆ¬ í•¨ìˆ˜ë¥¼ í˜¸ì¶œ
     void OnFightButtonClick()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -31,17 +33,19 @@ public class FightStartBtn : MonoBehaviour
     }
 
 
-    //ÀÚµ¿ ÀüÅõ ÇÔ¼ö¸¦ È£ÃâÇÏ´Â ÇÔ¼ö
+    //ìë™ ì „íˆ¬ í•¨ìˆ˜ë¥¼ í˜¸ì¶œí•˜ëŠ” í•¨ìˆ˜
     async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
 
         if (scene.name == "AutoBattleScene")
         {
-            // Inspector¿¡¼­ ¿¬°áµÈ battleManager »ç¿ë
+            // Inspectorì—ì„œ ì—°ê²°ëœ battleManager ì‚¬ìš©
             if (battleManager != null)
             {
 
-                int result = await battleManager.StartBattle(_myUnitIds, _enemyUnitIds); //ÀÚµ¿ÀüÅõ ½ÇÇà
+                
+                int result= await battleManager.StartBattle(_myUnitIds,_enemyUnitIds); //ìë™ì „íˆ¬ ì‹¤í–‰
+
             }
 
             SceneManager.sceneLoaded -= OnSceneLoaded;

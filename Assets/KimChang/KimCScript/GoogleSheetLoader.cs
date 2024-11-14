@@ -5,17 +5,18 @@ using UnityEngine.Networking;
 
 public class GoogleSheetLoader
 {
-    private List<List<string>> excel; // µ¥ÀÌÅÍ¸¦ ÀúÀåÇÒ ¸®½ºÆ®
+    private List<List<string>> excel; // ë°ì´í„°ë¥¼ ì €ì¥í•  ë¦¬ìŠ¤íŠ¸
     private const string googleSheetURL = "https://docs.google.com/spreadsheets/d/1B_imPK0NF8GQ4tmMgGxOykMRguaBjDgnou8zLAYejCU/export?format=tsv&range=A4:AH";
 
 
-    //¸Ş¼­µå¸¦ Ãß°¡ÇÏ¿© Á¢±ÙÇÒ ¼ö ÀÖ°Ô ÇÏ´Â¹æ¹ı (ÀÓ½Ã) UnitDataManager Á¢±ÙºÒ°¡
+
+    //ë©”ì„œë“œë¥¼ ì¶”ê°€í•˜ì—¬ ì ‘ê·¼í•  ìˆ˜ ìˆê²Œ í•˜ëŠ”ë°©ë²• (ì„ì‹œ) UnitDataManager ì ‘ê·¼ë¶ˆê°€
     public List<List<string>> GetExcelData()
     {
         return excel;
     }
 
-    // µ¥ÀÌÅÍ¸¦ ·ÎµåÇÏ´Â ºñµ¿±â ¸Ş¼­µå
+    // ë°ì´í„°ë¥¼ ë¡œë“œí•˜ëŠ” ë¹„ë™ê¸° ë©”ì„œë“œ
     public async Task LoadGoogleSheetData()
     {
         using (UnityWebRequest www = UnityWebRequest.Get(googleSheetURL))
@@ -43,27 +44,26 @@ public class GoogleSheetLoader
     private void ProcessData(string sheetData)
     {
         string[] rows = sheetData.Split('\n');
-        excel = new List<List<string>>(); // ¸®½ºÆ® ÃÊ±âÈ­
+        excel = new List<List<string>>(); // ë¦¬ìŠ¤íŠ¸ ì´ˆê¸°í™”
 
         foreach (string row in rows)
         {
             string[] columns = row.Split('\t');
-            excel.Add(new List<string>(columns)); // ¸®½ºÆ®¿¡ °¢ ¿­À» Ãß°¡
+            excel.Add(new List<string>(columns)); // ë¦¬ìŠ¤íŠ¸ì— ê° ì—´ì„ ì¶”ê°€
         }
     }
 
-    // Æ¯Á¤ ÇàÀÇ µ¥ÀÌÅÍ¸¦ ¹İÈ¯ÇÏ´Â ¸Ş¼­µå
+    // íŠ¹ì • í–‰ì˜ ë°ì´í„°ë¥¼ ë°˜í™˜í•˜ëŠ” ë©”ì„œë“œ
     public List<string> GetRowData(int rowIndex)
     {
         if (excel != null && rowIndex >= 0 && rowIndex < excel.Count)
         {
 
-            return excel[rowIndex]; // ÁöÁ¤µÈ ÇàÀÇ µ¥ÀÌÅÍ¸¦ ¹İÈ¯
+            return excel[rowIndex]; // ì§€ì •ëœ í–‰ì˜ ë°ì´í„°ë¥¼ ë°˜í™˜
         }
         else
         {
             return null;
         }
     }
-    
-}
+

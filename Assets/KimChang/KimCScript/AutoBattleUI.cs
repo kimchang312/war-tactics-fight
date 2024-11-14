@@ -13,7 +13,9 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshPro _myUnitName;
     [SerializeField] private TextMeshPro _enemyUnitName;
 
-    public void UpdateUnitCountUI(int myUnitCount, int enemyUnitCount)
+
+    public void UpdateUnitCountUI(int myUnitCount,int enemyUnitCount)
+
     {
         if (_myUnitCountUI != null && _enemyUnitCountUI)
         {
@@ -21,7 +23,9 @@ public class AutoBattleUI : MonoBehaviour
             _enemyUnitCountUI.text = $"{enemyUnitCount}";
         }
     }
-    public void UpateUnitHPUI(float myUnitHP, float enemyUnitHP)
+
+    public void UpateUnitHPUI(float myUnitHP,float enemyUnitHP)
+
     {
         if (_myUnitHPUI != null && _emyUnitHPUI)
         {
@@ -29,11 +33,13 @@ public class AutoBattleUI : MonoBehaviour
             _emyUnitHPUI.text = $"{enemyUnitHP}";
         }
 
+        
     }
 
-    public void UpdateName(string myUnitName, string enemyUnitName)
+    public void UpdateName(string myUnitName,string enemyUnitName)
     {
         _myUnitName.text = $"{myUnitName}";
-        _enemyUnitName.text = $"{enemyUnitName}";
+        _enemyUnitName.text=$"{enemyUnitName}";
     }
 }
+
