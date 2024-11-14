@@ -3,52 +3,58 @@ using UnityEngine;
 
 public class UnitDataBase
 {
-    // ±âº» Á¤º¸
-    public int idx;            // À¯´ÖÀÇ °íÀ¯ ÀÎµ¦½º
-    public string unitName;    // À¯´Ö ÀÌ¸§
-    public string unitBranch;  // º´Á¾ ÀÌ¸§
-    public int branchIdx;      // º´Á¾ ÀÎµ¦½º
-    public int unitId;         // À¯´Ö ID
-    public string unitExplain; // À¯´Ö ¼³¸í
-    public int unitImg;        // À¯´Ö ÀÌ¹ÌÁö ID
-    public string unitFaction; // À¯´ÖÀÌ ¼ÓÇÑ Áø¿µ
-    public int factionIdx;     // Áø¿µ ÀÎµ¦½º
-    public int unitPrice;      // À¯´Ö °¡°İ
+    // ê¸°ë³¸ ì •ë³´
+    public int idx;            // ìœ ë‹›ì˜ ê³ ìœ  ì¸ë±ìŠ¤
+    public string unitName;    // ìœ ë‹› ì´ë¦„
+    public string unitBranch;  // ë³‘ì¢… ì´ë¦„
+    public int branchIdx;      // ë³‘ì¢… ì¸ë±ìŠ¤
+    public int unitId;         // ìœ ë‹› ID
+    public string unitExplain; // ìœ ë‹› ì„¤ëª…
 
-    // ½ºÅÈ Á¤º¸
-    public float health;       // À¯´Ö Ã¼·Â
-    public float armor;        // À¯´Ö Àå°©
-    public float attackDamage; // °ø°İ·Â
-    public float mobility;     // ±âµ¿¼º
-    public float range;        // »ç°Å¸®
-    public float antiCavalry;  // ´ë±âº´ ´É·Â
+    public string unitImg;        // ìœ ë‹› ì´ë¯¸ì§€ ID
 
-    // Æ¯¼º ¹× ±â¼ú
-    public bool lightArmor;     // °æ°© À¯¹«
-    public bool heavyArmor;     // Áß°© À¯¹«
-    public bool rangedAttack;   // ¿ø°Å¸® °ø°İ À¯¹«
-    public bool bluntWeapon;    // µĞ±â À¯¹«
-    public bool pierce;         // °üÅë À¯¹«
-    public bool agility;        // ³¯½Ü À¯¹«
-    public bool strongCharge;   // °­ÇÑ µ¹°İ À¯¹«
-    public bool perfectAccuracy;// ÇÊÁß À¯¹«
+    public string unitFaction; // ìœ ë‹›ì´ ì†í•œ ì§„ì˜
+    public int factionIdx;     // ì§„ì˜ ì¸ë±ìŠ¤
+    public int unitPrice;      // ìœ ë‹› ê°€ê²©
 
-    public string blink="ºó";           //ºóÄ­
+    // ìŠ¤íƒ¯ ì •ë³´
+    public float health;       // ìœ ë‹› ì²´ë ¥
+    public float armor;        // ìœ ë‹› ì¥ê°‘
+    public float attackDamage; // ê³µê²©ë ¥
+    public float mobility;     // ê¸°ë™ì„±
+    public float range;        // ì‚¬ê±°ë¦¬
+    public float antiCavalry;  // ëŒ€ê¸°ë³‘ ëŠ¥ë ¥
 
-    // Ãß°¡ÀûÀÎ ´É·ÂÄ¡
-    public bool charge;         // µ¹°İ
-    public bool defense;        // ¹æ¾î
-    public bool throwSpear;     // Ã¢ ´øÁö±â
-    public bool slaughter;      // ÇĞ»ì
-    public bool guerrilla;      // °Ô¸±¶ó
-    public bool guard;          // °æÈ£
-    public bool assassination;  // ¾Ï»ì
-    public bool drain;          // Èí¼ö
-    public bool overwhelm;      // ¾Ğµµ
+    // íŠ¹ì„± ë° ê¸°ìˆ 
+    public bool lightArmor;     // ê²½ê°‘ ìœ ë¬´
+    public bool heavyArmor;     // ì¤‘ê°‘ ìœ ë¬´
+    public bool rangedAttack;   // ì›ê±°ë¦¬ ê³µê²© ìœ ë¬´
+    public bool bluntWeapon;    // ë‘”ê¸° ìœ ë¬´
+    public bool pierce;         // ê´€í†µ ìœ ë¬´
+    public bool agility;        // ë‚ ìŒ¤ ìœ ë¬´
+    public bool strongCharge;   // ê°•í•œ ëŒê²© ìœ ë¬´
+    public bool perfectAccuracy;// í•„ì¤‘ ìœ ë¬´
 
-    // »ı¼ºÀÚ
+
+    public string blink = "ë¹ˆ";           //ë¹ˆì¹¸
+
+
+    // ì¶”ê°€ì ì¸ ëŠ¥ë ¥ì¹˜
+    public bool charge;         // ëŒê²©
+    public bool defense;        // ë°©ì–´
+    public bool throwSpear;     // ì°½ ë˜ì§€ê¸°
+    public bool slaughter;      // í•™ì‚´
+    public bool guerrilla;      // ê²Œë¦´ë¼
+    public bool guard;          // ê²½í˜¸
+    public bool assassination;  // ì•”ì‚´
+    public bool drain;          // í¡ìˆ˜
+    public bool overwhelm;      // ì••ë„
+
+    // ìƒì„±ì
     public UnitDataBase(int idx, string unitName, string unitBranch, int branchIdx, int unitId,
-                        string unitExplain, int unitImg, string unitFaction, int factionIdx, int unitPrice,
+
+                        string unitExplain, string unitImg, string unitFaction, int factionIdx, int unitPrice,
+
                         float health, float armor, float attackDamage, float mobility, float range, float antiCavalry,
                         bool lightArmor, bool heavyArmor, bool rangedAttack, bool bluntWeapon, bool pierce,
                         bool agility, bool strongCharge, bool perfectAccuracy, string blink,
@@ -79,7 +85,7 @@ public class UnitDataBase
         this.agility = agility;
         this.strongCharge = strongCharge;
         this.perfectAccuracy = perfectAccuracy;
-        this.blink = blink;                         //ºóÄ­
+        this.blink = blink;                         //ë¹ˆì¹¸
         this.charge = charge;
         this.defense = defense;
         this.throwSpear = throwSpear;
@@ -97,16 +103,20 @@ public class UnitDataBase
     {
         if (rowData == null || rowData.Count == 0) return null;
 
-        int idx, branchIdx, unitId, unitImg, factionIdx, unitPrice;
+
+        int idx, branchIdx, unitId, factionIdx, unitPrice;
+
         float health, armor, attackDamage, mobility, range, antiCavalry, chargeDamage = 0;
         bool lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy;
         bool charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm;
 
-        // ÆÄ½Ì ½Ãµµ, ½ÇÆĞÇÒ °æ¿ì ±âº»°ª ÇÒ´ç
+        // íŒŒì‹± ì‹œë„, ì‹¤íŒ¨í•  ê²½ìš° ê¸°ë³¸ê°’ í• ë‹¹
         int.TryParse(rowData[0], out idx); // idx
         int.TryParse(rowData[3], out branchIdx); // branchIdx
         int.TryParse(rowData[4], out unitId); // unitId
-        int.TryParse(rowData[6], out unitImg); // unitImg
+
+        //int.TryParse(rowData[6], out unitImg); // unitImg
+
         int.TryParse(rowData[8], out factionIdx); // factionIdx
         int.TryParse(rowData[9], out unitPrice); // unitPrice
 
@@ -118,7 +128,7 @@ public class UnitDataBase
         float.TryParse(rowData[15], out antiCavalry); // antiCavalry
         float.TryParse(rowData[33], out chargeDamage); // chargeDamage
 
-        // Bool °ª ÆÄ½Ì (¹®ÀÚ¿­ÀÌ "True" ¶Ç´Â "False"ÀÌ¾î¾ß ÇÔ)
+        // Bool ê°’ íŒŒì‹± (ë¬¸ìì—´ì´ "True" ë˜ëŠ” "False"ì´ì–´ì•¼ í•¨)
         bool.TryParse(rowData[16], out lightArmor); // lightArmor
         bool.TryParse(rowData[17], out heavyArmor); // heavyArmor
         bool.TryParse(rowData[18], out rangedAttack); // rangedAttack
@@ -137,12 +147,14 @@ public class UnitDataBase
         bool.TryParse(rowData[32], out drain); // drain
         bool.TryParse(rowData[33], out overwhelm); // overwhelm
 
-        // rowData¿¡¼­ °ªÀ» ÃßÃâÇÏ¿© UnitDataBase °´Ã¼ »ı¼º
+        // rowDataì—ì„œ ê°’ì„ ì¶”ì¶œí•˜ì—¬ UnitDataBase ê°ì²´ ìƒì„±
         return new UnitDataBase(
             idx, rowData[1], rowData[2], branchIdx, unitId,
-            rowData[5], unitImg, rowData[7], factionIdx, unitPrice,
+
+            rowData[5], rowData[6], rowData[7], factionIdx, unitPrice,
+
             health, armor, attackDamage, mobility, range, antiCavalry,
-            lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy, "ºó",
+            lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy, "ë¹ˆ",
             charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm
         );
     }
