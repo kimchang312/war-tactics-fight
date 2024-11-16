@@ -7,19 +7,22 @@ public class MyUnitUI : MonoBehaviour
     [SerializeField] private Image unitImage;               // 유닛 이미지 표시
     [SerializeField] private TextMeshProUGUI unitText;   // 유닛 이름 , 소지개수 표시
     [SerializeField] private Button MyUnitButton;              // 유닛 판매 버튼
-    
 
+    
 
     private UnitDataBase unitData;         // 해당 유닛의 데이터
 
+    
     // 유닛 데이터를 외부에서 접근할 수 있도록 getter 제공
     public UnitDataBase UnitData => unitData;
 
+    
     public void Setup(UnitDataBase unit)
 
     {   unitData = unit;
 
         int unitCount = PlayerData.Instance.GetUnitCount(unitData);
+        
         if (unit == null)
         {
             Debug.LogError("전달된 유닛 데이터가 null입니다.");
@@ -71,17 +74,26 @@ public class MyUnitUI : MonoBehaviour
         int unitCount = PlayerData.Instance.GetUnitCount(unitData);
         unitText.text = $"{unitData.unitName} x {unitCount}";
 
-        // 유닛 개수가 0이면 이 UI 항목을 삭제
         if (unitCount == 0)
         {
             Destroy(gameObject);
         }
+        /* 유닛 개수가 0이면 이 UI 항목을 삭제
+        if (unitCount > 0)
+        {
+
+            unitText.text = $"{unitData.unitName} x {unitCount}";
+            Debug.Log($"{unitData.unitName} x {unitCount}"); // 디버그 로그 추가
+        }
+        else 
+        {
+            
+            Destroy(gameObject);
+            Debug.Log("ㅈㅈㅈ");
+        }*/
     }
-    // 유닛의 수량을 반환하는 메서드
-    public int GetUnitCount()
-    {
-        return PlayerData.Instance.GetUnitCount(UnitData);
-    }
+    
+    
     /* 유닛 판매하는 메서드
     public void SellUnit()
     {

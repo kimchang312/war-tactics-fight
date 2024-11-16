@@ -37,6 +37,7 @@ public class PlayerData : MonoBehaviour
         difficulty = "기본 난이도"; // 기본 난이도 또는 선택된 난이도
         enemyFunds = CalculateEnemyFunds(difficulty); // 난이도에 따른 자금 설정
     }
+    
     // 난이도에 따른 자금 계산
     private int CalculateEnemyFunds(string difficulty)
     {
@@ -87,33 +88,33 @@ public class PlayerData : MonoBehaviour
     }
     // 특정 유닛을 판매하여 자금 환불 및 수량 감소
     public void SellUnit(UnitDataBase unit)
-    {
+    {       
+        
         if (purchasedUnits.ContainsKey(unit) && purchasedUnits[unit] > 0)
         {
+
             currency += unit.unitPrice;
             purchasedUnits[unit]--;
+            Debug.Log($"[SellUnit] {unit.unitName} 유닛 개수 감소: {purchasedUnits[unit]}");
 
+            // UI 업데이트
+            ShopManager.Instance.UpdateUnitCountForUnit(unit);
+
+            // 유닛 개수가 0이면 UI 삭제
             if (purchasedUnits[unit] == 0)
             {
                 purchasedUnits.Remove(unit);
+                ShopManager.Instance.RemoveMyUnitUI(unit);
+                Debug.Log($"[SellUnit] {unit.unitName} 유닛 제거됨");
             }
 
             // 자금 상태가 변경되면 ShopManager에서 UI 업데이트 호출
             ShopManager.Instance.UpdateUIState();
 
-            //UI에서 유닛 수량을 업데이트하거나 삭제 -------------오류 수정해야함
-            // MyUnit UI에서 유닛 수량을 업데이트 또는 삭제
-            MyUnitUI myUnitUI = FindObjectOfType<MyUnitUI>();  // MyUnitUI를 찾아서 참조
-            if (myUnitUI != null)
-            {
-                myUnitUI.UpdateUnitCount();
-            }
-        }
-        else
-        {
-            Debug.LogWarning("판매할 유닛이 없습니다.");
+            
         }
     }
+
     // 특정 유닛의 수량을 가져옴
     public int GetUnitCount(UnitDataBase unit)
     {
@@ -157,30 +158,16 @@ public class PlayerData : MonoBehaviour
             Debug.Log($"유닛 이름: {unit.unitName}");
         }
     }
-    /*public void ReturnUnit(UnitDataBase unit)
+    public void RemovePlacedUnit(UnitDataBase unit)
     {
-        if (purchasedUnits.ContainsKey(unit) && purchasedUnits[unit] > 0)
+        if (placedUnits.Contains(unit))
         {
-            
-            purchasedUnits[unit]--;
-
-            if (purchasedUnits[unit] == 0)
-            {
-                purchasedUnits.Remove(unit);
-            }
-
-
-            //UI에서 유닛 수량을 업데이트하거나 삭제 -------------오류 수정해야함
-            // MyUnit UI에서 유닛 수량을 업데이트 또는 삭제
-            MyUnitUI myUnitUI = FindObjectOfType<MyUnitUI>();  // MyUnitUI를 찾아서 참조
-            if (myUnitUI != null)
-            {
-                myUnitUI.UpdateUnitCount();
-            }
+            placedUnits.Remove(unit);
+            Debug.Log($"{unit.unitName} 유닛이 배치된 리스트에서 제거되었습니다.");
         }
         else
         {
-            Debug.LogWarning("판매할 유닛이 없습니다.");
+            Debug.LogWarning($"{unit.unitName} 유닛이 배치된 리스트에 존재하지 않습니다.");
         }
-    }*/
+    }
 }
