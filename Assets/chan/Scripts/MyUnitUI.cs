@@ -78,27 +78,5 @@ public class MyUnitUI : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        /* 유닛 개수가 0이면 이 UI 항목을 삭제
-        if (unitCount > 0)
-        {
-
-            unitText.text = $"{unitData.unitName} x {unitCount}";
-            Debug.Log($"{unitData.unitName} x {unitCount}"); // 디버그 로그 추가
-        }
-        else 
-        {
-            
-            Destroy(gameObject);
-            Debug.Log("ㅈㅈㅈ");
-        }*/
     }
-    
-    
-    /* 유닛 판매하는 메서드
-    public void SellUnit()
-    {
-        PlayerData.Instance.SellUnit(unitData);  // PlayerData에서 유닛 판매
-        UpdateUnitCount();  // 개수 업데이트
-        ShopManager.Instance.UpdateCurrencyDisplay();  // 자금 UI 업데이트
-    }*/
 }

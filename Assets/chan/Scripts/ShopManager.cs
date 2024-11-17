@@ -21,6 +21,10 @@ public class ShopManager : MonoBehaviour
     public Button placeButton; // 배치버튼 = 배치BTN
     public GameObject FundsWarning; // 자금 부족 경고
 
+    //유닛 상세에 필요한 연결
+    public UnitDetailUI unitDetailUI; // Inspector에서 연결
+
+
     private List<MyUnitUI> myUnitUIList = new List<MyUnitUI>(); // MyUnitUI 리스트
 
     [SerializeField] private Transform unitPlacementArea;  // 유닛 배치할 UI 영역
@@ -101,11 +105,17 @@ public class ShopManager : MonoBehaviour
             {
                 GameObject unitObject = Instantiate(unitPrefab, content);
                 UnitUI unitUI = unitObject.GetComponent<UnitUI>(); // 유닛 정보를 표시할 UI 컴포넌트
-
+                
                 if (unitUI != null)
                 {
                     unitUI.SetUnitData(unit); // 유닛 정보를 UI에 세팅
-                    
+                    // UnitDetailUI 전달 (URC와 연동)
+                    URC urc = unitObject.GetComponent<URC>();
+                    if (urc != null)
+                    {
+                        urc.SetUnitData(unit);               // 유닛 데이터 설정
+                        urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI 참조 전달
+                    }
                 }
                 else
                 {
@@ -263,6 +273,7 @@ public class ShopManager : MonoBehaviour
         // 유닛의 이미지와 이름을 가지고 새로운 UI 프리팹을 생성
         GameObject placeunitObject = Instantiate(placeunitPrefab, unitPlacementArea);
         
+
         // PlacedUnit 스크립트 컴포넌트를 가져옴
         PlacedUnit placedUnit = placeunitObject.GetComponent<PlacedUnit>();
 
