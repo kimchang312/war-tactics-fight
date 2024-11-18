@@ -3,22 +3,27 @@ using UnityEngine;
 
 public class ObjectPool : MonoBehaviour
 {
-    [SerializeField] private GameObject damageTextPrefab;
+    [SerializeField] private GameObject damageTextPrefab;   //ì „íˆ¬ ë°ë¯¸ì§€
+    [SerializeField] private GameObject battleUnitPrefab;    //ì „íˆ¬í™”ë©´ ìœ ë‹›
     [SerializeField] private int poolSize = 10;
+
     private readonly Queue<GameObject> pool = new ();
 
-    //ÃÊ±â Ç® °¹¼ö ¼±¾ğ
+    //ì´ˆê¸° í’€ ê°¯ìˆ˜ ì„ ì–¸
     private void Awake()
     {
         for (int i = 0; i < poolSize; i++)
         {
-            GameObject instance = Instantiate(damageTextPrefab, transform);
-            instance.SetActive(false);
-            pool.Enqueue(instance);
+            GameObject damageinstance = Instantiate(damageTextPrefab, transform);
+            GameObject unitInstance = Instantiate(battleUnitPrefab, transform);
+            damageinstance.SetActive(false);
+            unitInstance.SetActive(false);
+            pool.Enqueue(unitInstance);
+            pool.Enqueue(damageinstance);
         }
     }
 
-    //ÇÔ¼ö È£Ãâ ½Ã ÀÖ´Ù¸é ºñÈ°¼ºÈ­µÈ text¹İÈ¯ ¹× Ç®¿¡¼­ Á¦°Å ¾ø´Ù¸é »ı¼º
+    //í•¨ìˆ˜ í˜¸ì¶œ ì‹œ ìˆë‹¤ë©´ ë¹„í™œì„±í™”ëœ textë°˜í™˜ ë° í’€ì—ì„œ ì œê±° ì—†ë‹¤ë©´ ìƒì„±
     public GameObject GetDamageText()
     {
         if (pool.Count > 0)
@@ -35,10 +40,35 @@ public class ObjectPool : MonoBehaviour
         }
     }
 
-    //ÇÔ¼ö È£Ãâ ½Ã textºñÈ°¼ºÈ­ ½ÃÅ°°í pooling
+    //í•¨ìˆ˜ í˜¸ì¶œ ì‹œ textë¹„í™œì„±í™” ì‹œí‚¤ê³  pooling
     public void ReturnDamageText(GameObject damageText)
     {
         damageText.SetActive(false);
         pool.Enqueue(damageText);
     }
+
+    // í™œì„±í™”ëœ ìœ ë‹› ì´ë¯¸ì§€ë¥¼ ë°˜í™˜
+    public GameObject GetUnitImage()
+    {
+        if (pool.Count > 0)
+        {
+            GameObject instance = pool.Dequeue();
+            instance.SetActive(true);
+            return instance;
+        }
+        else
+        {
+            GameObject newInstance = Instantiate(battleUnitPrefab, transform);
+            newInstance.SetActive(true);
+            return newInstance;
+        }
+    }
+
+    // ë¹„í™œì„±í™”ëœ ìœ ë‹› ì´ë¯¸ì§€ë¥¼ ë°˜í™˜
+    public void ReturnUnitImage(GameObject unitImage)
+    {
+        unitImage.SetActive(false);
+        pool.Enqueue(unitImage);
+    }
+
 }

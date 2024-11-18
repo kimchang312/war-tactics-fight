@@ -9,12 +9,7 @@ public class MoveDamageText : MonoBehaviour
 
     private void OnEnable()
     {
-        // Y+1 À§Ä¡·Î 0.5ÃÊ µ¿¾È ÀÌµ¿
-        transform.DOMoveY(transform.position.y + 0.5f, 0.5f).SetEase(Ease.OutQuad);
-
-        // ÅØ½ºÆ® »ö»óÀÇ Åõ¸íµµ ¾Ö´Ï¸ŞÀÌ¼Ç (»ö»ó ÆäÀÌµå¸¦ À§ÇØ Alpha°ª Á¶Àı)
-        Color originalColor = textMesh.color;
-        textMesh.color = originalColor; // ÃÊ±â »ö»ó ¼³Á¤
-
+        // Y+1 ìœ„ì¹˜ë¡œ 0.5ì´ˆ ë™ì•ˆ ì´ë™
+        transform.DOMoveY(transform.position.y + 0.25f, 0.5f).SetEase(Ease.OutQuad);
     }
 }
