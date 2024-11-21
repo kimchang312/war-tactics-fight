@@ -12,14 +12,13 @@ public class FightStartBtn : MonoBehaviour
     private GoogleSheetLoader sheetLoader = new GoogleSheetLoader();
 
     // ���� ����, ���� ����
-    private int[] _myUnitIds = { 2,10,2,2 };
-    private int[] _enemyUnitIds = { 14,2,2 };
+    private int[] _myUnitIds = {19,0,1 };
+    private int[] _enemyUnitIds = { 5,3,3 };
 
 
 
     void Start()
     {
-
         //버튼을 눌렀을때 AutoBattleScene으로 이동후 전투를 실행시키라는 명령을 버튼에 추가해줌
         fightButton.onClick.AddListener(OnFightButtonClick);
     }
