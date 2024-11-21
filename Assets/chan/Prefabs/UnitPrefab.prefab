@@ -552,6 +552,7 @@ GameObject:
   - component: {fileID: 2484305405261180325}
   - component: {fileID: 4120794795342929385}
   - component: {fileID: 273527159968117126}
+  - component: {fileID: -3133304708522581866}
   m_Layer: 5
   m_Name: UnitPrefab
   m_TagString: Untagged
@@ -635,3 +636,15 @@ MonoBehaviour:
   unitPriceText: {fileID: 7559921058666580075}
   unitImage: {fileID: 4120794795342929385}
   buyButton: {fileID: 8419523978270188940}
+--- !u!114 &-3133304708522581866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7884760029074622961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 299c367fd3f860a45a87b15b98b8dcca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -57,9 +57,9 @@ public class UnitDataBase
 
                         float health, float armor, float attackDamage, float mobility, float range, float antiCavalry,
                         bool lightArmor, bool heavyArmor, bool rangedAttack, bool bluntWeapon, bool pierce,
-                        bool agility, bool strongCharge, bool perfectAccuracy, string blink,
-                        bool charge, bool defense, bool throwSpear, bool slaughter, bool guerrilla,
-                        bool guard, bool assassination, bool drain, bool overwhelm)
+                        bool agility, bool strongCharge, bool perfectAccuracy, bool slaughter,
+                        bool charge, bool defense, bool throwSpear,  bool guerrilla,
+                        bool guard, bool assassination, bool drain, bool overwhelm,string blink)
     {
         this.idx = idx;
         this.unitName = unitName;
@@ -84,8 +84,7 @@ public class UnitDataBase
         this.pierce = pierce;
         this.agility = agility;
         this.strongCharge = strongCharge;
-        this.perfectAccuracy = perfectAccuracy;
-        this.blink = blink;                         //빈칸
+        this.perfectAccuracy = perfectAccuracy;                      
         this.charge = charge;
         this.defense = defense;
         this.throwSpear = throwSpear;
@@ -95,6 +94,7 @@ public class UnitDataBase
         this.assassination = assassination;
         this.drain = drain;
         this.overwhelm = overwhelm;
+        this.blink = blink;   //빈칸
 
     }
 
@@ -106,7 +106,7 @@ public class UnitDataBase
 
         int idx, branchIdx, unitId, factionIdx, unitPrice;
 
-        float health, armor, attackDamage, mobility, range, antiCavalry, chargeDamage = 0;
+        float health, armor, attackDamage, mobility, range, antiCavalry; //chargeDamage = 0;
         bool lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy;
         bool charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm;
 
@@ -126,7 +126,7 @@ public class UnitDataBase
         float.TryParse(rowData[13], out mobility); // mobility
         float.TryParse(rowData[14], out range); // range
         float.TryParse(rowData[15], out antiCavalry); // antiCavalry
-        float.TryParse(rowData[33], out chargeDamage); // chargeDamage
+        //float.TryParse(rowData[33], out chargeDamage); // chargeDamage
 
         // Bool 값 파싱 (문자열이 "True" 또는 "False"이어야 함)
         bool.TryParse(rowData[16], out lightArmor); // lightArmor
@@ -137,15 +137,15 @@ public class UnitDataBase
         bool.TryParse(rowData[21], out agility); // agility
         bool.TryParse(rowData[22], out strongCharge); // strongCharge
         bool.TryParse(rowData[23], out perfectAccuracy); // perfectAccuracy
+        bool.TryParse(rowData[24], out slaughter); // slaughter
         bool.TryParse(rowData[25], out charge); // charge
         bool.TryParse(rowData[26], out defense); // defense
         bool.TryParse(rowData[27], out throwSpear); // throwSpear
-        bool.TryParse(rowData[28], out slaughter); // slaughter
-        bool.TryParse(rowData[29], out guerrilla); // guerrilla
-        bool.TryParse(rowData[30], out guard); // guard
-        bool.TryParse(rowData[31], out assassination); // assassination
-        bool.TryParse(rowData[32], out drain); // drain
-        bool.TryParse(rowData[33], out overwhelm); // overwhelm
+        bool.TryParse(rowData[28], out guerrilla); // guerrilla
+        bool.TryParse(rowData[29], out guard); // guard
+        bool.TryParse(rowData[30], out assassination); // assassination
+        bool.TryParse(rowData[31], out drain); // drain
+        bool.TryParse(rowData[32], out overwhelm); // overwhelm
 
         // rowData에서 값을 추출하여 UnitDataBase 객체 생성
         return new UnitDataBase(
@@ -154,8 +154,8 @@ public class UnitDataBase
             rowData[5], rowData[6], rowData[7], factionIdx, unitPrice,
 
             health, armor, attackDamage, mobility, range, antiCavalry,
-            lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy, "빈",
-            charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm
+            lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy,
+            charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm, "빈"
         );
     }
 
