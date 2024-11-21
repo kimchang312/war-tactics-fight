@@ -134,7 +134,7 @@ public class AutoBattleManager : MonoBehaviour
         UpdateUnitCount(_myUnitIds.Length,_enemyUnitIds.Length);
         
         //유닛 체력 UI 최신화
-        UpdateUnitHp(myUnits[0].health, enemyUnits[0].health);
+        UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health,myUnitMaxHp,enemyUnitMaxHp);
         await WaitForSecondsAsync();
 
         // 전투 반복
@@ -143,7 +143,7 @@ public class AutoBattleManager : MonoBehaviour
             // 준비
             (myUnits, enemyUnits) = await PreparationPhase(
                 myUnits, enemyUnits, isFirstAttack, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
-            UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health);
+            UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health, myUnitMaxHp, enemyUnitMaxHp);
             await WaitForSecondsAsync();
 
             // 사망 처리: 내 유닛
@@ -159,7 +159,7 @@ public class AutoBattleManager : MonoBehaviour
             // 충돌
             (myUnits, enemyUnits) = await CombatPhase(
                 myUnits, enemyUnits, isFirstAttack, myUnitIndex, enemyUnitIndex, isMyBluntWeapon, isEnemyBluntWeapon, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
-            UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health);
+            UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health, myUnitMaxHp, enemyUnitMaxHp);
             await WaitForSecondsAsync();
 
             // 사망 처리: 내 유닛
@@ -178,7 +178,7 @@ public class AutoBattleManager : MonoBehaviour
                 (myUnits, enemyUnits) = await SupportPhase(
                     myUnits, enemyUnits, myRangeUnits, enemyRangeUnits, myUnitIndex, enemyUnitIndex, isMyHeavyArmor, isEnemyHeavyArmor, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
             }
-            UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health);
+            UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health, myUnitMaxHp, enemyUnitMaxHp);
             await WaitForSecondsAsync();
 
             isFirstAttack = false;
@@ -223,7 +223,7 @@ public class AutoBattleManager : MonoBehaviour
 
 
     //유닛 체력 최신화
-    private void  UpdateUnitHp(float myUnitHp,float enemyHp)
+    private void  UpdateUnitHp(float myUnitHp,float enemyHp,float myMAxHp,float enemyMaxHp)
     {
         if(myUnitHp < 0)
         {
@@ -233,7 +233,7 @@ public class AutoBattleManager : MonoBehaviour
         {
             enemyHp = 0;
         }
-        autoBattleUI.UpateUnitHPUI(MathF.Floor( myUnitHp),MathF.Floor( enemyHp));
+        autoBattleUI.UpateUnitHPUI(MathF.Floor(myUnitHp),MathF.Floor(enemyHp), MathF.Floor(myMAxHp), MathF.Floor(enemyMaxHp));
 
     }
 
@@ -792,7 +792,7 @@ public class AutoBattleManager : MonoBehaviour
 
             // 유닛 수 UI 초기화 함수 호출
             //UpdateUnitCount(myUnitMax, enemyUnitMax);
-            UpdateUnitHp(myUnits[0].health, enemyUnits[0].health);
+            //UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health, myUnitMaxHp, enemyUnitMaxHp);
 
             await WaitForSecondsAsync();
 
@@ -856,7 +856,7 @@ public class AutoBattleManager : MonoBehaviour
     ref bool isBluntWeapon,
     Action<int, int> updateUnitCount,
     Action<string, string> updateUnitName,
-    Action<float, float> updateUnitHp,
+    Action<float, float,float,float> updateUnitHp,
     Action<UnitDataBase[], UnitDataBase[], int, int> callCreateUnit)
     {
         // 유닛 사망 여부 확인
@@ -881,7 +881,7 @@ public class AutoBattleManager : MonoBehaviour
         {
             // 마지막 유닛일 경우 UI 업데이트
             //updateUnitName(units[unitMax - 1].unitBranch, enemyUnits[enemyUnitIndex].unitBranch);
-            updateUnitHp(units[unitMax - 1].health, enemyUnits[enemyUnitIndex].health);
+            updateUnitHp(units[unitMax - 1].health, enemyUnits[enemyUnitIndex].health, units[unitMax - 1].health, enemyUnits[enemyUnitIndex].health);
         }
 
         return true; // 유닛 사망 처리 완료

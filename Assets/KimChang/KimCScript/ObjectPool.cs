@@ -5,11 +5,12 @@ public class ObjectPool : MonoBehaviour
 {
     [SerializeField] private GameObject damageTextPrefab;   //전투 데미지
     [SerializeField] private GameObject battleUnitPrefab;    //전투화면 유닛
-    [SerializeField] private int poolSize = 20;
+    
 
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();
     private readonly List<GameObject> activeBattleUnits = new(); // 활성화된 유닛을 추적
+    private int poolSize = 20;
 
     // 초기 풀 생성
     private void Awake()

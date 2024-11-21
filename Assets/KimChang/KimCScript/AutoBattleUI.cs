@@ -22,6 +22,9 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _enemyDodge;    // 상대 회피율
     [SerializeField] private TextMeshProUGUI myAbility;     // 내 특성+기술
     [SerializeField] private TextMeshProUGUI enemyAbility;  // 상대 특성+기술
+    [SerializeField] private Slider myHpBar;                // 내 체력 바
+    [SerializeField] private Slider myEnemyHpBar;           // 상대 체력 바
+
 
     private Vector3 myTeam = new(11, 0, 0);                 // 아군 데미지 뜨는 위치
     private Vector3 enemyTeam = new(6, 0, 0);           // 상대 데미지지 뜨는 위치
@@ -39,13 +42,19 @@ public class AutoBattleUI : MonoBehaviour
 
 
     //유닛 체력
-    public void UpateUnitHPUI(float myUnitHP,float enemyUnitHP)
+    public void UpateUnitHPUI(float myUnitHP,float enemyUnitHP,float myMaxHp,float enemyMaxHp)
     {
         if (_myUnitHPUI != null && _emyUnitHPUI)
         {
-            _myUnitHPUI.text = $"{myUnitHP}";
-            _emyUnitHPUI.text = $"{enemyUnitHP}";
+            _myUnitHPUI.text = $"{myUnitHP}/{myMaxHp}";
+            _emyUnitHPUI.text = $"{enemyUnitHP}/{enemyMaxHp}";
         }
+    }
+
+    //유닛 체력 바
+    private void UpdateHpBar(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
+    {
+ 
     }
 
     //유닛 이름
