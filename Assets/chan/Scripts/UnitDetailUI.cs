@@ -84,6 +84,7 @@ public class UnitDetailUI : MonoBehaviour
         if (unit.agility) AddTrait("날쌤");
         if (unit.strongCharge) AddTrait("강한 돌격");
         if (unit.perfectAccuracy) AddTrait("필중");
+        if (unit.slaughter) AddTrait("도살");
     }
 
     private void UpdateSkills(UnitDataBase unit)
@@ -98,7 +99,6 @@ public class UnitDetailUI : MonoBehaviour
         if (unit.charge) AddSkill("돌격");
         if (unit.defense) AddSkill("수비 태세");
         if (unit.throwSpear) AddSkill("투창");
-        if (unit.slaughter) AddSkill("도살");
         if (unit.guerrilla) AddSkill("유격");
         if (unit.guard) AddSkill("수호");
         if (unit.assassination) AddSkill("암살");

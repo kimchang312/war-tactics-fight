@@ -186,14 +186,24 @@ public class ShopManager : MonoBehaviour
         if (!unitExists)
         {
             GameObject unitObj = Instantiate(MyUnitPrefab, myUnitUIcontent);
-            
             MyUnitUI myUnitUI = unitObj.GetComponent<MyUnitUI>();
             if (myUnitUI != null)
-            {
-                myUnitUI.Setup(unit);
-                myUnitUIList.Add(myUnitUI);
+            {                                                 
+                    // UnitDetailUI 전달 (URC와 연동)
+                    URC urc = unitObj.GetComponent<URC>();
+                    if (urc != null)
+                    {
+                        urc.SetUnitData(unit);               // 유닛 데이터 설정
+                        urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI 참조 전달
+                    }
+                
+                else
+                {
+                    Debug.LogWarning("UnitUI 컴포넌트를 찾을 수 없습니다.");
+                }
             }
-            
+                myUnitUI.Setup(unit);
+                myUnitUIList.Add(myUnitUI);                    
         }
     }
     // 특정 유닛에 해당하는 MyUnitUI 찾기
@@ -275,9 +285,21 @@ public class ShopManager : MonoBehaviour
         
 
         // PlacedUnit 스크립트 컴포넌트를 가져옴
-        PlacedUnit placedUnit = placeunitObject.GetComponent<PlacedUnit>();
-
+        PlacedUnit placedUnit = placeunitObject.GetComponent<PlacedUnit>();        
+        // UnitDetailUI 전달 (URC와 연동)
+        URC urc = placedUnit.GetComponent<URC>();
+        if (urc != null)
+        {
+            urc.SetUnitData(unit);               // 유닛 데이터 설정
+            urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI 참조 전달
+        }
         
+        else
+        {
+            Debug.LogWarning("UnitUI 컴포넌트를 찾을 수 없습니다.");
+        }
+    
+
         // 유닛 데이터 설정
         placedUnit.SetUnitData(unit);  // PlacedUnit의 SetUnitData 메서드에서 유닛 데이터와 UI 업데이트
 
@@ -295,8 +317,9 @@ public class ShopManager : MonoBehaviour
         PlayerData.Instance.SellUnit(unit);
         Debug.Log($"[PlaceUnit] 배치 후 유닛 개수: {PlayerData.Instance.GetUnitCount(unit)}");
         
-
     }
+
+    
     // 점칸을 마지막으로 이동하는 메서드
     private void MoveLineToLast()
     {
