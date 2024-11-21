@@ -10,6 +10,7 @@ public class ShopManager : MonoBehaviour
 
     public GameObject emptyUnitPrefab;      // 레이아웃 자리차지를 위한 빈 프리팹
     public GameObject unitPrefab;           // 유닛 Prefab
+    public GameObject linePrefab;           // 점칸이미지 Prefab
     public Transform content;               // 유닛이 표시될 위치 (ScrollView의 Content)
     public GameObject MyUnitPrefab;         // MyUnit 프리팹
     public Transform myUnitUIcontent;       // MyUnit UI 위치
@@ -20,11 +21,17 @@ public class ShopManager : MonoBehaviour
     public Button placeButton; // 배치버튼 = 배치BTN
     public GameObject FundsWarning; // 자금 부족 경고
 
+    //유닛 상세에 필요한 연결
+    public UnitDetailUI unitDetailUI; // Inspector에서 연결
+
+
+    private List<MyUnitUI> myUnitUIList = new List<MyUnitUI>(); // MyUnitUI 리스트
+
     [SerializeField] private Transform unitPlacementArea;  // 유닛 배치할 UI 영역
     [SerializeField] private GameObject placeunitPrefab;   // 배치할 유닛 프리팹
     [SerializeField] private Image currencyTextImg;
     public bool isPlacingUnits = false;                   // 배치 모드 확인
-
+    private GameObject lineObject; // 점칸을 한 번만 생성할 객체
     public bool IsPlacingUnits => isPlacingUnits;
     private void Awake()
     {
@@ -81,6 +88,11 @@ public class ShopManager : MonoBehaviour
         FactionDisplay();// 진영 UI 업데이트
         placeButton.onClick.AddListener(TogglePlacingUnits);
 
+        // 배치 UI에 점칸을 최초 1번만 생성
+        lineObject = Instantiate(linePrefab, unitPlacementArea);
+        Debug.Log("lineObject parent: " + lineObject.transform.parent.name);
+
+
     }
     
     // 유닛 데이터를 UI에 표시
@@ -93,11 +105,17 @@ public class ShopManager : MonoBehaviour
             {
                 GameObject unitObject = Instantiate(unitPrefab, content);
                 UnitUI unitUI = unitObject.GetComponent<UnitUI>(); // 유닛 정보를 표시할 UI 컴포넌트
-
+                
                 if (unitUI != null)
                 {
                     unitUI.SetUnitData(unit); // 유닛 정보를 UI에 세팅
-                    
+                    // UnitDetailUI 전달 (URC와 연동)
+                    URC urc = unitObject.GetComponent<URC>();
+                    if (urc != null)
+                    {
+                        urc.SetUnitData(unit);               // 유닛 데이터 설정
+                        urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI 참조 전달
+                    }
                 }
                 else
                 {
@@ -170,9 +188,52 @@ public class ShopManager : MonoBehaviour
             GameObject unitObj = Instantiate(MyUnitPrefab, myUnitUIcontent);
             MyUnitUI myUnitUI = unitObj.GetComponent<MyUnitUI>();
             if (myUnitUI != null)
-            {
-                myUnitUI.Setup(unit);
+            {                                                 
+                    // UnitDetailUI 전달 (URC와 연동)
+                    URC urc = unitObj.GetComponent<URC>();
+                    if (urc != null)
+                    {
+                        urc.SetUnitData(unit);               // 유닛 데이터 설정
+                        urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI 참조 전달
+                    }
+                
+                else
+                {
+                    Debug.LogWarning("UnitUI 컴포넌트를 찾을 수 없습니다.");
+                }
             }
+                myUnitUI.Setup(unit);
+                myUnitUIList.Add(myUnitUI);                    
+        }
+    }
+    // 특정 유닛에 해당하는 MyUnitUI 찾기
+    private MyUnitUI FindMyUnitUI(UnitDataBase unit)
+    {
+        return myUnitUIList.Find(ui => ui.UnitData == unit);
+    }
+
+    // 특정 유닛의 UI 업데이트
+    public void UpdateUnitCountForUnit(UnitDataBase unit)
+    {
+        MyUnitUI myUnitUI = FindMyUnitUI(unit);
+        if (myUnitUI != null)
+        {
+            myUnitUI.UpdateUnitCount();
+        }
+        else
+        {
+            Debug.LogWarning($"[UpdateUnitCountForUnit] {unit.unitName}에 해당하는 UI를 찾을 수 없습니다.");
+        }
+    }
+
+    // 특정 유닛의 UI 삭제
+    public void RemoveMyUnitUI(UnitDataBase unit)
+    {
+        MyUnitUI myUnitUI = FindMyUnitUI(unit);
+        if (myUnitUI != null)
+        {
+            myUnitUIList.Remove(myUnitUI);
+            Destroy(myUnitUI.gameObject); // UI 삭제
         }
     }
     // 자금 부족 경고 메시지 표시/숨기기
@@ -221,9 +282,23 @@ public class ShopManager : MonoBehaviour
     {
         // 유닛의 이미지와 이름을 가지고 새로운 UI 프리팹을 생성
         GameObject placeunitObject = Instantiate(placeunitPrefab, unitPlacementArea);
-        // PlacedUnit 스크립트 컴포넌트를 가져옴
-        PlacedUnit placedUnit = placeunitObject.GetComponent<PlacedUnit>();
         
+
+        // PlacedUnit 스크립트 컴포넌트를 가져옴
+        PlacedUnit placedUnit = placeunitObject.GetComponent<PlacedUnit>();        
+        // UnitDetailUI 전달 (URC와 연동)
+        URC urc = placedUnit.GetComponent<URC>();
+        if (urc != null)
+        {
+            urc.SetUnitData(unit);               // 유닛 데이터 설정
+            urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI 참조 전달
+        }
+        
+        else
+        {
+            Debug.LogWarning("UnitUI 컴포넌트를 찾을 수 없습니다.");
+        }
+    
 
         // 유닛 데이터 설정
         placedUnit.SetUnitData(unit);  // PlacedUnit의 SetUnitData 메서드에서 유닛 데이터와 UI 업데이트
@@ -231,18 +306,33 @@ public class ShopManager : MonoBehaviour
         // 배치 후 해당 유닛을 PlayerData의 배치된 유닛 리스트에 추가
         PlayerData.Instance.AddPlacedUnit(unit);  // 유닛을 배치된 유닛 목록에 추가
 
+        // 배치 후 점칸을 마지막으로 이동
+        MoveLineToLast();
+        Debug.Log(lineObject.transform.GetSiblingIndex());
+
+        Debug.Log($"[PlaceUnit] 유닛 {unit.unitName} 배치 완료. 점칸 위치 업데이트.");
+        Debug.Log($"[PlaceUnit] 배치할 유닛: {unit.unitName}");
+        Debug.Log($"[PlaceUnit] 배치 전 유닛 개수: {PlayerData.Instance.GetUnitCount(unit)}");
         // 배치 후 해당 유닛의 개수를 차감
         PlayerData.Instance.SellUnit(unit);
-        // 소지 개수 업데이트
-        MyUnitUI myUnitUI = FindObjectOfType<MyUnitUI>();  // MyUnitUI를 찾아서 참조
-        if (myUnitUI != null)
-        {
-            myUnitUI.UpdateUnitCount();  // UI에서 유닛 수량을 업데이트
-        }
-        Debug.Log($"배치된 유닛: {unit.unitName}");
+        Debug.Log($"[PlaceUnit] 배치 후 유닛 개수: {PlayerData.Instance.GetUnitCount(unit)}");
+        
     }
-    // 배치 모드 활성화 / 비활성화 토글
-    public void TogglePlacingUnits()
+
+    
+    // 점칸을 마지막으로 이동하는 메서드
+    private void MoveLineToLast()
+    {
+        // lineObject가 마지막 자식이 되도록 강제로 설정
+        int lastIndex = unitPlacementArea.childCount;  // 현재 자식의 개수를 가져옴
+        lineObject.transform.SetSiblingIndex(lastIndex);  // 마지막 인덱스 위치로 설정
+
+        // SetAsLastSibling 호출 후 상태 확인
+        Debug.Log($"[After SetAsLastSibling] lineObject의 인덱스: {lineObject.transform.GetSiblingIndex()}, 부모 자식 수: {unitPlacementArea.childCount}");
+        
+    }
+        // 배치 모드 활성화 / 비활성화 토글
+        public void TogglePlacingUnits()
     {
         isPlacingUnits = !isPlacingUnits;
         placeButton.interactable = isPlacingUnits;  // 배치 버튼 활성화 / 비활성화
@@ -273,4 +363,5 @@ public class ShopManager : MonoBehaviour
             Debug.LogWarning("backgroundImage가 설정되지 않았습니다.");
         }
     }
+    
 }

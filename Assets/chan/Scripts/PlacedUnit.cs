@@ -40,6 +40,7 @@ public class PlacedUnit : MonoBehaviour
     {
             // ShopManager에서 유닛을 구매하는 메서드 호출
             ShopManager.Instance.ReturnUnit(unitData);
+            PlayerData.Instance.RemovePlacedUnit(unitData);
             Debug.Log($"유닛 되돌림: {unitData.unitName}");
         
             // 배치된 유닛 게임 오브젝트 삭제
