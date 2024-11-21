@@ -18,15 +18,15 @@ public class EnemyLineupManager : MonoBehaviour
     public void Start()
     {
         GenerateEnemyLineup(); // 적 유닛 생성
-        DisplayEnemyLineupUI(); // 생성된 유닛을 UI에 표시
+        //DisplayEnemyLineupUI(); // 생성된 유닛을 UI에 표시
     }
 
     public void GenerateEnemyLineup()
     {
         Debug.Log("GenerateEnemyLineup 호출됨");
-        ExcludeRandomBranches(); // 무작위 병종 제외
+        //ExcludeRandomBranches(); // 무작위 병종 제외
         Debug.Log("무작위 병종 제외 완료");
-        PurchaseUnits(); // 적 유닛 구매 로직 호출
+        //PurchaseUnits(); // 적 유닛 구매 로직 호출
         Debug.Log("적 유닛 구매 완료");
         List<UnitDataBase> purchasedUnits = UnitDataManager.Instance.GetAllUnits();
 
