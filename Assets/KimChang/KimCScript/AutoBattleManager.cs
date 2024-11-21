@@ -130,14 +130,10 @@ public class AutoBattleManager : MonoBehaviour
         //유닛 생성 UI
         CallCreateUnit(myUnits, enemyUnits, myUnitIndex,enemyUnitIndex);
 
-        //���� �� UI �ʱ�ȭ �Լ� ȣ��
+        //유닛 숫자 UI 최신화
         UpdateUnitCount(_myUnitIds.Length,_enemyUnitIds.Length);
-
-        //���� �̸� UI�Լ� ���� �̹����� ����
-        //UpdateUnitName(myUnits[0].unitBranch, enemyUnits[0].unitBranch);
-
-        //���� Hp UI �ʱ�ȭ �Լ� ȣ��
-
+        
+        //유닛 체력 UI 최신화
         UpdateUnitHp(myUnits[0].health, enemyUnits[0].health);
         await WaitForSecondsAsync();
 
@@ -341,7 +337,23 @@ public class AutoBattleManager : MonoBehaviour
     // 유닛 생성UI 호출
     private void CallCreateUnit(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits, int myUnitIndex, int enemyUnitIndex)
     {
-        autoBattleUI.CreateUnitBox(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex);
+        List<UnitDataBase> myRangeUnits=new();
+        List<UnitDataBase> enemyRangUnits=new();
+        for (int i = myUnitIndex + 1; i < myUnits.Length; i++)
+        {
+            if (myUnits[i].rangedAttack && (myUnits[i].range - (i - myUnitIndex) > 0))
+            {
+                myRangeUnits.Add(myUnits[i]);
+            }
+        }
+        for (int i = enemyUnitIndex + 1; i < enemyUnits.Length; i++)
+        {
+            if (enemyUnits[i].rangedAttack && (enemyUnits[i].range - (i - enemyUnitIndex) > 0))
+            {
+                enemyRangUnits.Add(enemyUnits[i]);
+            }
+        }
+        autoBattleUI.CreateUnitBox(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, CalculateDodge(myUnits[myUnitIndex]), CalculateDodge(enemyUnits[enemyUnitIndex]),myRangeUnits.Count,enemyRangUnits.Count);
     }
 
     //준비 페이즈
