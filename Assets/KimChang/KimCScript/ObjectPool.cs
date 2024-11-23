@@ -5,7 +5,7 @@ public class ObjectPool : MonoBehaviour
 {
     [SerializeField] private GameObject damageTextPrefab;   //전투 데미지
     [SerializeField] private GameObject battleUnitPrefab;    //전투화면 유닛
-    
+    [SerializeField] private Transform canvasTransform;         //캔버스
 
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();
@@ -43,6 +43,7 @@ public class ObjectPool : MonoBehaviour
         }
 
         instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, false);
         activeBattleUnits.Add(instance); // 활성화된 유닛 리스트에 추가
         return instance;
     }
@@ -53,36 +54,55 @@ public class ObjectPool : MonoBehaviour
         return new List<GameObject>(activeBattleUnits); // 활성화된 유닛 복사본 반환
     }
 
-    // 유닛 반환
+    //유닛반환
     public void ReturnBattleUnit(GameObject unitImage)
     {
         unitImage.SetActive(false);
-        activeBattleUnits.Remove(unitImage); // 활성화된 유닛 리스트에서 제거
+        unitImage.transform.SetParent(canvasTransform, false);
+        activeBattleUnits.Remove(unitImage);
         battleUnitPool.Enqueue(unitImage);
+    }
+
+    public void ClearActiveBattleUnits()
+    {
+        foreach (var unit in activeBattleUnits)
+        {
+            unit.SetActive(false);
+            unit.transform.SetParent(canvasTransform, false);
+            battleUnitPool.Enqueue(unit);
+        }
+        activeBattleUnits.Clear();
     }
 
 
     //함수 호출 시 있다면 비활성화된 text반환 및 풀에서 제거 없다면 생성
     public GameObject GetDamageText()
     {
+        GameObject instance;
+
         if (damageTextPool.Count > 0)
         {
-            GameObject instance = damageTextPool.Dequeue();
-            instance.SetActive(true);
-            return instance;
+            instance = damageTextPool.Dequeue();
+
         }
         else
         {
-            GameObject newInstance = Instantiate(damageTextPrefab, transform);
-            newInstance.SetActive(true);
-            return newInstance;
+            instance = Instantiate(damageTextPrefab, transform);
+
         }
+
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, false);
+        activeBattleUnits.Add(instance); // 활성화된 유닛 리스트에 추가
+        return instance;
     }
 
     //함수 호출 시 text비활성화 시키고 pooling
     public void ReturnDamageText(GameObject damageText)
     {
         damageText.SetActive(false);
+        damageText.transform.SetParent(canvasTransform, false);
+        activeBattleUnits.Remove(damageText);
         damageTextPool.Enqueue(damageText);
     }
 

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 public class FightStartBtn : MonoBehaviour
 {
@@ -12,8 +13,8 @@ public class FightStartBtn : MonoBehaviour
     private GoogleSheetLoader sheetLoader = new GoogleSheetLoader();
 
     // ���� ����, ���� ����
-    private int[] _myUnitIds = {19,0,1 };
-    private int[] _enemyUnitIds = { 5,3,3 };
+    private List<int> _myUnitIds = new List<int> { 0 };
+    private List<int> enemyUnitIds = new List<int> { 0,0,0,0,0,0 };
 
 
 
@@ -40,13 +41,13 @@ public class FightStartBtn : MonoBehaviour
             // Inspector에서 연결된 battleManager 사용
             if (battleManager != null)
             {
-
-                
-                int result= await battleManager.StartBattle(_myUnitIds,_enemyUnitIds); //자동전투 실행
+                int result= await battleManager.StartBattle(_myUnitIds,enemyUnitIds); //자동전투 실행
 
             }
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
     }
+
+
 }
