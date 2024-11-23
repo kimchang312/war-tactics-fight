@@ -3,27 +3,27 @@ using UnityEngine;
 
 public class PlayerData : MonoBehaviour
 {
-    public static PlayerData Instance { get; private set; } // ½Ì±ÛÅæ ÀÎ½ºÅÏ½º
+    public static PlayerData Instance { get; private set; } // ì‹±ê¸€í†¤ ì¸ìŠ¤í„´ìŠ¤
 
     private Dictionary<UnitDataBase, int> purchasedUnits = new Dictionary<UnitDataBase, int>();
-    private List<UnitDataBase> placedUnits = new List<UnitDataBase>(); // ¹èÄ¡µÈ À¯´Ö ¸ñ·Ï. ÀÌÈÄ ÀüÅõ ¾À¿¡ ÇÊ¿äÇÑ ÇüÅÂ·Î Àü´ŞÇØ¾ßÇÔ.
+    private List<UnitDataBase> placedUnits = new List<UnitDataBase>(); // ë°°ì¹˜ëœ ìœ ë‹› ëª©ë¡. ì´í›„ ì „íˆ¬ ì”¬ì— í•„ìš”í•œ í˜•íƒœë¡œ ì „ë‹¬í•´ì•¼í•¨.
     private List<UnitDataBase> enemyUnits;
 
-    public string faction;                // ÇÃ·¹ÀÌ¾î°¡ ¼±ÅÃÇÑ Áø¿µ
-    public string difficulty;             // ÇÃ·¹ÀÌ¾î°¡ ¼±ÅÃÇÑ ³­ÀÌµµ
-    public int enemyFunds;                // ³­ÀÌµµ¿¡ µû¸¥ ÀûÀÇ ÀÚ±İ
+    public string faction;                // í”Œë ˆì´ì–´ê°€ ì„ íƒí•œ ì§„ì˜
+    public string difficulty;             // í”Œë ˆì´ì–´ê°€ ì„ íƒí•œ ë‚œì´ë„
+    public int enemyFunds;                // ë‚œì´ë„ì— ë”°ë¥¸ ì ì˜ ìê¸ˆ
     
-    public static int currency = 3000;    // ÇÃ·¹ÀÌ¾î ÀÚ±İ (staticÀ¸·Î °ü¸®)
+    public static int currency = 3000;    // í”Œë ˆì´ì–´ ìê¸ˆ (staticìœ¼ë¡œ ê´€ë¦¬)
 
     
 
     private void Awake()
     {
-        // ½Ì±ÛÅæ ÀÎ½ºÅÏ½º ¼³Á¤
+        // ì‹±ê¸€í†¤ ì¸ìŠ¤í„´ìŠ¤ ì„¤ì •
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // ¾À ÀüÈ¯ ½Ã¿¡µµ À¯Áö
+            DontDestroyOnLoad(gameObject); // ì”¬ ì „í™˜ ì‹œì—ë„ ìœ ì§€
             
         }
         else
@@ -34,36 +34,36 @@ public class PlayerData : MonoBehaviour
 
     private void Start()
     {
-        // ÃÊ±âÈ­ ½Ã ÇÊ¿äÇÑ °ªÀ» ¼³Á¤
-        faction = "±âº» Áø¿µ";  // ±âº» Áø¿µ ¶Ç´Â ¼±ÅÃµÈ Áø¿µ
-        difficulty = "±âº» ³­ÀÌµµ"; // ±âº» ³­ÀÌµµ ¶Ç´Â ¼±ÅÃµÈ ³­ÀÌµµ
-        enemyFunds = CalculateEnemyFunds(difficulty); // ³­ÀÌµµ¿¡ µû¸¥ ÀÚ±İ ¼³Á¤
+        // ì´ˆê¸°í™” ì‹œ í•„ìš”í•œ ê°’ì„ ì„¤ì •
+        faction = "ê¸°ë³¸ ì§„ì˜";  // ê¸°ë³¸ ì§„ì˜ ë˜ëŠ” ì„ íƒëœ ì§„ì˜
+        difficulty = "ê¸°ë³¸ ë‚œì´ë„"; // ê¸°ë³¸ ë‚œì´ë„ ë˜ëŠ” ì„ íƒëœ ë‚œì´ë„
+        enemyFunds = CalculateEnemyFunds(difficulty); // ë‚œì´ë„ì— ë”°ë¥¸ ìê¸ˆ ì„¤ì •
     }
     
-    // ³­ÀÌµµ¿¡ µû¸¥ ÀÚ±İ °è»ê
+    // ë‚œì´ë„ì— ë”°ë¥¸ ìê¸ˆ ê³„ì‚°
     private int CalculateEnemyFunds(string difficulty)
     {
         
         return difficulty switch
         {
-            "½¬¿ò" => 2500,
-            "º¸Åë" => 3500,
-            "¾î·Á¿ò" => 5000,
-            "µµÀü" => 6000,
-            _ => 2500 // ³ª¸ÓÁö °æ¿ì¿¡ ´ëÇÑ ±âº»°ª  ½¬¿ò°ú °°À½
+            "ì‰¬ì›€" => 2500,
+            "ë³´í†µ" => 3500,
+            "ì–´ë ¤ì›€" => 5000,
+            "ë„ì „" => 6000,
+            _ => 2500 // ë‚˜ë¨¸ì§€ ê²½ìš°ì— ëŒ€í•œ ê¸°ë³¸ê°’  ì‰¬ì›€ê³¼ ê°™ìŒ
         };
     }
-    // À¯´ÖÀ» ±¸¸ÅÇÏ°í ¸®½ºÆ®¿¡ Ãß°¡
+    // ìœ ë‹›ì„ êµ¬ë§¤í•˜ê³  ë¦¬ìŠ¤íŠ¸ì— ì¶”ê°€
     public void AddPurchasedUnit(UnitDataBase unit)
     {
 
-        // ÃÑ À¯´Ö ¼ö°¡ 20À» ÃÊ°úÇÏ´ÂÁö È®ÀÎ
+        // ì´ ìœ ë‹› ìˆ˜ê°€ 20ì„ ì´ˆê³¼í•˜ëŠ”ì§€ í™•ì¸
         int totalUnitCount = GetTotalUnitCount();
 
         if (totalUnitCount >= 20)
         {
-            Debug.LogWarning("À¯´Ö ¼ö°¡ 20¸íÀ» ÃÊ°úÇÒ ¼ö ¾ø½À´Ï´Ù.");
-            return; // À¯´Ö Ãß°¡¸¦ ¸·À½
+            Debug.LogWarning("ìœ ë‹› ìˆ˜ê°€ 20ëª…ì„ ì´ˆê³¼í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
+            return; // ìœ ë‹› ì¶”ê°€ë¥¼ ë§‰ìŒ
         }
 
         if (purchasedUnits.ContainsKey(unit))
@@ -74,21 +74,21 @@ public class PlayerData : MonoBehaviour
         {
             purchasedUnits[unit] = 1;
         }
-        // µğ¹ö±× ·Î±× Ãß°¡
-        Debug.Log($"{unit.unitName}À»(¸¦) ±¸¸ÅÇß½À´Ï´Ù. ÇöÀç ÃÑ À¯´Ö ¼ö: {totalUnitCount + 1}");
+        // ë””ë²„ê·¸ ë¡œê·¸ ì¶”ê°€
+        Debug.Log($"{unit.unitName}ì„(ë¥¼) êµ¬ë§¤í–ˆìŠµë‹ˆë‹¤. í˜„ì¬ ì´ ìœ ë‹› ìˆ˜: {totalUnitCount + 1}");
     }
 
-    // ¸ğµç À¯´ÖÀÇ ÃÑ ¼ö¸¦ °è»êÇÏ´Â ¸Ş¼­µå
+    // ëª¨ë“  ìœ ë‹›ì˜ ì´ ìˆ˜ë¥¼ ê³„ì‚°í•˜ëŠ” ë©”ì„œë“œ
     public int GetTotalUnitCount()
     {
         int totalCount = 0;
         foreach (var unit in purchasedUnits)
         {
-            totalCount += unit.Value; // À¯´ÖÀÇ ¼ö·®À» ´õÇÔ
+            totalCount += unit.Value; // ìœ ë‹›ì˜ ìˆ˜ëŸ‰ì„ ë”í•¨
         }
         return totalCount;
     }
-    // Æ¯Á¤ À¯´ÖÀ» ÆÇ¸ÅÇÏ¿© ÀÚ±İ È¯ºÒ ¹× ¼ö·® °¨¼Ò
+    // íŠ¹ì • ìœ ë‹›ì„ íŒë§¤í•˜ì—¬ ìê¸ˆ í™˜ë¶ˆ ë° ìˆ˜ëŸ‰ ê°ì†Œ
     public void SellUnit(UnitDataBase unit)
     {       
         
@@ -97,79 +97,83 @@ public class PlayerData : MonoBehaviour
 
             currency += unit.unitPrice;
             purchasedUnits[unit]--;
-            Debug.Log($"[SellUnit] {unit.unitName} À¯´Ö °³¼ö °¨¼Ò: {purchasedUnits[unit]}");
+            Debug.Log($"[SellUnit] {unit.unitName} ìœ ë‹› ê°œìˆ˜ ê°ì†Œ: {purchasedUnits[unit]}");
 
-            // UI ¾÷µ¥ÀÌÆ®
+            // UI ì—…ë°ì´íŠ¸
             ShopManager.Instance.UpdateUnitCountForUnit(unit);
 
-            // À¯´Ö °³¼ö°¡ 0ÀÌ¸é UI »èÁ¦
+            // ìœ ë‹› ê°œìˆ˜ê°€ 0ì´ë©´ UI ì‚­ì œ
             if (purchasedUnits[unit] == 0)
             {
                 purchasedUnits.Remove(unit);
                 ShopManager.Instance.RemoveMyUnitUI(unit);
-                Debug.Log($"[SellUnit] {unit.unitName} À¯´Ö Á¦°ÅµÊ");
+                Debug.Log($"[SellUnit] {unit.unitName} ìœ ë‹› ì œê±°ë¨");
             }
 
-            // ÀÚ±İ »óÅÂ°¡ º¯°æµÇ¸é ShopManager¿¡¼­ UI ¾÷µ¥ÀÌÆ® È£Ãâ
+            // ìê¸ˆ ìƒíƒœê°€ ë³€ê²½ë˜ë©´ ShopManagerì—ì„œ UI ì—…ë°ì´íŠ¸ í˜¸ì¶œ
             ShopManager.Instance.UpdateUIState();
 
             
         }
     }
 
-    // Æ¯Á¤ À¯´ÖÀÇ ¼ö·®À» °¡Á®¿È
+    // íŠ¹ì • ìœ ë‹›ì˜ ìˆ˜ëŸ‰ì„ ê°€ì ¸ì˜´
     public int GetUnitCount(UnitDataBase unit)
     {
         return purchasedUnits.ContainsKey(unit) ? purchasedUnits[unit] : 0;
     }
 
-    // ÇÃ·¹ÀÌ¾îÀÇ ¸ğµç À¯´Ö ¸ñ·ÏÀ» ¹İÈ¯
+    // í”Œë ˆì´ì–´ì˜ ëª¨ë“  ìœ ë‹› ëª©ë¡ì„ ë°˜í™˜
     public Dictionary<UnitDataBase, int> GetAllPurchasedUnits()
     {
         return new Dictionary<UnitDataBase, int>(purchasedUnits);
     }
-    // ÇÃ·¹ÀÌ¾î µ¥ÀÌÅÍ ÃÊ±âÈ­
+    // í”Œë ˆì´ì–´ ë°ì´í„° ì´ˆê¸°í™”
     public void ResetPlayerData()
     {
-        // À¯´Ö ¸ñ·Ï ÃÊ±âÈ­
+        // ìœ ë‹› ëª©ë¡ ì´ˆê¸°í™”
         purchasedUnits.Clear();
 
-        // ÀÚ±İ ÃÊ±âÈ­
+        // ìê¸ˆ ì´ˆê¸°í™”
         currency = 3000;
 
-        // ±âÅ¸ ÃÊ±âÈ­ÇÒ µ¥ÀÌÅÍ°¡ ÀÖ´Ù¸é ¿©±â¿¡ Ãß°¡
-        faction = "±âº» Áø¿µ";
-        difficulty = "±âº» ³­ÀÌµµ";
-        enemyFunds = CalculateEnemyFunds(difficulty); // ³­ÀÌµµ¿¡ µû¸¥ ÀÚ±İ ÃÊ±âÈ­
+        // ê¸°íƒ€ ì´ˆê¸°í™”í•  ë°ì´í„°ê°€ ìˆë‹¤ë©´ ì—¬ê¸°ì— ì¶”ê°€
+        faction = "ê¸°ë³¸ ì§„ì˜";
+        difficulty = "ê¸°ë³¸ ë‚œì´ë„";
+        enemyFunds = CalculateEnemyFunds(difficulty); // ë‚œì´ë„ì— ë”°ë¥¸ ìê¸ˆ ì´ˆê¸°í™”
     }
 
     
     
-    // ¹èÄ¡µÈ À¯´Ö ¸ñ·Ï¿¡ À¯´ÖÀ» Ãß°¡ÇÏ´Â ¸Ş¼­µå
+    // ë°°ì¹˜ëœ ìœ ë‹› ëª©ë¡ì— ìœ ë‹›ì„ ì¶”ê°€í•˜ëŠ” ë©”ì„œë“œ
     public void AddPlacedUnit(UnitDataBase unit)
     {
         placedUnits.Add(unit);
-        Debug.Log($"¹èÄ¡µÈ À¯´Ö Ãß°¡: {unit.unitName}");
+        Debug.Log($"ë°°ì¹˜ëœ ìœ ë‹› ì¶”ê°€: {unit.unitName}");
     }
-    // ¹èÄ¡µÈ À¯´Ö ¸ñ·ÏÀ» È®ÀÎ
-    public void ShowPlacedUnitList()
+    // ë°°ì¹˜ëœ ìœ ë‹› ëª©ë¡ì„ í™•ì¸
+    public List<int> ShowPlacedUnitList()
     {
-        Debug.Log("¹èÄ¡µÈ À¯´Ö ¸ñ·Ï:");
+        List<int> result = new List<int>();
+        Debug.Log("ë°°ì¹˜ëœ ìœ ë‹› ëª©ë¡:");
         foreach (var unit in placedUnits)
         {
-            Debug.Log($"À¯´Ö ÀÌ¸§: {unit.unitName}");
+            result.Add(unit.idx);
+            Debug.Log($"ìœ ë‹› ì´ë¦„: {unit.unitName}");
         }
+
+        return result;
     }
     public void RemovePlacedUnit(UnitDataBase unit)
     {
         if (placedUnits.Contains(unit))
         {
             placedUnits.Remove(unit);
-            Debug.Log($"{unit.unitName} À¯´ÖÀÌ ¹èÄ¡µÈ ¸®½ºÆ®¿¡¼­ Á¦°ÅµÇ¾ú½À´Ï´Ù.");
+            Debug.Log($"{unit.unitName} ìœ ë‹›ì´ ë°°ì¹˜ëœ ë¦¬ìŠ¤íŠ¸ì—ì„œ ì œê±°ë˜ì—ˆìŠµë‹ˆë‹¤.");
         }
         else
         {
-            Debug.LogWarning($"{unit.unitName} À¯´ÖÀÌ ¹èÄ¡µÈ ¸®½ºÆ®¿¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.");
+            Debug.LogWarning($"{unit.unitName} ìœ ë‹›ì´ ë°°ì¹˜ëœ ë¦¬ìŠ¤íŠ¸ì— ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.");
         }
     }
     public void SetEnemyUnits(List<UnitDataBase> enemyUnits)

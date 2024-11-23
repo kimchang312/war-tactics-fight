@@ -155,7 +155,7 @@ public class UnitDataBase
 
             health, armor, attackDamage, mobility, range, antiCavalry,
             lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy,
-            charge, defense, throwSpear, slaughter, guerrilla, guard, assassination, drain, overwhelm, "빈"
+            slaughter,charge, defense, throwSpear,  guerrilla, guard, assassination, drain, overwhelm, "빈"
         );
     }
 

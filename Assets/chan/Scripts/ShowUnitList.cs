@@ -1,22 +1,24 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ShowUnitButton : MonoBehaviour
 {
-    public Button showUnitListButton; // À¯´Ö ¸ñ·ÏÀ» È®ÀÎÇÒ ¹öÆ°
+    public Button showUnitListButton; // ìœ ë‹› ëª©ë¡ì„ í™•ì¸í•  ë²„íŠ¼
 
     private void Start()
     {
-        // ¹öÆ° Å¬¸¯ ÀÌº¥Æ® Ãß°¡
+        // ë²„íŠ¼ í´ë¦­ ì´ë²¤íŠ¸ ì¶”ê°€
         if (showUnitListButton != null)
         {
             showUnitListButton.onClick.AddListener(OnShowUnitListButtonClicked);
         }
     }
 
-    // ¹öÆ° Å¬¸¯ ½Ã À¯´Ö ¸ñ·ÏÀ» Debug.Log·Î Ãâ·Â
+    // ë²„íŠ¼ í´ë¦­ ì‹œ ìœ ë‹› ëª©ë¡ì„ Debug.Logë¡œ ì¶œë ¥
     private void OnShowUnitListButtonClicked()
     {
-        PlayerData.Instance.ShowPlacedUnitList();  // ¹èÄ¡µÈ À¯´Ö ¸ñ·Ï Ãâ·Â
+        PlayerData.Instance.ShowPlacedUnitList();  // ë°°ì¹˜ëœ ìœ ë‹› ëª©ë¡ ì¶œë ¥
+        SceneManager.LoadScene("AutoBattleScene");
     }
 }
