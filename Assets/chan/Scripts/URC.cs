@@ -3,11 +3,11 @@ using UnityEngine.EventSystems;
 
 public class URC : MonoBehaviour, IPointerClickHandler
 {
-    private UnitDataBase unitData; // ÀÌ À¯´ÖÀÇ µ¥ÀÌÅÍ
+    private UnitDataBase unitData; // ì´ ìœ ë‹›ì˜ ë°ì´í„°
 
-    [SerializeField] private UnitDetailUI unitDetailUI; // ¿©ÀüÈ÷ Inspector¿¡¼­ ¼³Á¤ °¡´É
+    [SerializeField] private UnitDetailUI unitDetailUI; // ì—¬ì „íˆ Inspectorì—ì„œ ì„¤ì • ê°€ëŠ¥
 
-    // unitDetailUI¸¦ ¿ÜºÎ¿¡¼­ ÀĞ°í ¼³Á¤ÇÒ ¼ö ÀÖ´Â ¼Ó¼º
+    // unitDetailUIë¥¼ ì™¸ë¶€ì—ì„œ ì½ê³  ì„¤ì •í•  ìˆ˜ ìˆëŠ” ì†ì„±
     public UnitDetailUI UnitDetailUI
     {
         get => unitDetailUI;
@@ -18,14 +18,11 @@ public class URC : MonoBehaviour, IPointerClickHandler
 
     private void Start()
     {
-        // unitDetailUI°¡ nullÀÏ °æ¿ì¸¸ FindObjectOfType·Î °Ë»ö
+        // unitDetailUIê°€ nullì¼ ê²½ìš°ë§Œ FindObjectOfTypeë¡œ ê²€ìƒ‰
         if (unitDetailUI == null)
         {
             unitDetailUI = FindObjectOfType<UnitDetailUI>();
-            if (unitDetailUI == null)
-            {
-                Debug.LogError("UnitDetailUI¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù. ¾À¿¡ Ãß°¡µÇ¾ú´ÂÁö È®ÀÎÇÏ¼¼¿ä.");
-            }
+            
         }
     }
 
@@ -33,19 +30,16 @@ public class URC : MonoBehaviour, IPointerClickHandler
     {
         unitData = data;
     }
-    // IPointerClickHandler ÀÎÅÍÆäÀÌ½º ±¸Çö
+    // IPointerClickHandler ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Right) // ¿ìÅ¬¸¯ °¨Áö
+        if (eventData.button == PointerEventData.InputButton.Right) // ìš°í´ë¦­ ê°ì§€
         {
             if (unitData != null && unitDetailUI != null)
             {
-                unitDetailUI.ShowUnitDetails(unitData); // À¯´Ö Á¤º¸ Ç¥½Ã
+                unitDetailUI.ShowUnitDetails(unitData); // ìœ ë‹› ì •ë³´ í‘œì‹œ
             }
-            else
-            {
-                Debug.LogWarning("UnitData ¶Ç´Â UnitDetailUI°¡ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù!");
-            }
+            
         }
     }
 }
