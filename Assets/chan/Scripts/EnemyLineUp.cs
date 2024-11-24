@@ -71,32 +71,33 @@ public class EnemyLineupManager : MonoBehaviour
 
     private List<string> ExcludeRandomBranches(List<string> branches)
     {
-        // Bowman 병종은 항상 포함
-        const string mandatoryBranch = "Bowman";
-        if (!branches.Contains(mandatoryBranch))
+        const string mandatoryBranch = "Branch_Bowman"; // 항상 포함되어야 하는 병종
+
+        // Bowman 병종을 분리
+        bool containsBowman = branches.Remove(mandatoryBranch);
+        if (!containsBowman)
         {
             Debug.LogError("Bowman 병종이 유닛 데이터에 없습니다.");
-            return branches; // Bowman이 없으면 그대로 반환
         }
 
-        // Bowman 병종 제외하지 않기 위해 제거
-        List<string> mutableBranches = branches.Where(branch => branch != mandatoryBranch).ToList();
-
-        // 무작위로 2개의 병종 제외
+        // 나머지 병종 중 무작위로 2개의 병종 제외
         for (int i = 0; i < 2; i++)
         {
-            if (mutableBranches.Count == 0) break;
+            if (branches.Count == 0) break; // 병종이 없으면 중단
 
-            int randomIndex = Random.Range(0, mutableBranches.Count);
-            Debug.Log($"제외된 병종: {mutableBranches[randomIndex]}");
-            mutableBranches.RemoveAt(randomIndex);
+            int randomIndex = Random.Range(0, branches.Count);
+            Debug.Log($"제외된 병종: {branches[randomIndex]}");
+            branches.RemoveAt(randomIndex); // 무작위 병종 제거
         }
 
-        // Bowman 병종 추가
-        mutableBranches.Add(mandatoryBranch);
-        Debug.Log("Bowman 병종은 항상 포함됩니다.");
+        // Bowman 병종 다시 추가
+        if (containsBowman)
+        {
+            branches.Add(mandatoryBranch);
+            Debug.Log("Bowman 병종은 항상 포함됩니다.");
+        }
 
-        return mutableBranches;
+        return branches;
     }
 
     private List<UnitDataBase> GenerateUnitsByBudget(List<UnitDataBase> allUnits, List<string> branches)
@@ -171,38 +172,34 @@ public class EnemyLineupManager : MonoBehaviour
         List<UnitDataBase> defensiveUnits = purchasedUnits
             .Where(u => u.unitBranch == "Branch_Heavy_Infantry" || u.unitBranch == "Branch_Heavy_Cavalry")
             .ToList();
-        finalLineup.AddRange(defensiveUnits.Take(5)); // 최대 5명까지 전열에 배치
+        finalLineup.AddRange(defensiveUnits); // 최대 5명까지 전열에 배치
         Debug.Log($"방어형 유닛 배치: {defensiveUnits.Count}명 중 {finalLineup.Count}명 추가");
 
         // 근접형 유닛 (전열/중간열)
         List<UnitDataBase> meleeUnits = purchasedUnits
             .Where(u => u.unitBranch == "Branch_Spearman" || u.unitBranch == "Branch_Warrior")
             .ToList();
-        finalLineup.AddRange(meleeUnits.Take(5));
+        finalLineup.AddRange(meleeUnits); // 최대 5명까지 배치
         Debug.Log($"근접형 유닛 배치: {meleeUnits.Count}명 중 {finalLineup.Count}명 추가");
 
         // 후열 유닛 (사거리 2 이상)
         List<UnitDataBase> rangedUnits = purchasedUnits
             .Where(u => u.range >= 2 && (u.unitBranch == "Branch_Bowman" || u.unitBranch == "Branch_Assasin"))
             .ToList();
-        finalLineup.AddRange(rangedUnits.Take(3));
+        finalLineup.AddRange(rangedUnits); // 최대 3명까지 후열에 배치
         Debug.Log($"후열 유닛 배치: {rangedUnits.Count}명 중 {finalLineup.Count}명 추가");
 
+        // 나머지 유닛 (전열, 중간열, 후열 외에 남은 유닛들)
+        List<UnitDataBase> remainingUnits = purchasedUnits.Except(finalLineup).ToList();
 
-        // 나머지 유닛 무작위 배치
-        foreach (var unit in purchasedUnits)
-        {
-            if (!finalLineup.Contains(unit))
-            {
-                finalLineup.Add(unit);
-                Debug.Log($"추가 배치: {unit.unitName}");
-            }
+        // 남은 유닛을 무작위로 배치 (최대 7명까지)
+        finalLineup.AddRange(remainingUnits.Take(maxUnits - finalLineup.Count));
+        Debug.Log($"추가 배치: {remainingUnits.Count}명 중 {maxUnits - finalLineup.Count}명 추가");
 
-            if (finalLineup.Count >= maxUnits) break;
-        }
         Debug.Log($"최종 배치 유닛 수: {finalLineup.Count}");
         return finalLineup;
-    }
+    
+}
 
     private void DisplayEnemyLineupUI(List<UnitDataBase> enemyLineup)
     {
