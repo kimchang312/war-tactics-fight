@@ -12,6 +12,8 @@ public class AutoBattleUI : MonoBehaviour
 {
     [SerializeField] private Transform canvasTransform;
 
+    [SerializeField] private FightResult fightResult;           //전투 종료 시 보여주는 화면
+
     [SerializeField] private TextMeshProUGUI _myUnitCountUI;
     [SerializeField] private TextMeshProUGUI _enemyUnitCountUI;
     [SerializeField] private TextMeshProUGUI _myUnitHPUI;
@@ -300,6 +302,12 @@ public class AutoBattleUI : MonoBehaviour
         {
             objectPool.ReturnAbility(unit); // 능력 아이콘 비활성화 및 반환
         }
+    }
+
+    //전투 종료
+    public void FightEnd(int result)
+    {
+        fightResult.EndGame(result);
     }
 
 }

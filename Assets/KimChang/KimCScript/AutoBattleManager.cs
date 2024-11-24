@@ -44,9 +44,7 @@ public class AutoBattleManager : MonoBehaviour
     private async void Start()
     {
         List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
-        Debug.Log(myIds.Count);
         if (myIds.Count <= 0) return;
-
 
         await StartBattle(myIds, enemyIds);
     }
@@ -253,6 +251,7 @@ public class AutoBattleManager : MonoBehaviour
     public async Task<int> StartBattle(List<int> _myUnitIds, List<int> _enemyUnitIds)
     {
         int result = await AutoBattle(_myUnitIds,_enemyUnitIds);
+        autoBattleUI.FightEnd(result);
         return result;
     }
 
@@ -558,7 +557,7 @@ public class AutoBattleManager : MonoBehaviour
             myMultiDamage = CalculateCharge(myUnits[myUnitIndex].charge, myUnits[myUnitIndex].mobility);
 
             if (myMultiDamage > 1) mySkills+="돌격 ";
-            Debug.Log(myUnits[myUnitIndex].defense);
+
 
             //강한 돌격
             if (myUnits[myUnitIndex].strongCharge)
