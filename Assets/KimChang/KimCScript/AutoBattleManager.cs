@@ -182,12 +182,12 @@ public class AutoBattleManager : MonoBehaviour
 
             // 사망 처리: 내 유닛
             if (HandleUnitDeath(myUnits, ref myUnitIndex, myUnitMax, enemyUnits, enemyUnitIndex, ref isFirstAttack, ref isMyHeavyArmor, ref isMyBluntWeapon,
-                UpdateUnitCount, UpdateUnitHp, CallCreateUnit))
+                UpdateUnitCount, UpdateUnitHp, CallCreateUnit,ref myUnitMaxHp))
                 continue; // 사망 시 준비부터 다시 시작
 
             // 사망 처리: 적 유닛
             if (HandleUnitDeath(enemyUnits, ref enemyUnitIndex, enemyUnitMax, myUnits, myUnitIndex, ref isFirstAttack, ref isEnemyHeavyArmor, ref isEnemyBluntWeapon,
-                UpdateUnitCount, UpdateUnitHp, CallCreateUnit))
+                UpdateUnitCount, UpdateUnitHp, CallCreateUnit, ref enemyUnitMaxHp))
                 continue; // 사망 시 준비부터 다시 시작
 
             // 충돌
@@ -198,12 +198,12 @@ public class AutoBattleManager : MonoBehaviour
 
             // 사망 처리: 내 유닛
             if (HandleUnitDeath(myUnits, ref myUnitIndex, myUnitMax, enemyUnits, enemyUnitIndex, ref isFirstAttack, ref isMyHeavyArmor, ref isMyBluntWeapon,
-                UpdateUnitCount, UpdateUnitHp, CallCreateUnit))
+                UpdateUnitCount, UpdateUnitHp, CallCreateUnit, ref myUnitMaxHp))
                 continue; // 사망 시 준비부터 다시 시작
 
             // 사망 처리: 적 유닛
             if (HandleUnitDeath(enemyUnits, ref enemyUnitIndex, enemyUnitMax, myUnits, myUnitIndex, ref isFirstAttack, ref isEnemyHeavyArmor, ref isEnemyBluntWeapon,
-                UpdateUnitCount, UpdateUnitHp, CallCreateUnit))
+                UpdateUnitCount, UpdateUnitHp, CallCreateUnit, ref enemyUnitMaxHp))
                 continue; // 사망 시 준비부터 다시 시작
 
             // 지원
@@ -217,12 +217,12 @@ public class AutoBattleManager : MonoBehaviour
 
             // 사망 처리: 내 유닛
             if (HandleUnitDeath(myUnits, ref myUnitIndex, myUnitMax, enemyUnits, enemyUnitIndex, ref isFirstAttack, ref isMyHeavyArmor, ref isMyBluntWeapon,
-                UpdateUnitCount, UpdateUnitHp, CallCreateUnit))
+                UpdateUnitCount, UpdateUnitHp, CallCreateUnit, ref myUnitMaxHp))
                 continue; // 사망 시 준비부터 다시 시작
 
             // 사망 처리: 적 유닛
             if (HandleUnitDeath(enemyUnits, ref enemyUnitIndex, enemyUnitMax, myUnits, myUnitIndex, ref isFirstAttack, ref isEnemyHeavyArmor, ref isEnemyBluntWeapon,
-                UpdateUnitCount, UpdateUnitHp, CallCreateUnit))
+                UpdateUnitCount, UpdateUnitHp, CallCreateUnit, ref enemyUnitMaxHp))
                 continue; // 사망 시 준비부터 다시 시작
             }
 
@@ -889,7 +889,8 @@ public class AutoBattleManager : MonoBehaviour
     ref bool isBluntWeapon,
     Action<int, int> updateUnitCount,
     Action<float, float,float,float> updateUnitHp,
-    Action<UnitDataBase[], UnitDataBase[], int, int> callCreateUnit)
+    Action<UnitDataBase[], UnitDataBase[], int, int> callCreateUnit,
+    ref float unitMaxHp)
     {
         //유격 발동 시
         if (isGarria)
@@ -899,6 +900,8 @@ public class AutoBattleManager : MonoBehaviour
 
             isHeavyArmor = CalculateHeavyArmor(units[unitIndex].heavyArmor, enemyUnits[enemyUnitIndex].branchIdx);
             isBluntWeapon = CalculateBluntWeapon(units[unitIndex].bluntWeapon, enemyUnits[enemyUnitIndex].heavyArmor);
+
+            unitMaxHp = units[unitIndex].health;
 
             Debug.Log("유격 성공");
 
@@ -928,6 +931,7 @@ public class AutoBattleManager : MonoBehaviour
             isHeavyArmor = CalculateHeavyArmor(units[unitIndex].heavyArmor, enemyUnits[enemyUnitIndex].branchIdx);
             isBluntWeapon = CalculateBluntWeapon(units[unitIndex].bluntWeapon, enemyUnits[enemyUnitIndex].heavyArmor);
 
+            unitMaxHp = units[unitIndex].health;
         }
 
         return true; // 유닛 사망 처리 완료
@@ -935,6 +939,7 @@ public class AutoBattleManager : MonoBehaviour
 
     private void UpdateUnitUI(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits, int myUnitIndex, int enemyUnitIndex, int myUnitMax,int enemyUnitMax,float myUnitMaxHp,float enemyUnitMaxHp)
     {
+
         //유닛 생성 UI
         CallCreateUnit(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex);
 
