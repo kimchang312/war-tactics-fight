@@ -8,30 +8,30 @@ public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance { get; private set; }
 
-    public GameObject emptyUnitPrefab;      // ·¹ÀÌ¾Æ¿ô ÀÚ¸®Â÷Áö¸¦ À§ÇÑ ºó ÇÁ¸®ÆÕ
-    public GameObject unitPrefab;           // À¯´Ö Prefab
-    public GameObject linePrefab;           // Á¡Ä­ÀÌ¹ÌÁö Prefab
-    public Transform content;               // À¯´ÖÀÌ Ç¥½ÃµÉ À§Ä¡ (ScrollViewÀÇ Content)
-    public GameObject MyUnitPrefab;         // MyUnit ÇÁ¸®ÆÕ
-    public Transform myUnitUIcontent;       // MyUnit UI À§Ä¡
-    public TextMeshProUGUI currencyText;    // ÇöÀç ÀÚ±İÀ» Ç¥½ÃÇÒ Text
-    public TextMeshProUGUI factionText;     // ÇÃ·¹ÀÌ¾îÀÇ Áø¿µÀ» Ç¥½ÃÇÒ Text
-    public PlayerData playerData;           // PlayerData¸¦ ÅëÇØ ÀÚ±İ ¹× ±¸¸ÅÇÑ À¯´Ö È®ÀÎ
-    public UnitDataManager unitDataManager; // UnitDataManager¸¦ ÅëÇØ À¯´Öµ¥ÀÌÅÍ ·ÎµåÇÏ±â À§ÇÔ
-    public Button placeButton; // ¹èÄ¡¹öÆ° = ¹èÄ¡BTN
-    public GameObject FundsWarning; // ÀÚ±İ ºÎÁ· °æ°í
+    public GameObject emptyUnitPrefab;      // ë ˆì´ì•„ì›ƒ ìë¦¬ì°¨ì§€ë¥¼ ìœ„í•œ ë¹ˆ í”„ë¦¬íŒ¹
+    public GameObject unitPrefab;           // ìœ ë‹› Prefab
+    public GameObject linePrefab;           // ì ì¹¸ì´ë¯¸ì§€ Prefab
+    public Transform content;               // ìœ ë‹›ì´ í‘œì‹œë  ìœ„ì¹˜ (ScrollViewì˜ Content)
+    public GameObject MyUnitPrefab;         // MyUnit í”„ë¦¬íŒ¹
+    public Transform myUnitUIcontent;       // MyUnit UI ìœ„ì¹˜
+    public TextMeshProUGUI currencyText;    // í˜„ì¬ ìê¸ˆì„ í‘œì‹œí•  Text
+    public TextMeshProUGUI factionText;     // í”Œë ˆì´ì–´ì˜ ì§„ì˜ì„ í‘œì‹œí•  Text
+    public PlayerData playerData;           // PlayerDataë¥¼ í†µí•´ ìê¸ˆ ë° êµ¬ë§¤í•œ ìœ ë‹› í™•ì¸
+    public UnitDataManager unitDataManager; // UnitDataManagerë¥¼ í†µí•´ ìœ ë‹›ë°ì´í„° ë¡œë“œí•˜ê¸° ìœ„í•¨
+    public Button placeButton; // ë°°ì¹˜ë²„íŠ¼ = ë°°ì¹˜BTN
+    public GameObject FundsWarning; // ìê¸ˆ ë¶€ì¡± ê²½ê³ 
 
-    //À¯´Ö »ó¼¼¿¡ ÇÊ¿äÇÑ ¿¬°á
-    public UnitDetailUI unitDetailUI; // Inspector¿¡¼­ ¿¬°á
+    //ìœ ë‹› ìƒì„¸ì— í•„ìš”í•œ ì—°ê²°
+    public UnitDetailUI unitDetailUI; // Inspectorì—ì„œ ì—°ê²°
 
 
-    private List<MyUnitUI> myUnitUIList = new List<MyUnitUI>(); // MyUnitUI ¸®½ºÆ®
+    private List<MyUnitUI> myUnitUIList = new List<MyUnitUI>(); // MyUnitUI ë¦¬ìŠ¤íŠ¸
 
-    [SerializeField] private Transform unitPlacementArea;  // À¯´Ö ¹èÄ¡ÇÒ UI ¿µ¿ª
-    [SerializeField] private GameObject placeunitPrefab;   // ¹èÄ¡ÇÒ À¯´Ö ÇÁ¸®ÆÕ
+    [SerializeField] private Transform unitPlacementArea;  // ìœ ë‹› ë°°ì¹˜í•  UI ì˜ì—­
+    [SerializeField] private GameObject placeunitPrefab;   // ë°°ì¹˜í•  ìœ ë‹› í”„ë¦¬íŒ¹
     [SerializeField] private Image currencyTextImg;
-    public bool isPlacingUnits = false;                   // ¹èÄ¡ ¸ğµå È®ÀÎ
-    private GameObject lineObject; // Á¡Ä­À» ÇÑ ¹ø¸¸ »ı¼ºÇÒ °´Ã¼
+    public bool isPlacingUnits = false;                   // ë°°ì¹˜ ëª¨ë“œ í™•ì¸
+    private GameObject lineObject; // ì ì¹¸ì„ í•œ ë²ˆë§Œ ìƒì„±í•  ê°ì²´
     public bool IsPlacingUnits => isPlacingUnits;
     private void Awake()
     {
@@ -46,31 +46,23 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // À¯´Ö µ¥ÀÌÅÍ¸¦ ·ÎµåÇÏ´Â ½ÃÁ¡¿¡ ¸ÂÃç DisplayUnits È£Ãâ
-    // °ÔÀÓ ½ÃÀÛ ½Ã µ¥ÀÌÅÍ¸¦ ¹Ì¸® ·ÎµåÇÏ°í »óÁ¡ È­¸éÀ» ÁØºñ
+    // ìœ ë‹› ë°ì´í„°ë¥¼ ë¡œë“œí•˜ëŠ” ì‹œì ì— ë§ì¶° DisplayUnits í˜¸ì¶œ
+    // ê²Œì„ ì‹œì‘ ì‹œ ë°ì´í„°ë¥¼ ë¯¸ë¦¬ ë¡œë“œí•˜ê³  ìƒì  í™”ë©´ì„ ì¤€ë¹„
     private async void Start()
     {
 
-        // PlayerData ½Ì±ÛÅæ ÀÎ½ºÅÏ½º¸¦ ¿¬°á
-        if (PlayerData.Instance != null)
-        {
-            playerData = PlayerData.Instance;
-            Debug.Log("PlayerData ¿¬°á ¿Ï·á: " + playerData.faction);
-        }
-        else
-        {
-            Debug.LogError("PlayerData ½Ì±ÛÅæ ÀÎ½ºÅÏ½º°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.");
-        }
-        Debug.Log("ShopManager Start()");
+        // PlayerData ì‹±ê¸€í†¤ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ì—°ê²°
+        playerData = PlayerData.Instance;
+        
 
         
-        // UnitDataManager ÀÎ½ºÅÏ½º ¿¬°á
+        // UnitDataManager ì¸ìŠ¤í„´ìŠ¤ ì—°ê²°
         while (UnitDataManager.Instance == null)
         {
-            await Task.Yield();  // ºñµ¿±â ´ë±â
+            await Task.Yield();  // ë¹„ë™ê¸° ëŒ€ê¸°
         }
         unitDataManager = UnitDataManager.Instance;
-        Debug.Log("UnitDataManager ¿¬°á ¿Ï·á");
+        
 
         await unitDataManager.LoadUnitDataAsync();
 
@@ -80,139 +72,130 @@ public class ShopManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("À¯´Ö µ¥ÀÌÅÍ°¡ ºñ¾î ÀÖ½À´Ï´Ù.");
+            
         }
-        // ·ÎµùÀÌ ¿Ï·áµÈ ÈÄ ¹Ù·Î »óÁ¡ È­¸éÀ» Ç¥½Ã
+        // ë¡œë”©ì´ ì™„ë£Œëœ í›„ ë°”ë¡œ ìƒì  í™”ë©´ì„ í‘œì‹œ
 
-        UpdateCurrencyDisplay(); // ÀÚ±İ UI ¾÷µ¥ÀÌÆ®
-        FactionDisplay();// Áø¿µ UI ¾÷µ¥ÀÌÆ®
+        UpdateCurrencyDisplay(); // ìê¸ˆ UI ì—…ë°ì´íŠ¸
+        FactionDisplay();// ì§„ì˜ UI ì—…ë°ì´íŠ¸
         placeButton.onClick.AddListener(TogglePlacingUnits);
 
-        // ¹èÄ¡ UI¿¡ Á¡Ä­À» ÃÖÃÊ 1¹ø¸¸ »ı¼º
+        // ë°°ì¹˜ UIì— ì ì¹¸ì„ ìµœì´ˆ 1ë²ˆë§Œ ìƒì„±
         lineObject = Instantiate(linePrefab, unitPlacementArea);
-        Debug.Log("lineObject parent: " + lineObject.transform.parent.name);
+        
 
 
     }
     
-    // À¯´Ö µ¥ÀÌÅÍ¸¦ UI¿¡ Ç¥½Ã
+    // ìœ ë‹› ë°ì´í„°ë¥¼ UIì— í‘œì‹œ
     public void DisplayUnits()
     {
-        var units = UnitDataManager.Instance.GetAllUnits(); // UnitDataManager¿¡¼­ À¯´Ö ¸®½ºÆ® °¡Á®¿À±â
+        var units = UnitDataManager.Instance.GetAllUnits(); // UnitDataManagerì—ì„œ ìœ ë‹› ë¦¬ìŠ¤íŠ¸ ê°€ì ¸ì˜¤ê¸°
         if (units != null && units.Count > 0)
         {
             foreach (var unit in units)
             {
                 GameObject unitObject = Instantiate(unitPrefab, content);
-                UnitUI unitUI = unitObject.GetComponent<UnitUI>(); // À¯´Ö Á¤º¸¸¦ Ç¥½ÃÇÒ UI ÄÄÆ÷³ÍÆ®
+                UnitUI unitUI = unitObject.GetComponent<UnitUI>(); // ìœ ë‹› ì •ë³´ë¥¼ í‘œì‹œí•  UI ì»´í¬ë„ŒíŠ¸
                 
                 if (unitUI != null)
                 {
-                    unitUI.SetUnitData(unit); // À¯´Ö Á¤º¸¸¦ UI¿¡ ¼¼ÆÃ
-                    // UnitDetailUI Àü´Ş (URC¿Í ¿¬µ¿)
+                    unitUI.SetUnitData(unit); // ìœ ë‹› ì •ë³´ë¥¼ UIì— ì„¸íŒ…
+                    // UnitDetailUI ì „ë‹¬ (URCì™€ ì—°ë™)
                     URC urc = unitObject.GetComponent<URC>();
                     if (urc != null)
                     {
-                        urc.SetUnitData(unit);               // À¯´Ö µ¥ÀÌÅÍ ¼³Á¤
-                        urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI ÂüÁ¶ Àü´Ş
+                        urc.SetUnitData(unit);               // ìœ ë‹› ë°ì´í„° ì„¤ì •
+                        urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI ì°¸ì¡° ì „ë‹¬
                     }
                 }
-                else
-                {
-                    Debug.LogWarning("UnitUI ÄÄÆ÷³ÍÆ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
-                }
+                
             }
-            // À¯´Ö Ãß°¡ ÈÄ ºó À¯´Ö 5°³ Ãß°¡
+            // ìœ ë‹› ì¶”ê°€ í›„ ë¹ˆ ìœ ë‹› 5ê°œ ì¶”ê°€
             AddEmptyUnits();
         }
-        else
-        {
-            Debug.LogWarning("À¯´Ö µ¥ÀÌÅÍ°¡ ºñ¾î ÀÖ½À´Ï´Ù.");
-        }
+        
     }
 
-    // ºó À¯´Ö 5°³ Ãß°¡ (·¹ÀÌ¾Æ¿ô ÀÚ¸®¿ë)
+    // ë¹ˆ ìœ ë‹› 5ê°œ ì¶”ê°€ (ë ˆì´ì•„ì›ƒ ìë¦¬ìš©)
     private void AddEmptyUnits()
     {
         for (int i = 0; i < 5; i++)
         {
-            // ºó À¯´Ö ÇÁ¸®ÆÕÀ» Content¿¡ Ãß°¡
+            // ë¹ˆ ìœ ë‹› í”„ë¦¬íŒ¹ì„ Contentì— ì¶”ê°€
             Instantiate(emptyUnitPrefab, content);
         }
     }
     public void BuyUnit(UnitDataBase unit)
     {
-        // ÀÚ±İÀÌ ºÎÁ·ÇØµµ À¯´Ö ±¸¸Å °¡´É
-            PlayerData.currency -= unit.unitPrice; //ÀÚ±İ Â÷°¨ (À½¼ö·Î ³»·Á°¨)
+        // ìê¸ˆì´ ë¶€ì¡±í•´ë„ ìœ ë‹› êµ¬ë§¤ ê°€ëŠ¥
+            PlayerData.currency -= unit.unitPrice; //ìê¸ˆ ì°¨ê° (ìŒìˆ˜ë¡œ ë‚´ë ¤ê°)
             PlayerData.Instance.AddPurchasedUnit(unit);
 
             UpdateCurrencyDisplay();
             AddOrUpdateUnitInMyUnitUI(unit);
 
-        // ÀÚ±İÀÌ ¾ç¼ö·Î µ¹¾Æ¿À¸é °æ°í ¸Ş½ÃÁö ¼û±â°í ¹èÄ¡ ¹öÆ° È°¼ºÈ­
+        // ìê¸ˆì´ ì–‘ìˆ˜ë¡œ ëŒì•„ì˜¤ë©´ ê²½ê³  ë©”ì‹œì§€ ìˆ¨ê¸°ê³  ë°°ì¹˜ ë²„íŠ¼ í™œì„±í™”
         UpdateUIState();
         
     }
 
-    // ÀÚ±İ ¾÷µ¥ÀÌÆ® UI Ç¥½Ã
+    // ìê¸ˆ ì—…ë°ì´íŠ¸ UI í‘œì‹œ
     public void UpdateCurrencyDisplay()
         {
         currencyText.text =  PlayerData.currency.ToString()+"G";
         }
     private void FactionDisplay()
         { 
-           factionText.text = "Áø¿µ : "+ playerData.faction.ToString();
+           factionText.text = "ì§„ì˜ : "+ playerData.faction.ToString();
         }
 
-    // MyUnit UI¿¡ À¯´Ö Ãß°¡ ¶Ç´Â ¼ÒÁö °³¼ö Áõ°¡
+    // MyUnit UIì— ìœ ë‹› ì¶”ê°€ ë˜ëŠ” ì†Œì§€ ê°œìˆ˜ ì¦ê°€
     private void AddOrUpdateUnitInMyUnitUI(UnitDataBase unit)
     {
         bool unitExists = false;
 
-        // ÀÌ¹Ì MyUnitUI¿¡ ÇØ´ç À¯´ÖÀÌ ÀÖ´ÂÁö È®ÀÎ
+        // ì´ë¯¸ MyUnitUIì— í•´ë‹¹ ìœ ë‹›ì´ ìˆëŠ”ì§€ í™•ì¸
         foreach (Transform child in myUnitUIcontent)
         {
             MyUnitUI myUnitUI = child.GetComponent<MyUnitUI>();
             if (myUnitUI != null && myUnitUI.UnitData == unit)
             {
-                // ¼ÒÁö °³¼ö ¾÷µ¥ÀÌÆ®
+                // ì†Œì§€ ê°œìˆ˜ ì—…ë°ì´íŠ¸
                 myUnitUI.UpdateUnitCount();
                 unitExists = true;
                 break;
             }
         }
 
-        // MyUnitUI¿¡ ÇØ´ç À¯´ÖÀÌ ¾ø´Ù¸é »õ·Î »ı¼º
+        // MyUnitUIì— í•´ë‹¹ ìœ ë‹›ì´ ì—†ë‹¤ë©´ ìƒˆë¡œ ìƒì„±
         if (!unitExists)
         {
             GameObject unitObj = Instantiate(MyUnitPrefab, myUnitUIcontent);
             MyUnitUI myUnitUI = unitObj.GetComponent<MyUnitUI>();
             if (myUnitUI != null)
             {                                                 
-                    // UnitDetailUI Àü´Ş (URC¿Í ¿¬µ¿)
+                    // UnitDetailUI ì „ë‹¬ (URCì™€ ì—°ë™)
                     URC urc = unitObj.GetComponent<URC>();
                     if (urc != null)
                     {
-                        urc.SetUnitData(unit);               // À¯´Ö µ¥ÀÌÅÍ ¼³Á¤
-                        urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI ÂüÁ¶ Àü´Ş
+                        urc.SetUnitData(unit);               // ìœ ë‹› ë°ì´í„° ì„¤ì •
+                        urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI ì°¸ì¡° ì „ë‹¬
                     }
                 
-                else
-                {
-                    Debug.LogWarning("UnitUI ÄÄÆ÷³ÍÆ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
-                }
+                
             }
                 myUnitUI.Setup(unit);
                 myUnitUIList.Add(myUnitUI);                    
         }
     }
-    // Æ¯Á¤ À¯´Ö¿¡ ÇØ´çÇÏ´Â MyUnitUI Ã£±â
+    // íŠ¹ì • ìœ ë‹›ì— í•´ë‹¹í•˜ëŠ” MyUnitUI ì°¾ê¸°
     private MyUnitUI FindMyUnitUI(UnitDataBase unit)
     {
         return myUnitUIList.Find(ui => ui.UnitData == unit);
     }
 
-    // Æ¯Á¤ À¯´ÖÀÇ UI ¾÷µ¥ÀÌÆ®
+    // íŠ¹ì • ìœ ë‹›ì˜ UI ì—…ë°ì´íŠ¸
     public void UpdateUnitCountForUnit(UnitDataBase unit)
     {
         MyUnitUI myUnitUI = FindMyUnitUI(unit);
@@ -220,23 +203,20 @@ public class ShopManager : MonoBehaviour
         {
             myUnitUI.UpdateUnitCount();
         }
-        else
-        {
-            Debug.LogWarning($"[UpdateUnitCountForUnit] {unit.unitName}¿¡ ÇØ´çÇÏ´Â UI¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
-        }
+        
     }
 
-    // Æ¯Á¤ À¯´ÖÀÇ UI »èÁ¦
+    // íŠ¹ì • ìœ ë‹›ì˜ UI ì‚­ì œ
     public void RemoveMyUnitUI(UnitDataBase unit)
     {
         MyUnitUI myUnitUI = FindMyUnitUI(unit);
         if (myUnitUI != null)
         {
             myUnitUIList.Remove(myUnitUI);
-            Destroy(myUnitUI.gameObject); // UI »èÁ¦
+            Destroy(myUnitUI.gameObject); // UI ì‚­ì œ
         }
     }
-    // ÀÚ±İ ºÎÁ· °æ°í ¸Ş½ÃÁö Ç¥½Ã/¼û±â±â
+    // ìê¸ˆ ë¶€ì¡± ê²½ê³  ë©”ì‹œì§€ í‘œì‹œ/ìˆ¨ê¸°ê¸°
     public void ShowFundsWarning(bool show)
     {
         if (FundsWarning != null)
@@ -244,98 +224,93 @@ public class ShopManager : MonoBehaviour
             FundsWarning.SetActive(show);
         }
     }
-    // ¹èÄ¡ ¹öÆ°À» ºñÈ°¼ºÈ­ÇÏ´Â ¸Ş¼­µå
+    // ë°°ì¹˜ ë²„íŠ¼ì„ ë¹„í™œì„±í™”í•˜ëŠ” ë©”ì„œë“œ
     public void DisablePlaceButton(bool disable)
     {
-        // ¹èÄ¡ ¹öÆ° ºñÈ°¼ºÈ­
+        // ë°°ì¹˜ ë²„íŠ¼ ë¹„í™œì„±í™”
         if (placeButton != null)
         {
             placeButton.interactable = !disable;
         }
     }
-    // ÀÚ±İ »óÅÂ¿¡ µû¶ó UI ¾÷µ¥ÀÌÆ® (°æ°í ¸Ş½ÃÁö¿Í ¹èÄ¡ ¹öÆ° »óÅÂ)
+    // ìê¸ˆ ìƒíƒœì— ë”°ë¼ UI ì—…ë°ì´íŠ¸ (ê²½ê³  ë©”ì‹œì§€ì™€ ë°°ì¹˜ ë²„íŠ¼ ìƒíƒœ)
     public void UpdateUIState()
     {
         if (PlayerData.currency < 0)
         {
             ShowFundsWarning(true);
             DisablePlaceButton(true);
-            ChangeBackgroundColor("#f4cccc"); //Çí½ºÄÚµå·Î ÇÃ·¹ÀÌ¾î °ñµå ¹è°æ»ö º¯°æ
+            ChangeBackgroundColor("#f4cccc"); //í—¥ìŠ¤ì½”ë“œë¡œ í”Œë ˆì´ì–´ ê³¨ë“œ ë°°ê²½ìƒ‰ ë³€ê²½
 
         }
         else
         {
             ShowFundsWarning(false);
             DisablePlaceButton(false);
-            ChangeBackgroundColor("#ffffFF"); //Çí½ºÄÚµå·Î ÇÃ·¹ÀÌ¾î °ñµå ¹è°æ»ö º¯°æ
+            ChangeBackgroundColor("#ffffFF"); //í—¥ìŠ¤ì½”ë“œë¡œ í”Œë ˆì´ì–´ ê³¨ë“œ ë°°ê²½ìƒ‰ ë³€ê²½
         }
     }
 
 
-    // À¯´Ö Å¬¸¯½Ã È£ÃâµÇ´Â ¸Ş¼­µå
+    // ìœ ë‹› í´ë¦­ì‹œ í˜¸ì¶œë˜ëŠ” ë©”ì„œë“œ
     public void OnUnitClicked(UnitDataBase unit)
     {
-        PlaceUnit(unit);  // À¯´Ö ¹èÄ¡
+        PlaceUnit(unit);  // ìœ ë‹› ë°°ì¹˜
     }
-    // ¼±ÅÃµÈ À¯´ÖÀ» ¹èÄ¡ÇÏ´Â ¸Ş¼­µå
+    // ì„ íƒëœ ìœ ë‹›ì„ ë°°ì¹˜í•˜ëŠ” ë©”ì„œë“œ
     private void PlaceUnit(UnitDataBase unit)
     {
-        // À¯´ÖÀÇ ÀÌ¹ÌÁö¿Í ÀÌ¸§À» °¡Áö°í »õ·Î¿î UI ÇÁ¸®ÆÕÀ» »ı¼º
+        // ìœ ë‹›ì˜ ì´ë¯¸ì§€ì™€ ì´ë¦„ì„ ê°€ì§€ê³  ìƒˆë¡œìš´ UI í”„ë¦¬íŒ¹ì„ ìƒì„±
         GameObject placeunitObject = Instantiate(placeunitPrefab, unitPlacementArea);
         
 
-        // PlacedUnit ½ºÅ©¸³Æ® ÄÄÆ÷³ÍÆ®¸¦ °¡Á®¿È
+        // PlacedUnit ìŠ¤í¬ë¦½íŠ¸ ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì ¸ì˜´
         PlacedUnit placedUnit = placeunitObject.GetComponent<PlacedUnit>();        
-        // UnitDetailUI Àü´Ş (URC¿Í ¿¬µ¿)
+        // UnitDetailUI ì „ë‹¬ (URCì™€ ì—°ë™)
         URC urc = placedUnit.GetComponent<URC>();
         if (urc != null)
         {
-            urc.SetUnitData(unit);               // À¯´Ö µ¥ÀÌÅÍ ¼³Á¤
-            urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI ÂüÁ¶ Àü´Ş
+            urc.SetUnitData(unit);               // ìœ ë‹› ë°ì´í„° ì„¤ì •
+            urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI ì°¸ì¡° ì „ë‹¬
         }
         
-        else
-        {
-            Debug.LogWarning("UnitUI ÄÄÆ÷³ÍÆ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
-        }
+        
     
 
-        // À¯´Ö µ¥ÀÌÅÍ ¼³Á¤
-        placedUnit.SetUnitData(unit);  // PlacedUnitÀÇ SetUnitData ¸Ş¼­µå¿¡¼­ À¯´Ö µ¥ÀÌÅÍ¿Í UI ¾÷µ¥ÀÌÆ®
+        // ìœ ë‹› ë°ì´í„° ì„¤ì •
+        placedUnit.SetUnitData(unit);  // PlacedUnitì˜ SetUnitData ë©”ì„œë“œì—ì„œ ìœ ë‹› ë°ì´í„°ì™€ UI ì—…ë°ì´íŠ¸
 
-        // ¹èÄ¡ ÈÄ ÇØ´ç À¯´ÖÀ» PlayerDataÀÇ ¹èÄ¡µÈ À¯´Ö ¸®½ºÆ®¿¡ Ãß°¡
-        PlayerData.Instance.AddPlacedUnit(unit);  // À¯´ÖÀ» ¹èÄ¡µÈ À¯´Ö ¸ñ·Ï¿¡ Ãß°¡
+        // ë°°ì¹˜ í›„ í•´ë‹¹ ìœ ë‹›ì„ PlayerDataì˜ ë°°ì¹˜ëœ ìœ ë‹› ë¦¬ìŠ¤íŠ¸ì— ì¶”ê°€
+        PlayerData.Instance.AddPlacedUnit(unit);  // ìœ ë‹›ì„ ë°°ì¹˜ëœ ìœ ë‹› ëª©ë¡ì— ì¶”ê°€
 
-        // ¹èÄ¡ ÈÄ Á¡Ä­À» ¸¶Áö¸·À¸·Î ÀÌµ¿
+        // ë°°ì¹˜ í›„ ì ì¹¸ì„ ë§ˆì§€ë§‰ìœ¼ë¡œ ì´ë™
         MoveLineToLast();
-        Debug.Log(lineObject.transform.GetSiblingIndex());
+        
 
-        Debug.Log($"[PlaceUnit] À¯´Ö {unit.unitName} ¹èÄ¡ ¿Ï·á. Á¡Ä­ À§Ä¡ ¾÷µ¥ÀÌÆ®.");
-        Debug.Log($"[PlaceUnit] ¹èÄ¡ÇÒ À¯´Ö: {unit.unitName}");
-        Debug.Log($"[PlaceUnit] ¹èÄ¡ Àü À¯´Ö °³¼ö: {PlayerData.Instance.GetUnitCount(unit)}");
-        // ¹èÄ¡ ÈÄ ÇØ´ç À¯´ÖÀÇ °³¼ö¸¦ Â÷°¨
+        
+        // ë°°ì¹˜ í›„ í•´ë‹¹ ìœ ë‹›ì˜ ê°œìˆ˜ë¥¼ ì°¨ê°
         PlayerData.Instance.SellUnit(unit);
-        Debug.Log($"[PlaceUnit] ¹èÄ¡ ÈÄ À¯´Ö °³¼ö: {PlayerData.Instance.GetUnitCount(unit)}");
+        
         
     }
 
     
-    // Á¡Ä­À» ¸¶Áö¸·À¸·Î ÀÌµ¿ÇÏ´Â ¸Ş¼­µå
+    // ì ì¹¸ì„ ë§ˆì§€ë§‰ìœ¼ë¡œ ì´ë™í•˜ëŠ” ë©”ì„œë“œ
     private void MoveLineToLast()
     {
-        // lineObject°¡ ¸¶Áö¸· ÀÚ½ÄÀÌ µÇµµ·Ï °­Á¦·Î ¼³Á¤
-        int lastIndex = unitPlacementArea.childCount;  // ÇöÀç ÀÚ½ÄÀÇ °³¼ö¸¦ °¡Á®¿È
-        lineObject.transform.SetSiblingIndex(lastIndex);  // ¸¶Áö¸· ÀÎµ¦½º À§Ä¡·Î ¼³Á¤
+        // lineObjectê°€ ë§ˆì§€ë§‰ ìì‹ì´ ë˜ë„ë¡ ê°•ì œë¡œ ì„¤ì •
+        int lastIndex = unitPlacementArea.childCount;  // í˜„ì¬ ìì‹ì˜ ê°œìˆ˜ë¥¼ ê°€ì ¸ì˜´
+        lineObject.transform.SetSiblingIndex(lastIndex);  // ë§ˆì§€ë§‰ ì¸ë±ìŠ¤ ìœ„ì¹˜ë¡œ ì„¤ì •
 
-        // SetAsLastSibling È£Ãâ ÈÄ »óÅÂ È®ÀÎ
-        Debug.Log($"[After SetAsLastSibling] lineObjectÀÇ ÀÎµ¦½º: {lineObject.transform.GetSiblingIndex()}, ºÎ¸ğ ÀÚ½Ä ¼ö: {unitPlacementArea.childCount}");
+        // SetAsLastSibling í˜¸ì¶œ í›„ ìƒíƒœ í™•ì¸
+        Debug.Log($"[After SetAsLastSibling] lineObjectì˜ ì¸ë±ìŠ¤: {lineObject.transform.GetSiblingIndex()}, ë¶€ëª¨ ìì‹ ìˆ˜: {unitPlacementArea.childCount}");
         
     }
-        // ¹èÄ¡ ¸ğµå È°¼ºÈ­ / ºñÈ°¼ºÈ­ Åä±Û
+        // ë°°ì¹˜ ëª¨ë“œ í™œì„±í™” / ë¹„í™œì„±í™” í† ê¸€
         public void TogglePlacingUnits()
     {
         isPlacingUnits = !isPlacingUnits;
-        placeButton.interactable = isPlacingUnits;  // ¹èÄ¡ ¹öÆ° È°¼ºÈ­ / ºñÈ°¼ºÈ­
+        placeButton.interactable = isPlacingUnits;  // ë°°ì¹˜ ë²„íŠ¼ í™œì„±í™” / ë¹„í™œì„±í™”
     }
     public void ReturnUnit(UnitDataBase unit)
     {
@@ -343,7 +318,7 @@ public class ShopManager : MonoBehaviour
         AddOrUpdateUnitInMyUnitUI(unit);
     }
 
-    // Çí½ºÄÚµå·Î ¹è°æÀ» º¯°æÇÏ´Â ¸Ş¼­µå
+    // í—¥ìŠ¤ì½”ë“œë¡œ ë°°ê²½ì„ ë³€ê²½í•˜ëŠ” ë©”ì„œë“œ
     public void ChangeBackgroundColor(string hexColor)
     {
         if (currencyTextImg != null)
@@ -353,15 +328,9 @@ public class ShopManager : MonoBehaviour
             {
                 currencyTextImg.color = newColor;
             }
-            else
-            {
-                Debug.LogWarning("À¯È¿ÇÏÁö ¾ÊÀº Çí½ºÄÚµåÀÔ´Ï´Ù: " + hexColor);
-            }
+            
         }
-        else
-        {
-            Debug.LogWarning("backgroundImage°¡ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù.");
-        }
+        
     }
     
 }

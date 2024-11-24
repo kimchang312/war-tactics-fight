@@ -6,156 +6,228 @@ using TMPro;
 
 public class EnemyLineupManager : MonoBehaviour
 {
-    [Header("Àû ¸®½ºÆ® Ç¥½Ã")]
-    [SerializeField] private Transform enemyListParent; // Àû ¸®½ºÆ®¸¦ Ç¥½ÃÇÒ ºÎ¸ğ ¿ÀºêÁ§Æ®
-    [SerializeField] private GameObject enemyUnitPrefab; // À¯´Ö Á¤º¸¸¦ Ç¥½ÃÇÒ ÇÁ¸®ÆÕ
+    [Header("ì  ë¦¬ìŠ¤íŠ¸ í‘œì‹œ")]
+    [SerializeField] private Transform enemyListParent; // ì  ë¦¬ìŠ¤íŠ¸ë¥¼ í‘œì‹œí•  ë¶€ëª¨ ì˜¤ë¸Œì íŠ¸
+    [SerializeField] private GameObject enemyUnitPrefab; // ìœ ë‹› ì •ë³´ë¥¼ í‘œì‹œí•  í”„ë¦¬íŒ¹
 
-    [Header("¼³Á¤")]
-    [SerializeField] private int maxUnits = 20; // ÃÖ´ë À¯´Ö ¼ö
-    private int enemyFunds; // Àû ±ººñ (PlayerData¿¡¼­ °¡Á®¿È)
+    [Header("ì„¤ì •")]
+    [SerializeField] private int maxUnits = 20; // ìµœëŒ€ ìœ ë‹› ìˆ˜
+    private int enemyFunds; // ì  êµ°ë¹„ (PlayerDataì—ì„œ ê°€ì ¸ì˜´)
 
-    
-    public void Start()
+
+    private void Start()
     {
-        GenerateEnemyLineup(); // Àû À¯´Ö »ı¼º
-        //DisplayEnemyLineupUI(); // »ı¼ºµÈ À¯´ÖÀ» UI¿¡ Ç¥½Ã
+        // ì  êµ°ë¹„ë¥¼ PlayerDataì—ì„œ ê°€ì ¸ì˜¤ê¸°
+        enemyFunds = PlayerData.Instance.enemyFunds;
+
+        if (enemyFunds <= 0)
+        {
+            Debug.LogError("ì  êµ°ë¹„ê°€ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
+            return;
+        }
+
+        // ì  ë¼ì¸ì—… ìƒì„±
+        GenerateEnemyLineup();
     }
 
     public void GenerateEnemyLineup()
     {
-        Debug.Log("GenerateEnemyLineup È£ÃâµÊ");
-        //ExcludeRandomBranches(); // ¹«ÀÛÀ§ º´Á¾ Á¦¿Ü
-        Debug.Log("¹«ÀÛÀ§ º´Á¾ Á¦¿Ü ¿Ï·á");
-        //PurchaseUnits(); // Àû À¯´Ö ±¸¸Å ·ÎÁ÷ È£Ãâ
-        Debug.Log("Àû À¯´Ö ±¸¸Å ¿Ï·á");
-        List<UnitDataBase> purchasedUnits = UnitDataManager.Instance.GetAllUnits();
 
-        if (purchasedUnits == null || purchasedUnits.Count == 0)
+
+        Debug.Log("ì  ìœ ë‹› êµ¬ë§¤ ì™„ë£Œ");
+        // ëª¨ë“  ìœ ë‹› ë°ì´í„° ê°€ì ¸ì˜¤ê¸°
+        List<UnitDataBase> allUnits = UnitDataManager.Instance.GetAllUnits();
+
+        if (allUnits == null || allUnits.Count == 0)
         {
-            Debug.LogError("À¯´Ö µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù.");
+            Debug.LogError("ìœ ë‹› ë°ì´í„°ê°€ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
-        List<UnitDataBase> enemyUnits = PlaceUnits(purchasedUnits);
+        // ì‚¬ìš© ê°€ëŠ¥í•œ ë³‘ì¢… ê°€ì ¸ì˜¤ê¸°
+        List<string> branches = allUnits.Select(u => u.unitBranch).Distinct().ToList();
+        branches = ExcludeRandomBranches(branches);
 
-        // Àû À¯´Ö ¸®½ºÆ®¸¦ PlayerData¿¡ ÀúÀå
-        PlayerData.Instance.SetEnemyUnits(enemyUnits);
+        // ìê¸ˆì„ ê¸°ì¤€ìœ¼ë¡œ ì  ë¼ì¸ì—… ìƒì„±
+        List<UnitDataBase> selectedUnits = GenerateUnitsByBudget(allUnits, branches);
 
-        // »ı¼ºµÈ Àû À¯´ÖÀ» µğ¹ö±×·Î È®ÀÎ
-        Debug.Log("Àû À¯´Ö ¶óÀÎ¾÷:");
-        foreach (var unit in enemyUnits)
+        // ì  ìœ ë‹› ë°°ì¹˜
+        List<UnitDataBase> enemyLineup = PlaceUnits(selectedUnits);
+
+        // PlayerDataì— ì €ì¥
+        PlayerData.Instance.SetEnemyUnits(enemyLineup);
+
+
+        // Debug.Logë¡œ í™•ì¸
+        Debug.Log("=== ì  ìœ ë‹› ë¼ì¸ì—… ===");
+        foreach (var unit in enemyLineup)
         {
-            Debug.Log($"À¯´Ö: {unit.unitName}");
+            Debug.Log($"ìœ ë‹› ì´ë¦„: {unit.unitName}, ë³‘ì¢…: {unit.unitBranch}, ê°€ê²©: {unit.unitPrice}");
         }
+
+        // UIì— í‘œì‹œ
+        DisplayEnemyLineupUI(enemyLineup);
     }
 
     private List<string> ExcludeRandomBranches(List<string> branches)
     {
-        // BowmanÀº Ç×»ó Æ÷ÇÔ
-        branches.Remove("Bowman");
-
-        // ¹«ÀÛÀ§·Î 2°³ÀÇ º´Á¾ Á¦¿Ü
-        for (int i = 0; i < 2; i++)
+        // Bowman ë³‘ì¢…ì€ í•­ìƒ í¬í•¨
+        const string mandatoryBranch = "Bowman";
+        if (!branches.Contains(mandatoryBranch))
         {
-            if (branches.Count == 0) break;
-
-            int randomIndex = Random.Range(0, branches.Count);
-            Debug.Log($"Á¦¿ÜµÈ º´Á¾: {branches[randomIndex]}");
-            branches.RemoveAt(randomIndex);
+            Debug.LogError("Bowman ë³‘ì¢…ì´ ìœ ë‹› ë°ì´í„°ì— ì—†ìŠµë‹ˆë‹¤.");
+            return branches; // Bowmanì´ ì—†ìœ¼ë©´ ê·¸ëŒ€ë¡œ ë°˜í™˜
         }
 
-        // Bowman ´Ù½Ã Ãß°¡
-        branches.Add("Bowman");
-        return branches;
+        // Bowman ë³‘ì¢… ì œì™¸í•˜ì§€ ì•Šê¸° ìœ„í•´ ì œê±°
+        List<string> mutableBranches = branches.Where(branch => branch != mandatoryBranch).ToList();
+
+        // ë¬´ì‘ìœ„ë¡œ 2ê°œì˜ ë³‘ì¢… ì œì™¸
+        for (int i = 0; i < 2; i++)
+        {
+            if (mutableBranches.Count == 0) break;
+
+            int randomIndex = Random.Range(0, mutableBranches.Count);
+            Debug.Log($"ì œì™¸ëœ ë³‘ì¢…: {mutableBranches[randomIndex]}");
+            mutableBranches.RemoveAt(randomIndex);
+        }
+
+        // Bowman ë³‘ì¢… ì¶”ê°€
+        mutableBranches.Add(mandatoryBranch);
+        Debug.Log("Bowman ë³‘ì¢…ì€ í•­ìƒ í¬í•¨ë©ë‹ˆë‹¤.");
+
+        return mutableBranches;
     }
 
-    private List<UnitDataBase> PurchaseUnits(List<UnitDataBase> allUnits, List<string> branches)
+    private List<UnitDataBase> GenerateUnitsByBudget(List<UnitDataBase> allUnits, List<string> branches)
     {
-        List<UnitDataBase> purchasedUnits = new List<UnitDataBase>();
-        int fundsPerUnit = enemyFunds / maxUnits;
+        List<UnitDataBase> selectedUnits = new List<UnitDataBase>();
+        // int fundsPerUnit = enemyFunds / maxUnits;
+        int remainingFunds = enemyFunds; // ì ì˜ ì´ ìê¸ˆ
+                                         // ë‘ ê°€ì§€ ì „ëµ ì¤‘ ë¬´ì‘ìœ„ ì„ íƒ
+        Debug.Log($"ì´ˆê¸° ì  ìê¸ˆ: {enemyFunds}, ì‚¬ìš© ê°€ëŠ¥í•œ ë³‘ì¢… ìˆ˜: {branches.Count}");
 
-        // µÎ °¡Áö ±¸¸Å Àü·« Áß ¹«ÀÛÀ§ ¼±ÅÃ
         bool prioritizeHighTier = Random.value > 0.5f;
-        Debug.Log(prioritizeHighTier ? "±¸¸Å Àü·«: °í±Ş À¯´Ö ¿ì¼±Çü" : "±¸¸Å Àü·«: ±ÕÇüÇü");
+        Debug.Log(prioritizeHighTier ? "êµ¬ë§¤ ì „ëµ: ê³ ê¸‰ ìœ ë‹› ìš°ì„ " : "êµ¬ë§¤ ì „ëµ: ê· í˜•í˜•");
 
-        foreach (string branch in branches)
+        // ë³‘ì¢…ë³„ë¡œ ìˆœí™˜í•˜ë©´ì„œ êµ¬ë§¤
+        int maxIterations = 100; // ë£¨í”„ ì•ˆì „ì¥ì¹˜
+        while (remainingFunds > 0 && selectedUnits.Count < maxUnits && maxIterations-- > 0)
         {
-            List<UnitDataBase> branchUnits = allUnits.Where(u => u.unitBranch == branch).ToList();
-            int remainingFunds = enemyFunds / branches.Count;
+            bool unitPurchasedInThisIteration = false; // ë£¨í”„ì—ì„œ ìœ ë‹› êµ¬ë§¤ ì—¬ë¶€ í™•ì¸
 
-            while (remainingFunds > 0 && purchasedUnits.Count < maxUnits)
+            foreach (string branch in branches)
             {
-                // À¯´Ö ÇÊÅÍ¸µ (°í±Ş/Àú±Ş À¯´Ö ¿ì¼± ¼øÀ§)
+                
+
+                // í•´ë‹¹ ë³‘ì¢…ì˜ ìœ ë‹› í•„í„°ë§
+                List<UnitDataBase> branchUnits = allUnits.Where(u => u.unitBranch == branch).ToList();
+                if (branchUnits.Count == 0) continue;
+
+                // ê³ ê¸‰/ì €ê¸‰ ìš°ì„  ìˆœìœ„ì— ë”°ë¼ ìœ ë‹› ì •ë ¬
                 List<UnitDataBase> availableUnits = prioritizeHighTier
                     ? branchUnits.OrderByDescending(u => u.unitPrice).ToList()
                     : branchUnits.OrderBy(u => u.unitPrice).ToList();
 
-                // ±¸¸Å °¡´ÉÇÑ À¯´Ö ¼±ÅÃ
+                // êµ¬ë§¤ ê°€ëŠ¥í•œ ìœ ë‹› ì¤‘ í•˜ë‚˜ ì„ íƒ
                 UnitDataBase unit = availableUnits.FirstOrDefault(u => u.unitPrice <= remainingFunds);
-                if (unit == null) break;
+                if (unit == null) continue;
 
-                purchasedUnits.Add(unit);
+                // ìœ ë‹› êµ¬ë§¤
+                selectedUnits.Add(unit);
                 remainingFunds -= unit.unitPrice;
+                unitPurchasedInThisIteration = true;
+
+                Debug.Log($"ìœ ë‹› ì„ íƒ: {unit.unitName}, ë³‘ì¢…: {branch}, ë‚¨ì€ ìê¸ˆ: {remainingFunds}");
+
+                // ìµœëŒ€ ìœ ë‹› ìˆ˜ì— ë„ë‹¬í•˜ë©´ ë£¨í”„ ì¢…ë£Œ
+                if (selectedUnits.Count >= maxUnits) break;
+            }
+        
+            // ëª¨ë“  ë³‘ì¢…ì„ ìˆœí™˜í–ˆì§€ë§Œ ìœ ë‹›ì„ êµ¬ë§¤í•˜ì§€ ëª»í–ˆë‹¤ë©´ ë£¨í”„ ì¢…ë£Œ
+            if (!unitPurchasedInThisIteration)
+            {
+                Debug.LogWarning("ë” ì´ìƒ êµ¬ë§¤ ê°€ëŠ¥í•œ ìœ ë‹›ì´ ì—†ìŠµë‹ˆë‹¤.");
+                break;
             }
         }
+            if (maxIterations <= 0)
+            {
+                Debug.LogError("ë£¨í”„ê°€ ë„ˆë¬´ ë§ì´ ì‹¤í–‰ë˜ì—ˆìŠµë‹ˆë‹¤. ë¬´í•œ ë£¨í”„ ê°€ëŠ¥ì„± ìˆìŒ.");
+            }
+        
 
-        return purchasedUnits;
+        Debug.Log($"ì´ ì„ íƒëœ ìœ ë‹› ìˆ˜: {selectedUnits.Count}, ë‚¨ì€ ìê¸ˆ: {remainingFunds}");
+        return selectedUnits;
     }
 
     private List<UnitDataBase> PlaceUnits(List<UnitDataBase> purchasedUnits)
     {
         List<UnitDataBase> finalLineup = new List<UnitDataBase>();
 
-        // ¹æ¾îÇü À¯´Ö (Àü¿­)
+        Debug.Log($"ì´ˆê¸° ë°°ì¹˜ ìœ ë‹› ìˆ˜: {purchasedUnits.Count}");
+
+        // ë°©ì–´í˜• ìœ ë‹› (ì „ì—´)
         List<UnitDataBase> defensiveUnits = purchasedUnits
-            .Where(u => u.unitBranch == "Heavy_Infantry" || u.unitBranch == "Heavy_Cavalry")
+            .Where(u => u.unitBranch == "Branch_Heavy_Infantry" || u.unitBranch == "Branch_Heavy_Cavalry")
             .ToList();
-        finalLineup.AddRange(defensiveUnits.Take(5)); // ÃÖ´ë 5¸í±îÁö Àü¿­¿¡ ¹èÄ¡
+        finalLineup.AddRange(defensiveUnits.Take(5)); // ìµœëŒ€ 5ëª…ê¹Œì§€ ì „ì—´ì— ë°°ì¹˜
+        Debug.Log($"ë°©ì–´í˜• ìœ ë‹› ë°°ì¹˜: {defensiveUnits.Count}ëª… ì¤‘ {finalLineup.Count}ëª… ì¶”ê°€");
 
-        // ±ÙÁ¢Çü À¯´Ö (Àü¿­/Áß°£¿­)
+        // ê·¼ì ‘í˜• ìœ ë‹› (ì „ì—´/ì¤‘ê°„ì—´)
         List<UnitDataBase> meleeUnits = purchasedUnits
-            .Where(u => u.unitBranch == "Spearman" || u.unitBranch == "Warrior")
+            .Where(u => u.unitBranch == "Branch_Spearman" || u.unitBranch == "Branch_Warrior")
             .ToList();
-        finalLineup.AddRange(meleeUnits.Take(5)); // Ãß°¡ 5¸í±îÁö ¹èÄ¡
+        finalLineup.AddRange(meleeUnits.Take(5));
+        Debug.Log($"ê·¼ì ‘í˜• ìœ ë‹› ë°°ì¹˜: {meleeUnits.Count}ëª… ì¤‘ {finalLineup.Count}ëª… ì¶”ê°€");
 
-
-        // ÈÄ¿­ À¯´Ö (»ç°Å¸® 2 ÀÌ»ó)
+        // í›„ì—´ ìœ ë‹› (ì‚¬ê±°ë¦¬ 2 ì´ìƒ)
         List<UnitDataBase> rangedUnits = purchasedUnits
-            .Where(u => u.range >= 2)
+            .Where(u => u.range >= 2 && (u.unitBranch == "Branch_Bowman" || u.unitBranch == "Branch_Assasin"))
             .ToList();
-        finalLineup.AddRange(rangedUnits.Take(3)); // ÃÖ´ë 3¸í±îÁö ÈÄ¿­¿¡ ¹èÄ¡
+        finalLineup.AddRange(rangedUnits.Take(3));
+        Debug.Log($"í›„ì—´ ìœ ë‹› ë°°ì¹˜: {rangedUnits.Count}ëª… ì¤‘ {finalLineup.Count}ëª… ì¶”ê°€");
 
-        // ³ª¸ÓÁö À¯´Ö ¹«ÀÛÀ§ ¹èÄ¡
+
+        // ë‚˜ë¨¸ì§€ ìœ ë‹› ë¬´ì‘ìœ„ ë°°ì¹˜
         foreach (var unit in purchasedUnits)
         {
             if (!finalLineup.Contains(unit))
             {
                 finalLineup.Add(unit);
+                Debug.Log($"ì¶”ê°€ ë°°ì¹˜: {unit.unitName}");
             }
 
             if (finalLineup.Count >= maxUnits) break;
         }
-
+        Debug.Log($"ìµœì¢… ë°°ì¹˜ ìœ ë‹› ìˆ˜: {finalLineup.Count}");
         return finalLineup;
     }
 
     private void DisplayEnemyLineupUI(List<UnitDataBase> enemyLineup)
     {
-        // ±âÁ¸¿¡ »ı¼ºµÈ ¸®½ºÆ® Á¦°Å
+        // ê¸°ì¡´ì— ìƒì„±ëœ ë¦¬ìŠ¤íŠ¸ ì œê±°
         foreach (Transform child in enemyListParent)
         {
             Destroy(child.gameObject);
         }
 
-        // Àû ¸®½ºÆ® »ı¼º
+        // ì  ë¦¬ìŠ¤íŠ¸ ìƒì„±
         foreach (UnitDataBase unit in enemyLineup)
         {
-            GameObject unitUI = Instantiate(enemyUnitPrefab, enemyListParent);
-            Image unitImage = unitUI.transform.Find("UnitImage").GetComponent<Image>();
-            TextMeshProUGUI unitName = unitUI.transform.Find("UnitName").GetComponent<TextMeshProUGUI>();
+            // í”„ë¦¬íŒ¹ ìƒì„±
+            GameObject enemyUnitUI = Instantiate(enemyUnitPrefab, enemyListParent);
 
-            unitImage.sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");
-            unitName.text = unit.unitName;
+            // EnemyUnitUI ìŠ¤í¬ë¦½íŠ¸ë¥¼ ê°€ì ¸ì™€ ìœ ë‹› ë°ì´í„° ì„¤ì •
+            EnemyUnitUI enemyUIComponent = enemyUnitUI.GetComponent<EnemyUnitUI>();
+            if (enemyUIComponent != null)
+            {
+                enemyUIComponent.SetUnitData(unit); // ë°ì´í„° ì„¤ì •
+            }
+            else
+            {
+                Debug.LogError("EnemyUnitUI ìŠ¤í¬ë¦½íŠ¸ë¥¼ í”„ë¦¬íŒ¹ì—ì„œ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
+            }
         }
     }
 }

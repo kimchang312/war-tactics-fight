@@ -4,9 +4,9 @@ using TMPro;
 
 public class PlacedUnit : MonoBehaviour
 {
-    public TextMeshProUGUI unitNameText;    // À¯´Ö ÀÌ¸§ Ç¥½Ã
-    public Image unitImage;                 // À¯´Ö ÀÌ¹ÌÁö Ç¥½Ã
-    public Button ReturnButton;             // µÇµ¹¸®±â ¹öÆ°
+    public TextMeshProUGUI unitNameText;    // ìœ ë‹› ì´ë¦„ í‘œì‹œ
+    public Image unitImage;                 // ìœ ë‹› ì´ë¯¸ì§€ í‘œì‹œ
+    public Button ReturnButton;             // ë˜ëŒë¦¬ê¸° ë²„íŠ¼
 
     private UnitDataBase unitData;          
 
@@ -14,36 +14,35 @@ public class PlacedUnit : MonoBehaviour
     {
         unitData = unit;
 
-        // ·Î±× Âï¾îº¸ÀÚ
-        Debug.Log($"À¯´Ö ÀÌ¸§: {unit.unitName}");
+        
 
-        // À¯´Ö ÀÌ¸§°ú °¡°İ ÅØ½ºÆ® ¼³Á¤
+        // ìœ ë‹› ì´ë¦„ê³¼ ê°€ê²© í…ìŠ¤íŠ¸ ì„¤ì •
         unitNameText.text = unit.unitName;
 
-        // À¯´Ö ÀÌ¹ÌÁö ¼³Á¤
+        // ìœ ë‹› ì´ë¯¸ì§€ ì„¤ì •
         Sprite loadedSprite = Resources.Load<Sprite>("UnitImages/" + unit.unitImg);
         if (loadedSprite != null)
         {
             unitImage.sprite = loadedSprite;
-            Debug.Log("À¯´Ö ÀÌ¹ÌÁö ·Îµå ¼º°ø: " + unit.unitImg);
+            
         }
         else
         {
-            Debug.LogError("À¯´Ö ÀÌ¹ÌÁö ·Îµå ½ÇÆĞ: " + unit.unitImg);
+            
         }
 
-        // ±¸¸Å ¹öÆ°ÀÇ Å¬¸¯ ÀÌº¥Æ® Ã³¸®
+        // êµ¬ë§¤ ë²„íŠ¼ì˜ í´ë¦­ ì´ë²¤íŠ¸ ì²˜ë¦¬
         ReturnButton.onClick.AddListener(() => ReturnUnit());
     }
 
     private void ReturnUnit()
     {
-            // ShopManager¿¡¼­ À¯´ÖÀ» ±¸¸ÅÇÏ´Â ¸Ş¼­µå È£Ãâ
+            // ShopManagerì—ì„œ ìœ ë‹›ì„ êµ¬ë§¤í•˜ëŠ” ë©”ì„œë“œ í˜¸ì¶œ
             ShopManager.Instance.ReturnUnit(unitData);
             PlayerData.Instance.RemovePlacedUnit(unitData);
-            Debug.Log($"À¯´Ö µÇµ¹¸²: {unitData.unitName}");
+            
         
-            // ¹èÄ¡µÈ À¯´Ö °ÔÀÓ ¿ÀºêÁ§Æ® »èÁ¦
+            // ë°°ì¹˜ëœ ìœ ë‹› ê²Œì„ ì˜¤ë¸Œì íŠ¸ ì‚­ì œ
             Destroy(gameObject);
         
     }

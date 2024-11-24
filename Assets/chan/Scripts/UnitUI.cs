@@ -4,10 +4,10 @@ using TMPro;
 
 public class UnitUI : MonoBehaviour
 {
-    public TextMeshProUGUI unitNameText;    // À¯´Ö ÀÌ¸§ Ç¥½Ã
-    public TextMeshProUGUI unitPriceText;   // À¯´Ö °¡°İ Ç¥½Ã
-    public Image unitImage;      // À¯´Ö ÀÌ¹ÌÁö Ç¥½Ã
-    public Button buyButton;     // ±¸¸Å ¹öÆ°
+    public TextMeshProUGUI unitNameText;    // ìœ ë‹› ì´ë¦„ í‘œì‹œ
+    public TextMeshProUGUI unitPriceText;   // ìœ ë‹› ê°€ê²© í‘œì‹œ
+    public Image unitImage;      // ìœ ë‹› ì´ë¯¸ì§€ í‘œì‹œ
+    public Button buyButton;     // êµ¬ë§¤ ë²„íŠ¼
 
     private UnitDataBase unitData;
 
@@ -15,33 +15,29 @@ public class UnitUI : MonoBehaviour
     {
         unitData = unit;
 
-        // ·Î±× Âï¾îº¸ÀÚ
-        Debug.Log($"À¯´Ö ÀÌ¸§: {unit.unitName}, °¡°İ: {unit.unitPrice}");
+       
 
-        // À¯´Ö ÀÌ¸§°ú °¡°İ ÅØ½ºÆ® ¼³Á¤
+        // ìœ ë‹› ì´ë¦„ê³¼ ê°€ê²© í…ìŠ¤íŠ¸ ì„¤ì •
         unitNameText.text = unit.unitName;
         unitPriceText.text = unit.unitPrice.ToString()+"G";
 
-        // À¯´Ö ÀÌ¹ÌÁö ¼³Á¤
+        // ìœ ë‹› ì´ë¯¸ì§€ ì„¤ì •
         Sprite loadedSprite = Resources.Load<Sprite>("UnitImages/" + unit.unitImg);
         if (loadedSprite != null)
         {
             unitImage.sprite = loadedSprite;
-            Debug.Log("À¯´Ö ÀÌ¹ÌÁö ·Îµå ¼º°ø: " + unit.unitImg);
+            
         }
-        else
-        {
-            Debug.LogError("À¯´Ö ÀÌ¹ÌÁö ·Îµå ½ÇÆĞ: " + unit.unitImg);
-        }
+        
 
-        // ±¸¸Å ¹öÆ°ÀÇ Å¬¸¯ ÀÌº¥Æ® Ã³¸®
+        // êµ¬ë§¤ ë²„íŠ¼ì˜ í´ë¦­ ì´ë²¤íŠ¸ ì²˜ë¦¬
         buyButton.onClick.AddListener(() => BuyUnit());
     }
 
     private void BuyUnit()
     {
-        // ShopManager¿¡¼­ À¯´ÖÀ» ±¸¸ÅÇÏ´Â ¸Ş¼­µå È£Ãâ
+        // ShopManagerì—ì„œ ìœ ë‹›ì„ êµ¬ë§¤í•˜ëŠ” ë©”ì„œë“œ í˜¸ì¶œ
         ShopManager.Instance.BuyUnit(unitData);
-        Debug.Log("À¯´Ö ±¸¸Å");
+        
     }
 }

@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 public class UnitDataManager : MonoBehaviour
 {
     public static UnitDataManager Instance { get; private set; }
-    public List<UnitDataBase> unitDataList = new List<UnitDataBase>(); // À¯´Ö µ¥ÀÌÅÍ¸¦ ÀúÀåÇÒ ¸®½ºÆ®
+    public List<UnitDataBase> unitDataList = new List<UnitDataBase>(); // ìœ ë‹› ë°ì´í„°ë¥¼ ì €ì¥í•  ë¦¬ìŠ¤íŠ¸
 
-    // GetRowCount() ´ë½Å¿¡ Excel µ¥ÀÌÅÍÀÇ Count¸¦ Á÷Á¢ ÂüÁ¶
+    // GetRowCount() ëŒ€ì‹ ì— Excel ë°ì´í„°ì˜ Countë¥¼ ì§ì ‘ ì°¸ì¡°
     // int rowCount = GoogleSheetLoader.excel.Count;
     private void Awake()
     {
@@ -14,29 +14,29 @@ public class UnitDataManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("UnitDataManager°¡ ÃÊ±âÈ­µÇ¾ú½À´Ï´Ù.", this);
+            Debug.Log("UnitDataManagerê°€ ì´ˆê¸°í™”ë˜ì—ˆìŠµë‹ˆë‹¤.", this);
         }
         else
         {
-            Debug.LogWarning("UnitDataManager°¡ Áßº¹ »ı¼ºµÇ¾ú½À´Ï´Ù.", this);
+            Debug.LogWarning("UnitDataManagerê°€ ì¤‘ë³µ ìƒì„±ë˜ì—ˆìŠµë‹ˆë‹¤.", this);
             Destroy(gameObject);
         }
     }
 
     private async void Start()
     {
-        // µ¥ÀÌÅÍ¸¦ ºñµ¿±âÀûÀ¸·Î ·Îµå
+        // ë°ì´í„°ë¥¼ ë¹„ë™ê¸°ì ìœ¼ë¡œ ë¡œë“œ
         await LoadUnitDataAsync();
     }
 
     public async Task LoadUnitDataAsync()
     {
         GoogleSheetLoader googleSheetLoader = new GoogleSheetLoader();
-        await googleSheetLoader.LoadGoogleSheetData(); // Google Sheet µ¥ÀÌÅÍ¸¦ ºñµ¿±âÀûÀ¸·Î ·Îµå
+        await googleSheetLoader.LoadGoogleSheetData(); // Google Sheet ë°ì´í„°ë¥¼ ë¹„ë™ê¸°ì ìœ¼ë¡œ ë¡œë“œ
 
-        // GetExcelData()·Î µ¥ÀÌÅÍ¸¦ °¡Á®¿Í¼­ Ã³¸®
+        // GetExcelData()ë¡œ ë°ì´í„°ë¥¼ ê°€ì ¸ì™€ì„œ ì²˜ë¦¬
         List<List<string>> excelData = googleSheetLoader.GetExcelData();
-        int rowCount = excelData.Count;  // Excel µ¥ÀÌÅÍÀÇ Çà ¼ö
+        int rowCount = excelData.Count;  // Excel ë°ì´í„°ì˜ í–‰ ìˆ˜
 
         for (int i = 0; i < rowCount; i++)
         {
@@ -48,36 +48,31 @@ public class UnitDataManager : MonoBehaviour
                 if (unitData != null)
                 {
                     if (IsValidUnitData(unitData)) { 
-                    // Áßº¹µÈ À¯´Ö µ¥ÀÌÅÍ°¡ ÀÖ´ÂÁö È®ÀÎ ÈÄ Ãß°¡
+                    // ì¤‘ë³µëœ ìœ ë‹› ë°ì´í„°ê°€ ìˆëŠ”ì§€ í™•ì¸ í›„ ì¶”ê°€
                     if (!unitDataList.Exists(u => u.unitName == unitData.unitName))
                     {
-                        unitDataList.Add(unitData); // µ¥ÀÌÅÍ¸¦ ¸®½ºÆ®¿¡ Ãß°¡
-                        Debug.Log($"À¯´Ö Ãß°¡µÊ: {unitData.unitName}"); // Ãß°¡µÈ À¯´ÖÀ» Ãâ·Â
-                                                                   
-                        Debug.Log("À¯´Ö ÀÌ¹ÌÁö °ª È®ÀÎ: " + unitData.unitImg);// À¯´Ö µ¥ÀÌÅÍÀÇ unitImg °ª È®ÀÎ
+                        unitDataList.Add(unitData); // ë°ì´í„°ë¥¼ ë¦¬ìŠ¤íŠ¸ì— ì¶”ê°€
+                        
+                    }
                     }
                 }
-                }
-                else
-                {
-                    Debug.LogWarning("À¯´Ö µ¥ÀÌÅÍ º¯È¯ ½ÇÆĞ");
-                }
+                
             }
             
         }
 
-        // À¯´Ö ·Îµå ÈÄ Ã³¸®
+        // ìœ ë‹› ë¡œë“œ í›„ ì²˜ë¦¬
         if (unitDataList.Count > 0)
         {
-            Debug.Log($"ÃÑ {unitDataList.Count}°³ÀÇ À¯´ÖÀÌ ·ÎµåµÇ¾ú½À´Ï´Ù.");
+            Debug.Log($"ì´ {unitDataList.Count}ê°œì˜ ìœ ë‹›ì´ ë¡œë“œë˜ì—ˆìŠµë‹ˆë‹¤.");
         }
         else
         {
-            Debug.LogWarning("À¯´Ö µ¥ÀÌÅÍ°¡ ·ÎµåµÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            Debug.LogWarning("ìœ ë‹› ë°ì´í„°ê°€ ë¡œë“œë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
         }
     }
 
-    // À¯È¿ÇÑ À¯´Ö µ¥ÀÌÅÍÀÎÁö Ã¼Å©ÇÏ´Â ¸Ş¼­µå
+    // ìœ íš¨í•œ ìœ ë‹› ë°ì´í„°ì¸ì§€ ì²´í¬í•˜ëŠ” ë©”ì„œë“œ
     private bool IsValidUnitData(UnitDataBase unit)
     {
         return !string.IsNullOrEmpty(unit.unitName) && unit.unitPrice > 0 && !string.IsNullOrEmpty(unit.unitImg);

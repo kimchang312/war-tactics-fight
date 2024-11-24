@@ -4,16 +4,16 @@ using TMPro;
 
 public class MyUnitUI : MonoBehaviour
 {
-    [SerializeField] private Image unitImage;               // À¯´Ö ÀÌ¹ÌÁö Ç¥½Ã
-    [SerializeField] private TextMeshProUGUI unitText;   // À¯´Ö ÀÌ¸§ , ¼ÒÁö°³¼ö Ç¥½Ã
-    [SerializeField] private Button MyUnitButton;              // À¯´Ö ÆÇ¸Å ¹öÆ°
+    [SerializeField] private Image unitImage;               // ìœ ë‹› ì´ë¯¸ì§€ í‘œì‹œ
+    [SerializeField] private TextMeshProUGUI unitText;   // ìœ ë‹› ì´ë¦„ , ì†Œì§€ê°œìˆ˜ í‘œì‹œ
+    [SerializeField] private Button MyUnitButton;              // ìœ ë‹› íŒë§¤ ë²„íŠ¼
 
     
 
-    private UnitDataBase unitData;         // ÇØ´ç À¯´ÖÀÇ µ¥ÀÌÅÍ
+    private UnitDataBase unitData;         // í•´ë‹¹ ìœ ë‹›ì˜ ë°ì´í„°
 
     
-    // À¯´Ö µ¥ÀÌÅÍ¸¦ ¿ÜºÎ¿¡¼­ Á¢±ÙÇÒ ¼ö ÀÖµµ·Ï getter Á¦°ø
+    // ìœ ë‹› ë°ì´í„°ë¥¼ ì™¸ë¶€ì—ì„œ ì ‘ê·¼í•  ìˆ˜ ìˆë„ë¡ getter ì œê³µ
     public UnitDataBase UnitData => unitData;
 
     
@@ -25,50 +25,50 @@ public class MyUnitUI : MonoBehaviour
         
         if (unit == null)
         {
-            Debug.LogError("Àü´ŞµÈ À¯´Ö µ¥ÀÌÅÍ°¡ nullÀÔ´Ï´Ù.");
+            Debug.LogError("ì „ë‹¬ëœ ìœ ë‹› ë°ì´í„°ê°€ nullì…ë‹ˆë‹¤.");
             return;
         }
         
-        Debug.Log($"À¯´Ö ÀÌ¸§: {unit.unitName}, À¯´Ö ÀÌ¹ÌÁö: {unit.unitImg}");
+       
 
         
-        //unitText.text = $"{unit.unitName} x {unitCount}";  // À¯´ÖÀÇ ÀÌ¸§ ¼³Á¤
+        //unitText.text = $"{unit.unitName} x {unitCount}";  // ìœ ë‹›ì˜ ì´ë¦„ ì„¤ì •
 
-        // À¯´Ö ÀÌ¹ÌÁö ·Îµå ¹× ¼³Á¤
-        unitImage.sprite = Resources.Load<Sprite>("UnitImages/" + unit.unitImg); // unitImg °æ·Î¿¡ ¸ÂÃç ÀÌ¹ÌÁö ·Îµå
+        // ìœ ë‹› ì´ë¯¸ì§€ ë¡œë“œ ë° ì„¤ì •
+        unitImage.sprite = Resources.Load<Sprite>("UnitImages/" + unit.unitImg); // unitImg ê²½ë¡œì— ë§ì¶° ì´ë¯¸ì§€ ë¡œë“œ
         if (unitImage.sprite == null)
         {
-            Debug.LogError("À¯´Ö ÀÌ¹ÌÁö ·Îµå ½ÇÆĞ: " + unit.unitImg);
-            unitImage.sprite = Resources.Load<Sprite>("UnitImages/Default");  // ±âº» ÀÌ¹ÌÁö ¼³Á¤ (¿É¼Ç)
+            Debug.LogError("ìœ ë‹› ì´ë¯¸ì§€ ë¡œë“œ ì‹¤íŒ¨: " + unit.unitImg);
+            unitImage.sprite = Resources.Load<Sprite>("UnitImages/Default");  // ê¸°ë³¸ ì´ë¯¸ì§€ ì„¤ì • (ì˜µì…˜)
         }
 
 
-        // À¯´Ö °³¼ö¸¦ ¾÷µ¥ÀÌÆ®
+        // ìœ ë‹› ê°œìˆ˜ë¥¼ ì—…ë°ì´íŠ¸
         UpdateUnitCount();
 
-        // MyUnit Å¬¸¯ ÀÌº¥Æ® Ã³¸®
+        // MyUnit í´ë¦­ ì´ë²¤íŠ¸ ì²˜ë¦¬
         MyUnitButton.onClick.AddListener(OnMyUnitButtonClicked);
     }
     private void OnMyUnitButtonClicked()
     {
-        if (ShopManager.Instance.IsPlacingUnits) // ¹èÄ¡ ¸ğµåÀÏ ¶§
+        if (ShopManager.Instance.IsPlacingUnits) // ë°°ì¹˜ ëª¨ë“œì¼ ë•Œ
         {
             if (unitData == null)
             {
                 Debug.LogError("UnitData is null in OnMyUnitButtonClicked.");
                 return;
             }
-            ShopManager.Instance.OnUnitClicked(unitData); // À¯´Ö ¹èÄ¡
+            ShopManager.Instance.OnUnitClicked(unitData); // ìœ ë‹› ë°°ì¹˜
         }
-        else // ¹èÄ¡ ¸ğµå°¡ ¾Æ´Ò ¶§
+        else // ë°°ì¹˜ ëª¨ë“œê°€ ì•„ë‹ ë•Œ
         {
-            PlayerData.Instance.SellUnit(unitData);      // À¯´Ö ÆÇ¸Å
-            UpdateUnitCount();                           // °³¼ö ¾÷µ¥ÀÌÆ®
-            ShopManager.Instance.UpdateCurrencyDisplay(); // ÀÚ±İ UI ¾÷µ¥ÀÌÆ®
+            PlayerData.Instance.SellUnit(unitData);      // ìœ ë‹› íŒë§¤
+            UpdateUnitCount();                           // ê°œìˆ˜ ì—…ë°ì´íŠ¸
+            ShopManager.Instance.UpdateCurrencyDisplay(); // ìê¸ˆ UI ì—…ë°ì´íŠ¸
         }
     }
 
-    // À¯´Ö °³¼ö¸¦ ¾÷µ¥ÀÌÆ®ÇÏ´Â ¸Ş¼­µå
+    // ìœ ë‹› ê°œìˆ˜ë¥¼ ì—…ë°ì´íŠ¸í•˜ëŠ” ë©”ì„œë“œ
     public void UpdateUnitCount()
     {
         int unitCount = PlayerData.Instance.GetUnitCount(unitData);
