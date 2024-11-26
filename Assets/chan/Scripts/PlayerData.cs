@@ -181,8 +181,20 @@ public class PlayerData : MonoBehaviour
         this.enemyUnits = enemyUnits;
     }
 
-    public List<UnitDataBase> GetEnemyUnits()
+    public List<int> GetEnemyUnitIndexes()
     {
-        return enemyUnits;
+        if (enemyUnits == null || enemyUnits.Count == 0)
+        {
+            Debug.LogWarning("적 유닛 리스트가 비어 있습니다.");
+            return new List<int>(); // 빈 리스트 반환
+        }
+
+        List<int> enemyUnitIndexes = new List<int>();
+        foreach (var unit in enemyUnits)
+        {
+            enemyUnitIndexes.Add(unit.idx); // 유닛의 idx 값을 추가
+        }
+
+        return enemyUnitIndexes;
     }
 }

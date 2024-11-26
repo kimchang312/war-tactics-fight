@@ -67,6 +67,7 @@ public class EnemyLineupManager : MonoBehaviour
 
         // UI에 표시
         DisplayEnemyLineupUI(enemyLineup);
+        DebugEnemyListIDX(enemyLineup);
     }
 
     private List<string> ExcludeRandomBranches(List<string> branches)
@@ -225,6 +226,15 @@ public class EnemyLineupManager : MonoBehaviour
             {
                 Debug.LogError("EnemyUnitUI 스크립트를 프리팹에서 찾을 수 없습니다.");
             }
+        }
+    }
+    public void DebugEnemyListIDX(List<UnitDataBase> enemyLineup)
+    {
+        List<int> enemyIndexes = PlayerData.Instance.GetEnemyUnitIndexes();
+        Debug.Log("적 유닛 인덱스 목록:");
+        foreach (var idx in enemyIndexes)
+        {
+            Debug.Log($"유닛 인덱스: {idx}");
         }
     }
 }
