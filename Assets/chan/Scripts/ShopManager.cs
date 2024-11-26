@@ -82,8 +82,8 @@ public class ShopManager : MonoBehaviour
 
         // 배치 UI에 점칸을 최초 1번만 생성
         lineObject = Instantiate(linePrefab, unitPlacementArea);
-        
 
+        DisablePlaceButton(true);
 
     }
     
@@ -236,6 +236,15 @@ public class ShopManager : MonoBehaviour
     // 자금 상태에 따라 UI 업데이트 (경고 메시지와 배치 버튼 상태)
     public void UpdateUIState()
     {
+        // 구매한 유닛이 있는지 먼저 확인
+        if (PlayerData.Instance.GetTotalUnitCount() == 0)
+        {
+            DisablePlaceButton(true); // 구매한 유닛이 없으면 배치 버튼 비활성화
+            ShowFundsWarning(false); // 경고는 표시하지 않음
+            ChangeBackgroundColor("#ffffff"); // 기본 배경색으로 설정
+            return; // 더 이상 조건 확인하지 않음
+        }
+
         if (PlayerData.currency < 0)
         {
             ShowFundsWarning(true);
@@ -248,6 +257,7 @@ public class ShopManager : MonoBehaviour
             ShowFundsWarning(false);
             DisablePlaceButton(false);
             ChangeBackgroundColor("#ffffFF"); //헥스코드로 플레이어 골드 배경색 변경
+
         }
     }
 
