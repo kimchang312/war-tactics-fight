@@ -27,7 +27,7 @@ public class AutoBattleManager : MonoBehaviour
 
     private bool isGarria =false;                               //전투중 유격 발동 여부
 
-    private List<int> enemyIds = new List<int> { 19, 0, 1 };    //상대 유닛 id 추후 삭제
+    private List<int> _enemyIds = new List<int> { 0 };    //상대 유닛 id 추후 삭제
 
     //추후 삭제
     private void TrueGarria()
@@ -40,12 +40,13 @@ public class AutoBattleManager : MonoBehaviour
         isGarria = false; 
     }
 
-    //이 씬이 로드되었을 때
+    //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private async void Start()
     {
         List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
+        List<int> enemyIds = PlayerData.Instance.GetEnemyUnitIndexes();
         if (myIds.Count <= 0) return;
-
+        
         await StartBattle(myIds, enemyIds);
     }
 
