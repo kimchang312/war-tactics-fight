@@ -169,52 +169,69 @@ public class AutoBattleUI : MonoBehaviour
         Image img = unit.GetComponent<Image>();
         img.sprite = sprite;
 
+        //자식 비활성화
+        unit.transform.GetChild(0).gameObject.SetActive(false);
     }
 
     //유닛 이미지 생성
     private void CreateUnitImages(UnitDataBase[] units, int unitIndex, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
     {
         string ability = "";
+        
 
         for (int i = 0; unitIndex < units.Length; i++, unitIndex++)
         {
+            string unitTeam = isMyUnit ? "My" : "Enemy";
+
             GameObject unitImage = objectPool.GetBattleUnit();
+            Transform childUnit = unitImage.transform.GetChild(0);
             RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
+            RectTransform childRectTrasform = childUnit.GetComponent<RectTransform>();
+            Image unitFrame = childUnit.GetComponent<Image>();
+
 
             // 위치와 크기 설정
             if (i < positions.Length)
             {
                 rectTransform.anchoredPosition = positions[i];
+                switch (i) 
+                { 
+                    case 0:
+                        unitTeam += "FirstUnit";
+                        break;
+                    case 1:
+                        unitTeam += "SecondUnit";
+                        break;
+                    case 2 :
+                        unitTeam += "BackUnit";
+                        break;
+                }
+
             }
             else
             {
                 float offsetX = isMyUnit ? -unitInterval : unitInterval;
                 rectTransform.anchoredPosition = new Vector3(positions[2].x + offsetX * (i - positions.Length + 1), positions[2].y);
+
+                unitTeam += "BackUnit";
             }
-            rectTransform.sizeDelta = i == 0 ? new Vector2(firstSize, firstSize) : new Vector2(secondSize, secondSize);
+            //크기 설정
+            rectTransform.sizeDelta = i == 0 ? new Vector2(firstSize-20, firstSize-20) : new Vector2(secondSize-10, secondSize-10);
+            childRectTrasform.sizeDelta =i ==0 ? new Vector2(firstSize, firstSize) : new Vector2 (secondSize, secondSize);
 
             // 이미지 설정
             Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[unitIndex].unitImg}");
             Image img = unitImage.GetComponent<Image>();
             img.sprite = sprite;
 
+            //유닛 테두리 설정
+            childUnit.gameObject.SetActive(true);
+            Sprite frameSprite = Resources.Load<Sprite>($"KIcon/UI_{unitTeam}");
+            //활성화
+            unitFrame.sprite = frameSprite;
+
             if (i == 0)
             {
-
-                // 능력치 업데이트
-                var unit = units[unitIndex];
-                var boolAttributes = unit.GetType().GetFields()
-                    .Where(f => f.FieldType == typeof(bool))
-                    .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
-
-                foreach (var attr in boolAttributes)
-                {
-                    if (attr.Value)
-                    {
-                        ability += $"{attr.Name}\n";
-                    }
-                }
-
                 // UI 업데이트
                 if (isMyUnit)
                 {
