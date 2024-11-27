@@ -9,7 +9,7 @@ public class EnemyLineupManager : MonoBehaviour
     [Header("적 리스트 표시")]
     [SerializeField] private Transform enemyListParent; // 적 리스트를 표시할 부모 오브젝트
     [SerializeField] private GameObject enemyUnitPrefab; // 유닛 정보를 표시할 프리팹
-    
+    [SerializeField] private Sprite hiddenSprite;        // 숨김 처리된 유닛의 스프라이트
 
     [Header("설정")]
     [SerializeField] private int maxUnits = 20; // 최대 유닛 수
@@ -70,7 +70,65 @@ public class EnemyLineupManager : MonoBehaviour
         DisplayEnemyLineupUI(enemyLineup);
         DebugEnemyListIDX(enemyLineup);
     }
+    private void DisplayAndHideEnemyUnits(List<UnitDataBase> enemyLineup)
+    {
+        // 기존에 생성된 리스트 제거
+        foreach (Transform child in enemyListParent)
+        {
+            Destroy(child.gameObject);
+        }
 
+        // 숨김 대상 유닛 인덱스 계산
+        List<int> hiddenIndexes = GetHiddenIndexes(enemyLineup.Count);
+
+        // 적 리스트 생성
+        for (int i = 0; i < enemyLineup.Count; i++)
+        {
+            // 프리팹 생성
+            GameObject enemyUnitUI = Instantiate(enemyUnitPrefab, enemyListParent);
+
+            // EnemyUnitUI 스크립트를 가져와 유닛 데이터와 인덱스 설정
+            EnemyUnitUI enemyUIComponent = enemyUnitUI.GetComponent<EnemyUnitUI>();
+            if (enemyUIComponent != null)
+            {
+                if (hiddenIndexes.Contains(i))
+                {
+                    // 숨김 처리
+                    enemyUIComponent.SetHidden(hiddenSprite);
+                }
+                else
+                {
+                    // 정상 유닛 표시
+                    enemyUIComponent.SetUnitData(enemyLineup[i]);
+                }
+                enemyUIComponent.SetUnitIndex(i); // 인덱스 설정
+            }
+            else
+            {
+                Debug.LogError("EnemyUnitUI 스크립트를 프리팹에서 찾을 수 없습니다.");
+            }
+        }
+    }
+    private List<int> GetHiddenIndexes(int totalUnits)
+    {
+        // 숨김 유닛 수 계산
+        int hiddenCount = Mathf.FloorToInt(totalUnits * 0.4f);
+
+        // 1부터 N까지의 유닛 번호 생성
+        List<int> allIndexes = Enumerable.Range(0, totalUnits).ToList();
+
+        // 숨김 유닛 번호 무작위 선택
+        List<int> hiddenIndexes = new List<int>();
+        for (int i = 0; i < hiddenCount; i++)
+        {
+            int randomIndex = Random.Range(0, allIndexes.Count);
+            hiddenIndexes.Add(allIndexes[randomIndex]);
+            allIndexes.RemoveAt(randomIndex); // 선택된 번호 제거
+        }
+
+        Debug.Log($"숨김 유닛 인덱스: {string.Join(", ", hiddenIndexes)}");
+        return hiddenIndexes;
+    }
     private List<string> ExcludeRandomBranches(List<string> branches)
     {
         const string mandatoryBranch = "Branch_Bowman"; // 항상 포함되어야 하는 병종

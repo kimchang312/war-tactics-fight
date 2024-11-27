@@ -95,6 +95,7 @@ public class ShopManager : MonoBehaviour
             Debug.Log("배치 버튼 클릭됨");
             OnPlaceButtonClicked();
         });
+        DebugCheck();
     }
     
     // 유닛 데이터를 UI에 표시
@@ -404,5 +405,11 @@ public class ShopManager : MonoBehaviour
         {
             UpdatePlacementUIState();
         }
+    }
+    private void DebugCheck()
+    {
+        if (content == null) Debug.LogError("Content가 연결되지 않았습니다!");
+        if (myUnitUIcontent == null) Debug.LogError("MyUnitUIContent가 연결되지 않았습니다!");
+        if (currencyText == null) Debug.LogError("CurrencyText가 연결되지 않았습니다!");
     }
 }

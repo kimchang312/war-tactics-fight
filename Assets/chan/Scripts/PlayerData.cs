@@ -133,6 +133,9 @@ public class PlayerData : MonoBehaviour
         faction = "기본 진영";
         difficulty = "기본 난이도";
         enemyFunds = CalculateEnemyFunds(difficulty); // 난이도에 따른 자금 초기화
+        // 상점 초기화
+
+
     }
 
     
