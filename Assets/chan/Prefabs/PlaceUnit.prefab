@@ -406,6 +406,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitNameText: {fileID: 2982370634906569422}
+  unitNumberText: {fileID: 6227536593461187014}
   unitImage: {fileID: 5179547728171341506}
   ReturnButton: {fileID: 5456277092080133880}
 --- !u!114 &6172165267247335166

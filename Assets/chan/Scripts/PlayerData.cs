@@ -57,14 +57,7 @@ public class PlayerData : MonoBehaviour
     public void AddPurchasedUnit(UnitDataBase unit)
     {
 
-        // 총 유닛 수가 20을 초과하는지 확인
-        int totalUnitCount = GetTotalUnitCount();
-
-        if (totalUnitCount >= 20)
-        {
-            Debug.LogWarning("유닛 수가 20명을 초과할 수 없습니다.");
-            return; // 유닛 추가를 막음
-        }
+        
 
         if (purchasedUnits.ContainsKey(unit))
         {
@@ -74,8 +67,7 @@ public class PlayerData : MonoBehaviour
         {
             purchasedUnits[unit] = 1;
         }
-        // 디버그 로그 추가
-        Debug.Log($"{unit.unitName}을(를) 구매했습니다. 현재 총 유닛 수: {totalUnitCount + 1}");
+        
     }
 
     // 모든 유닛의 총 수를 계산하는 메서드

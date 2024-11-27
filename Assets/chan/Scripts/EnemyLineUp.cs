@@ -9,6 +9,7 @@ public class EnemyLineupManager : MonoBehaviour
     [Header("적 리스트 표시")]
     [SerializeField] private Transform enemyListParent; // 적 리스트를 표시할 부모 오브젝트
     [SerializeField] private GameObject enemyUnitPrefab; // 유닛 정보를 표시할 프리팹
+    
 
     [Header("설정")]
     [SerializeField] private int maxUnits = 20; // 최대 유닛 수
@@ -211,16 +212,17 @@ public class EnemyLineupManager : MonoBehaviour
         }
 
         // 적 리스트 생성
-        foreach (UnitDataBase unit in enemyLineup)
+        for (int i = 0; i < enemyLineup.Count; i++)
         {
             // 프리팹 생성
             GameObject enemyUnitUI = Instantiate(enemyUnitPrefab, enemyListParent);
 
-            // EnemyUnitUI 스크립트를 가져와 유닛 데이터 설정
+            // EnemyUnitUI 스크립트를 가져와 유닛 데이터와 인덱스 설정
             EnemyUnitUI enemyUIComponent = enemyUnitUI.GetComponent<EnemyUnitUI>();
             if (enemyUIComponent != null)
             {
-                enemyUIComponent.SetUnitData(unit); // 데이터 설정
+                enemyUIComponent.SetUnitData(enemyLineup[i]); // 유닛 데이터 설정
+                enemyUIComponent.SetUnitIndex(i);            // 인덱스 설정 (0부터 시작)
             }
             else
             {
@@ -237,4 +239,5 @@ public class EnemyLineupManager : MonoBehaviour
             Debug.Log($"유닛 인덱스: {idx}");
         }
     }
+    
 }

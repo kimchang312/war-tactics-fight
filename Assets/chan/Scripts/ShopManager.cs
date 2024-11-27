@@ -16,9 +16,11 @@ public class ShopManager : MonoBehaviour
     public Transform myUnitUIcontent;       // MyUnit UI 위치
     public TextMeshProUGUI currencyText;    // 현재 자금을 표시할 Text
     public TextMeshProUGUI factionText;     // 플레이어의 진영을 표시할 Text
+    public TextMeshProUGUI MustPlaceText;   // 배치 필요 텍스트
     public PlayerData playerData;           // PlayerData를 통해 자금 및 구매한 유닛 확인
     public UnitDataManager unitDataManager; // UnitDataManager를 통해 유닛데이터 로드하기 위함
     public Button placeButton; // 배치버튼 = 배치BTN
+    public Button startButton; // 전투시작 버튼
     public GameObject FundsWarning; // 자금 부족 경고
 
     //유닛 상세에 필요한 연결
@@ -79,12 +81,20 @@ public class ShopManager : MonoBehaviour
         UpdateCurrencyDisplay(); // 자금 UI 업데이트
         FactionDisplay();// 진영 UI 업데이트
         placeButton.onClick.AddListener(TogglePlacingUnits);
+        placeButton.onClick.AddListener(OnPlaceButtonClicked); // 배치 버튼 클릭 리스너 연결
+
+        UpdatePlacementUIState(); // 초기 상태 업데이트
 
         // 배치 UI에 점칸을 최초 1번만 생성
         lineObject = Instantiate(linePrefab, unitPlacementArea);
 
         DisablePlaceButton(true);
-
+        //디버그 체크
+        placeButton.onClick.AddListener(() =>
+        {
+            Debug.Log("배치 버튼 클릭됨");
+            OnPlaceButtonClicked();
+        });
     }
     
     // 유닛 데이터를 UI에 표시
@@ -145,7 +155,10 @@ public class ShopManager : MonoBehaviour
 
         // 자금이 양수로 돌아오면 경고 메시지 숨기고 배치 버튼 활성화
         UpdateUIState();
+        UpdatePlacementUIState(); // 구매 후 상태 업데이트
         }
+        // 디버그 로그 추가
+        Debug.Log($"{unit.unitName}을(를) 구매했습니다. 현재 총 유닛 수: {totalUnitCount + 1}");
     }
 
     // 자금 업데이트 UI 표시
@@ -273,11 +286,15 @@ public class ShopManager : MonoBehaviour
     // 유닛 클릭시 호출되는 메서드
     public void OnUnitClicked(UnitDataBase unit)
     {
+        Debug.Log($"OnUnitClicked 호출됨: {unit.unitName}");
         PlaceUnit(unit);  // 유닛 배치
     }
     // 선택된 유닛을 배치하는 메서드
     private void PlaceUnit(UnitDataBase unit)
     {
+        // 현재 배치된 유닛 리스트의 길이를 가져와 인덱스 설정
+        int unitIndex = PlayerData.Instance.ShowPlacedUnitList().Count; // 현재 배치된 유닛의 개수로 인덱스를 추적
+
         // 유닛의 이미지와 이름을 가지고 새로운 UI 프리팹을 생성
         GameObject placeunitObject = Instantiate(placeunitPrefab, unitPlacementArea);
         
@@ -296,7 +313,7 @@ public class ShopManager : MonoBehaviour
     
 
         // 유닛 데이터 설정
-        placedUnit.SetUnitData(unit);  // PlacedUnit의 SetUnitData 메서드에서 유닛 데이터와 UI 업데이트
+        placedUnit.SetUnitData(unit,unitIndex);  // PlacedUnit의 SetUnitData 메서드에서 유닛 데이터와 UI 업데이트
 
         // 배치 후 해당 유닛을 PlayerData의 배치된 유닛 리스트에 추가
         PlayerData.Instance.AddPlacedUnit(unit);  // 유닛을 배치된 유닛 목록에 추가
@@ -308,8 +325,9 @@ public class ShopManager : MonoBehaviour
         
         // 배치 후 해당 유닛의 개수를 차감
         PlayerData.Instance.SellUnit(unit);
-        
-        
+
+        // 배치 상태 업데이트
+        UpdatePlacementUIState(); // 배치가 발생할 때마다 호출
     }
 
     
@@ -328,12 +346,15 @@ public class ShopManager : MonoBehaviour
         public void TogglePlacingUnits()
     {
         isPlacingUnits = !isPlacingUnits;
+        Debug.Log($"배치 모드 활성화 상태: {isPlacingUnits}");
         placeButton.interactable = isPlacingUnits;  // 배치 버튼 활성화 / 비활성화
     }
     public void ReturnUnit(UnitDataBase unit)
     {
         PlayerData.Instance.AddPurchasedUnit(unit);
         AddOrUpdateUnitInMyUnitUI(unit);
+        // 배치 상태 업데이트
+        UpdatePlacementUIState(); // 반환 시에는 UI 상태 업데이트
     }
 
     // 헥스코드로 배경을 변경하는 메서드
@@ -350,5 +371,38 @@ public class ShopManager : MonoBehaviour
         }
         
     }
-    
+    // 배치 상태를 업데이트하는 메서드
+    public void UpdatePlacementUIState()
+    {
+        // PlayerData에서 남아있는 구매한 유닛 개수를 확인
+        int remainingUnits = PlayerData.Instance.GetTotalUnitCount();
+        Debug.Log(remainingUnits);
+
+        if (remainingUnits > 0)
+        {
+            // 배치해야 할 유닛이 남아있는 경우
+            startButton.interactable = false; // Start 버튼 비활성화
+            MustPlaceText.text = "배치 필요한 유닛 존재"; // 알림 메시지 설정
+            MustPlaceText.color = new Color(0.596f, 0f, 0f); // #980000 색상 설정
+        }
+        else
+        {
+            // 모든 유닛이 배치된 경우
+            startButton.interactable = true; // Start 버튼 활성화
+            MustPlaceText.text = "배치 완료"; // 완료 메시지 설정
+            MustPlaceText.color = new Color(0.290f, 0.525f, 0.910f); // #4a86e8 색상 설정
+        }
+    }
+    // 배치 버튼 클릭 시 호출되는 메서드
+    private void OnPlaceButtonClicked()
+    {
+        // 배치 모드를 토글
+        TogglePlacingUnits();
+
+        // 배치 모드가 활성화되었을 경우 상태 업데이트
+        if (isPlacingUnits)
+        {
+            UpdatePlacementUIState();
+        }
+    }
 }

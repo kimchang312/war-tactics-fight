@@ -6,6 +6,7 @@ public class EnemyUnitUI : MonoBehaviour
 {
     public TextMeshProUGUI unitNameText;    // 유닛 이름 표시
     public Image unitImage;      // 유닛 이미지 표시    
+    public TextMeshProUGUI enemyNumberText; //적 유닛 번호 표시
 
     private UnitDataBase unitData;
 
@@ -28,5 +29,9 @@ public class EnemyUnitUI : MonoBehaviour
 
         
     }
-
+    // 유닛 인덱스 설정
+    public void SetUnitIndex(int index)
+    {
+        enemyNumberText.text = $"{index + 1}"; // 인덱스는 1부터 표시하도록 설정
+    }
 }

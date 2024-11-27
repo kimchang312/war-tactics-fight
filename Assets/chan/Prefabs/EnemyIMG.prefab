@@ -226,6 +226,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitNameText: {fileID: 3924086492655056978}
   unitImage: {fileID: 7586584172817471192}
+  enemyNumberText: {fileID: 4146380107221020184}
 --- !u!1 &5562395389524722250
 GameObject:
   m_ObjectHideFlags: 0
