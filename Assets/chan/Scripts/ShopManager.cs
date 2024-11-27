@@ -127,17 +127,25 @@ public class ShopManager : MonoBehaviour
         }
     }
     public void BuyUnit(UnitDataBase unit)
-    {
+    {// 총 유닛 수가 20을 초과하는지 확인
+        int totalUnitCount = PlayerData.Instance.GetTotalUnitCount();
+
+        if (totalUnitCount >= 20)
+        {
+            Debug.LogWarning("유닛 수가 20명을 초과할 수 없습니다.");
+            return; // 유닛 추가를 막음
+        }
+        else {
         // 자금이 부족해도 유닛 구매 가능
-            PlayerData.currency -= unit.unitPrice; //자금 차감 (음수로 내려감)
-            PlayerData.Instance.AddPurchasedUnit(unit);
+        PlayerData.currency -= unit.unitPrice; //자금 차감 (음수로 내려감)
+        PlayerData.Instance.AddPurchasedUnit(unit);
 
             UpdateCurrencyDisplay();
             AddOrUpdateUnitInMyUnitUI(unit);
 
         // 자금이 양수로 돌아오면 경고 메시지 숨기고 배치 버튼 활성화
         UpdateUIState();
-        
+        }
     }
 
     // 자금 업데이트 UI 표시
