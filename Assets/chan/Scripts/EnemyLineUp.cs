@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class EnemyLineupManager : MonoBehaviour
+public class EnemyLineUp : MonoBehaviour
 {
     [Header("적 리스트 표시")]
     [SerializeField] private Transform enemyListParent; // 적 리스트를 표시할 부모 오브젝트
@@ -45,12 +45,33 @@ public class EnemyLineupManager : MonoBehaviour
             return;
         }
 
+        // 플레이어 진영의 인덱스 가져오기
+        int playerFactionIdx = PlayerData.Instance.factionidx;
+        Debug.Log($"플레이어가 선택한 진영 인덱스: {playerFactionIdx}");
+
+        // 플레이어 진영을 제외한 유닛 필터링
+        List<UnitDataBase> availableUnits = allUnits
+            .Where(unit => unit.factionIdx != playerFactionIdx) // 플레이어 진영 제외
+            .ToList();
+        Debug.Log($"플레이어 진영 제외 후 유닛 수: {availableUnits.Count}");
+
+        // 필터링 결과 디버그 로그
+        foreach (var unit in availableUnits)
+        {
+            Debug.Log($"사용 가능한 유닛 이름: {unit.unitName}, 진영 인덱스: {unit.factionIdx}");
+        }
+
+        if (availableUnits.Count == 0)
+        {
+            Debug.LogError("플레이어 진영을 제외한 유닛이 없습니다.");
+            return;
+        }
         // 사용 가능한 병종 가져오기
-        List<string> branches = allUnits.Select(u => u.unitBranch).Distinct().ToList();
+        List<string> branches = availableUnits.Select(u => u.unitBranch).Distinct().ToList();
         branches = ExcludeRandomBranches(branches);
 
         // 자금을 기준으로 적 라인업 생성
-        List<UnitDataBase> selectedUnits = GenerateUnitsByBudget(allUnits, branches);
+        List<UnitDataBase> selectedUnits = GenerateUnitsByBudget(availableUnits, branches);
 
         // 적 유닛 배치
         List<UnitDataBase> enemyLineup = PlaceUnits(selectedUnits);
