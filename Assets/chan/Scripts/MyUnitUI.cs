@@ -51,6 +51,7 @@ public class MyUnitUI : MonoBehaviour
     }
     private void OnMyUnitButtonClicked()
     {
+        Debug.Log($"현재 배치 모드 상태: {ShopManager.Instance.IsPlacingUnits}");
         if (ShopManager.Instance.IsPlacingUnits) // 배치 모드일 때
         {
             if (unitData == null)

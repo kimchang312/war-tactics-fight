@@ -5,19 +5,20 @@ using TMPro;
 public class PlacedUnit : MonoBehaviour
 {
     public TextMeshProUGUI unitNameText;    // 유닛 이름 표시
+    public TextMeshProUGUI unitNumberText;  // 유닛 번호 표시
     public Image unitImage;                 // 유닛 이미지 표시
     public Button ReturnButton;             // 되돌리기 버튼
 
     private UnitDataBase unitData;          
 
-    public void SetUnitData(UnitDataBase unit)
+    public void SetUnitData(UnitDataBase unit, int unitIndex)
     {
         unitData = unit;
 
-        
-
         // 유닛 이름과 가격 텍스트 설정
         unitNameText.text = unit.unitName;
+        // 유닛 번호 텍스트 설정 (인덱스 표시)
+        unitNumberText.text = $"{unitIndex + 1}"; // 인덱스는 0부터 시작하므로 1을 더해 표시
 
         // 유닛 이미지 설정
         Sprite loadedSprite = Resources.Load<Sprite>("UnitImages/" + unit.unitImg);
@@ -26,10 +27,7 @@ public class PlacedUnit : MonoBehaviour
             unitImage.sprite = loadedSprite;
             
         }
-        else
-        {
-            
-        }
+
 
         // 구매 버튼의 클릭 이벤트 처리
         ReturnButton.onClick.AddListener(() => ReturnUnit());

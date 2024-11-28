@@ -7,12 +7,15 @@ public class PlayerData : MonoBehaviour
 
     private Dictionary<UnitDataBase, int> purchasedUnits = new Dictionary<UnitDataBase, int>();
     private List<UnitDataBase> placedUnits = new List<UnitDataBase>(); // 배치된 유닛 목록. 이후 전투 씬에 필요한 형태로 전달해야함.
-    private List<UnitDataBase> enemyUnits;
+    public List<UnitDataBase> enemyUnits;
 
+    public int factionidx;
     public string faction;                // 플레이어가 선택한 진영
     public string difficulty;             // 플레이어가 선택한 난이도
     public int enemyFunds;                // 난이도에 따른 적의 자금
+    public int enemyFactionidx;
     
+
     public static int currency = 3000;    // 플레이어 자금 (static으로 관리)
 
     
@@ -35,6 +38,7 @@ public class PlayerData : MonoBehaviour
     private void Start()
     {
         // 초기화 시 필요한 값을 설정
+        factionidx = 0;
         faction = "기본 진영";  // 기본 진영 또는 선택된 진영
         difficulty = "기본 난이도"; // 기본 난이도 또는 선택된 난이도
         enemyFunds = CalculateEnemyFunds(difficulty); // 난이도에 따른 자금 설정
@@ -57,14 +61,7 @@ public class PlayerData : MonoBehaviour
     public void AddPurchasedUnit(UnitDataBase unit)
     {
 
-        // 총 유닛 수가 20을 초과하는지 확인
-        int totalUnitCount = GetTotalUnitCount();
-
-        if (totalUnitCount >= 20)
-        {
-            Debug.LogWarning("유닛 수가 20명을 초과할 수 없습니다.");
-            return; // 유닛 추가를 막음
-        }
+        
 
         if (purchasedUnits.ContainsKey(unit))
         {
@@ -74,8 +71,7 @@ public class PlayerData : MonoBehaviour
         {
             purchasedUnits[unit] = 1;
         }
-        // 디버그 로그 추가
-        Debug.Log($"{unit.unitName}을(를) 구매했습니다. 현재 총 유닛 수: {totalUnitCount + 1}");
+        
     }
 
     // 모든 유닛의 총 수를 계산하는 메서드
@@ -141,6 +137,9 @@ public class PlayerData : MonoBehaviour
         faction = "기본 진영";
         difficulty = "기본 난이도";
         enemyFunds = CalculateEnemyFunds(difficulty); // 난이도에 따른 자금 초기화
+        // 상점 초기화
+
+
     }
 
     
@@ -196,5 +195,25 @@ public class PlayerData : MonoBehaviour
         }
 
         return enemyUnitIndexes;
+    }
+    public void SetRandomEnemyFaction()
+    {
+        // 플레이어 진영 인덱스를 제외한 적 진영 인덱스 설정
+        int randomFaction = 0;
+
+        // 플레이어 진영 인덱스를 제외하고 랜덤으로 적 진영 선택
+        if (factionidx != 1 && factionidx != 2 && factionidx != 3)
+        {
+            Debug.LogError("플레이어의 진영 인덱스가 잘못되었습니다.");
+            return;
+        }
+
+        do
+        {
+            randomFaction = Random.Range(1, 4); // 1, 2, 3 중 랜덤 선택
+        } while (randomFaction == factionidx); // 플레이어 진영과 같으면 다시 시도
+
+        enemyFactionidx = randomFaction;
+        Debug.Log($"플레이어 진영: {factionidx}, 적 진영: {enemyFactionidx}");
     }
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Threading.Tasks;
+using Unity.Burst.Intrinsics;
 
 public class ShopManager : MonoBehaviour
 {
@@ -16,10 +17,15 @@ public class ShopManager : MonoBehaviour
     public Transform myUnitUIcontent;       // MyUnit UI 위치
     public TextMeshProUGUI currencyText;    // 현재 자금을 표시할 Text
     public TextMeshProUGUI factionText;     // 플레이어의 진영을 표시할 Text
+    public TextMeshProUGUI MustPlaceText;   // 배치 필요 텍스트
     public PlayerData playerData;           // PlayerData를 통해 자금 및 구매한 유닛 확인
     public UnitDataManager unitDataManager; // UnitDataManager를 통해 유닛데이터 로드하기 위함
     public Button placeButton; // 배치버튼 = 배치BTN
+    public Button startButton; // 전투시작 버튼
     public GameObject FundsWarning; // 자금 부족 경고
+
+    [SerializeField] private EnemyLineUp enemyLineUp;
+
 
     //유닛 상세에 필요한 연결
     public UnitDetailUI unitDetailUI; // Inspector에서 연결
@@ -65,7 +71,11 @@ public class ShopManager : MonoBehaviour
         
 
         await unitDataManager.LoadUnitDataAsync();
-
+        Debug.Log("로드된 유닛 데이터:");
+        foreach (var unit in unitDataManager.unitDataList)
+        {
+            Debug.Log($"유닛 이름: {unit.unitName}, 진영: {unit.unitFaction}");
+        }
         if (unitDataManager.unitDataList.Count > 0)
         {
             DisplayUnits();
@@ -79,22 +89,46 @@ public class ShopManager : MonoBehaviour
         UpdateCurrencyDisplay(); // 자금 UI 업데이트
         FactionDisplay();// 진영 UI 업데이트
         placeButton.onClick.AddListener(TogglePlacingUnits);
+        placeButton.onClick.AddListener(OnPlaceButtonClicked); // 배치 버튼 클릭 리스너 연결
+
+        UpdatePlacementUIState(); // 초기 상태 업데이트
 
         // 배치 UI에 점칸을 최초 1번만 생성
         lineObject = Instantiate(linePrefab, unitPlacementArea);
 
         DisablePlaceButton(true);
-
+        //디버그 체크
+        placeButton.onClick.AddListener(() =>
+        {
+            Debug.Log("배치 버튼 클릭됨");
+            OnPlaceButtonClicked();
+        });
+        DebugCheck();
+        
     }
     
     // 유닛 데이터를 UI에 표시
     public void DisplayUnits()
     {
         var units = UnitDataManager.Instance.GetAllUnits(); // UnitDataManager에서 유닛 리스트 가져오기
+                                                            
+        int playerFactionidx = PlayerData.Instance.factionidx; // 현재 플레이어의 진영을 가져옴
+        Debug.Log($"플레이어의 선택 진영: {playerFactionidx}");
+
+
         if (units != null && units.Count > 0)
         {
             foreach (var unit in units)
             {
+                // 유닛이 플레이어 진영이 아니거나 common진영이 아니면 제외
+                if (unit.factionIdx == 0 || unit.factionIdx == playerFactionidx)
+
+                {
+
+
+
+
+                
                 GameObject unitObject = Instantiate(unitPrefab, content);
                 UnitUI unitUI = unitObject.GetComponent<UnitUI>(); // 유닛 정보를 표시할 UI 컴포넌트
                 
@@ -108,8 +142,15 @@ public class ShopManager : MonoBehaviour
                         urc.SetUnitData(unit);               // 유닛 데이터 설정
                         urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI 참조 전달
                     }
-                }
                 
+                }
+
+                }
+                else
+                {
+                    // 제외된 유닛 디버깅
+                    Debug.Log($"플레이어 진영과 다른 유닛 제외: {unit.unitName}, 진영: {unit.unitFaction}");
+                }
             }
             // 유닛 추가 후 빈 유닛 5개 추가
             AddEmptyUnits();
@@ -120,24 +161,35 @@ public class ShopManager : MonoBehaviour
     // 빈 유닛 5개 추가 (레이아웃 자리용)
     private void AddEmptyUnits()
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 3; i++)
         {
             // 빈 유닛 프리팹을 Content에 추가
             Instantiate(emptyUnitPrefab, content);
         }
     }
     public void BuyUnit(UnitDataBase unit)
-    {
+    {// 총 유닛 수가 20을 초과하는지 확인
+        int totalUnitCount = PlayerData.Instance.GetTotalUnitCount();
+
+        if (totalUnitCount >= 20)
+        {
+            Debug.LogWarning("유닛 수가 20명을 초과할 수 없습니다.");
+            return; // 유닛 추가를 막음
+        }
+        else {
         // 자금이 부족해도 유닛 구매 가능
-            PlayerData.currency -= unit.unitPrice; //자금 차감 (음수로 내려감)
-            PlayerData.Instance.AddPurchasedUnit(unit);
+        PlayerData.currency -= unit.unitPrice; //자금 차감 (음수로 내려감)
+        PlayerData.Instance.AddPurchasedUnit(unit);
 
             UpdateCurrencyDisplay();
             AddOrUpdateUnitInMyUnitUI(unit);
 
         // 자금이 양수로 돌아오면 경고 메시지 숨기고 배치 버튼 활성화
         UpdateUIState();
-        
+        UpdatePlacementUIState(); // 구매 후 상태 업데이트
+        }
+        // 디버그 로그 추가
+        Debug.Log($"{unit.unitName}을(를) 구매했습니다. 현재 총 유닛 수: {totalUnitCount + 1}");
     }
 
     // 자금 업데이트 UI 표시
@@ -265,11 +317,15 @@ public class ShopManager : MonoBehaviour
     // 유닛 클릭시 호출되는 메서드
     public void OnUnitClicked(UnitDataBase unit)
     {
+        Debug.Log($"OnUnitClicked 호출됨: {unit.unitName}");
         PlaceUnit(unit);  // 유닛 배치
     }
     // 선택된 유닛을 배치하는 메서드
     private void PlaceUnit(UnitDataBase unit)
     {
+        // 현재 배치된 유닛 리스트의 길이를 가져와 인덱스 설정
+        int unitIndex = PlayerData.Instance.ShowPlacedUnitList().Count; // 현재 배치된 유닛의 개수로 인덱스를 추적
+
         // 유닛의 이미지와 이름을 가지고 새로운 UI 프리팹을 생성
         GameObject placeunitObject = Instantiate(placeunitPrefab, unitPlacementArea);
         
@@ -288,7 +344,7 @@ public class ShopManager : MonoBehaviour
     
 
         // 유닛 데이터 설정
-        placedUnit.SetUnitData(unit);  // PlacedUnit의 SetUnitData 메서드에서 유닛 데이터와 UI 업데이트
+        placedUnit.SetUnitData(unit,unitIndex);  // PlacedUnit의 SetUnitData 메서드에서 유닛 데이터와 UI 업데이트
 
         // 배치 후 해당 유닛을 PlayerData의 배치된 유닛 리스트에 추가
         PlayerData.Instance.AddPlacedUnit(unit);  // 유닛을 배치된 유닛 목록에 추가
@@ -300,8 +356,9 @@ public class ShopManager : MonoBehaviour
         
         // 배치 후 해당 유닛의 개수를 차감
         PlayerData.Instance.SellUnit(unit);
-        
-        
+
+        // 배치 상태 업데이트
+        UpdatePlacementUIState(); // 배치가 발생할 때마다 호출
     }
 
     
@@ -320,12 +377,15 @@ public class ShopManager : MonoBehaviour
         public void TogglePlacingUnits()
     {
         isPlacingUnits = !isPlacingUnits;
+        Debug.Log($"배치 모드 활성화 상태: {isPlacingUnits}");
         placeButton.interactable = isPlacingUnits;  // 배치 버튼 활성화 / 비활성화
     }
     public void ReturnUnit(UnitDataBase unit)
     {
         PlayerData.Instance.AddPurchasedUnit(unit);
         AddOrUpdateUnitInMyUnitUI(unit);
+        // 배치 상태 업데이트
+        UpdatePlacementUIState(); // 반환 시에는 UI 상태 업데이트
     }
 
     // 헥스코드로 배경을 변경하는 메서드
@@ -342,5 +402,68 @@ public class ShopManager : MonoBehaviour
         }
         
     }
-    
+    // 배치 상태를 업데이트하는 메서드
+    public void UpdatePlacementUIState()
+    {
+        // PlayerData에서 남아있는 구매한 유닛 개수를 확인
+        int remainingUnits = PlayerData.Instance.GetTotalUnitCount();
+        Debug.Log(remainingUnits);
+
+        if (remainingUnits > 0)
+        {
+            // 배치해야 할 유닛이 남아있는 경우
+            startButton.interactable = false; // Start 버튼 비활성화
+            MustPlaceText.text = "배치 필요한 유닛 존재"; // 알림 메시지 설정
+            MustPlaceText.color = new Color(0.596f, 0f, 0f); // #980000 색상 설정
+        }
+        else
+        {
+            // 모든 유닛이 배치된 경우
+            startButton.interactable = true; // Start 버튼 활성화
+            MustPlaceText.text = "배치 완료"; // 완료 메시지 설정
+            MustPlaceText.color = new Color(0.290f, 0.525f, 0.910f); // #4a86e8 색상 설정
+        }
+    }
+    // 배치 버튼 클릭 시 호출되는 메서드
+    private void OnPlaceButtonClicked()
+    {
+        // 배치 모드를 토글
+        TogglePlacingUnits();
+
+        // 배치 상태 변경 시 UI 업데이트
+        UpdatePlacementUIState();
+
+        // EnemyLineUp의 DisplayAndHideEnemyUnits 호출
+        if (enemyLineUp != null)
+        {
+            // 현재 배치 상태에 따라 적 라인업 표시 업데이트
+            if (isPlacingUnits)
+            {
+                // 배치 상태일 때 원래 유닛 데이터 표시
+                enemyLineUp.DisplayAndHideEnemyUnits(GetCurrentEnemyLineup(), showHidden: true);
+            }
+            else
+            {
+                // 배치 상태가 아닐 때 유닛 숨기기 처리
+                enemyLineUp.DisplayAndHideEnemyUnits(GetCurrentEnemyLineup(), showHidden: false);
+            }
+        }
+        else
+        {
+            Debug.LogError("EnemyLineUp 스크립트가 연결되지 않았습니다!");
+        }
+    }
+
+    // 현재 적 라인업 데이터를 반환하는 메서드
+    private List<UnitDataBase> GetCurrentEnemyLineup()
+    {
+        // 적 라인업 데이터 가져오는 로직 추가 (예: 적 유닛 데이터 리스트)
+        return PlayerData.Instance.enemyUnits; // enemyLineupData는 적 유닛 리스트로 가정
+    }
+    private void DebugCheck()
+    {
+        if (content == null) Debug.LogError("Content가 연결되지 않았습니다!");
+        if (myUnitUIcontent == null) Debug.LogError("MyUnitUIContent가 연결되지 않았습니다!");
+        if (currencyText == null) Debug.LogError("CurrencyText가 연결되지 않았습니다!");
+    }
 }

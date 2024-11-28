@@ -3,37 +3,38 @@ using UnityEngine.SceneManagement;
 
 public class Faction : MonoBehaviour
 {
-    // Emfire Áø¿µ ¼±ÅÃ
+    // Emfire ì§„ì˜ ì„ íƒ
     public void SelectEmfire()
     {
-        SetFactionAndLoadScene("Á¦±¹");
+        SetFactionAndLoadScene("ì œêµ­", 1);
     }
 
-    // Heptachy Áø¿µ ¼±ÅÃ
+    // Heptachy ì§„ì˜ ì„ íƒ
     public void SelectHeptachy()
     {
-        SetFactionAndLoadScene("Ä¥¼º¿¬ÇÕ");
+        SetFactionAndLoadScene("ì¹ ì„±ì—°í•©", 2);
     }
 
-    // Divinitas Áø¿µ ¼±ÅÃ
+    // Divinitas ì§„ì˜ ì„ íƒ
     public void SelectDivinitas()
     {
-        SetFactionAndLoadScene("½Å¼º±¹");
+        SetFactionAndLoadScene("ì‹ ì„±êµ­", 3);
     }
 
-    // Áø¿µÀ» ¼³Á¤ÇÏ°í ´ÙÀ½ ¾ÀÀ» ·ÎµåÇÏ´Â °øÅë ÇÔ¼ö
-    private void SetFactionAndLoadScene(string factionName)
+    // ì§„ì˜ì„ ì„¤ì •í•˜ê³  ë‹¤ìŒ ì”¬ì„ ë¡œë“œí•˜ëŠ” ê³µí†µ í•¨ìˆ˜
+    private void SetFactionAndLoadScene(string factionName, int factionidx)
     {
         if (PlayerData.Instance != null)
         {
             PlayerData.Instance.faction = factionName;
+            PlayerData.Instance.factionidx = factionidx;
         }
         else
         {
-            Debug.LogWarning("PlayerData ÀÎ½ºÅÏ½º¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogWarning("PlayerData ì¸ìŠ¤í„´ìŠ¤ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
         }
 
-        // Unit_UI ¾ÀÀ¸·Î ÀüÈ¯
+        // Unit_UI ì”¬ìœ¼ë¡œ ì „í™˜
         SceneManager.LoadScene("Unit_UI");
     }
 }
