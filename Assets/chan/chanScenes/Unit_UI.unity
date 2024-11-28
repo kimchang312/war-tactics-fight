@@ -6243,6 +6243,7 @@ MonoBehaviour:
   placeButton: {fileID: 357998214}
   startButton: {fileID: 650656003}
   FundsWarning: {fileID: 1174372932}
+  enemyLineUp: {fileID: 32789942}
   unitDetailUI: {fileID: 0}
   unitPlacementArea: {fileID: 470589245}
   placeunitPrefab: {fileID: 4596429318133894428, guid: 7c100bc75fe8b6d4d84d973707913a0a, type: 3}

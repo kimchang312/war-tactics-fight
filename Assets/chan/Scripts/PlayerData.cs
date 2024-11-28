@@ -7,13 +7,14 @@ public class PlayerData : MonoBehaviour
 
     private Dictionary<UnitDataBase, int> purchasedUnits = new Dictionary<UnitDataBase, int>();
     private List<UnitDataBase> placedUnits = new List<UnitDataBase>(); // 배치된 유닛 목록. 이후 전투 씬에 필요한 형태로 전달해야함.
-    private List<UnitDataBase> enemyUnits;
+    public List<UnitDataBase> enemyUnits;
 
     public int factionidx;
     public string faction;                // 플레이어가 선택한 진영
     public string difficulty;             // 플레이어가 선택한 난이도
     public int enemyFunds;                // 난이도에 따른 적의 자금
     public int enemyFactionidx;
+    
 
     public static int currency = 3000;    // 플레이어 자금 (static으로 관리)
 

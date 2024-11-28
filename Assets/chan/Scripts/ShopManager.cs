@@ -24,6 +24,9 @@ public class ShopManager : MonoBehaviour
     public Button startButton; // 전투시작 버튼
     public GameObject FundsWarning; // 자금 부족 경고
 
+    [SerializeField] private EnemyLineUp enemyLineUp;
+
+
     //유닛 상세에 필요한 연결
     public UnitDetailUI unitDetailUI; // Inspector에서 연결
 
@@ -101,6 +104,7 @@ public class ShopManager : MonoBehaviour
             OnPlaceButtonClicked();
         });
         DebugCheck();
+        
     }
     
     // 유닛 데이터를 UI에 표시
@@ -426,11 +430,35 @@ public class ShopManager : MonoBehaviour
         // 배치 모드를 토글
         TogglePlacingUnits();
 
-        // 배치 모드가 활성화되었을 경우 상태 업데이트
-        if (isPlacingUnits)
+        // 배치 상태 변경 시 UI 업데이트
+        UpdatePlacementUIState();
+
+        // EnemyLineUp의 DisplayAndHideEnemyUnits 호출
+        if (enemyLineUp != null)
         {
-            UpdatePlacementUIState();
+            // 현재 배치 상태에 따라 적 라인업 표시 업데이트
+            if (isPlacingUnits)
+            {
+                // 배치 상태일 때 원래 유닛 데이터 표시
+                enemyLineUp.DisplayAndHideEnemyUnits(GetCurrentEnemyLineup(), showHidden: true);
+            }
+            else
+            {
+                // 배치 상태가 아닐 때 유닛 숨기기 처리
+                enemyLineUp.DisplayAndHideEnemyUnits(GetCurrentEnemyLineup(), showHidden: false);
+            }
         }
+        else
+        {
+            Debug.LogError("EnemyLineUp 스크립트가 연결되지 않았습니다!");
+        }
+    }
+
+    // 현재 적 라인업 데이터를 반환하는 메서드
+    private List<UnitDataBase> GetCurrentEnemyLineup()
+    {
+        // 적 라인업 데이터 가져오는 로직 추가 (예: 적 유닛 데이터 리스트)
+        return PlayerData.Instance.enemyUnits; // enemyLineupData는 적 유닛 리스트로 가정
     }
     private void DebugCheck()
     {
