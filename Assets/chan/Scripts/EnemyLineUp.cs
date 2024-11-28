@@ -92,6 +92,7 @@ public class EnemyLineUp : MonoBehaviour
         // UI에 표시
         DisplayEnemyLineupUI(enemyLineup);
         DebugEnemyListIDX(enemyLineup);
+        DisplayAndHideEnemyUnits(enemyLineup);
     }
     private void DisplayAndHideEnemyUnits(List<UnitDataBase> enemyLineup)
     {
@@ -308,7 +309,7 @@ public class EnemyLineUp : MonoBehaviour
         Debug.Log($"최종 선택된 유닛 수: {selectedUnits.Count}, 남은 자금: {remainingFunds}");
         return selectedUnits;
     }
-    private void FinalizeUnitSelection(List<UnitDataBase> selectedUnits)
+    /*private void FinalizeUnitSelection(List<UnitDataBase> selectedUnits)
     {
         // 총 유닛 수가 20명을 초과하면 더 이상 유닛을 구매하지 않음
         if (selectedUnits.Count > maxUnits)
@@ -323,100 +324,70 @@ public class EnemyLineUp : MonoBehaviour
         {
             Debug.LogWarning("남은 군비로 추가 유닛을 구매할 수 없습니다.");
         }
-    }
+    }*/
     public List<UnitDataBase> PlaceUnits(List<UnitDataBase> purchasedUnits)
     {
         List<UnitDataBase> finalLineup = new List<UnitDataBase>();
-
-        // 구입한 유닛 수만큼 배치 공간 설정
         int remainingSpaces = purchasedUnits.Count;
         Debug.Log($"배치 가능한 유닛 수: {remainingSpaces}");
 
-        // 2. 전열 유닛 배치
-        List<UnitDataBase> frontlineUnits = new List<UnitDataBase>();
-
-        // 방어형 유닛 (중갑병, 중기병)
+        // 1. 전열 방어형 또는 근접 유닛 우선 배치
         List<UnitDataBase> defensiveUnits = purchasedUnits
-            .Where(u => u.unitBranch == "Branch_Heavy Infantry" || u.unitBranch == "Branch_Heavy Cavalry")
+            .Where(u => u.unitBranch == "Branch_Heavy Infantry" || u.unitBranch == "Branch_Heavy Cavalry" ||
+                        u.unitBranch == "Branch_Spearman" || u.unitBranch == "Branch_Warrior")
             .OrderByDescending(u => u.health)
             .ToList();
 
         if (defensiveUnits.Count > 0 && remainingSpaces > 0)
         {
-            frontlineUnits.Add(defensiveUnits[Random.Range(0, defensiveUnits.Count)]);
+            UnitDataBase frontlineUnit = defensiveUnits[0];
+            finalLineup.Add(frontlineUnit);
+            purchasedUnits.Remove(frontlineUnit);
             remainingSpaces--;
-            Debug.Log($"전열에 방어형 유닛 배치: {frontlineUnits.Last().unitName}");
+            Debug.Log($"전열에 배치된 유닛: {frontlineUnit.unitName}");
         }
-        else if (remainingSpaces > 0)
-        {
-            // 방어형 유닛이 없으면 근접 공격형 유닛 배치 (창병, 전사)
-            List<UnitDataBase> meleeUnits = purchasedUnits
-                .Where(u => u.unitBranch == "Branch_Spearman" || u.unitBranch == "Branch_Warrior")
-                .OrderByDescending(u => u.health)
-                .ToList();
 
-            if (meleeUnits.Count > 0)
+        // 2. 궁병 유닛 배치 (그룹 간 간격 유지)
+        List<UnitDataBase> bowmanUnits = purchasedUnits
+            .Where(u => u.unitBranch == "Branch_Bowman")
+            .ToList();
+
+        List<UnitDataBase> otherUnits = purchasedUnits.Except(bowmanUnits).ToList();
+
+        while (bowmanUnits.Count > 0 && remainingSpaces > 0)
+        {
+            // 궁병 한 그룹(1~2명) 배치
+            int groupSize = Mathf.Min(bowmanUnits.Count, Random.Range(1, 3)); // 그룹 크기: 1명 또는 2명
+            List<UnitDataBase> bowmanGroup = bowmanUnits.Take(groupSize).ToList();
+            finalLineup.AddRange(bowmanGroup);
+            bowmanUnits.RemoveRange(0, groupSize);
+            remainingSpaces -= groupSize;
+            Debug.Log($"배치된 궁병 그룹: {string.Join(", ", bowmanGroup.Select(u => u.unitName))}");
+
+            // 궁병 그룹 사이에 다른 유닛 추가
+            if (otherUnits.Count > 0 && remainingSpaces > 0)
             {
-                frontlineUnits.Add(meleeUnits[Random.Range(0, meleeUnits.Count)]);
+                UnitDataBase spacerUnit = otherUnits[Random.Range(0, otherUnits.Count)];
+                finalLineup.Add(spacerUnit);
+                otherUnits.Remove(spacerUnit);
                 remainingSpaces--;
-                Debug.Log($"전열에 근접 공격형 유닛 배치: {frontlineUnits.Last().unitName}");
+                Debug.Log($"궁병 그룹 사이에 배치된 유닛: {spacerUnit.unitName}");
             }
         }
 
-        // 방어형 유닛 또는 근접 유닛이 없으면, 체력이 가장 높은 유닛을 배치
-        if (frontlineUnits.Count == 0 && remainingSpaces > 0)
+        // 3. 나머지 유닛 무작위 배치
+        List<UnitDataBase> remainingUnits = bowmanUnits.Concat(otherUnits).ToList();
+        while (remainingSpaces > 0 && remainingUnits.Count > 0)
         {
-            List<UnitDataBase> remainingUnits = purchasedUnits
-                .OrderByDescending(u => u.health)
-                .ToList();
-            frontlineUnits.Add(remainingUnits[0]);
-            remainingSpaces--;
-            Debug.Log($"전열에 체력이 가장 높은 유닛 배치: {frontlineUnits.Last().unitName}");
-        }
-
-        finalLineup.AddRange(frontlineUnits);
-        Debug.Log($"전열 유닛 배치 완료. 남은 배치 공간: {remainingSpaces}");
-
-        // 3. 후열 유닛 배치 (궁병 그룹)
-        List<UnitDataBase> rangedUnits = purchasedUnits
-            .Where(u => u.unitBranch == "Branch_Bowman")
-            .OrderBy(u => u.unitPrice)  // 가격 순서대로 배치
-            .ToList();
-
-        List<List<UnitDataBase>> archerGroups = new List<List<UnitDataBase>>();
-        while (rangedUnits.Count >= 2 && remainingSpaces > 0)
-        {
-            // 2명 또는 3명씩 그룹화
-            int groupSize = (remainingSpaces > 1) ? Random.Range(2, 4) : 2;
-            List<UnitDataBase> group = rangedUnits.Take(groupSize).ToList();
-            archerGroups.Add(group);
-            rangedUnits.RemoveRange(0, groupSize);
-            remainingSpaces -= groupSize;
-            Debug.Log($"후열에 궁병 그룹 배치: {group.Count}명. 남은 배치 공간: {remainingSpaces}");
-        }
-
-        // 각 궁병 그룹 사이에 간격을 둡니다.
-        foreach (var group in archerGroups)
-        {
-            finalLineup.AddRange(group);
-        }
-
-        Debug.Log($"후열 유닛 배치 완료. 남은 배치 공간: {remainingSpaces}");
-
-        // 4. 나머지 유닛 무작위 배치
-        List<UnitDataBase> remainingUnitsForRandomPlacement = purchasedUnits.Except(finalLineup).ToList();
-        while (remainingSpaces > 0 && remainingUnitsForRandomPlacement.Count > 0)
-        {
-            UnitDataBase unitToPlace = remainingUnitsForRandomPlacement[Random.Range(0, remainingUnitsForRandomPlacement.Count)];
+            UnitDataBase unitToPlace = remainingUnits[Random.Range(0, remainingUnits.Count)];
             finalLineup.Add(unitToPlace);
-            remainingUnitsForRandomPlacement.Remove(unitToPlace);
+            remainingUnits.Remove(unitToPlace);
             remainingSpaces--;
-            Debug.Log($"무작위 배치: {unitToPlace.unitName}. 남은 배치 공간: {remainingSpaces}");
+            Debug.Log($"무작위 배치: {unitToPlace.unitName}");
         }
 
         Debug.Log($"최종 배치 유닛 수: {finalLineup.Count}");
-
-        return finalLineup;  // 유닛 배치 결과를 반환
+        return finalLineup; // 유닛 배치 결과 반환
     }
 
     private void DisplayEnemyLineupUI(List<UnitDataBase> enemyLineup)
