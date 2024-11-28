@@ -342,18 +342,25 @@ public class EnemyLineUp : MonoBehaviour
             .OrderByDescending(u => u.health) // 내구도가 높은 순서로 정렬
             .ToList();
         Debug.Log($"전열 유닛 수: {frontlineUnits.Count}");
+
         // 2. 궁병 유닛 필터링
         List<UnitDataBase> bowmanUnits = purchasedUnits
             .Where(u => u.unitBranch == "Branch_Bowman")
             .ToList();
         Debug.Log($"궁병 유닛 수: {bowmanUnits.Count}");
+
         // 3. 나머지 유닛 필터링 (궁병 및 전열 제외)
         List<UnitDataBase> otherUnits = purchasedUnits
-            .Except(frontlineUnits.Concat(bowmanUnits))
-            .ToList();
+        .Except(frontlineUnits.Concat(bowmanUnits))  // 전열 유닛과 궁병 유닛 제외
+        .ToList();
+
         Debug.Log($"나머지 유닛 수: {otherUnits.Count}");
 
-        // 4. 궁병 그룹 앞에 전열 유닛 하나씩 배치
+        // 4. 초기 상태의 remainingUnits 계산
+        List<UnitDataBase> remainingUnits = frontlineUnits.Concat(bowmanUnits).Concat(otherUnits).ToList();
+        Debug.Log($"초기 remainingUnits 유닛 수: {remainingUnits.Count}");
+
+        // 5. 궁병 그룹 앞에 전열 유닛 하나씩 배치
         while (bowmanUnits.Count > 0 && frontlineUnits.Count > 0 && remainingSpaces > 0)
         {
             // 전열 유닛 한 명 배치
@@ -383,24 +390,23 @@ public class EnemyLineUp : MonoBehaviour
             bowmanUnits.RemoveRange(0, groupSize);
             remainingSpaces -= groupSize;
             Debug.Log($"추가 배치된 궁병 그룹: {string.Join(", ", bowmanGroup.Select(u => u.unitName))}");
-            Debug.Log($"추가 궁병그룹배치 후 remainingSpaces: {remainingSpaces}, remainingUnits 남은 유닛 수: {purchasedUnits.Count}");
+            Debug.Log($"추가 궁병그룹배치 후 remainingSpaces: {remainingSpaces}, 궁병 남은 유닛 수: {bowmanUnits.Count}");
         }
 
-        // 5. 나머지 유닛 무작위 배치
-        List<UnitDataBase> remainingUnits = frontlineUnits.Concat(otherUnits).ToList();
+        // 6. 나머지 유닛 무작위 배치
+        remainingUnits = frontlineUnits.Concat(otherUnits).ToList();
+        Debug.Log($"[나머지 유닛 배치] remainingUnits 유닛 수: {remainingUnits.Count}");
+
         while (remainingSpaces > 0 && remainingUnits.Count > 0)
         {
             UnitDataBase unitToPlace = remainingUnits[Random.Range(0, remainingUnits.Count)];
             finalLineup.Add(unitToPlace);
             remainingUnits.Remove(unitToPlace);
             remainingSpaces--;
-            // 디버그 로그로 유닛 상태 확인
             Debug.Log($"배치된 유닛: {unitToPlace.unitName}, 남은 공간: {remainingSpaces}, 남은 유닛 수: {remainingUnits.Count}");
         }
 
-        
         return finalLineup; // 유닛 배치 결과 반환
-
     }
 
     private void DisplayEnemyLineupUI(List<UnitDataBase> enemyLineup)
