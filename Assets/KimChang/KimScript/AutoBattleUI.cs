@@ -2,9 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
-using UnityEditor.Playables;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor.Playables;
+#endif
 
 
 
@@ -30,9 +32,21 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private Slider enemyHpBar;           // 상대 체력 바
     [SerializeField] private TextMeshProUGUI myRangeText;   //내 원거리 유닛 수
     [SerializeField] private TextMeshProUGUI enemyRangeText;    //상대 원거리 유닛 수
+    [SerializeField] private GameObject myRangeCount;                    //내 원거리 유닛 수
+    [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
+
+
+
 
     private Vector3 myTeam = new(270, 280, 0);                 // 아군 데미지 뜨는 위치
     private Vector3 enemyTeam = new(-270, 280, 0);           // 상대 데미지지 뜨는 위치
+
+
+    private void Start()
+    {
+        myHpBar.interactable = false;
+        enemyHpBar.interactable = false;
+    }
 
 
     //유닛 갯수 
@@ -102,16 +116,17 @@ public class AutoBattleUI : MonoBehaviour
     //유닛 갯수 만큼 유닛 이미지 생성
     public void CreateUnitBox(UnitDataBase[] myUnits,UnitDataBase[] enemyUnits,int myUnitIndex,int enemyUnitIndex,float myDodge,float enemyDodge,int myRangeUnitCount,int enemyRangeUnitCount)
     {
-        Vector3[] myPositions = { new Vector3(-270, 150, 0), new Vector3(-130, -400, 0), new Vector3(-520, -400, 0) };
-        Vector3[] enemyPositions = { new Vector3(270, 150, 0), new Vector3(130, -400, 0), new Vector3(520, -400, 0) };
-        Vector3 myRangeUnitPos = new Vector3(-860, -130, 0);
-        Vector3 enemyRangeUnitPos = new Vector3(860, -130, 0);
-        Vector3 myRangeTextPos = new Vector3(-660, -59, 0);
-        Vector3 enemyRangeTextPos = new Vector3(660, -59, 0);
+        Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0), new Vector3(-397, -385, 0) };
+        Vector3[] enemyPositions = { new Vector3(200, 94, 0), new Vector3(152, -385, 0), new Vector3(430, -385, 0) };
+        Vector3 myRangeUnitPos = new Vector3(-833, -143, 0);
+        Vector3 enemyRangeUnitPos = new Vector3(837, -143, 0);
+        //Vector3 myRangeTextPos = new Vector3(-837, -59, 0);
+        //Vector3 enemyRangeTextPos = new Vector3(837, -59, 0);
 
-        float firstSize = 300;
-        float secondSize = 180;
-        float unitInterval = 200;
+        float firstSize = 250;
+        float secondSize = 200;
+        float unitInterval = 210;
+
 
         //유닛 초기화
         ClearExistingUnitImages();
@@ -126,13 +141,13 @@ public class AutoBattleUI : MonoBehaviour
         CreateUnitImages(myUnits, myUnitIndex, myPositions, firstSize, secondSize, unitInterval, true, myDodge);
 
         //나의 원거리 유닛 생성
-        CreateRangeUnit(myRangeUnitCount, myRangeUnitPos,myRangeTextPos,myRangeText);
+        CreateRangeUnit(myRangeUnitCount, myRangeUnitPos,myRangeCount,true);
 
         // 적의 유닛 생성
         CreateUnitImages(enemyUnits, enemyUnitIndex, enemyPositions, firstSize, secondSize, unitInterval, false, enemyDodge);
 
         //상대 원거리 유닛 생성
-        CreateRangeUnit(enemyRangeUnitCount, enemyRangeUnitPos, enemyRangeTextPos, enemyRangeText);
+        CreateRangeUnit(enemyRangeUnitCount, enemyRangeUnitPos, enemyRangeCount,false);
 
     }
 
@@ -147,30 +162,45 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //원거리 유닛 생성
-    private void CreateRangeUnit(int rangeUnitCount, Vector3 position,Vector3 textPos,TextMeshProUGUI text)
+    private void CreateRangeUnit(int rangeUnitCount, Vector3 position,GameObject number,bool isMyTeam)
     {
-        Vector2 size = new Vector2(200, 200);
+        float size = 200;
+        string myTeam = isMyTeam ? "My" : "Enemy";
+        Image numberImg = number.GetComponent<Image>();
 
         if (rangeUnitCount == 0)
         {
-            text.text = "";
+            numberImg.color = new Color(255, 255, 255, 0);
             return;
         }
+        numberImg.color = new Color(255, 255, 255, 255);
 
         GameObject unit = objectPool.GetBattleUnit();
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
-        rectTransform.sizeDelta = size;
+        rectTransform.sizeDelta = new Vector2(size-10,size-10);
         rectTransform.anchoredPosition = position;
-
-        text.text = $"X{rangeUnitCount}";
 
         // 이미지 설정
         Sprite sprite = Resources.Load<Sprite>($"KIcon/rangedAttack");
         Image img = unit.GetComponent<Image>();
         img.sprite = sprite;
 
-        //자식 비활성화
-        unit.transform.GetChild(0).gameObject.SetActive(false);
+        //자식 관리
+        Transform childUnit = unit.transform.GetChild(0);
+        RectTransform childReckTransform= childUnit.GetComponent<RectTransform>();
+        Image childImg = childUnit.GetComponent<Image>();
+
+        childReckTransform.sizeDelta = new Vector2(size, size);
+        Sprite childSprite = Resources.Load<Sprite>($"KIcon/UI_{myTeam}SecondUnit");
+        childImg.sprite = childSprite;
+
+        //숫자 관리
+        Sprite numberSprite= Resources.Load<Sprite>($"KIcon/UI_{myTeam}X{rangeUnitCount}");
+        numberImg.sprite = numberSprite;
+
+        //숫자 이미지 뒤로
+        int siblingCount = number.transform.parent.childCount;
+        number.transform.SetSiblingIndex(siblingCount-1);
     }
 
     //유닛 이미지 생성
@@ -216,7 +246,7 @@ public class AutoBattleUI : MonoBehaviour
                 unitTeam += "BackUnit";
             }
             //크기 설정
-            rectTransform.sizeDelta = i == 0 ? new Vector2(firstSize-20, firstSize-20) : new Vector2(secondSize-10, secondSize-10);
+            rectTransform.sizeDelta = i == 0 ? new Vector2(firstSize-10, firstSize-10) : new Vector2(secondSize-10, secondSize-10);
             childRectTrasform.sizeDelta =i ==0 ? new Vector2(firstSize, firstSize) : new Vector2 (secondSize, secondSize);
 
             // 이미지 설정
@@ -225,7 +255,6 @@ public class AutoBattleUI : MonoBehaviour
             img.sprite = sprite;
 
             //유닛 테두리 설정
-            childUnit.gameObject.SetActive(true);
             Sprite frameSprite = Resources.Load<Sprite>($"KIcon/UI_{unitTeam}");
             //활성화
             unitFrame.sprite = frameSprite;
@@ -235,12 +264,12 @@ public class AutoBattleUI : MonoBehaviour
                 // UI 업데이트
                 if (isMyUnit)
                 {
-                    _myDodge.text = $"회피율 {dodge}%";
+                    _myDodge.text = $"회피율: {dodge}%";
                     myAbility.text = ability;
                 }
                 else
                 {
-                    _enemyDodge.text = $"회피율 {dodge}%";
+                    _enemyDodge.text = $"회피율: {dodge}%";
                     enemyAbility.text = ability;
                 }
             }
@@ -252,10 +281,10 @@ public class AutoBattleUI : MonoBehaviour
     //능력치 아이콘 생성
     private void CreateAbilityIcons(UnitDataBase myUnit,UnitDataBase enemyUnit)
     {
-        float posY = -110;
-        float myTeamPosX = -90;
-        float enemyTeamPosX =90;
-        float interval = 100f;
+        float posY = -103;
+        float myTeamPosX = -280;
+        float enemyTeamPosX =88;
+        float interval = 62;
 
         // 내 능력 아이콘 업데이트
         var myBoolAttributes = myUnit.GetType().GetFields()
@@ -268,18 +297,24 @@ public class AutoBattleUI : MonoBehaviour
         {
             if (attr.Value)
             {
-                GameObject iconImage = objectPool.GetAbility();
-                RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
+                //원거리 특성 제외
+                if(attr.Name != "rangedAttack")
+                {
+                    GameObject iconImage = objectPool.GetAbility();
+                    RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
 
-                rectTransform.anchoredPosition= new Vector2 (myTeamPosX-(i*interval), posY);
+                    rectTransform.anchoredPosition = new Vector2(myTeamPosX - (i * interval), posY);
 
-                // 이미지 설정
-                Sprite sprite = Resources.Load<Sprite>($"KIcon/{attr.Name}");
-                Image img = iconImage.GetComponent<Image>();
-                img.sprite = sprite;
+                    //크기 초기화
+                    rectTransform.localScale = Vector3.one;
 
-                i++;
+                    // 이미지 설정
+                    Sprite sprite = Resources.Load<Sprite>($"KIcon/{attr.Name}");
+                    Image img = iconImage.GetComponent<Image>();
+                    img.sprite = sprite;
 
+                    i++;
+                }
             }
         }
 
@@ -295,17 +330,24 @@ public class AutoBattleUI : MonoBehaviour
         {
             if (attr.Value)
             {
-                GameObject iconImage = objectPool.GetAbility();
-                RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
+                //원거리 특성 제외
+                if (attr.Name != "rangedAttack") 
+                {
+                    GameObject iconImage = objectPool.GetAbility();
+                    RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
 
-                rectTransform.anchoredPosition = new Vector2(enemyTeamPosX + (i * interval), posY);
+                    rectTransform.anchoredPosition = new Vector2(enemyTeamPosX + (i * interval), posY);
 
-                // 이미지 설정
-                Sprite sprite = Resources.Load<Sprite>($"KIcon/{attr.Name}");
-                Image img = iconImage.GetComponent<Image>();
-                img.sprite = sprite;
+                    //크기 초기화
+                    rectTransform.localScale = Vector3.one;
 
-                i++;
+                    // 이미지 설정
+                    Sprite sprite = Resources.Load<Sprite>($"KIcon/{attr.Name}");
+                    Image img = iconImage.GetComponent<Image>();
+                    img.sprite = sprite;
+
+                    i++;
+                }
 
             }
         }
