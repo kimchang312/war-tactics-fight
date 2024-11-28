@@ -124,8 +124,7 @@ public class ShopManager : MonoBehaviour
 
 
 
-                // 조건에 맞는 유닛만 표시
-                Debug.Log($"표시할 유닛: {unit.unitName} (진영: {unit.unitFaction})");
+                
                 GameObject unitObject = Instantiate(unitPrefab, content);
                 UnitUI unitUI = unitObject.GetComponent<UnitUI>(); // 유닛 정보를 표시할 UI 컴포넌트
                 

@@ -13,7 +13,8 @@ public class PlayerData : MonoBehaviour
     public string faction;                // 플레이어가 선택한 진영
     public string difficulty;             // 플레이어가 선택한 난이도
     public int enemyFunds;                // 난이도에 따른 적의 자금
-    
+    public int enemyFactionidx;
+
     public static int currency = 3000;    // 플레이어 자금 (static으로 관리)
 
     
@@ -193,5 +194,25 @@ public class PlayerData : MonoBehaviour
         }
 
         return enemyUnitIndexes;
+    }
+    public void SetRandomEnemyFaction()
+    {
+        // 플레이어 진영 인덱스를 제외한 적 진영 인덱스 설정
+        int randomFaction = 0;
+
+        // 플레이어 진영 인덱스를 제외하고 랜덤으로 적 진영 선택
+        if (factionidx != 1 && factionidx != 2 && factionidx != 3)
+        {
+            Debug.LogError("플레이어의 진영 인덱스가 잘못되었습니다.");
+            return;
+        }
+
+        do
+        {
+            randomFaction = Random.Range(1, 4); // 1, 2, 3 중 랜덤 선택
+        } while (randomFaction == factionidx); // 플레이어 진영과 같으면 다시 시도
+
+        enemyFactionidx = randomFaction;
+        Debug.Log($"플레이어 진영: {factionidx}, 적 진영: {enemyFactionidx}");
     }
 }
