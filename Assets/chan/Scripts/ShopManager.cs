@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Threading.Tasks;
+using Unity.Burst.Intrinsics;
 
 public class ShopManager : MonoBehaviour
 {
@@ -67,7 +68,11 @@ public class ShopManager : MonoBehaviour
         
 
         await unitDataManager.LoadUnitDataAsync();
-
+        Debug.Log("로드된 유닛 데이터:");
+        foreach (var unit in unitDataManager.unitDataList)
+        {
+            Debug.Log($"유닛 이름: {unit.unitName}, 진영: {unit.unitFaction}");
+        }
         if (unitDataManager.unitDataList.Count > 0)
         {
             DisplayUnits();
@@ -102,10 +107,25 @@ public class ShopManager : MonoBehaviour
     public void DisplayUnits()
     {
         var units = UnitDataManager.Instance.GetAllUnits(); // UnitDataManager에서 유닛 리스트 가져오기
+                                                            
+        int playerFactionidx = PlayerData.Instance.factionidx; // 현재 플레이어의 진영을 가져옴
+        Debug.Log($"플레이어의 선택 진영: {playerFactionidx}");
+
+
         if (units != null && units.Count > 0)
         {
             foreach (var unit in units)
             {
+                // 유닛이 플레이어 진영이 아니거나 common진영이 아니면 제외
+                if (unit.factionIdx == 0 || unit.factionIdx == playerFactionidx)
+
+                {
+
+
+
+
+                // 조건에 맞는 유닛만 표시
+                Debug.Log($"표시할 유닛: {unit.unitName} (진영: {unit.unitFaction})");
                 GameObject unitObject = Instantiate(unitPrefab, content);
                 UnitUI unitUI = unitObject.GetComponent<UnitUI>(); // 유닛 정보를 표시할 UI 컴포넌트
                 
@@ -119,8 +139,15 @@ public class ShopManager : MonoBehaviour
                         urc.SetUnitData(unit);               // 유닛 데이터 설정
                         urc.UnitDetailUI = unitDetailUI;    // UnitDetailUI 참조 전달
                     }
-                }
                 
+                }
+
+                }
+                else
+                {
+                    // 제외된 유닛 디버깅
+                    Debug.Log($"플레이어 진영과 다른 유닛 제외: {unit.unitName}, 진영: {unit.unitFaction}");
+                }
             }
             // 유닛 추가 후 빈 유닛 5개 추가
             AddEmptyUnits();
@@ -131,7 +158,7 @@ public class ShopManager : MonoBehaviour
     // 빈 유닛 5개 추가 (레이아웃 자리용)
     private void AddEmptyUnits()
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 3; i++)
         {
             // 빈 유닛 프리팹을 Content에 추가
             Instantiate(emptyUnitPrefab, content);

@@ -9,6 +9,7 @@ public class PlayerData : MonoBehaviour
     private List<UnitDataBase> placedUnits = new List<UnitDataBase>(); // 배치된 유닛 목록. 이후 전투 씬에 필요한 형태로 전달해야함.
     private List<UnitDataBase> enemyUnits;
 
+    public int factionidx;
     public string faction;                // 플레이어가 선택한 진영
     public string difficulty;             // 플레이어가 선택한 난이도
     public int enemyFunds;                // 난이도에 따른 적의 자금
@@ -35,6 +36,7 @@ public class PlayerData : MonoBehaviour
     private void Start()
     {
         // 초기화 시 필요한 값을 설정
+        factionidx = 0;
         faction = "기본 진영";  // 기본 진영 또는 선택된 진영
         difficulty = "기본 난이도"; // 기본 난이도 또는 선택된 난이도
         enemyFunds = CalculateEnemyFunds(difficulty); // 난이도에 따른 자금 설정
