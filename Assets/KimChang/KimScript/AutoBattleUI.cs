@@ -36,6 +36,8 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
 
 
+
+
     private Vector3 myTeam = new(270, 280, 0);                 // 아군 데미지 뜨는 위치
     private Vector3 enemyTeam = new(-270, 280, 0);           // 상대 데미지지 뜨는 위치
 

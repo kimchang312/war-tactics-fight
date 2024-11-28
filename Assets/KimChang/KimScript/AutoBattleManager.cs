@@ -29,6 +29,8 @@ public class AutoBattleManager : MonoBehaviour
 
     private List<int> _enemyIds = new List<int> { 0 };    //상대 유닛 id 추후 삭제
 
+    public bool isPause=false;                                  //게임 멈춤 인지
+
     //추후 삭제
     private void TrueGarria()
     {
@@ -43,6 +45,7 @@ public class AutoBattleManager : MonoBehaviour
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private async void Start()
     {
+
         List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
         List<int> enemyIds = PlayerData.Instance.GetEnemyUnitIndexes();
         if (myIds.Count <= 0) return;
@@ -153,26 +156,44 @@ public class AutoBattleManager : MonoBehaviour
             {
                 enemyRangeUnits.Add(i);
             }
-        }
-
-        
-        
+        }        
 
         // 전투 반복
         while (myUnitIndex < myUnits.Length && enemyUnitIndex < enemyUnits.Length)
         {
-            UpdateUnitUI(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
-            await WaitForSecondsAsync();
+            Debug.Log(isPause);
+            if (isPause)
+            {
+               
+            }
 
             // 암살로 인한 시체 유닛 발생 시
-            if (myUnits[myUnitIndex].health < 0)
+            if (myUnits[myUnitIndex].health <= 0)
             {
                 myUnitIndex++;
+
+                isMyHeavyArmor = CalculateHeavyArmor(myUnits[myUnitIndex].heavyArmor, enemyUnits[enemyUnitIndex].branchIdx);
+                isMyBluntWeapon = CalculateBluntWeapon(myUnits[myUnitIndex].bluntWeapon, enemyUnits[enemyUnitIndex].heavyArmor);
+
+                myUnitMaxHp = myUnits[myUnitIndex].health;
+
+                continue;
             }
-            if (enemyUnits[enemyUnitIndex].health < 0)
+            if (enemyUnits[enemyUnitIndex].health <= 0)
             {
                 enemyUnitIndex++;
+
+                isEnemyHeavyArmor = CalculateHeavyArmor(enemyUnits[myUnitIndex].heavyArmor, myUnits[myUnitIndex].branchIdx);
+                isEnemyBluntWeapon = CalculateBluntWeapon(enemyUnits[enemyUnitIndex].bluntWeapon, myUnits[myUnitIndex].heavyArmor);
+
+                enemyUnitMaxHp = enemyUnits[enemyUnitIndex].health;
+
+                continue;
             }
+
+            UpdateUnitUI(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
+            await WaitForSecondsAsync();
+            
             // 준비
             (myUnits, enemyUnits) = await PreparationPhase(
                 myUnits, enemyUnits, isFirstAttack, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
@@ -918,8 +939,6 @@ public class AutoBattleManager : MonoBehaviour
             return false;   
         }
 
-
-
         Debug.Log($"유닛 {units[unitIndex].unitName} 사망");
 
         unitIndex++; // 다음 유닛으로 이동
@@ -949,5 +968,6 @@ public class AutoBattleManager : MonoBehaviour
         //유닛 체력 UI 최신화
         UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health, myUnitMaxHp, enemyUnitMaxHp);
     }
+
 }
 
