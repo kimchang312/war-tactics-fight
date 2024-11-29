@@ -5,6 +5,7 @@ public class UnitDataManager : MonoBehaviour
 {
     public static UnitDataManager Instance { get; private set; }
     public List<UnitDataBase> unitDataList = new List<UnitDataBase>(); // 유닛 데이터를 저장할 리스트
+    public bool IsDataLoaded { get; private set; } = false; // 데이터 로드 여부를 나타냄
 
     // GetRowCount() 대신에 Excel 데이터의 Count를 직접 참조
     // int rowCount = GoogleSheetLoader.excel.Count;
@@ -70,6 +71,7 @@ public class UnitDataManager : MonoBehaviour
         {
             Debug.LogWarning("유닛 데이터가 로드되지 않았습니다.");
         }
+        IsDataLoaded = true; // 데이터 로드 완료 후 true로 설정
     }
 
     // 유효한 유닛 데이터인지 체크하는 메서드
