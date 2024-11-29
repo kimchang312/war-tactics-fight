@@ -45,9 +45,10 @@ public class EnemyUnitUI : MonoBehaviour
     {
         enemyNumberText.text = $"{index + 1}"; // 인덱스는 1부터 표시하도록 설정
     }
-    public void SetHidden(Sprite hiddenSprite)
+    public void SetHidden(string Sprite)
     {
-        unitImage.sprite = hiddenSprite;
+        Sprite loadedSprite = Resources.Load<Sprite>("UnitImages/" + Sprite);
+        unitImage.sprite = loadedSprite;
         unitNameText.text = "???"; // 숨김 처리 시 이름 숨김
     }
 }
