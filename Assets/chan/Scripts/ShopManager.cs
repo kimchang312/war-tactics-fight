@@ -476,12 +476,14 @@ public class ShopManager : MonoBehaviour
             if (isPlacingUnits)
             {
                 // 배치 상태일 때 원래 유닛 데이터 표시
-                enemyLineUp.DisplayAndHideEnemyUnits(GetCurrentEnemyLineup(), showHidden: true);
+                enemyLineUp.DisplayAndHideEnemyUnits(GetCurrentEnemyLineup());
+                
             }
             else
             {
                 // 배치 상태가 아닐 때 유닛 숨기기 처리
-                enemyLineUp.DisplayAndHideEnemyUnits(GetCurrentEnemyLineup(), showHidden: false);
+                enemyLineUp.DisplayAndHideEnemyUnits(GetCurrentEnemyLineup());
+                
             }
         }
         else

@@ -3,11 +3,15 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class EnemyLineUp : MonoBehaviour
 {
     [Header("적 리스트 표시")]
     [SerializeField] private Transform enemyListParent; // 적 리스트를 표시할 부모 오브젝트
+    [SerializeField] private Transform enemyListParent2; //적 상세 1번줄
+    [SerializeField] private Transform enemyListParent3; //적 상세 1번줄
+    [SerializeField] private Transform enemyListParent4; //적 상세 1번줄
     [SerializeField] private GameObject enemyUnitPrefab; // 유닛 정보를 표시할 프리팹
     [SerializeField] private Sprite hiddenSprite;        // 숨김 처리된 유닛의 스프라이트
 
@@ -15,7 +19,22 @@ public class EnemyLineUp : MonoBehaviour
     [SerializeField] private int maxUnits = 20; // 최대 유닛 수
     private int enemyFunds; // 적 군비 (PlayerData에서 가져옴)
 
+    // 씬 로드 시 유닛을 초기화
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
 
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    // 씬이 로드될 때 호출되어 유닛을 초기화
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        InitializeEnemyUnits();
+    }
     private void Start()
     {
         Debug.Log("EnemyLineupManager의 Start 함수가 호출되었습니다."); // 디버그 확인
@@ -90,14 +109,30 @@ public class EnemyLineUp : MonoBehaviour
         }
 
         // UI에 표시
-        DisplayEnemyLineupUI(enemyLineup);
+        //DisplayEnemyLineupUI(enemyLineup);
         DebugEnemyListIDX(enemyLineup);
-        DisplayAndHideEnemyUnits(enemyLineup,true);
+        DisplayAndHideEnemyUnits(enemyLineup);
     }
-    public void DisplayAndHideEnemyUnits(List<UnitDataBase> enemyLineup, bool showHidden)
+    public void DisplayAndHideEnemyUnits(List<UnitDataBase> enemyLineup)
     {
+        Debug.Log("여기서 생성");
         // 기존에 생성된 리스트 제거
         foreach (Transform child in enemyListParent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (Transform child in enemyListParent2)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (Transform child in enemyListParent3)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (Transform child in enemyListParent4)
         {
             Destroy(child.gameObject);
         }
@@ -111,29 +146,54 @@ public class EnemyLineUp : MonoBehaviour
         for (int i = 0; i < enemyLineup.Count; i++)
         {
             // 프리팹 생성
-            GameObject enemyUnitUI = Instantiate(enemyUnitPrefab, enemyListParent);
+            GameObject enemyUnitUI = Instantiate(enemyUnitPrefab);
+            GameObject enemyDetailUI = Instantiate(enemyUnitPrefab);
 
             // EnemyUnitUI 스크립트를 가져와 유닛 데이터와 인덱스 설정
             EnemyUnitUI enemyUIComponent = enemyUnitUI.GetComponent<EnemyUnitUI>();
+            EnemyUnitUI enemyUIComponent2 = enemyDetailUI.GetComponent<EnemyUnitUI>();
             if (enemyUIComponent != null)
             {
                 if (!ShopManager.Instance.isPlacingUnits && hiddenIndexes.Contains(i))
                 {
                     // 배치 상태가 아닌 경우에만 숨김 처리
-                    enemyUIComponent.SetHidden(hiddenSprite);
+                    enemyUIComponent.SetHidden("hiddenSprite");
+                    enemyUIComponent2.SetHidden("hiddenSprite");
                 }
                 else
                 {
                     // 정상 유닛 표시
                     enemyUIComponent.SetUnitData(enemyLineup[i]);
+                    enemyUIComponent2.SetUnitData(enemyLineup[i]);
                 }
                 enemyUIComponent.SetUnitIndex(i); // 인덱스 설정
+                enemyUIComponent2.SetUnitIndex(i); // 인덱스 설정
+            }
+            enemyUnitUI.transform.SetParent(enemyListParent);
+            // 인덱스에 따라 해당 부모 오브젝트를 설정
+            if (i >= 0 && i <= 6)
+            {
+                enemyDetailUI.transform.SetParent(enemyListParent2, false);  // 적절한 부모 설정
+                
+            }
+            else if (i >= 7 && i <= 13)
+            {
+                enemyDetailUI.transform.SetParent(enemyListParent3, false);  // 적절한 부모 설정
+                
+            }
+            else if (i >= 14 && i <= 20)
+            {
+                enemyDetailUI.transform.SetParent(enemyListParent4, false);  // 적절한 부모 설정
+               
             }
             else
             {
                 Debug.LogError("EnemyUnitUI 스크립트를 프리팹에서 찾을 수 없습니다.");
             }
+            
         }
+        // 레이아웃 갱신 (배치 상태가 변경되었을 때 UI 업데이트)
+        LayoutRebuilder.ForceRebuildLayoutImmediate(enemyListParent.GetComponent<RectTransform>());
     }
     private List<int> GetHiddenIndexes(int totalUnits)
     {
@@ -409,42 +469,81 @@ public class EnemyLineUp : MonoBehaviour
         return finalLineup; // 유닛 배치 결과 반환
     }
 
-    private void DisplayEnemyLineupUI(List<UnitDataBase> enemyLineup)
+    public void DisplayEnemyLineupUI(List<UnitDataBase> enemyLineup)
     {
+        Debug.Log("여기서 생성2");
         // 기존에 생성된 리스트 제거
         foreach (Transform child in enemyListParent)
         {
             Destroy(child.gameObject);
         }
 
+        foreach (Transform child in enemyListParent2)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (Transform child in enemyListParent3)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (Transform child in enemyListParent4)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // 숨김 대상 유닛 인덱스 계산 (배치 상태가 false인 경우에만)
+        List<int> hiddenIndexes = !ShopManager.Instance.isPlacingUnits
+            ? GetHiddenIndexes(enemyLineup.Count)
+            : new List<int>();
+
         // 적 리스트 생성
         for (int i = 0; i < enemyLineup.Count; i++)
         {
             // 프리팹 생성
             GameObject enemyUnitUI = Instantiate(enemyUnitPrefab, enemyListParent);
-            // unitPrefab을 설정할 때 SetUnitData 호출
-            URC unitRC = enemyUnitUI.GetComponent<URC>();
-            if (unitRC != null)
-            {
-                unitRC.SetUnitData(enemyLineup[i]); // enemyLineup[i] 전달
-            }
-            else
-            {
-                Debug.LogError("URC 컴포넌트를 프리팹에서 찾을 수 없습니다.");
-            }
+            GameObject enemyDetailUI = Instantiate(enemyUnitPrefab);
+            
             // EnemyUnitUI 스크립트를 가져와 유닛 데이터와 인덱스 설정
             EnemyUnitUI enemyUIComponent = enemyUnitUI.GetComponent<EnemyUnitUI>();
             if (enemyUIComponent != null)
             {
-                enemyUIComponent.SetUnitData(enemyLineup[i]); // 유닛 데이터 설정
-                enemyUIComponent.SetUnitIndex(i);            // 인덱스 설정 (0부터 시작)
+                if (!ShopManager.Instance.isPlacingUnits && hiddenIndexes.Contains(i))
+                {
+                    // 배치 상태가 아닌 경우에만 숨김 처리
+                    enemyUIComponent.SetHidden("hiddenSprite");
+                }
+                else
+                {
+                    // 정상 유닛 표시
+                    enemyUIComponent.SetUnitData(enemyLineup[i]);
+                }
+                enemyUIComponent.SetUnitIndex(i); // 인덱스 설정
             }
+        
             else
             {
                 Debug.LogError("EnemyUnitUI 스크립트를 프리팹에서 찾을 수 없습니다.");
             }
+            // 인덱스에 따라 해당 부모 오브젝트를 설정
+            if (i >= 0 && i <= 6)
+            {
+                enemyUnitUI.transform.SetParent(enemyListParent2, false);
+            }
+            else if (i >= 7 && i <= 13)
+            {
+                enemyUnitUI.transform.SetParent(enemyListParent3, false);
+            }
+            else if (i >= 14 && i <= 20)
+            {
+                enemyUnitUI.transform.SetParent(enemyListParent4, false);
+            }
+            
         }
+        
     }
+    
     public void DebugEnemyListIDX(List<UnitDataBase> enemyLineup)
     {
         List<int> enemyIndexes = PlayerData.Instance.GetEnemyUnitIndexes();
@@ -454,5 +553,28 @@ public class EnemyLineUp : MonoBehaviour
             Debug.Log($"유닛 인덱스: {idx}");
         }
     }
-    
+    // 유닛 초기화 (씬 로드 시 호출)
+    private void InitializeEnemyUnits()
+    {
+        // 기존에 생성된 리스트 제거
+        foreach (Transform child in enemyListParent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (Transform child in enemyListParent2)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (Transform child in enemyListParent3)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (Transform child in enemyListParent4)
+        {
+            Destroy(child.gameObject);
+        }
+    }
 }
