@@ -35,6 +35,11 @@ public class URC : MonoBehaviour, IPointerClickHandler
     {
         if (eventData.button == PointerEventData.InputButton.Right) // 우클릭 감지
         {
+            Debug.Log("Right Click Detected");
+            if (unitData == null)
+            {
+                Debug.LogWarning("unitData is null!");
+            }
             if (unitData != null && unitDetailUI != null)
             {
                 unitDetailUI.ShowUnitDetails(unitData); // 유닛 정보 표시

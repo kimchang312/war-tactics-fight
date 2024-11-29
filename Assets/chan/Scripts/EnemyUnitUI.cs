@@ -27,9 +27,18 @@ public class EnemyUnitUI : MonoBehaviour
             unitImage.sprite = loadedSprite;
             
         }
-        
 
-        
+        // unitPrefab을 설정할 때 SetUnitData 호출
+        URC unitRC = GetComponent<URC>();
+        if (unitRC != null)
+        {
+            unitRC.SetUnitData(unit); // enemyLineup[i] 전달
+        }
+        else
+        {
+            Debug.LogError("URC 컴포넌트를 프리팹에서 찾을 수 없습니다.");
+        }
+
     }
     // 유닛 인덱스 설정
     public void SetUnitIndex(int index)
