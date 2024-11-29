@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Threading.Tasks;
 using Unity.Burst.Intrinsics;
+using UnityEngine.SceneManagement;
 
 public class ShopManager : MonoBehaviour
 {
@@ -44,14 +45,43 @@ public class ShopManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            
         }
         else
         {
             Destroy(gameObject);
         }
     }
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded; // 씬 로드 이벤트 등록
+    }
 
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded; // 씬 로드 이벤트 해제
+    }
+
+    // 씬이 로드될 때 호출되는 메서드
+    private async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "Unit_UI") // 특정 씬 이름 확인
+        {
+            Debug.Log("Unit_UI 씬이 로드되었습니다. 유닛을 표시합니다.");
+
+            // UnitDataManager 데이터 로드 확인
+            while (UnitDataManager.Instance == null || !UnitDataManager.Instance.IsDataLoaded)
+            {
+                Debug.Log("유닛 데이터를 로드 중...");
+                await Task.Yield();  // 비동기 대기
+            }
+
+            // 로드된 데이터를 기반으로 DisplayUnits 호출
+            DisplayUnits();
+            // 기존 유닛들을 모두 삭제
+            ClearUnitDisplay();
+        }
+    }
     // 유닛 데이터를 로드하는 시점에 맞춰 DisplayUnits 호출
     // 게임 시작 시 데이터를 미리 로드하고 상점 화면을 준비
     private async void Start()
@@ -59,12 +89,13 @@ public class ShopManager : MonoBehaviour
 
         // PlayerData 싱글톤 인스턴스를 연결
         playerData = PlayerData.Instance;
-        
 
-        
-        // UnitDataManager 인스턴스 연결
-        while (UnitDataManager.Instance == null)
+
+
+        // UnitDataManager 연결 확인 및 로드 대기
+        while (UnitDataManager.Instance == null || !UnitDataManager.Instance.IsDataLoaded)
         {
+            Debug.Log("유닛 데이터를 로드 중...");
             await Task.Yield();  // 비동기 대기
         }
         unitDataManager = UnitDataManager.Instance;
@@ -111,7 +142,12 @@ public class ShopManager : MonoBehaviour
     public void DisplayUnits()
     {
         var units = UnitDataManager.Instance.GetAllUnits(); // UnitDataManager에서 유닛 리스트 가져오기
-                                                            
+        if (units == null || units.Count == 0)
+        {
+            Debug.LogWarning("유닛 데이터가 비어 있습니다. 유닛을 표시할 수 없습니다.");
+            return;
+        }
+
         int playerFactionidx = PlayerData.Instance.factionidx; // 현재 플레이어의 진영을 가져옴
         Debug.Log($"플레이어의 선택 진영: {playerFactionidx}");
 
@@ -465,5 +501,14 @@ public class ShopManager : MonoBehaviour
         if (content == null) Debug.LogError("Content가 연결되지 않았습니다!");
         if (myUnitUIcontent == null) Debug.LogError("MyUnitUIContent가 연결되지 않았습니다!");
         if (currencyText == null) Debug.LogError("CurrencyText가 연결되지 않았습니다!");
+    }
+    // Content 영역의 유닛들을 삭제하는 메서드
+    private void ClearUnitDisplay()
+    {
+        // Content 하위의 모든 자식 객체를 삭제
+        foreach (Transform child in content)
+        {
+            Destroy(child.gameObject);
+        }
     }
 }
