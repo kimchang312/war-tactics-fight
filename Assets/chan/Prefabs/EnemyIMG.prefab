@@ -146,6 +146,7 @@ GameObject:
   - component: {fileID: 1013244232773414407}
   - component: {fileID: 7586584172817471192}
   - component: {fileID: -2351427737880704380}
+  - component: {fileID: -2778479350267783602}
   m_Layer: 5
   m_Name: EnemyIMG
   m_TagString: Untagged
@@ -227,6 +228,19 @@ MonoBehaviour:
   unitNameText: {fileID: 3924086492655056978}
   unitImage: {fileID: 7586584172817471192}
   enemyNumberText: {fileID: 4146380107221020184}
+--- !u!114 &-2778479350267783602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4971512117549407143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 299c367fd3f860a45a87b15b98b8dcca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitDetailUI: {fileID: 0}
 --- !u!1 &5562395389524722250
 GameObject:
   m_ObjectHideFlags: 0

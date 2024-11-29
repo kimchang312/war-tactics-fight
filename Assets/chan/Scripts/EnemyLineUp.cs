@@ -422,7 +422,16 @@ public class EnemyLineUp : MonoBehaviour
         {
             // 프리팹 생성
             GameObject enemyUnitUI = Instantiate(enemyUnitPrefab, enemyListParent);
-
+            // unitPrefab을 설정할 때 SetUnitData 호출
+            URC unitRC = enemyUnitUI.GetComponent<URC>();
+            if (unitRC != null)
+            {
+                unitRC.SetUnitData(enemyLineup[i]); // enemyLineup[i] 전달
+            }
+            else
+            {
+                Debug.LogError("URC 컴포넌트를 프리팹에서 찾을 수 없습니다.");
+            }
             // EnemyUnitUI 스크립트를 가져와 유닛 데이터와 인덱스 설정
             EnemyUnitUI enemyUIComponent = enemyUnitUI.GetComponent<EnemyUnitUI>();
             if (enemyUIComponent != null)
