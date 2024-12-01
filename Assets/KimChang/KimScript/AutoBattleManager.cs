@@ -269,10 +269,37 @@ public class AutoBattleManager : MonoBehaviour
         
     }
 
+    //점수 계산
+    private float CalculateScore(UnitDataBase[] myUnits, UnitDataBase[] enemyUnits,int myUnitIndex,int enemyUnitIndex)
+    {
+        float score=0;
+
+        foreach (UnitDataBase enemyUnit in enemyUnits)
+        {
+            if (enemyUnit.health <= 0)
+            {
+                score += enemyUnit.unitPrice;
+            }
+        }
+        foreach (UnitDataBase myUnit in myUnits)
+        {
+            if (myUnit.health > 0)
+            {
+                score += ((myUnit.unitPrice)*(myUnit.health));
+            }
+        }
+        score= MathF.Floor(score);
+
+        return score;
+    }
+
     //유닛 데이터 받고 전투 시작
     public async Task<int> StartBattle(List<int> _myUnitIds, List<int> _enemyUnitIds)
     {
-        int result = await AutoBattle(_myUnitIds,_enemyUnitIds);
+        int result;
+        
+        result = await AutoBattle(_myUnitIds,_enemyUnitIds);
+
         autoBattleUI.FightEnd(result);
         return result;
     }

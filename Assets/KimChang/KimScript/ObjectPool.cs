@@ -7,6 +7,7 @@ public class ObjectPool : MonoBehaviour
     [SerializeField] private GameObject battleUnitPrefab;    //전투화면 유닛
     [SerializeField] private Transform canvasTransform;         //캔버스
     [SerializeField] private GameObject abilityPrefab;      //특성+기술 아이콘
+    [SerializeField] private GameObject abilityWindow;              //특성+ 기술 창
 
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();

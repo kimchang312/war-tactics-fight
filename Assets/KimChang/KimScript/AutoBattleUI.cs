@@ -4,10 +4,11 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SocialPlatforms.Impl;
+
 #if UNITY_EDITOR
 using UnityEditor.Playables;
 #endif
-
 
 
 public class AutoBattleUI : MonoBehaviour
@@ -34,8 +35,7 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI enemyRangeText;    //상대 원거리 유닛 수
     [SerializeField] private GameObject myRangeCount;                    //내 원거리 유닛 수
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
-
-
+    [SerializeField] private TextMeshProUGUI scoreText;         //점수 textUI
 
 
     private Vector3 myTeam = new(270, 280, 0);                 // 아군 데미지 뜨는 위치
@@ -367,7 +367,7 @@ public class AutoBattleUI : MonoBehaviour
     public void FightEnd(int result)
     {
         fightResult.EndGame(result);
-    }
 
+    }
 }
 
