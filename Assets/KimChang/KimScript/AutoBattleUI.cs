@@ -252,7 +252,6 @@ public class AutoBattleUI : MonoBehaviour
                 Image img = unitImage.GetComponent<Image>();
                 img.sprite = sprite;
 
-                Debug.Log(unitTeam);
                 //유닛 테두리 설정
                 Sprite frameSprite = Resources.Load<Sprite>($"KIcon/UI_{unitTeam}");
                 //활성화

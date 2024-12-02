@@ -13,8 +13,8 @@ public class FightStartBtn : MonoBehaviour
     private GoogleSheetLoader sheetLoader = new GoogleSheetLoader();
 
     // ���� ����, ���� ����
-    private List<int> _myUnitIds = new List<int> { 3,2,1 };
-    private List<int> enemyUnitIds = new List<int> { 3,4,5,0 };
+    private List<int> _myUnitIds = new List<int> { 19,2,1 };
+    private List<int> enemyUnitIds = new List<int> { 3,4,5,0,0,0 };
 
 
 
