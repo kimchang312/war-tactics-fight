@@ -113,6 +113,7 @@ public class AutoBattleManager : MonoBehaviour
         // 유닛 데이터 받아옴
         (List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
 
+
         // 유닛 순서
         int myUnitIndex = 0;
         int enemyUnitIndex = 0;
@@ -120,6 +121,9 @@ public class AutoBattleManager : MonoBehaviour
         //
         int myUnitMax = myUnits.Count;
         int enemyUnitMax = enemyUnits.Count;
+
+        float myBackUnitHp = 1;
+        float enemyBackUnitHp = 1;
 
         // 아군 원거리 유닛 갯수
         List<int> myRangeUnits= new ();
@@ -181,8 +185,9 @@ public class AutoBattleManager : MonoBehaviour
             await WaitForSecondsAsync();
             
             // 준비
-            (myUnits, enemyUnits) = await PreparationPhase(
-                myUnits, enemyUnits, isFirstAttack, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
+            (myUnits, enemyUnits) = PreparationPhase(
+                myUnits, enemyUnits, isFirstAttack, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp,ref myBackUnitHp,ref enemyBackUnitHp);
+            
             UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health, myUnitMaxHp, enemyUnitMaxHp);
             await WaitForSecondsAsync();
 
@@ -199,6 +204,7 @@ public class AutoBattleManager : MonoBehaviour
             // 충돌
             (myUnits, enemyUnits) = await CombatPhase(
                 myUnits, enemyUnits, isFirstAttack, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp);
+            
             UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health, myUnitMaxHp, enemyUnitMaxHp);
             await WaitForSecondsAsync();
 
@@ -351,25 +357,28 @@ public class AutoBattleManager : MonoBehaviour
          return 1.1f + (1.9f / (9 * (mobility - 1)));
     }
 
-    //암살 몇 번째 유닛 암살할지 계산
+    // 암살 대상 계산: 체력이 가장 낮은 유닛의 인덱스를 반환
     private int CalculateAssassination(List<float> unitsHealth)
     {
-        //최소 체력 유닛 번호
-        int minHealthNumber = 1;
-        //최소 체력 기준
-        float lastHealth = unitsHealth[0];
-        for (int i = 1; i < unitsHealth.Count; i++)
+        // 최소 체력 유닛 번호 (-1은 유효한 유닛이 없는 경우를 대비)
+        int minHealthNumber = -1;
+        // 최소 체력 기준 (초기값은 float.MaxValue로 설정)
+        float lastHealth = float.MaxValue;
+
+        for (int i = 0; i < unitsHealth.Count; i++)
         {
-            //유닛 체력이 더 적은지 확인
-            if (unitsHealth[i] < lastHealth)
+            // 체력이 0보다 크고, 현재 최소 체력보다 작은 경우 갱신
+            if (unitsHealth[i] > 0 && unitsHealth[i] < lastHealth)
             {
                 lastHealth = unitsHealth[i];
                 minHealthNumber = i;
             }
         }
 
-        return minHealthNumber;
+        // 최소 체력 유닛 번호 반환 (유효한 유닛이 없으면 -1 반환)
+        return minHealthNumber+1;
     }
+
 
     //데미지 ui 호출
     private void CallDamageText(float damage,string text,bool team)
@@ -418,8 +427,12 @@ public class AutoBattleManager : MonoBehaviour
     }
 
     //준비 페이즈
-    private async Task<(List<UnitDataBase>, List<UnitDataBase>)> PreparationPhase(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits, bool isFirstAttack,int myUnitIndex,int enemyUnitIndex, int myUnitMax,int enemyUnitMax,float myUnitMaxHp, float enemyUnitMaxHp)
+    private (List<UnitDataBase>, List<UnitDataBase>) PreparationPhase(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits, bool isFirstAttack,int myUnitIndex,int enemyUnitIndex, int myUnitMax,int enemyUnitMax,float myUnitMaxHp, float enemyUnitMaxHp,ref float myBackUnitHp,ref float enemyBackUnitHp)
     {
+        //후열 유닛 체력
+        myBackUnitHp = 1;
+        enemyBackUnitHp = 1;
+
         //첫공격
         if (isFirstAttack)
         {
@@ -427,11 +440,7 @@ public class AutoBattleManager : MonoBehaviour
             string enemySkills = "";
 
             float myDamage=0;
-            float enemyDamage=0;
-
-            //후열 유닛 체력
-            float myBackUnitHP=1 ;
-            float enemyBackUnitHP=1 ;
+            float enemyDamage=0;            
 
             //나의 준비
             //위압
@@ -480,9 +489,9 @@ public class AutoBattleManager : MonoBehaviour
 
                     myDamage += myUnits[myUnitIndex].attackDamage * assassinationValue;
 
-                    enemyBackUnitHP = enemyUnits[minHealthNum].health;
-                    enemyBackUnitHP -= myDamage;
-                    enemyUnits[minHealthNum].health=enemyBackUnitHP;
+                    enemyBackUnitHp = enemyUnits[minHealthNum].health;
+                    enemyBackUnitHp -= myDamage;
+                    enemyUnits[minHealthNum].health=enemyBackUnitHp;
                 }
             }
             //투창
@@ -549,9 +558,9 @@ public class AutoBattleManager : MonoBehaviour
 
                     enemyDamage += enemyUnits[enemyUnitIndex].attackDamage * assassinationValue;
 
-                    myBackUnitHP = myUnits[minHealthNum].health;
-                    myBackUnitHP -= enemyDamage;
-                    myUnits[minHealthNum].health = myBackUnitHP;
+                    myBackUnitHp = myUnits[minHealthNum].health;
+                    myBackUnitHp -= enemyDamage;
+                    myUnits[minHealthNum].health = myBackUnitHp;
                 }
             }
 
@@ -580,7 +589,7 @@ public class AutoBattleManager : MonoBehaviour
                 CallDamageText(enemyDamage, enemySkills, false);
             }
 
-            return await UnitDeathSkill(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp,myBackUnitHP,enemyBackUnitHP);
+            //return await UnitDeathSkill(myUnits, enemyUnits, myUnitIndex, enemyUnitIndex, myUnitMax, enemyUnitMax, myUnitMaxHp, enemyUnitMaxHp,myBackUnitHP,enemyBackUnitHP);
         }
         return (myUnits, enemyUnits);
     }
@@ -995,5 +1004,41 @@ public class AutoBattleManager : MonoBehaviour
         UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitIndex].health, myUnitMaxHp, enemyUnitMaxHp);
     }
 
+
+    //유닛 사망 처리 통합본
+    private bool ManageUnitDeath(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits,ref int myUnitIndex, ref int enemyUnitIndex, int myUnitMax, int enemyUnitMax, float myUnitMaxHp, float enemyUnitMaxHp,ref float myBackUnitHp,ref float enemyBackUnitHp)
+    {
+
+        //유닛 사망 검사
+        if (myUnits[myUnitIndex].health <= 0 || enemyUnits[enemyUnitIndex].health <= 0 || myBackUnitHp <=0 || enemyBackUnitHp <=0)
+        {
+            //상대 유닛 사망
+            if (enemyUnits[enemyUnitIndex].health <= 0 || enemyBackUnitHp <= 0)
+            {
+                //마지막 유닛 인지 검사
+                if (enemyUnitIndex + 1 == enemyUnitMax)
+                {
+                    enemyUnitIndex++;
+                    return true;
+                }
+                //유격 발동
+                if (myUnits[myUnitIndex].guerrilla)
+                {
+
+                }
+
+                //착취 발동
+
+
+            }
+
+
+
+            return true;
+        }
+        
+
+        return false;
+    }
 }
 

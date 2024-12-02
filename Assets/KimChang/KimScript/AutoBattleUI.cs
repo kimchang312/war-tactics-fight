@@ -207,10 +207,9 @@ public class AutoBattleUI : MonoBehaviour
         string ability = "";
         int unitIndex = 0;
 
-        string unitTeam = isMyUnit ? "My" : "Enemy";
-
         for (int i = 0; (i < units.Count || unitIndex < units.Count); i++, unitIndex++)
         {
+            string unitTeam = isMyUnit ? "My" : "Enemy";
             if (units[unitIndex].health > 0)
             {
                 GameObject unitImage = objectPool.GetBattleUnit();
@@ -253,6 +252,7 @@ public class AutoBattleUI : MonoBehaviour
                 Image img = unitImage.GetComponent<Image>();
                 img.sprite = sprite;
 
+                Debug.Log(unitTeam);
                 //유닛 테두리 설정
                 Sprite frameSprite = Resources.Load<Sprite>($"KIcon/UI_{unitTeam}");
                 //활성화
