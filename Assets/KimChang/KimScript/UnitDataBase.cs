@@ -18,6 +18,7 @@ public class UnitDataBase
     public int unitPrice;      // 유닛 가격
 
     // 스탯 정보
+    public float maxHealth;    // 유닛 최대 체력
     public float health;       // 유닛 체력
     public float armor;        // 유닛 장갑
     public float attackDamage; // 공격력
@@ -59,7 +60,7 @@ public class UnitDataBase
                         bool lightArmor, bool heavyArmor, bool rangedAttack, bool bluntWeapon, bool pierce,
                         bool agility, bool strongCharge, bool perfectAccuracy, bool slaughter,
                         bool charge, bool defense, bool throwSpear,  bool guerrilla,
-                        bool guard, bool assassination, bool drain, bool overwhelm,string blink)
+                        bool guard, bool assassination, bool drain, bool overwhelm,string blink,float maxHealth)
     {
         this.idx = idx;
         this.unitName = unitName;
@@ -95,6 +96,7 @@ public class UnitDataBase
         this.drain = drain;
         this.overwhelm = overwhelm;
         this.blink = blink;   //빈칸
+        this.maxHealth = maxHealth;
 
     }
 
@@ -155,7 +157,7 @@ public class UnitDataBase
 
             health, armor, attackDamage, mobility, range, antiCavalry,
             lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy,
-            slaughter,charge, defense, throwSpear,  guerrilla, guard, assassination, drain, overwhelm, "빈"
+            slaughter,charge, defense, throwSpear,  guerrilla, guard, assassination, drain, overwhelm, "빈",health
         );
     }
 

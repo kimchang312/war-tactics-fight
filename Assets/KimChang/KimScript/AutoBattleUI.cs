@@ -36,8 +36,6 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
 
 
-
-
     private Vector3 myTeam = new(270, 280, 0);                 // 아군 데미지 뜨는 위치
     private Vector3 enemyTeam = new(-270, 280, 0);           // 상대 데미지지 뜨는 위치
 
@@ -114,7 +112,7 @@ public class AutoBattleUI : MonoBehaviour
 
 
     //유닛 갯수 만큼 유닛 이미지 생성
-    public void CreateUnitBox(UnitDataBase[] myUnits,UnitDataBase[] enemyUnits,int myUnitIndex,int enemyUnitIndex,float myDodge,float enemyDodge,int myRangeUnitCount,int enemyRangeUnitCount)
+    public void CreateUnitBox(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits,float myDodge,float enemyDodge, List<UnitDataBase> myRangeUnits, List<UnitDataBase> enemyRangeUnits)
     {
         Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0), new Vector3(-397, -385, 0) };
         Vector3[] enemyPositions = { new Vector3(200, 94, 0), new Vector3(152, -385, 0), new Vector3(430, -385, 0) };
@@ -134,20 +132,20 @@ public class AutoBattleUI : MonoBehaviour
         //능력 아이콘 초기화
         ClearExistingAbilityIcons();
 
-        //아이콘 생성
-        CreateAbilityIcons(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex]);
+        //능력 아이콘 생성
+        CreateAbilityIcons(myUnits[0], enemyUnits[0]);
 
         // 나의 유닛 생성
-        CreateUnitImages(myUnits, myUnitIndex, myPositions, firstSize, secondSize, unitInterval, true, myDodge);
+        CreateUnitImages(myUnits, myPositions, firstSize, secondSize, unitInterval, true, myDodge);
 
         //나의 원거리 유닛 생성
-        CreateRangeUnit(myRangeUnitCount, myRangeUnitPos,myRangeCount,true);
+        CreateRangeUnit(myRangeUnits.Count, myRangeUnitPos,myRangeCount,true);
 
         // 적의 유닛 생성
-        CreateUnitImages(enemyUnits, enemyUnitIndex, enemyPositions, firstSize, secondSize, unitInterval, false, enemyDodge);
+        CreateUnitImages(enemyUnits, enemyPositions, firstSize, secondSize, unitInterval, false, enemyDodge);
 
         //상대 원거리 유닛 생성
-        CreateRangeUnit(enemyRangeUnitCount, enemyRangeUnitPos, enemyRangeCount,false);
+        CreateRangeUnit(enemyRangeUnits.Count, enemyRangeUnitPos, enemyRangeCount,false);
 
     }
 
@@ -204,77 +202,78 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //유닛 이미지 생성
-    private void CreateUnitImages(UnitDataBase[] units, int unitIndex, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
+    private void CreateUnitImages(List<UnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
     {
         string ability = "";
-        
+        int unitIndex = 0;
 
-        for (int i = 0; unitIndex < units.Length; i++, unitIndex++)
+        for (int i = 0; (i < units.Count || unitIndex < units.Count); i++, unitIndex++)
         {
             string unitTeam = isMyUnit ? "My" : "Enemy";
-
-            GameObject unitImage = objectPool.GetBattleUnit();
-            Transform childUnit = unitImage.transform.GetChild(0);
-            RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
-            RectTransform childRectTrasform = childUnit.GetComponent<RectTransform>();
-            Image unitFrame = childUnit.GetComponent<Image>();
-
-
-            // 위치와 크기 설정
-            if (i < positions.Length)
+            if (units[unitIndex].health > 0)
             {
-                rectTransform.anchoredPosition = positions[i];
-                switch (i) 
-                { 
-                    case 0:
-                        unitTeam += "FirstUnit";
-                        break;
-                    case 1:
-                        unitTeam += "SecondUnit";
-                        break;
-                    case 2 :
-                        unitTeam += "BackUnit";
-                        break;
+                GameObject unitImage = objectPool.GetBattleUnit();
+                Transform childUnit = unitImage.transform.GetChild(0);
+                RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
+                RectTransform childRectTrasform = childUnit.GetComponent<RectTransform>();
+                Image unitFrame = childUnit.GetComponent<Image>();
+
+                // 위치와 크기 설정
+                if (i < positions.Length)
+                {
+                    rectTransform.anchoredPosition = positions[i];
+                    switch (i)
+                    {
+                        case 0:
+                            unitTeam += "FirstUnit";
+                            break;
+                        case 1:
+                            unitTeam += "SecondUnit";
+                            break;
+                        case 2:
+                            unitTeam += "BackUnit";
+                            break;
+                    }
+
                 }
+                else
+                {
+                    float offsetX = isMyUnit ? -unitInterval : unitInterval;
+                    rectTransform.anchoredPosition = new Vector3(positions[2].x + offsetX * (i - positions.Length + 1), positions[2].y);
+
+                    unitTeam += "BackUnit";
+                }
+                //크기 설정
+                rectTransform.sizeDelta = i == 0 ? new Vector2(firstSize - 10, firstSize - 10) : new Vector2(secondSize - 10, secondSize - 10);
+                childRectTrasform.sizeDelta = i == 0 ? new Vector2(firstSize, firstSize) : new Vector2(secondSize, secondSize);
+
+                // 이미지 설정
+                Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[unitIndex].unitImg}");
+                Image img = unitImage.GetComponent<Image>();
+                img.sprite = sprite;
+
+                //유닛 테두리 설정
+                Sprite frameSprite = Resources.Load<Sprite>($"KIcon/UI_{unitTeam}");
+                //활성화
+                unitFrame.sprite = frameSprite;
 
             }
             else
             {
-                float offsetX = isMyUnit ? -unitInterval : unitInterval;
-                rectTransform.anchoredPosition = new Vector3(positions[2].x + offsetX * (i - positions.Length + 1), positions[2].y);
-
-                unitTeam += "BackUnit";
+                i--;
             }
-            //크기 설정
-            rectTransform.sizeDelta = i == 0 ? new Vector2(firstSize-10, firstSize-10) : new Vector2(secondSize-10, secondSize-10);
-            childRectTrasform.sizeDelta =i ==0 ? new Vector2(firstSize, firstSize) : new Vector2 (secondSize, secondSize);
+        }
 
-            // 이미지 설정
-            Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[unitIndex].unitImg}");
-            Image img = unitImage.GetComponent<Image>();
-            img.sprite = sprite;
-
-            //유닛 테두리 설정
-            Sprite frameSprite = Resources.Load<Sprite>($"KIcon/UI_{unitTeam}");
-            //활성화
-            unitFrame.sprite = frameSprite;
-
-            if (i == 0)
-            {
-                // UI 업데이트
-                if (isMyUnit)
-                {
-                    _myDodge.text = $"회피율: {dodge}%";
-                    myAbility.text = ability;
-                }
-                else
-                {
-                    _enemyDodge.text = $"회피율: {dodge}%";
-                    enemyAbility.text = ability;
-                }
-            }
-
-            
+        // 회피율 UI 업데이트
+        if (isMyUnit)
+        {
+            _myDodge.text = $"회피율: {dodge}%";
+            myAbility.text = ability;
+        }
+        else
+        {
+            _enemyDodge.text = $"회피율: {dodge}%";
+            enemyAbility.text = ability;
         }
     }
 
@@ -303,7 +302,7 @@ public class AutoBattleUI : MonoBehaviour
                     GameObject iconImage = objectPool.GetAbility();
                     RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
 
-                    rectTransform.anchoredPosition = new Vector2(myTeamPosX - (i * interval), posY);
+                    rectTransform.anchoredPosition = new Vector2(myTeamPosX + (i * interval), posY);
 
                     //크기 초기화
                     rectTransform.localScale = Vector3.one;

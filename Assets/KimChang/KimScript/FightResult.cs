@@ -46,6 +46,7 @@ public class FightResult : MonoBehaviour
 
     private void OnGoTitleButtonClick()
     {
+        PlayerData.Instance.ResetPlayerData();
         SceneManager.LoadScene("Main");
     }
 
