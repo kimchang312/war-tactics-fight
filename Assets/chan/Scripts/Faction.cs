@@ -12,13 +12,13 @@ public class Faction : MonoBehaviour
     // Heptachy 진영 선택
     public void SelectHeptachy()
     {
-        SetFactionAndLoadScene("칠성연합", 2);
+        SetFactionAndLoadScene("칠성연합", 3);
     }
 
     // Divinitas 진영 선택
     public void SelectDivinitas()
     {
-        SetFactionAndLoadScene("신성국", 3);
+        SetFactionAndLoadScene("신성국", 2);
     }
 
     // 진영을 설정하고 다음 씬을 로드하는 공통 함수
