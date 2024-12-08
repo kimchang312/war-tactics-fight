@@ -102,19 +102,13 @@ public class ShopManager : MonoBehaviour
         
 
         await unitDataManager.LoadUnitDataAsync();
-        Debug.Log("로드된 유닛 데이터:");
-        foreach (var unit in unitDataManager.unitDataList)
-        {
-            Debug.Log($"유닛 이름: {unit.unitName}, 진영: {unit.unitFaction}");
-        }
+        
+        
         if (unitDataManager.unitDataList.Count > 0)
         {
             DisplayUnits();
         }
-        else
-        {
-            
-        }
+        
         // 로딩이 완료된 후 바로 상점 화면을 표시
 
         UpdateCurrencyDisplay(); // 자금 UI 업데이트
@@ -182,11 +176,7 @@ public class ShopManager : MonoBehaviour
                 }
 
                 }
-                else
-                {
-                    // 제외된 유닛 디버깅
-                    Debug.Log($"플레이어 진영과 다른 유닛 제외: {unit.unitName}, 진영: {unit.unitFaction}");
-                }
+                
             }
             // 유닛 추가 후 빈 유닛 5개 추가
             AddEmptyUnits();

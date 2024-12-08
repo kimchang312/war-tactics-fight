@@ -90,7 +90,8 @@ public class EnemyLineUp : MonoBehaviour
         // 사용 가능한 병종 가져오기
         List<string> branches = availableUnits.Select(u => u.unitBranch).Distinct().ToList();
         branches = ExcludeRandomBranches(branches);
-
+        string branchesListText = string.Join(", ", branches);
+        Debug.Log($"병종 목록: {branchesListText}");
         // 자금을 기준으로 적 라인업 생성
         List<UnitDataBase> selectedUnits = GenerateUnitsByBudget(availableUnits, branches);
 
@@ -110,7 +111,7 @@ public class EnemyLineUp : MonoBehaviour
 
         // UI에 표시
         //DisplayEnemyLineupUI(enemyLineup);
-        DebugEnemyListIDX(enemyLineup);
+        
         DisplayAndHideEnemyUnits(enemyLineup);
     }
     public void DisplayAndHideEnemyUnits(List<UnitDataBase> enemyLineup)
@@ -250,37 +251,45 @@ public class EnemyLineUp : MonoBehaviour
     {
         List<UnitDataBase> selectedUnits = new List<UnitDataBase>();
         int remainingFunds = enemyFunds;
+        // branches 리스트 내용을 텍스트로 출력
+        string branchesListText = string.Join(", ", branches);
         Debug.Log($"초기 적 자금: {enemyFunds}, 사용 가능한 병종 수: {branches.Count}");
+        Debug.Log($"병종 목록: {branchesListText}");
+
 
         bool prioritizeHighTier = Random.value > 0.5f;  // 50% 확률로 고급 유닛 우선 전략 선택
         Debug.Log(prioritizeHighTier ? "구매 전략: 고급 유닛 우선" : "구매 전략: 균형형");
 
-        // 병종별로 순환하면서 구매
+        // 균형형 전략이 선택되면 GenerateBalancedUnitsByBudget 호출
+        if (!prioritizeHighTier)
+        {
+            Debug.Log("균형형 전략이 선택되었습니다. GenerateBalancedUnitsByBudget를 호출합니다.");
+            return GenerateBalancedUnitsByBudget(allUnits, branches);
+        }
+
+        // 고급 유닛 우선 전략
         int maxIterations = 100; // 루프 안전장치
         while (remainingFunds > 0 && selectedUnits.Count < maxUnits && maxIterations-- > 0)
         {
             bool unitPurchasedInThisIteration = false;
 
-            // 고급 유닛 우선 전략일 경우 진영 유닛을 우선적으로 구매
-            if (prioritizeHighTier)
-            {
-                List<UnitDataBase> factionUnits = allUnits.Where(u => u.factionIdx == PlayerData.Instance.enemyFactionidx).ToList();
-                factionUnits = factionUnits.OrderByDescending(u => u.unitPrice).ToList();
+            // 고급 유닛 우선: 적 진영의 유닛부터 구매
+            List<UnitDataBase> factionUnits = allUnits.Where(u => u.factionIdx == PlayerData.Instance.enemyFactionidx).ToList();
+            factionUnits = factionUnits.OrderByDescending(u => u.unitPrice).ToList();
 
-                foreach (var unit in factionUnits)
+            foreach (var unit in factionUnits)
+            {
+                if (unit.unitPrice <= remainingFunds)
                 {
-                    if (unit.unitPrice <= remainingFunds)
-                    {
-                        selectedUnits.Add(unit);
-                        remainingFunds -= unit.unitPrice;
-                        unitPurchasedInThisIteration = true;
-                        Debug.Log($"유닛 선택: {unit.unitName}, 병종: {unit.unitBranch}, 남은 자금: {remainingFunds}");
-                        if (selectedUnits.Count >= maxUnits) break;
-                    }
+                    selectedUnits.Add(unit);
+                    remainingFunds -= unit.unitPrice;
+                    unitPurchasedInThisIteration = true;
+                    Debug.Log($"유닛 선택: {unit.unitName}, 병종: {unit.unitBranch}, 남은 자금: {remainingFunds}");
+                    if (selectedUnits.Count >= maxUnits) break;
                 }
             }
 
-            // 병종별 예산 배분 후, 예산에 맞는 유닛 구매
+            // 병종별 예산 배분 후 구매
             foreach (string branch in branches)
             {
                 if (remainingFunds <= 0 || selectedUnits.Count >= maxUnits) break;
@@ -288,11 +297,10 @@ public class EnemyLineUp : MonoBehaviour
                 List<UnitDataBase> branchUnits = allUnits.Where(u => u.unitBranch == branch).ToList();
                 if (branchUnits.Count == 0) continue;
 
-                List<UnitDataBase> availableUnits = prioritizeHighTier
+                List<UnitDataBase> availableUnits = factionUnits.Count > 0
                     ? branchUnits.OrderByDescending(u => u.unitPrice).ToList()
                     : branchUnits.OrderBy(u => u.unitPrice).ToList();
 
-                // 구매 가능한 유닛 중 하나 선택
                 UnitDataBase unit = availableUnits.FirstOrDefault(u => u.unitPrice <= remainingFunds);
                 if (unit != null)
                 {
@@ -303,7 +311,7 @@ public class EnemyLineUp : MonoBehaviour
                 }
             }
 
-            // 모든 병종을 순환했지만 유닛을 구매하지 못했다면 루프 종료
+            // 더 이상 구매할 수 있는 유닛이 없는 경우 종료
             if (!unitPurchasedInThisIteration)
             {
                 Debug.LogWarning("더 이상 구매 가능한 유닛이 없습니다.");
@@ -324,21 +332,24 @@ public class EnemyLineUp : MonoBehaviour
         List<UnitDataBase> selectedUnits = new List<UnitDataBase>();
         int remainingFunds = enemyFunds;
         Debug.Log($"초기 적 자금: {enemyFunds}, 사용 가능한 병종 수: {branches.Count}");
-
+        string branchesListText = string.Join(", ", branches);
+        Debug.Log($"병종 목록: {branchesListText}");
         // 병종별 예산 배분
         int fundsPerBranch = remainingFunds / branches.Count;
         Debug.Log($"각 병종에 할당된 예산: {fundsPerBranch}");
 
-        // 각 병종에 대해 무작위로 유닛 구매
+        // 각 병종에 대해 유닛 구매
         foreach (string branch in branches)
         {
+            if (selectedUnits.Count >= maxUnits) break; // 최대 유닛 수 확인
+
             List<UnitDataBase> branchUnits = allUnits.Where(u => u.unitBranch == branch).ToList();
             if (branchUnits.Count == 0) continue;
 
             List<UnitDataBase> availableUnits = branchUnits.OrderBy(u => u.unitPrice).ToList();
             int branchFunds = fundsPerBranch;
 
-            while (branchFunds > 0)
+            while (branchFunds > 0 && selectedUnits.Count < maxUnits)
             {
                 UnitDataBase unit = availableUnits.FirstOrDefault(u => u.unitPrice <= branchFunds);
                 if (unit == null) break; // 더 이상 구매할 유닛이 없으면 종료
@@ -387,7 +398,7 @@ public class EnemyLineUp : MonoBehaviour
             Debug.LogWarning("남은 군비로 추가 유닛을 구매할 수 없습니다.");
         }
     }*/
-    public List<UnitDataBase> PlaceUnits(List<UnitDataBase> purchasedUnits)
+    /*public List<UnitDataBase> PlaceUnits(List<UnitDataBase> purchasedUnits)
     {
         List<UnitDataBase> finalLineup = new List<UnitDataBase>();
         int remainingSpaces = purchasedUnits.Count;
@@ -454,7 +465,7 @@ public class EnemyLineUp : MonoBehaviour
         }
 
         // 6. 나머지 유닛 무작위 배치
-        remainingUnits = frontlineUnits.Concat(otherUnits).ToList();
+        remainingUnits = frontlineUnits.Concat(bowmanUnits).Concat(otherUnits).ToList();
         Debug.Log($"[나머지 유닛 배치] remainingUnits 유닛 수: {remainingUnits.Count}");
 
         while (remainingSpaces > 0 && remainingUnits.Count > 0)
@@ -465,10 +476,156 @@ public class EnemyLineUp : MonoBehaviour
             remainingSpaces--;
             Debug.Log($"배치된 유닛: {unitToPlace.unitName}, 남은 공간: {remainingSpaces}, 남은 유닛 수: {remainingUnits.Count}");
         }
+        // 남은 공간 로그 추가
+        if (remainingSpaces > 0)
+        {
+            Debug.LogWarning($"배치가 완료되지 않았습니다! 남은 공간: {remainingSpaces}, 남은 유닛: {remainingUnits.Count}");
+        }
 
         return finalLineup; // 유닛 배치 결과 반환
+    }*/
+    /*public List<UnitDataBase> PlaceUnits(List<UnitDataBase> purchasedUnits)
+    {
+        List<UnitDataBase> finalLineup = new List<UnitDataBase>();
+        int remainingSpaces = purchasedUnits.Count;
+
+        // 1. 전열 유닛, 궁병 유닛, 기타 유닛으로 나누기
+        List<UnitDataBase> frontlineUnits = FilterUnitsByBranch(purchasedUnits, new[] { "Branch_Heavy_Infantry", "Branch_Heavy_Calvary", "Branch_Spearman", "Branch_Warrior" });
+        List<UnitDataBase> bowmanUnits = FilterUnitsByBranch(purchasedUnits, new[] { "Branch_Bowman" });
+        List<UnitDataBase> otherUnits = purchasedUnits.Except(frontlineUnits.Concat(bowmanUnits)).ToList();
+
+        Debug.Log($"전열 유닛: {frontlineUnits.Count}, 궁병 유닛: {bowmanUnits.Count}, 기타 유닛: {otherUnits.Count}");
+
+        // 2. 궁병 앞에 전열 유닛 배치
+        while (bowmanUnits.Count > 0 && frontlineUnits.Count > 0 && remainingSpaces > 0)
+        {
+            // 전열 유닛 추가
+            AddUnitToLineup(frontlineUnits, finalLineup, ref remainingSpaces);
+
+            // 궁병 그룹 추가 (1~2명)
+            int groupSize = Mathf.Min(bowmanUnits.Count, Random.Range(1, 3));
+            AddUnitsToLineup(bowmanUnits, finalLineup, groupSize, ref remainingSpaces);
+        }
+
+        // 3. 남은 전열 유닛 배치
+        AddUnitsToLineup(frontlineUnits, finalLineup, frontlineUnits.Count, ref remainingSpaces);
+
+        // 4. 남은 궁병 유닛 배치
+        AddUnitsToLineup(bowmanUnits, finalLineup, bowmanUnits.Count, ref remainingSpaces);
+
+        // 5. 기타 유닛 배치
+        AddUnitsToLineup(otherUnits, finalLineup, otherUnits.Count, ref remainingSpaces);
+
+        Debug.Log($"최종 배치된 유닛 수: {finalLineup.Count}");
+        return finalLineup;
+    }*/
+    public List<UnitDataBase> PlaceUnits(List<UnitDataBase> purchasedUnits)
+    {
+        List<UnitDataBase> finalLineup = new List<UnitDataBase>();
+        int remainingSpaces = purchasedUnits.Count;
+        string branchesListText = string.Join(", ", purchasedUnits);
+        Debug.Log($"병종 목록: {branchesListText}");
+        // 1. 카테고리별 유닛 분류
+        List<UnitDataBase> frontlineUnits = purchasedUnits
+            .Where(u => u.unitBranch == "Branch_Heavy_Infantry" ||
+                        u.unitBranch == "Branch_Heavy_Calvary" ||
+                        u.unitBranch == "Branch_Spearman" ||
+                        u.unitBranch == "Branch_Warrior")
+            .OrderByDescending(u => u.health)
+            .ToList();
+
+        List<UnitDataBase> bowmanUnits = purchasedUnits
+            .Where(u => u.unitBranch == "Branch_Bowman")
+            .ToList();
+
+        List<UnitDataBase> otherUnits = purchasedUnits
+            .Except(frontlineUnits.Concat(bowmanUnits))
+            .ToList();
+
+        // 2. 궁병 배치 로직 수정 (전열 + 궁병 순환)
+        while (remainingSpaces > 0)
+        {
+            // 전열 유닛 추가
+            if (frontlineUnits.Count > 0)
+            {
+                finalLineup.Add(frontlineUnits[0]);
+                frontlineUnits.RemoveAt(0);
+                remainingSpaces--;
+            }
+
+            // 궁병 그룹 추가
+            if (bowmanUnits.Count > 0 && remainingSpaces > 0)
+            {
+                int groupSize = Mathf.Min(bowmanUnits.Count, Random.Range(1, 3)); // 1~2명
+                var bowmanGroup = bowmanUnits.Take(groupSize).ToList();
+                foreach (var bowman in bowmanGroup)
+                {
+                    finalLineup.Add(bowman);
+                    bowmanUnits.Remove(bowman);
+                    remainingSpaces--;
+                    if (remainingSpaces <= 0) break;
+                }
+            }
+
+            // 전열 + 궁병이 모두 끝났다면 루프 종료
+            if (frontlineUnits.Count == 0 && bowmanUnits.Count == 0) break;
+        }
+
+        // 3. 남은 유닛 처리
+        foreach (var unit in frontlineUnits.Concat(bowmanUnits).Concat(otherUnits))
+        {
+            if (remainingSpaces <= 0) break;
+            finalLineup.Add(unit);
+            remainingSpaces--;
+        }
+
+        // 디버그
+        Debug.Log($"구매된 유닛 수: {purchasedUnits.Count}, 배치된 유닛 수: {finalLineup.Count}");
+        Debug.Log($"배치되지 않은 유닛 수: {purchasedUnits.Count - finalLineup.Count}");
+        // 구매된 유닛과 배치된 유닛 비교
+        if (purchasedUnits.Count != finalLineup.Count)
+        {
+            Debug.LogError("유닛 수량이 일치하지 않습니다!");
+            Debug.Log($"purchasedUnits: {purchasedUnits.Count}, finalLineup: {finalLineup.Count}");
+
+            // 누락된 유닛 확인
+            var missingUnits = purchasedUnits.Except(finalLineup).ToList();
+            foreach (var unit in missingUnits)
+            {
+                Debug.Log($"누락된 유닛: {unit.unitName}");
+            }
+        }
+
+        return finalLineup;
     }
 
+    // 특정 병종 필터링 함수
+    private List<UnitDataBase> FilterUnitsByBranch(List<UnitDataBase> units, string[] branches)
+    {
+        return units.Where(u => branches.Contains(u.unitBranch)).ToList();
+    }
+
+    // 단일 유닛 추가 함수
+    private void AddUnitToLineup(List<UnitDataBase> sourceList, List<UnitDataBase> lineup, ref int remainingSpaces)
+    {
+        if (sourceList.Count > 0 && remainingSpaces > 0)
+        {
+            lineup.Add(sourceList[0]);
+            sourceList.RemoveAt(0);
+            remainingSpaces--;
+        }
+    }
+
+    // 다중 유닛 추가 함수
+    private void AddUnitsToLineup(List<UnitDataBase> sourceList, List<UnitDataBase> lineup, int count, ref int remainingSpaces)
+    {
+        for (int i = 0; i < count && sourceList.Count > 0 && remainingSpaces > 0; i++)
+        {
+            lineup.Add(sourceList[0]);
+            sourceList.RemoveAt(0);
+            remainingSpaces--;
+        }
+    }
     public void DisplayEnemyLineupUI(List<UnitDataBase> enemyLineup)
     {
         Debug.Log("여기서 생성2");
@@ -544,15 +701,7 @@ public class EnemyLineUp : MonoBehaviour
         
     }
     
-    public void DebugEnemyListIDX(List<UnitDataBase> enemyLineup)
-    {
-        List<int> enemyIndexes = PlayerData.Instance.GetEnemyUnitIndexes();
-        Debug.Log("적 유닛 인덱스 목록:");
-        foreach (var idx in enemyIndexes)
-        {
-            Debug.Log($"유닛 인덱스: {idx}");
-        }
-    }
+    
     // 유닛 초기화 (씬 로드 시 호출)
     private void InitializeEnemyUnits()
     {
