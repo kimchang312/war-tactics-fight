@@ -26,12 +26,10 @@ public class AutoBattleManager : MonoBehaviour
     private readonly float drainGainAttackValue = 10.0f;         //
 
 
-    private List<int> _enemyIds = new List<int> { 0 };    //상대 유닛 id 추후 삭제
-
     public bool isPause=false;                                  //게임 멈춤 인지
 
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
-    private async void Start()
+    private async Task Start()
     {
         List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
         List<int> enemyIds = PlayerData.Instance.GetEnemyUnitIndexes();
@@ -164,6 +162,7 @@ public class AutoBattleManager : MonoBehaviour
                 //사망 처리
                 if (ManageUnitDeath(myUnits, enemyUnits, ref myUnitIndex, ref enemyUnitIndex, ref isFirstAttack, myUnitMax, enemyUnitMax, myBackUnitHp, enemyBackUnitHp))
                     continue;
+                
             }
                 // 충돌
             (myUnits, enemyUnits) = CombatPhase(
@@ -176,7 +175,7 @@ public class AutoBattleManager : MonoBehaviour
             if (ManageUnitDeath(myUnits, enemyUnits, ref myUnitIndex, ref enemyUnitIndex, ref isFirstAttack, myUnitMax, enemyUnitMax))
                 continue;
 
-            
+
             // 지원
             if (!(myRangeUnits.Count == 0 && enemyRangeUnits.Count == 0))
             {
@@ -189,24 +188,28 @@ public class AutoBattleManager : MonoBehaviour
                 //사망 처리
                 if (ManageUnitDeath(myUnits, enemyUnits, ref myUnitIndex, ref enemyUnitIndex, ref isFirstAttack, myUnitMax, enemyUnitMax))
                     continue;
-              
+
             }
             isFirstAttack = false;
         }
 
+
         // 전투 종료 후 승리 여부 판단
         if (myUnitIndex < myUnitMax && enemyUnitIndex >= enemyUnitMax)
         {
+            UpdateUnitHp(myUnits[myUnitIndex].health, enemyUnits[enemyUnitMax].health, myUnits[myUnitIndex].maxHealth, enemyUnits[enemyUnitMax].maxHealth);
             Debug.Log($"나의 승리 {myUnits[myUnitIndex].unitName + myUnits[myUnitIndex].health}");
             return 0;  // 나의 승리
         }
         else if (enemyUnitIndex < enemyUnitMax && myUnitIndex >= myUnitMax)
         {
+            UpdateUnitHp(myUnits[myUnitMax].health, enemyUnits[enemyUnitIndex].health, myUnits[myUnitMax].maxHealth, enemyUnits[enemyUnitIndex].maxHealth);
             Debug.Log($"나의 패배 {enemyUnits[enemyUnitIndex].unitName + enemyUnits[enemyUnitIndex].health}");
             return 1;  // 적이 승리
         }
         else
         {
+            UpdateUnitHp(myUnits[myUnitMax].health, enemyUnits[enemyUnitMax].health, myUnits[myUnitMax].maxHealth, enemyUnits[enemyUnitMax].maxHealth);
             Debug.Log("무승부");
             return 2;  // 양쪽 모두 사망
         }
@@ -417,7 +420,7 @@ public class AutoBattleManager : MonoBehaviour
                 //상대 수호
                 if (enemyUnits[enemyUnitIndex].guard)
                 {
-                    mySkills += "수호 ";
+                    enemySkills += "수호 ";
 
                     //상대 회피 계산
                     if (!CalculateAccuracy(enemyUnits[enemyUnitIndex], myUnits[myUnitIndex].perfectAccuracy))    
@@ -486,7 +489,7 @@ public class AutoBattleManager : MonoBehaviour
                 //나의 수호
                 if (myUnits[myUnitIndex].guard)
                 {
-                    enemySkills += "수호 ";
+                    mySkills += "수호 ";
 
                     //나의 회피 계산
                     if (!CalculateAccuracy(myUnits[myUnitIndex], enemyUnits[enemyUnitIndex].perfectAccuracy))
@@ -581,7 +584,7 @@ public class AutoBattleManager : MonoBehaviour
                 {
                     myMultiDamage += strongChargeValue;
 
-                    mySkills += "강한 돌격 ";
+                    mySkills += "강한돌격 ";
                 }
                 else
                 {
@@ -592,7 +595,7 @@ public class AutoBattleManager : MonoBehaviour
                 // 나의 데미지 감소
                 if (enemyUnits[enemyUnitIndex].defense)
                 {
-                    mySkills += "수비 태세 ";
+                    mySkills += "수비태세 ";
                     myReduceDamage += defenseValue;
                 }
 
@@ -609,7 +612,7 @@ public class AutoBattleManager : MonoBehaviour
                 {
                     enemyMultiDamage += strongChargeValue;
 
-                    enemySkills += "강한 돌격 ";
+                    enemySkills += "강한돌격 ";
                 }
                 else
                 {
@@ -620,7 +623,7 @@ public class AutoBattleManager : MonoBehaviour
                 // 상대 데미지 감소
                 if (myUnits[myUnitIndex].defense)
                 {
-                    enemySkills += "수비 태세 ";
+                    enemySkills += "수비태세 ";
                     enemyReduceDamage += defenseValue;
                 }
             }
@@ -654,7 +657,7 @@ public class AutoBattleManager : MonoBehaviour
             //수비 태세
             if (myUnits[myUnitIndex].defense )
             {
-                mySkills += "수비 태세 ";
+                mySkills += "수비태세 ";
 
                 myReduceDamage += defenseValue;
             }
@@ -682,7 +685,7 @@ public class AutoBattleManager : MonoBehaviour
         }
         else
         {
-            CallDamageText(0, "충돌 회피", true);
+            CallDamageText(0, "충돌 회피 ", true);
         }
 
             //상대 공격 == 나의 회피 실패 나의 회피, 상대 필중 계산
@@ -713,7 +716,7 @@ public class AutoBattleManager : MonoBehaviour
             //수비 태세
             if (enemyUnits[enemyUnitIndex].defense )
             {
-                enemySkills += "수비 태세 ";
+                enemySkills += "수비태세 ";
 
                 enemyReduceDamage += defenseValue;
             }
@@ -742,7 +745,7 @@ public class AutoBattleManager : MonoBehaviour
         }
         else
         {
-            CallDamageText(0, "충돌 회피", false);
+            CallDamageText(0, "충돌 회피 ", false);
         }
          return (myUnits, enemyUnits);
     }
@@ -782,7 +785,7 @@ public class AutoBattleManager : MonoBehaviour
             }
             if (allDamage > 0)
             {
-                CallDamageText(allDamage, "원거리", true);
+                CallDamageText(allDamage, "원거리 ", true);
             }
             
         }
@@ -820,7 +823,7 @@ public class AutoBattleManager : MonoBehaviour
             }
             if (allDamage > 0)
             {
-                CallDamageText(allDamage, "원거리", false);
+                CallDamageText(allDamage, "원거리 ", false);
             }
             
         }
@@ -873,7 +876,7 @@ public class AutoBattleManager : MonoBehaviour
 
                     myUnits[myUnitIndex].health = Mathf.Min(myUnits[myUnitIndex].maxHealth, drainHealValue + myUnits[myUnitIndex].health);
                     myUnits[myUnitIndex].attackDamage += drainGainAttackValue;
-                }
+                }                
 
                 enemyAdd++;
             }
@@ -901,7 +904,7 @@ public class AutoBattleManager : MonoBehaviour
                 myAdd++;
             }
 
-            // 암살+유격일 경우 다음 유닛으로 넘어갈 필요가 없음
+            // 암살+유격으로 죽은게 아닌 경우 == 다음 유닛으로 넘어갈 필요가 없음
             if (myBackUnitHp > 0 && enemyBackUnitHp > 0)
             {
                 myUnitIndex += myAdd;
@@ -912,6 +915,20 @@ public class AutoBattleManager : MonoBehaviour
         }
         return false;
     }
+
+    //암살 애니메이션 호출
+    private void CallAssassinationAni()
+    {
+
+    }
+
+
+    //유닛 사망
+    private void CallUnitDeath(int unitIndex, bool isMyUnit)
+    {
+        autoBattleUI.ChangeInvisibleUnit(unitIndex, isMyUnit);
+    }
+
 }
 
 

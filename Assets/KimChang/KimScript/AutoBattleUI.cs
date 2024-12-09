@@ -4,6 +4,8 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
+
 #if UNITY_EDITOR
 using UnityEditor.Playables;
 #endif
@@ -13,6 +15,7 @@ using UnityEditor.Playables;
 public class AutoBattleUI : MonoBehaviour
 {
     [SerializeField] private Transform canvasTransform;
+    [SerializeField] private GameObject canvas;
 
     [SerializeField] private FightResult fightResult;           //전투 종료 시 보여주는 화면
 
@@ -22,6 +25,7 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _emyUnitHPUI;
 
     [SerializeField] private ObjectPool objectPool;         //  obj풀링
+    [SerializeField] private GameObject abilityPool;            //기술+특성 풀
 
     [SerializeField] private GameObject battleUnit;         // 전투 화면 유닛
     [SerializeField] private TextMeshProUGUI _myDodge;       // 내 회피율
@@ -48,16 +52,16 @@ public class AutoBattleUI : MonoBehaviour
 
 
     //유닛 갯수 
-    public void UpdateUnitCountUI(int myUnitCount,int enemyUnitCount)
+    public void UpdateUnitCountUI(int myUnitCount, int enemyUnitCount)
     {
-         _myUnitCountUI.text = $"{myUnitCount}";
-         _enemyUnitCountUI.text = $"{enemyUnitCount}";
+        _myUnitCountUI.text = $"{myUnitCount}";
+        _enemyUnitCountUI.text = $"{enemyUnitCount}";
 
     }
 
 
     //유닛 체력
-    public void UpateUnitHPUI(float myUnitHP,float enemyUnitHP,float myMaxHp,float enemyMaxHp)
+    public void UpateUnitHPUI(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
     {
         if (_myUnitHPUI != null && _emyUnitHPUI)
         {
@@ -66,7 +70,7 @@ public class AutoBattleUI : MonoBehaviour
         }
 
         //체력바 업데이트
-        UpdateHpBar(myUnitHP,enemyUnitHP,myMaxHp,enemyMaxHp);
+        UpdateHpBar(myUnitHP, enemyUnitHP, myMaxHp, enemyMaxHp);
     }
 
     //유닛 체력 바
@@ -75,7 +79,7 @@ public class AutoBattleUI : MonoBehaviour
         myHpBar.maxValue = myMaxHp;
         myHpBar.value = myUnitHP;
 
-        enemyHpBar.maxValue =enemyMaxHp;
+        enemyHpBar.maxValue = enemyMaxHp;
         enemyHpBar.value = enemyUnitHP;
     }
 
@@ -100,6 +104,9 @@ public class AutoBattleUI : MonoBehaviour
             rectTransform.anchoredPosition = enemyTeam;
         }
 
+        //
+        CreateAbility(text, team);
+
         // 데미지 제거
         StartCoroutine(HideAfterDelay(damageObj));
     }
@@ -112,7 +119,7 @@ public class AutoBattleUI : MonoBehaviour
 
 
     //유닛 갯수 만큼 유닛 이미지 생성
-    public void CreateUnitBox(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits,float myDodge,float enemyDodge, List<UnitDataBase> myRangeUnits, List<UnitDataBase> enemyRangeUnits)
+    public void CreateUnitBox(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<UnitDataBase> myRangeUnits, List<UnitDataBase> enemyRangeUnits)
     {
         Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0), new Vector3(-397, -385, 0) };
         Vector3[] enemyPositions = { new Vector3(200, 94, 0), new Vector3(152, -385, 0), new Vector3(430, -385, 0) };
@@ -139,13 +146,13 @@ public class AutoBattleUI : MonoBehaviour
         CreateUnitImages(myUnits, myPositions, firstSize, secondSize, unitInterval, true, myDodge);
 
         //나의 원거리 유닛 생성
-        CreateRangeUnit(myRangeUnits.Count, myRangeUnitPos,myRangeCount,true);
+        CreateRangeUnit(myRangeUnits.Count, myRangeUnitPos, myRangeCount, true);
 
         // 적의 유닛 생성
         CreateUnitImages(enemyUnits, enemyPositions, firstSize, secondSize, unitInterval, false, enemyDodge);
 
         //상대 원거리 유닛 생성
-        CreateRangeUnit(enemyRangeUnits.Count, enemyRangeUnitPos, enemyRangeCount,false);
+        CreateRangeUnit(enemyRangeUnits.Count, enemyRangeUnitPos, enemyRangeCount, false);
 
     }
 
@@ -160,7 +167,7 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //원거리 유닛 생성
-    private void CreateRangeUnit(int rangeUnitCount, Vector3 position,GameObject number,bool isMyTeam)
+    private void CreateRangeUnit(int rangeUnitCount, Vector3 position, GameObject number, bool isMyTeam)
     {
         float size = 200;
         string myTeam = isMyTeam ? "My" : "Enemy";
@@ -175,7 +182,7 @@ public class AutoBattleUI : MonoBehaviour
 
         GameObject unit = objectPool.GetBattleUnit();
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(size-10,size-10);
+        rectTransform.sizeDelta = new Vector2(size - 10, size - 10);
         rectTransform.anchoredPosition = position;
 
         // 이미지 설정
@@ -185,7 +192,7 @@ public class AutoBattleUI : MonoBehaviour
 
         //자식 관리
         Transform childUnit = unit.transform.GetChild(0);
-        RectTransform childReckTransform= childUnit.GetComponent<RectTransform>();
+        RectTransform childReckTransform = childUnit.GetComponent<RectTransform>();
         Image childImg = childUnit.GetComponent<Image>();
 
         childReckTransform.sizeDelta = new Vector2(size, size);
@@ -193,12 +200,12 @@ public class AutoBattleUI : MonoBehaviour
         childImg.sprite = childSprite;
 
         //숫자 관리
-        Sprite numberSprite= Resources.Load<Sprite>($"KIcon/UI_{myTeam}X{rangeUnitCount}");
+        Sprite numberSprite = Resources.Load<Sprite>($"KIcon/UI_{myTeam}X{rangeUnitCount}");
         numberImg.sprite = numberSprite;
 
         //숫자 이미지 뒤로
         int siblingCount = number.transform.parent.childCount;
-        number.transform.SetSiblingIndex(siblingCount-1);
+        number.transform.SetSiblingIndex(siblingCount - 1);
     }
 
     //유닛 이미지 생성
@@ -257,11 +264,14 @@ public class AutoBattleUI : MonoBehaviour
                 //활성화
                 unitFrame.sprite = frameSprite;
 
+                //유닛 이름 설정
+                unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{unitIndex}";
             }
             else
             {
                 i--;
             }
+
         }
 
         // 회피율 UI 업데이트
@@ -278,11 +288,11 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //능력치 아이콘 생성
-    private void CreateAbilityIcons(UnitDataBase myUnit,UnitDataBase enemyUnit)
+    private void CreateAbilityIcons(UnitDataBase myUnit, UnitDataBase enemyUnit)
     {
         float posY = -103;
         float myTeamPosX = -280;
-        float enemyTeamPosX =88;
+        float enemyTeamPosX = 88;
         float interval = 62;
 
         // 내 능력 아이콘 업데이트
@@ -297,7 +307,7 @@ public class AutoBattleUI : MonoBehaviour
             if (attr.Value)
             {
                 //원거리 특성 제외
-                if(attr.Name != "rangedAttack")
+                if (attr.Name != "rangedAttack")
                 {
                     GameObject iconImage = objectPool.GetAbility();
                     RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
@@ -330,7 +340,7 @@ public class AutoBattleUI : MonoBehaviour
             if (attr.Value)
             {
                 //원거리 특성 제외
-                if (attr.Name != "rangedAttack") 
+                if (attr.Name != "rangedAttack")
                 {
                     GameObject iconImage = objectPool.GetAbility();
                     RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
@@ -368,5 +378,58 @@ public class AutoBattleUI : MonoBehaviour
         fightResult.EndGame(result);
     }
 
+
+    //능력 창 띄위기
+    public void CreateAbility(string ability, bool myTeam)
+    {
+        List<string> abilityList = new List<string>(ability.Split(' '));
+
+        int team = myTeam ? 0 : 5;
+
+        if (abilityList.Count > 0)
+        {
+            //유격 착취 제외하고
+            for (int i = 0; i < abilityList.Count - 1; i++)
+            {
+                // 첫 번째 능력이 "유격" 또는 "착취"인 경우 team 값을 반전
+                if (abilityList[0] == "유격" || abilityList[0] == "착취")
+                {
+                    team = (team == 0) ? 5 : 0;
+                }
+                Transform child = abilityPool.transform.GetChild(i + team);
+                child.gameObject.SetActive(true);
+                child.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = abilityList[i];
+            }
+
+        }
+    }
+
+    //유닛 사망 시 투명하게
+    public void ChangeInvisibleUnit(int unitIndex, bool isMyUnit)
+    {
+        GameObject unit= FindUnit(unitIndex, isMyUnit);
+        FadeOutUnit(unit);
+
+    }
+
+    //유닛 검색
+    private GameObject FindUnit(int unitIndex, bool isMyUnit)
+    {
+        string unitName = $"{(isMyUnit ? "MyUnit" : "EnemyUnit")}{unitIndex}";
+
+        Transform unit = canvasTransform.Find(unitName);
+
+        return unit.gameObject;
+    }
+
+    //유닛 투명
+    private void FadeOutUnit(GameObject unit, float amount=0.5f)
+    {
+        Image unitImage = unit.GetComponent<Image>();
+            unitImage.DOFade(0f, amount).OnComplete(() =>
+            {
+                unit.SetActive(false); // 투명화 후 유닛을 비활성화
+            });
+        }
 }
 
