@@ -30,7 +30,12 @@ public class AutoBattleManager : MonoBehaviour
         List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
         List<int> enemyIds = PlayerData.Instance.GetEnemyUnitIndexes();
         if (myIds.Count <= 0) return;
-        
+        /*
+        List<UnitDataBase> myUnits=new();
+        List<UnitDataBase> enemyUnits=new()
+        List<UnitDataBase> (myUnits,enemyUnits)= PlayerData.Instance.GetMyNEnemyUnit();
+        if(myUnits.Count<=0&&enemyUnits.Counts<=0) return;
+         */
         await StartBattle(myIds, enemyIds);
     }
 
@@ -902,6 +907,13 @@ public class AutoBattleManager : MonoBehaviour
     {
         autoBattleUI.ChangeInvisibleUnit(unitIndex, isMyUnit);
     }
+
+    /*
+    public (List<UnitDataBase>,List<UnitDataBase>) GetMyNEnemyUnit()
+    {
+	return (placedUnits,enemyUnits)
+    }
+     */
 
 }
 
