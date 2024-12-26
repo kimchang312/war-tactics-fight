@@ -412,15 +412,25 @@ public class AutoBattleUI : MonoBehaviour
 
     }
 
-    //유닛 검색
+    // 유닛 검색 (활성화된 유닛만 찾음)
     private GameObject FindUnit(int unitIndex, bool isMyUnit)
     {
+        // 유닛 이름 설정 (MyUnit0, MyUnit1, EnemyUnit0, EnemyUnit1 등)
         string unitName = $"{(isMyUnit ? "MyUnit" : "EnemyUnit")}{unitIndex}";
 
+        // Canvas의 자식 중 유닛을 검색
         Transform unit = canvasTransform.Find(unitName);
 
-        return unit.gameObject;
+        // 유닛이 존재하고 활성화되어 있는 경우에만 반환
+        if (unit != null && unit.gameObject.activeSelf)
+        {
+            return unit.gameObject;
+        }
+
+        // 유닛이 없거나 비활성화된 경우 null 반환
+        return null;
     }
+
 
     //유닛 투명
     private void FadeOutUnit(GameObject unit, float amount=0.5f)
