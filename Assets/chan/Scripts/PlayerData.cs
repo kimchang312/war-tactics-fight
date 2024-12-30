@@ -148,19 +148,19 @@ public class PlayerData : MonoBehaviour
     public void AddPlacedUnit(UnitDataBase unit)
     {
         placedUnits.Add(unit);
-        Debug.Log($"배치된 유닛 추가: {unit.unitName}");
+        
     }
     // 배치된 유닛 목록을 확인
     public List<int> ShowPlacedUnitList()
     {
         List<int> result = new List<int>();
-        Debug.Log("배치된 유닛 목록:");
+        
         foreach (var unit in placedUnits)
         {
             result.Add(unit.idx);
-            Debug.Log($"유닛 이름: {unit.unitName}");
+            
         }
-
+        Debug.Log($"리스트에 포함된 요소 수: {purchasedUnits.Count}");
         return result;
     }
     public void RemovePlacedUnit(UnitDataBase unit)
