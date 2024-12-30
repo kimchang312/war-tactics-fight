@@ -10,6 +10,8 @@ public class OptionBtn : MonoBehaviour
     [SerializeField] private GameObject optionWindow;
     [SerializeField] private AutoBattleManager autoBattleManager;
 
+    public PlayerData playerData;
+
     private bool isPaused=false;
 
 
@@ -19,6 +21,9 @@ public class OptionBtn : MonoBehaviour
         optionBtn.onClick.AddListener(ToggleOptionWindow);
         resumeGame.onClick.AddListener(ResumeGame);
         goTitle.onClick.AddListener(Movetitle);
+
+        // PlayerData 싱글톤 인스턴스를 연결
+        playerData = PlayerData.Instance;
     }
 
 
@@ -71,6 +76,7 @@ public class OptionBtn : MonoBehaviour
             autoBattleManager.isPause = false;
 
             Time.timeScale = 1f; // 게임 속도 초기화
+            playerData.ResetPlayerData();
             SceneManager.LoadScene("Main");
         }
     }

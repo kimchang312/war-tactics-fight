@@ -160,7 +160,7 @@ public class PlayerData : MonoBehaviour
             result.Add(unit.idx);
             
         }
-
+        Debug.Log($"리스트에 포함된 요소 수: {purchasedUnits.Count}");
         return result;
     }
     public void RemovePlacedUnit(UnitDataBase unit)
