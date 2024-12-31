@@ -51,8 +51,8 @@ public class EnemyLineUp : MonoBehaviour
         "Branch_Bowman",
         "Branch_Heavy_Infantry",
         "Branch_Assassin",
-        "Branch_Light_Cavalry",
-        "Branch_Heavy_Cavalry"
+        "Branch_Light_Calvary",
+        "Branch_Heavy_Calvary"
     };
 
 
@@ -389,7 +389,7 @@ public class EnemyLineUp : MonoBehaviour
 
         // 전열 및 궁병 필터링
         List<UnitDataBase> frontlineUnits = purchasedUnits
-            .Where(u => u.unitBranch == "Branch_Heavy_Infantry" || u.unitBranch == "Branch_Heavy_Cavalry")
+            .Where(u => u.unitBranch == "Branch_Heavy_Infantry" || u.unitBranch == "Branch_Heavy_Calvary")
             .ToList();
 
         List<UnitDataBase> bowmanUnits = purchasedUnits
@@ -398,15 +398,10 @@ public class EnemyLineUp : MonoBehaviour
 
         // 전열 및 궁병을 제외한 나머지 병종
         List<UnitDataBase> remainingUnits = purchasedUnits
-            .Except(frontlineUnits.Concat(bowmanUnits))
+            .Where(u => u.unitBranch == "Branch_Warrior" || u.unitBranch == "Branch_Light_Calvary" || u.unitBranch == "Branch_Assasin" || u.unitBranch == "Branch_Spearman")
             .ToList();
 
-        // 기타 병종을 병종별로 그룹화
-        var groupedRemainingUnits = remainingUnits
-            .GroupBy(u => u.unitBranch)
-            .ToList();
-
-        Debug.Log($"전열 유닛 수: {frontlineUnits.Count}, 궁병 유닛 수: {bowmanUnits.Count}, 기타 병종 그룹 수: {groupedRemainingUnits.Count}");
+        Debug.Log($"전열 유닛 수: {frontlineUnits.Count}, 궁병 유닛 수: {bowmanUnits.Count}, 기타 유닛 수: {remainingUnits.Count}");
 
         // 1. 전열 + 궁병 순환 배치
         while (remainingSpaces > 0 && (frontlineUnits.Count > 0 || bowmanUnits.Count > 0))
@@ -427,21 +422,13 @@ public class EnemyLineUp : MonoBehaviour
         }
 
         // 2. 기타 병종 배치
-        while (remainingSpaces > 0 && groupedRemainingUnits.Count > 0)
+        foreach (var unit in remainingUnits)
         {
-            foreach (var group in groupedRemainingUnits.ToList()) // 그룹 순환
-            {
-                if (group.Any() && remainingSpaces > 0)
-                {
-                    finalLineup.Add(group.First());
-                    remainingSpaces--;
-                    remainingUnits.Remove(group.First());
-                }
+            if (remainingSpaces <= 0)
+                break;
 
-                // 그룹에서 모든 유닛이 배치되었으면 제거
-                if (!group.Skip(1).Any())
-                    groupedRemainingUnits.Remove(group);
-            }
+            finalLineup.Add(unit);
+            remainingSpaces--;
         }
 
         // 3. 누락된 유닛 강제 배치
