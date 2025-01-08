@@ -1,109 +1,153 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
 public class UnitDetailUI : MonoBehaviour
 {
-    [Header("±âº» Á¤º¸")]
-    public GameObject detailPanel;            // À¯´Ö »ó¼¼ UI ÆĞ³Î
-    public TextMeshProUGUI unitNameText;      // À¯´Ö ÀÌ¸§
-    public TextMeshProUGUI unitBranchText;    // º´Á¾ ÀÌ¸§
-    public TextMeshProUGUI unitFactionText;   // Áø¿µ ÀÌ¸§
-    public Image unitIMG;                     // À¯´Ö ÃÊ»óÈ­
+    private DescriptionManager descriptionManager;
+    public Tooltip tooltip; // Tooltip ìŠ¤í¬ë¦½íŠ¸ ì°¸ì¡°
 
-    [Header("À¯´Ö ½ºÅÈ")]
+    [Header("ê¸°ë³¸ ì •ë³´")]
+    public GameObject detailPanel;            // ìœ ë‹› ìƒì„¸ UI íŒ¨ë„
+    public TextMeshProUGUI unitNameText;      // ìœ ë‹› ì´ë¦„
+    public TextMeshProUGUI unitBranchText;    // ë³‘ì¢… ì´ë¦„
+    public TextMeshProUGUI unitFactionText;   // ì§„ì˜ ì´ë¦„ (í•œê¸€ ë³€í™˜)
+    public Image unitFactionIcon;             // ì§„ì˜ ì•„ì´ì½˜ ì´ë¯¸ì§€
+    public Image unitIMG;                     // ìœ ë‹› ì´ˆìƒí™”
+
+    [Header("ìœ ë‹› ìŠ¤íƒ¯")]
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI armorText;
     public TextMeshProUGUI attackText;
     public TextMeshProUGUI mobilityText;
     public TextMeshProUGUI rangeText;
     public TextMeshProUGUI antiCavalryText;
-    //public TextMeshProUGUI evasionRateText; // ±âµ¿·Â ÅøÆÁÀ¸·Î Ç¥½ÃÇÒ È¸ÇÇÀ²
+    //public TextMeshProUGUI evasionRateText; // ê¸°ë™ë ¥ íˆ´íŒìœ¼ë¡œ í‘œì‹œí•  íšŒí”¼ìœ¨
 
-    [Header("À¯´Ö Æ¯¼º ¹× ±â¼ú")]
-    public Transform traitsParent;            // Æ¯¼º ¸®½ºÆ® ºÎ¸ğ
-    public Transform skillsParent;            // ±â¼ú ¸®½ºÆ® ºÎ¸ğ
-    public GameObject traitPrefab;            // Æ¯¼º UI ÇÁ¸®ÆÕ
-    public GameObject skillPrefab;            // ±â¼ú UI ÇÁ¸®ÆÕ
+    [Header("ìœ ë‹› íŠ¹ì„± ë° ê¸°ìˆ ")]
+    public Transform traitsParent;            // íŠ¹ì„± ë¦¬ìŠ¤íŠ¸ ë¶€ëª¨
+    public Transform skillsParent;            // ê¸°ìˆ  ë¦¬ìŠ¤íŠ¸ ë¶€ëª¨
+    public GameObject traitPrefab;            // íŠ¹ì„± UI í”„ë¦¬íŒ¹
+    public GameObject skillPrefab;            // ê¸°ìˆ  UI í”„ë¦¬íŒ¹
 
-    [Header("À¯´Ö ¼Ò°³")]
+    [Header("ìœ ë‹› ì†Œê°œ")]
     public TextMeshProUGUI unitTooltipText;
+   
 
     
 
+
     private void Awake()
     {
-        detailPanel.SetActive(false); // ½ÃÀÛ ½Ã ºñÈ°¼ºÈ­
+        detailPanel.SetActive(false); // ì‹œì‘ ì‹œ ë¹„í™œì„±í™”
+        descriptionManager = FindObjectOfType<DescriptionManager>();
+        if (descriptionManager == null)
+        {
+            Debug.LogError("DescriptionManagerë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì”¬ì— ì¶”ê°€í–ˆëŠ”ì§€ í™•ì¸í•˜ì„¸ìš”.");
+        }
+        tooltip.HideTooltip(); // ì‹œì‘ ì‹œ íˆ´íŒ ìˆ¨ê¹€
+
     }
 
-    // À¯´Ö Á¤º¸¸¦ ¾÷µ¥ÀÌÆ® ¹× Ç¥½Ã
+    // ìœ ë‹› ì •ë³´ë¥¼ ì—…ë°ì´íŠ¸ ë° í‘œì‹œ
     public void ShowUnitDetails(UnitDataBase unit)
     {
         if (unit == null) return;
 
-        detailPanel.SetActive(true); // ÆĞ³Î È°¼ºÈ­
-        // ±âº» Á¤º¸ ¾÷µ¥ÀÌÆ®
+        detailPanel.SetActive(true); // íŒ¨ë„ í™œì„±í™”
+        // ê¸°ë³¸ ì •ë³´ ì—…ë°ì´íŠ¸
         unitNameText.text = unit.unitName;
-        unitBranchText.text = unit.unitBranch;
-        unitFactionText.text = unit.unitFaction;
+        unitBranchText.text = GetBranchName(unit.unitBranch);
+        //unitFactionText.text = unit.unitFaction;
+        unitFactionText.text = GetFactionName(unit.unitFaction); // í•œê¸€ ë³€í™˜ ì ìš©
         unitIMG.sprite = Resources.Load<Sprite>("UnitImages/" + unit.unitImg);
 
-        // ½ºÅÈ Á¤º¸ Ç¥½Ã 11.17 ¼öÄ¡·Î Ç¥½Ã
+        // ì§„ì˜ ì•„ì´ì½˜ ì ìš©
+        unitFactionIcon.sprite = Resources.Load<Sprite>("FactionIcons/" + unit.unitFaction);
+
+        // ìŠ¤íƒ¯ ì •ë³´ í‘œì‹œ 11.17 ìˆ˜ì¹˜ë¡œ í‘œì‹œ
         healthText.text = unit.health.ToString();
         armorText.text = unit.armor.ToString();
         attackText.text = unit.attackDamage.ToString();
         mobilityText.text = unit.mobility.ToString();
         rangeText.text = unit.range.ToString();
         antiCavalryText.text = unit.antiCavalry.ToString();
-        //evasionRateText.text = $"È¸ÇÇÀ²: {unit.evasionRate}";
+        //evasionRateText.text = $"íšŒí”¼ìœ¨: {unit.evasionRate}";
 
-        // À¯´Ö ¼Ò°³ ¾÷µ¥ÀÌÆ® -> ´Ù¸¥ ¿¢¼¿·Î °ü¸®ÇÏ¿© ÃßÈÄ Ãß°¡ÇÒ ÅøÆÁ
-        //unitTooltipText.text = unit.unitDescription;
+        // ìœ ë‹› ì†Œê°œ ì—…ë°ì´íŠ¸ -> ë‹¤ë¥¸ ì—‘ì…€ë¡œ ê´€ë¦¬í•˜ì—¬ ì¶”í›„ ì¶”ê°€í•  íˆ´íŒ
+        unitTooltipText.text = descriptionManager.GetUnitDescription(unit.unitName);
 
-        // ÆĞ³Î È°¼ºÈ­
+        // íŒ¨ë„ í™œì„±í™”
         detailPanel.SetActive(true);
 
-        // Æ¯¼º ¹× ±â¼ú ¾÷µ¥ÀÌÆ®
+        // íŠ¹ì„± ë° ê¸°ìˆ  ì—…ë°ì´íŠ¸
         UpdateTraits(unit);
         UpdateSkills(unit);
     }
+    // ì˜ì–´ ì§„ì˜ëª…ì„ í•œê¸€ë¡œ ë³€í™˜í•˜ëŠ” ë©”ì„œë“œ
+    private string GetFactionName(string faction)
+    {
+        switch (faction)
+        {
+            case "empire": return "ì œêµ­";
+            case "heptarchy": return "ì¹ ì™•ì—°í•©";
+            case "divinitas": return "ì‹ ì„±êµ­";
+            default: return "ê³µìš©";
+        }
+    }
+    private string GetBranchName(string branch)
+    {
+        switch (branch)
+        {
+            case "Branch_Spearman": return "ì°½ë³‘";
+            case "Branch_Warrior": return "ì „ì‚¬";
+            case "Branch_Bowman": return "ê¶ë³‘";
+            case "Branch_Heavy_Infantry": return "ì¤‘ë³‘";
+            case "Branch_Assassin": return "ì•”ì‚´ì";
+            case "Branch_Light_Calvary": return "ê²½ê¸°ë³‘";
+            case "Branch_Heavy_Calvary": return "ì¤‘ê¸°ë³‘";
+            default: return "ì•Œ ìˆ˜ ì—†ìŒ";
+        }
+    }
+
     private void UpdateTraits(UnitDataBase unit)
     {
-        // ±âÁ¸ Æ¯¼º Á¦°Å
+        // ê¸°ì¡´ íŠ¹ì„± ì œê±°
         foreach (Transform child in traitsParent)
         {
             Destroy(child.gameObject);
         }
 
-        // Æ¯¼º Ãß°¡
-        if (unit.lightArmor) AddTrait("°æ°©");
-        if (unit.heavyArmor) AddTrait("Áß°©");
-        if (unit.rangedAttack) AddTrait("¿ø°Å¸® °ø°İ");
-        if (unit.bluntWeapon) AddTrait("µĞ±â");
-        if (unit.pierce) AddTrait("°üÅë");
-        if (unit.agility) AddTrait("³¯½Ü");
-        if (unit.strongCharge) AddTrait("°­ÇÑ µ¹°İ");
-        if (unit.perfectAccuracy) AddTrait("ÇÊÁß");
-        if (unit.slaughter) AddTrait("µµ»ì");
+        // íŠ¹ì„± ì¶”ê°€
+        if (unit.lightArmor) AddTrait("ê²½ê°‘");
+        if (unit.heavyArmor) AddTrait("ì¤‘ê°‘");
+        if (unit.rangedAttack) AddTrait("ì›ê±°ë¦¬ ê³µê²©");
+        if (unit.bluntWeapon) AddTrait("ë‘”ê¸°");
+        if (unit.pierce) AddTrait("ê´€í†µ");
+        if (unit.agility) AddTrait("ë‚ ìŒ¤");
+        if (unit.strongCharge) AddTrait("ê°•í•œ ëŒê²©");
+        if (unit.perfectAccuracy) AddTrait("í•„ì¤‘");
+        if (unit.slaughter) AddTrait("ë„ì‚´");
     }
 
     private void UpdateSkills(UnitDataBase unit)
     {
-        // ±âÁ¸ ±â¼ú Á¦°Å
+        // ê¸°ì¡´ ê¸°ìˆ  ì œê±°
         foreach (Transform child in skillsParent)
         {
             Destroy(child.gameObject);
         }
 
-        // ±â¼ú Ãß°¡
-        if (unit.charge) AddSkill("µ¹°İ");
-        if (unit.defense) AddSkill("¼öºñ ÅÂ¼¼");
-        if (unit.throwSpear) AddSkill("ÅõÃ¢");
-        if (unit.guerrilla) AddSkill("À¯°İ");
-        if (unit.guard) AddSkill("¼öÈ£");
-        if (unit.assassination) AddSkill("¾Ï»ì");
-        if (unit.drain) AddSkill("ÂøÃë");
-        if (unit.overwhelm) AddSkill("À§¾Ğ");
+        // ê¸°ìˆ  ì¶”ê°€
+        if (unit.charge) AddSkill("ëŒê²©");
+        if (unit.defense) AddSkill("ìˆ˜ë¹„ íƒœì„¸");
+        if (unit.throwSpear) AddSkill("íˆ¬ì°½");
+        if (unit.guerrilla) AddSkill("ìœ ê²©");
+        if (unit.guard) AddSkill("ìˆ˜í˜¸");
+        if (unit.assassination) AddSkill("ì•”ì‚´");
+        if (unit.drain) AddSkill("ì°©ì·¨");
+        if (unit.overwhelm) AddSkill("ìœ„ì••");
     }
 
     private void AddTrait(string traitName)
@@ -111,6 +155,34 @@ public class UnitDetailUI : MonoBehaviour
         GameObject traitObject = Instantiate(traitPrefab, traitsParent);
         TextMeshProUGUI traitText = traitObject.GetComponentInChildren<TextMeshProUGUI>();
         //traitText.text = traitName;
+        // íˆ´íŒ ì ìš©
+        string traitDescription = descriptionManager.GetTraitDescription(traitName);
+        Debug.Log($"Trait: {traitName}, Description: {traitDescription}"); // ë””ë²„ê¹…
+
+        // ë§ˆìš°ìŠ¤ ì´ë²¤íŠ¸ ì¶”ê°€
+        EventTrigger trigger = traitObject.AddComponent<EventTrigger>();
+
+        EventTrigger.Entry entryEnter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+        entryEnter.callback.AddListener((data) =>
+        {
+            if (tooltip != null)
+            {
+                tooltip.SetTooltip(traitDescription);
+                tooltip.ShowTooltip(Input.mousePosition);
+            }
+        });
+
+        EventTrigger.Entry entryExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+        entryExit.callback.AddListener((data) =>
+        {
+            if (tooltip != null)
+            {
+                tooltip.HideTooltip();
+            }
+        });
+
+        trigger.triggers.Add(entryEnter);
+        trigger.triggers.Add(entryExit);
     }
 
     private void AddSkill(string skillName)
@@ -118,10 +190,34 @@ public class UnitDetailUI : MonoBehaviour
         GameObject skillObject = Instantiate(skillPrefab, skillsParent);
         TextMeshProUGUI skillText = skillObject.GetComponentInChildren<TextMeshProUGUI>();
         //skillText.text = skillName;
+        // íˆ´íŒ ì ìš©
+        string skillDescription = descriptionManager.GetSkillDescription(skillName);
+        EventTrigger trigger = skillObject.AddComponent<EventTrigger>();
+        EventTrigger.Entry entryEnter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+        entryEnter.callback.AddListener((data) =>
+        {
+            if (tooltip != null)
+            {
+                tooltip.SetTooltip(skillDescription);
+                tooltip.ShowTooltip(Input.mousePosition);
+            }
+        });
+
+        EventTrigger.Entry entryExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+        entryExit.callback.AddListener((data) =>
+        {
+            if (tooltip != null)
+            {
+                tooltip.HideTooltip();
+            }
+        });
+
+        trigger.triggers.Add(entryEnter);
+        trigger.triggers.Add(entryExit);
     }
 
 
-    // À¯´Ö »ó¼¼ UI¸¦ ºñÈ°¼ºÈ­
+    // ìœ ë‹› ìƒì„¸ UIë¥¼ ë¹„í™œì„±í™”
     public void HideUnitDetails()
     {
         detailPanel.SetActive(false);
