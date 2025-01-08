@@ -1,13 +1,14 @@
 using DG.Tweening;
-using TMPro;
 using UnityEngine;
 
 public class MoveDamageUI : MonoBehaviour
 {
+    private float waittingTime = 500f;
+
     private void OnEnable()
     {
         // Y+1 위치로 0.5초 동안 이동
-        transform.DOMoveY(transform.position.y + 40f, 0.5f)
+        transform.DOMoveY(transform.position.y + 40f, waittingTime/1000f)
                  .SetEase(Ease.OutQuad);
     }
 
@@ -18,4 +19,8 @@ public class MoveDamageUI : MonoBehaviour
         transform.localPosition = Vector3.zero; // 위치 초기화 예시
     }
 
+    public void ChangeWaittingTime(float multiple)
+    {
+        waittingTime*=multiple; 
+    }
 }

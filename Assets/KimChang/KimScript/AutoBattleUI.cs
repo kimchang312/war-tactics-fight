@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
-
 #if UNITY_EDITOR
 using UnityEditor.Playables;
 #endif
@@ -24,18 +23,16 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _myUnitHPUI;
     [SerializeField] private TextMeshProUGUI _emyUnitHPUI;
 
-    [SerializeField] private ObjectPool objectPool;         //  obj풀링
-    [SerializeField] private GameObject abilityPool;            //기술+특성 풀
+    [SerializeField] private ObjectPool objectPool;            //  obj풀링
+    [SerializeField] private GameObject abilityPool;              //기술+특성 풀
 
-    [SerializeField] private GameObject battleUnit;         // 전투 화면 유닛
-    [SerializeField] private TextMeshProUGUI _myDodge;       // 내 회피율
-    [SerializeField] private TextMeshProUGUI _enemyDodge;    // 상대 회피율
-    [SerializeField] private TextMeshProUGUI myAbility;     // 내 특성+기술
-    [SerializeField] private TextMeshProUGUI enemyAbility;  // 상대 특성+기술
-    [SerializeField] private Slider myHpBar;                // 내 체력 바
-    [SerializeField] private Slider enemyHpBar;           // 상대 체력 바
-    [SerializeField] private TextMeshProUGUI myRangeText;   //내 원거리 유닛 수
-    [SerializeField] private TextMeshProUGUI enemyRangeText;    //상대 원거리 유닛 수
+    [SerializeField] private GameObject battleUnit;           // 전투 화면 유닛
+    [SerializeField] private TextMeshProUGUI _myDodge;        // 내 회피율
+    [SerializeField] private TextMeshProUGUI _enemyDodge;        // 상대 회피율
+    [SerializeField] private TextMeshProUGUI myAbility;         // 내 특성+기술
+    [SerializeField] private TextMeshProUGUI enemyAbility;      // 상대 특성+기술
+    [SerializeField] private Slider myHpBar;                    // 내 체력 바
+    [SerializeField] private Slider enemyHpBar;                 // 상대 체력 바
     [SerializeField] private GameObject myRangeCount;                    //내 원거리 유닛 수
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
 
@@ -43,6 +40,7 @@ public class AutoBattleUI : MonoBehaviour
     private Vector3 myTeam = new(270, 280, 0);                 // 아군 데미지 뜨는 위치
     private Vector3 enemyTeam = new(-270, 280, 0);           // 상대 데미지지 뜨는 위치
 
+    private float waittingTime = 500f;        //애니메이션 대기 시간
 
     private void Start()
     {
@@ -113,7 +111,7 @@ public class AutoBattleUI : MonoBehaviour
 
     private IEnumerator HideAfterDelay(GameObject damageObj)
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(waittingTime/1000f);
         objectPool.ReturnDamageText(damageObj);
     }
 
@@ -185,9 +183,11 @@ public class AutoBattleUI : MonoBehaviour
         rectTransform.sizeDelta = new Vector2(size - 10, size - 10);
         rectTransform.anchoredPosition = position;
 
-        // 이미지 설정
+        // 이미지 설정 & 투명도 정상화
         Sprite sprite = Resources.Load<Sprite>($"KIcon/rangedAttack");
         Image img = unit.GetComponent<Image>();
+        Color originalColor = img.color;
+        img.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f);
         img.sprite = sprite;
 
         //자식 관리
@@ -206,6 +206,9 @@ public class AutoBattleUI : MonoBehaviour
         //숫자 이미지 뒤로
         int siblingCount = number.transform.parent.childCount;
         number.transform.SetSiblingIndex(siblingCount - 1);
+
+        //유닛 이름 변경
+        unit.name = $"{myTeam}RangeUnit";
     }
 
     //유닛 이미지 생성
@@ -254,9 +257,11 @@ public class AutoBattleUI : MonoBehaviour
                 rectTransform.sizeDelta = i == 0 ? new Vector2(firstSize - 10, firstSize - 10) : new Vector2(secondSize - 10, secondSize - 10);
                 childRectTrasform.sizeDelta = i == 0 ? new Vector2(firstSize, firstSize) : new Vector2(secondSize, secondSize);
 
-                // 이미지 설정
+                // 이미지 설정 & 투명도 정상화
                 Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[unitIndex].unitImg}");
                 Image img = unitImage.GetComponent<Image>();
+                Color originalColor = img.color;
+                img.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f); 
                 img.sprite = sprite;
 
                 //유닛 테두리 설정
@@ -408,8 +413,13 @@ public class AutoBattleUI : MonoBehaviour
     public void ChangeInvisibleUnit(int unitIndex, bool isMyUnit)
     {
         GameObject unit= FindUnit(unitIndex, isMyUnit);
+        if (unit==null)
+        {
+            Debug.Log($"{unitIndex}{isMyUnit}");
+            Debug.Log("유닛 비어있음 오류임");
+            
+        }
         FadeOutUnit(unit);
-
     }
 
     // 유닛 검색 (활성화된 유닛만 찾음)
@@ -418,13 +428,13 @@ public class AutoBattleUI : MonoBehaviour
         // 유닛 이름 설정 (MyUnit0, MyUnit1, EnemyUnit0, EnemyUnit1 등)
         string unitName = $"{(isMyUnit ? "MyUnit" : "EnemyUnit")}{unitIndex}";
 
-        // Canvas의 자식 중 유닛을 검색
-        Transform unit = canvasTransform.Find(unitName);
-
-        // 유닛이 존재하고 활성화되어 있는 경우에만 반환
-        if (unit != null && unit.gameObject.activeSelf)
+        // Canvas의 자식들 중 활성화된 유닛만 검색
+        foreach (Transform child in canvasTransform)
         {
-            return unit.gameObject;
+            if (child.name == unitName && child.gameObject.activeSelf)
+            {
+                return child.gameObject; // 활성화된 유닛 발견 시 반환
+            }
         }
 
         // 유닛이 없거나 비활성화된 경우 null 반환
@@ -433,13 +443,20 @@ public class AutoBattleUI : MonoBehaviour
 
 
     //유닛 투명
-    private void FadeOutUnit(GameObject unit, float amount=0.5f)
+    private void FadeOutUnit(GameObject unit)
     {
         Image unitImage = unit.GetComponent<Image>();
-            unitImage.DOFade(0f, amount).OnComplete(() =>
+            unitImage.DOFade(0f, waittingTime/1000f).OnComplete(() =>
             {
                 unit.SetActive(false); // 투명화 후 유닛을 비활성화
             });
-        }
+    }
+
+    //대기 시간 변경
+    public void ChangeWaittingTime(float multiple)
+    {
+        waittingTime *= multiple;
+
+    }
 }
 

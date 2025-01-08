@@ -8,10 +8,16 @@ public class OptionBtn : MonoBehaviour
     [SerializeField] private Button resumeGame;
     [SerializeField] private Button goTitle;
     [SerializeField] private GameObject optionWindow;
+    [SerializeField] private Toggle gameSpeedToggle;
+
     [SerializeField] private AutoBattleManager autoBattleManager;
+    [SerializeField] private AutoBattleUI autoBattleUI;
+    [SerializeField] private MoveDamageUI moveDamageUI;
+    [SerializeField] private MoveAbilityUI moveAbilityUI;
 
     private bool isPaused=false;
 
+    private float animationSpeed = 1f;
 
     void Start()
     {
@@ -19,6 +25,13 @@ public class OptionBtn : MonoBehaviour
         optionBtn.onClick.AddListener(ToggleOptionWindow);
         resumeGame.onClick.AddListener(ResumeGame);
         goTitle.onClick.AddListener(Movetitle);
+        gameSpeedToggle.onValueChanged.AddListener(OnToggleChanged);
+    }
+
+    private void OnDestroy()
+    {
+        // 이벤트 등록 해제 (메모리 누수 방지)
+        gameSpeedToggle.onValueChanged.RemoveListener(OnToggleChanged);
     }
 
 
@@ -41,8 +54,6 @@ public class OptionBtn : MonoBehaviour
     {
         Debug.Log("멈춰");
 
-        autoBattleManager.isPause=true;
-
         int siblingCount = optionWindow.transform.parent.childCount; // 형제 개수 확인
         optionWindow.transform.SetSiblingIndex(siblingCount - 1);
 
@@ -56,7 +67,6 @@ public class OptionBtn : MonoBehaviour
     private void ResumeGame()
     {
         Debug.Log("재시작");
-        autoBattleManager.isPause = false;
 
         optionWindow.SetActive(false); // 옵션 창 비활성화
         Time.timeScale = 1f;          // 게임 재개
@@ -68,10 +78,36 @@ public class OptionBtn : MonoBehaviour
     {
         if (isPaused)
         {
-            autoBattleManager.isPause = false;
 
             Time.timeScale = 1f; // 게임 속도 초기화
             SceneManager.LoadScene("Main");
         }
+    }
+
+    // 토글 상태 변경 시 호출될 메서드
+    private void OnToggleChanged(bool isOn)
+    {
+        if (isOn)
+        {
+            animationSpeed = 0.5f;
+
+            ManageTimeSpeed();
+
+
+        }
+        else
+        {
+            animationSpeed = 1f;
+
+            ManageTimeSpeed();
+        }
+    }
+
+    private void ManageTimeSpeed()
+    {
+        autoBattleManager.ChangeWaittingTime(animationSpeed);
+        autoBattleUI.ChangeWaittingTime(animationSpeed);
+        moveDamageUI.ChangeWaittingTime(animationSpeed);
+        moveAbilityUI.ChangeWaittingTime(animationSpeed);
     }
 }
