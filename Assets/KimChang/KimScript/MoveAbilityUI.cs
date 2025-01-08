@@ -1,11 +1,11 @@
 using DG.Tweening;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MoveAbilityUI : MonoBehaviour
 {
     private Vector3 initialLocalPosition; // 초기 위치 저장용 변수
+
+    private float waittingTime = 800f;
 
     private void Start()
     {
@@ -19,14 +19,14 @@ public class MoveAbilityUI : MonoBehaviour
         if (transform.localPosition.x < 0)
         {
             // x+40 로컬 위치로 이동 후 비활성화
-            transform.DOLocalMoveX(transform.localPosition.x + 300f, 0.8f)
+            transform.DOLocalMoveX(transform.localPosition.x + 300f, waittingTime/1000f)
                      .SetEase(Ease.OutQuad)
                      .OnComplete(() => gameObject.SetActive(false));
         }
         else
         {
             // x-40 로컬 위치로 이동 후 비활성화
-            transform.DOLocalMoveX(transform.localPosition.x - 300f, 0.8f)
+            transform.DOLocalMoveX(transform.localPosition.x - 300f, waittingTime/1000f)
                      .SetEase(Ease.OutQuad)
                      .OnComplete(() => gameObject.SetActive(false));
         }
@@ -39,5 +39,10 @@ public class MoveAbilityUI : MonoBehaviour
 
         // 초기 위치로 되돌리기
         transform.localPosition = initialLocalPosition;
+    }
+
+    public void ChangeWaittingTime(float multiple)
+    {
+        waittingTime *= multiple;
     }
 }

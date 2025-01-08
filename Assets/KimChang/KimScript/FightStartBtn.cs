@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 
 public class FightStartBtn : MonoBehaviour
@@ -10,13 +9,9 @@ public class FightStartBtn : MonoBehaviour
 
     [SerializeField] private Button fightButton;               //ArranageUnitsScene에 있는 Fight 버튼과 연결
 
-    private GoogleSheetLoader sheetLoader = new GoogleSheetLoader();
-
     // ���� ����, ���� ����
-    private List<int> _myUnitIds = new List<int> { 19,2,1 };
-    private List<int> enemyUnitIds = new List<int> { 3,4,5,0,0,0 };
-
-
+    private List<int> myUnitIds = new List<int> {0,0,0,0 };
+    private List<int> enemyUnitIds = new List<int> { 3,3,3,3,3,3 };
 
     void Start()
     {
@@ -35,14 +30,16 @@ public class FightStartBtn : MonoBehaviour
     //자동 전투 함수를 호출하는 함수
     async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-
         if (scene.name == "AutoBattleScene")
         {
+            if(battleManager == null)
+            {
+                battleManager = FindObjectOfType<AutoBattleManager>();
+            }
             // Inspector에서 연결된 battleManager 사용
             if (battleManager != null)
             {
-                int result= await battleManager.StartBattle(_myUnitIds,enemyUnitIds); //자동전투 실행
-
+                await battleManager.StartBattle(myUnitIds,enemyUnitIds); //자동전투 실행
             }
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
