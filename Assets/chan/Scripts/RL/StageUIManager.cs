@@ -90,7 +90,7 @@ public class StageUIManager : MonoBehaviour
             return;
         }
 
-        Vector2 adjustedPosition = position + new Vector2(0f, 80f); // ✅ 버튼보다 위쪽으로 조정
+        Vector2 adjustedPosition = position + new Vector2(40f, 100f); // ✅ 버튼보다 위쪽으로 조정
         marker.transform.localPosition = adjustedPosition;
         Debug.Log("📍 마커 위치 초기화 완료: " + adjustedPosition);
     }

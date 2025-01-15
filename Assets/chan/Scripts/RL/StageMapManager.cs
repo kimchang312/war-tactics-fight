@@ -25,13 +25,13 @@ public class StageMapManager : MonoBehaviour
     {
 
 
-        StageNode startNode = new StageNode(1, new Vector2(-709, -59),"stage1");
+        StageNode startNode = new StageNode(1, new Vector2(-703, 114),"stage1");
         allStages.Add(startNode);
         currentStage = startNode;
 
-        StageNode stage2_1 = new StageNode(2, new Vector2(-180, 280),"stage2_1");
-        StageNode stage2_2 = new StageNode(2, new Vector2(-160, -59),"stage2_2");
-        StageNode stage2_3 = new StageNode(2, new Vector2(-160, -352),"stage2_3");
+        StageNode stage2_1 = new StageNode(2, new Vector2(-177, 356),"stage2_1");
+        StageNode stage2_2 = new StageNode(2, new Vector2(-160, 127),"stage2_2");
+        StageNode stage2_3 = new StageNode(2, new Vector2(-160, -97),"stage2_3");
 
         startNode.nextStages.Add(stage2_1);
         startNode.nextStages.Add(stage2_2);
@@ -41,9 +41,9 @@ public class StageMapManager : MonoBehaviour
         allStages.Add(stage2_2);
         allStages.Add(stage2_3);
 
-        StageNode stage3_1 = new StageNode(3, new Vector2(245, 404),"stage3_1");  
-        StageNode stage3_2 = new StageNode(3, new Vector2(269, -45),"stage3_2");    
-        StageNode stage3_3 = new StageNode(3, new Vector2(330, -363),"stage3_3"); 
+        StageNode stage3_1 = new StageNode(3, new Vector2(245, 446),"stage3_1");  
+        StageNode stage3_2 = new StageNode(3, new Vector2(266, 114),"stage3_2");    
+        StageNode stage3_3 = new StageNode(3, new Vector2(327, -97),"stage3_3"); 
 
         // ✅ 연결 설정 (스테이지 2 → 스테이지 3)
         stage2_1.nextStages.Add(stage3_1);
