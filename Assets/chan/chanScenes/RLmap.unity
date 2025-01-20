@@ -518,7 +518,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiPanel: {fileID: 937539795}
   blacksmithButton: {fileID: 386943359}
-  animationDuration: 1.1
+  animationDuration: 0.5
 --- !u!114 &937539797
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1353,7 +1353,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -631, y: 242}
+  m_AnchoredPosition: {x: -656, y: 228}
   m_SizeDelta: {x: 134.6912, y: 169.3824}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2096380136
