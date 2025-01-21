@@ -31,7 +31,7 @@ public class StageMapManager : MonoBehaviour
         float xSpacing = 300f; // 레벨 간 X축 간격
         float ySpacing = 200f; // 스테이지 간 Y축 간격
         float startX = -700f; // X축 시작 위치
-        float startY = 0f; // Y축 시작 위치
+        float startY = 425f; // Y축 시작 위치
 
         // 스테이지 생성
         for (int level = 1; level <= levels; level++)
@@ -153,6 +153,7 @@ public class StageMapManager : MonoBehaviour
                     DrawConnection(currentStage, nextStage);
                 }
             }
+
         }
 
         // 랜덤 연결 추가
@@ -168,6 +169,7 @@ public class StageMapManager : MonoBehaviour
                 DrawConnection(currentStage, randomStage);
             }
         }
+        Debug.Log($"🔗 {currentStage.name}에 연결된 스테이지: {string.Join(", ", currentStage.nextStages)}");
     }
     public void MoveToStage(StageNode newStage)
     {
