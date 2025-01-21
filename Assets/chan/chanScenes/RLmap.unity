@@ -1673,7 +1673,7 @@ MonoBehaviour:
   stageContainer: {fileID: 1322327644}
   content: {fileID: 1322327644}
   stageTooltip: {fileID: 1889173483}
-  marker: {fileID: 5230185607287131339, guid: df227eddeee844d448e5f1455707dcad, type: 3}
+  markerPrefab: {fileID: 5230185607287131339, guid: df227eddeee844d448e5f1455707dcad, type: 3}
   scrollRect: {fileID: 777234321}
   stageMapManager: {fileID: 2072340138}
 --- !u!4 &1889547510
