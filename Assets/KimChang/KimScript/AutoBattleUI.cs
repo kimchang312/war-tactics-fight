@@ -22,6 +22,14 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _enemyUnitCountUI;
     [SerializeField] private TextMeshProUGUI _myUnitHPUI;
     [SerializeField] private TextMeshProUGUI _emyUnitHPUI;
+    [SerializeField] private Image myMostDamImg;               
+    [SerializeField] private TextMeshProUGUI myMostDamageText;   //가장 높은 피해 내 유닛
+    [SerializeField] private Image myMostTakenImg;
+    [SerializeField] private TextMeshProUGUI myMostTakenText;   //가장 많은 피해 받은 내 유닛
+    [SerializeField] private Image enemyMostDamImg;
+    [SerializeField] private TextMeshProUGUI enemyMostDamageText;   //가장 높은 피해 적 유닛
+    [SerializeField] private Image enemyMostTakenImg;  
+    [SerializeField] private TextMeshProUGUI enemyMostTakenText;    //가장 많은 피해 받은 적 유닛
 
     [SerializeField] private ObjectPool objectPool;            //  obj풀링
     [SerializeField] private GameObject abilityPool;              //기술+특성 풀
@@ -35,7 +43,10 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private Slider enemyHpBar;                 // 상대 체력 바
     [SerializeField] private GameObject myRangeCount;                    //내 원거리 유닛 수
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
+    [SerializeField] private GameObject staticsWindow;
+    [SerializeField] private Button staticsToggleBtn;
 
+    [SerializeField] private ExplainAbility explainAbility;     //능력 설명 툴팁
 
     private Vector3 myTeam = new(270, 280, 0);                 // 아군 데미지 뜨는 위치
     private Vector3 enemyTeam = new(-270, 280, 0);           // 상대 데미지지 뜨는 위치
@@ -46,6 +57,7 @@ public class AutoBattleUI : MonoBehaviour
     {
         myHpBar.interactable = false;
         enemyHpBar.interactable = false;
+        staticsToggleBtn.onClick.AddListener(ToggleStaticsWindow);
     }
 
 
@@ -83,23 +95,46 @@ public class AutoBattleUI : MonoBehaviour
 
 
     //데미지 표시
-    public void ShowDamage(float damage, string text, bool team)
+    public void ShowDamage(float damage, string text, bool team,int unitIndex=0)
     {
+        float offsetX = 300f;
         GameObject damageObj = objectPool.GetDamageText();
         TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
 
         damagetext.text = $"-{damage} {text}";
 
-        //team = true== 나 false == 상대
+        RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
+
+        //team = true== 상대 유닛 머리위, false == 내 유닛 머리위
         if (team)
         {
-            RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition = myTeam;
+           if (unitIndex == 0)
+            {
+                rectTransform.anchoredPosition = myTeam;
+            }
+            else
+            {
+                GameObject unit = FindUnit(unitIndex, team);
+                RectTransform unitRect = unit.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition =
+                       unitRect.anchoredPosition + new Vector2(offsetX, 0);
+            }
+
         }
         else
         {
-            RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition = enemyTeam;
+            if (unitIndex == 0)
+            {
+                rectTransform.anchoredPosition = enemyTeam;
+            }
+            else
+            {
+                GameObject unit = FindUnit(unitIndex, team);
+                RectTransform unitRect = unit.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition =
+                    unitRect.anchoredPosition + new Vector2(offsetX, 0);
+            }
+
         }
 
         //
@@ -137,8 +172,11 @@ public class AutoBattleUI : MonoBehaviour
         //능력 아이콘 초기화
         ClearExistingAbilityIcons();
 
-        //능력 아이콘 생성
-        CreateAbilityIcons(myUnits[0], enemyUnits[0]);
+        // 내 능력 아이콘 생성
+        CreateAbilityIcons(myUnits[0], true);
+
+        // 상대 능력 아이콘 생성
+        CreateAbilityIcons(enemyUnits[0], false);
 
         // 나의 유닛 생성
         CreateUnitImages(myUnits, myPositions, firstSize, secondSize, unitInterval, true, myDodge);
@@ -292,34 +330,39 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
-    //능력치 아이콘 생성
-    private void CreateAbilityIcons(UnitDataBase myUnit, UnitDataBase enemyUnit)
+    // 능력치 아이콘 생성
+    private void CreateAbilityIcons(UnitDataBase unit, bool isTeam)
     {
         float posY = -103;
         float myTeamPosX = -280;
         float enemyTeamPosX = 88;
         float interval = 62;
 
-        // 내 능력 아이콘 업데이트
-        var myBoolAttributes = myUnit.GetType().GetFields()
+        // 팀에 따라 포지션 설정
+        float teamPosX = isTeam ? myTeamPosX : enemyTeamPosX;
+
+        // 유닛의 불리언 속성 가져오기
+        var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool))
-            .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(myUnit) });
+            .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
 
         int i = 0;
 
-        foreach (var attr in myBoolAttributes)
+        foreach (var attr in boolAttributes)
         {
             if (attr.Value)
             {
-                //원거리 특성 제외
+                // 원거리 특성 제외
                 if (attr.Name != "rangedAttack")
                 {
                     GameObject iconImage = objectPool.GetAbility();
+                    
                     RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
 
-                    rectTransform.anchoredPosition = new Vector2(myTeamPosX + (i * interval), posY);
+                    // 팀에 따라 위치 설정
+                    rectTransform.anchoredPosition = new Vector2(teamPosX + (i * interval), posY);
 
-                    //크기 초기화
+                    // 크기 초기화
                     rectTransform.localScale = Vector3.one;
 
                     // 이미지 설정
@@ -327,46 +370,28 @@ public class AutoBattleUI : MonoBehaviour
                     Image img = iconImage.GetComponent<Image>();
                     img.sprite = sprite;
 
+                    // 이름 설정
+                    if (attr.Name== "defense")
+                    {
+                        iconImage.name = "126";
+                    }
+                    else
+                    {
+                        int? idx = GameTextData.GetIdxFromString(attr.Name);
+                        iconImage.name = idx.HasValue ? $"{idx}" : attr.Name;
+                    }
+                    
+
+                    //코드 추가
+                    explainAbility = iconImage.AddComponent<ExplainAbility>();
+
                     i++;
                 }
             }
         }
-
-
-        //상대 능력 아이콘 업데이트
-        var enemyBoolAttributes = enemyUnit.GetType().GetFields()
-            .Where(f => f.FieldType == typeof(bool))
-            .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(enemyUnit) });
-
-        i = 0;
-
-        foreach (var attr in enemyBoolAttributes)
-        {
-            if (attr.Value)
-            {
-                //원거리 특성 제외
-                if (attr.Name != "rangedAttack")
-                {
-                    GameObject iconImage = objectPool.GetAbility();
-                    RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
-
-                    rectTransform.anchoredPosition = new Vector2(enemyTeamPosX + (i * interval), posY);
-
-                    //크기 초기화
-                    rectTransform.localScale = Vector3.one;
-
-                    // 이미지 설정
-                    Sprite sprite = Resources.Load<Sprite>($"KIcon/{attr.Name}");
-                    Image img = iconImage.GetComponent<Image>();
-                    img.sprite = sprite;
-
-                    i++;
-                }
-
-            }
-        }
-
     }
+
+
 
     //능력치 아이콘 제거
     private void ClearExistingAbilityIcons()
@@ -381,6 +406,12 @@ public class AutoBattleUI : MonoBehaviour
     public void FightEnd(int result)
     {
         fightResult.EndGame(result);
+    }
+
+    //점수 보여주기
+    public void UpdateScore(int result)
+    {
+        fightResult.ViewScore(result);
     }
 
 
@@ -457,6 +488,52 @@ public class AutoBattleUI : MonoBehaviour
     {
         waittingTime *= multiple;
 
+    }
+
+    //종료 시 통계 보여주기
+    public void ViewStatics(string max, string text, int num,int unitIdx)
+    {
+        switch (num)
+        {
+            //내 최뎀유닛
+            case 0:
+                ChangeStaticImage(myMostDamImg, myMostDamageText,max, text, unitIdx);
+                break;
+            // 내 최받유닛
+            case 1:
+                ChangeStaticImage(myMostTakenImg, myMostTakenText, max, text, unitIdx);
+                break;
+            //상대 최뎀유닛
+            case 2:
+                ChangeStaticImage(enemyMostDamImg, enemyMostDamageText, max, text, unitIdx);
+                break;
+            //상대 최받유닛
+            case 3:
+                ChangeStaticImage(enemyMostTakenImg, enemyMostTakenText, max, text, unitIdx);
+                break;
+            default:
+                Debug.Log("숫자가 0~3이 아님");
+                break;
+        }
+
+    }
+
+    //이미지 변경
+    private void ChangeStaticImage(Image img,TextMeshProUGUI textUI,string max,string text,int idx)
+    {
+        Sprite sprite = Resources.Load<Sprite>($"UnitImages/Unit_Img_{idx}");
+        img.sprite = sprite;
+        textUI.text = $"{max}\n{text}";
+    }
+
+    //통계창 온오프
+    private void ToggleStaticsWindow()
+    {
+        // 활성화 상태를 반대로 설정
+        if (staticsWindow != null)
+        {
+            staticsWindow.SetActive(!staticsWindow.activeSelf);
+        }
     }
 }
 

@@ -51,6 +51,8 @@ public class UnitDataBase
     public bool drain;          // 흡수
     public bool overwhelm;      // 압도
 
+    public int UniqueId { get; set; } // 유닛 고유 ID, 기본값 -1로 설정
+
     // 생성자
     public UnitDataBase(int idx, string unitName, string unitBranch, int branchIdx, int unitId,
 
@@ -60,7 +62,7 @@ public class UnitDataBase
                         bool lightArmor, bool heavyArmor, bool rangedAttack, bool bluntWeapon, bool pierce,
                         bool agility, bool strongCharge, bool perfectAccuracy, bool slaughter,
                         bool charge, bool defense, bool throwSpear,  bool guerrilla,
-                        bool guard, bool assassination, bool drain, bool overwhelm,string blink,float maxHealth)
+                        bool guard, bool assassination, bool drain, bool overwhelm,string blink,float maxHealth, int uniqueId = -1)
     {
         this.idx = idx;
         this.unitName = unitName;
@@ -98,6 +100,7 @@ public class UnitDataBase
         this.blink = blink;   //빈칸
         this.maxHealth = maxHealth;
 
+        this.UniqueId = uniqueId; // 고유 ID 설정
     }
 
 

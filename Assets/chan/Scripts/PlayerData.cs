@@ -129,7 +129,7 @@ public class PlayerData : MonoBehaviour
     {
         // 유닛 목록 초기화
         purchasedUnits.Clear();
-
+        placedUnits.Clear();    //25/01/16한줄 추가
         // 자금 초기화
         currency = 3000;
 
