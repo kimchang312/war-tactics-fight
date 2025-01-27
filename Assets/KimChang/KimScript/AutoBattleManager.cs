@@ -186,7 +186,6 @@ public class AutoBattleManager : MonoBehaviour
         //유닛이 죽지 않았고 끝나지 않음
         if (!ManageUnitDeath() && !(myUnitIndex >= myUnitMax || enemyUnitIndex >= enemyUnitMax))
         {
-            Debug.Log($"사망 처리 후{currentState}" + enemyUnits[enemyUnitIndex].health);
             switch (currentState)
             {
                 case BattleState.Preparation:
@@ -277,10 +276,12 @@ public class AutoBattleManager : MonoBehaviour
 
         bool result= dogeRate > Random.Range(0, 100);
 
+        /*
         if (result)
         {
             Debug.Log("회피");
         }
+        */
 
         return result;
     }
@@ -710,7 +711,7 @@ public class AutoBattleManager : MonoBehaviour
         //암살 && 방어자 후열 유닛 존재
         if(attacker.assassination && CheckAssassination(defenders, defenderIndex))
         {
-            Debug.Log("암살");
+            //Debug.Log("암살");
 
             attackerSkill += "암살 ";
             float damage = attacker.attackDamage * assassinationValue;
@@ -998,7 +999,7 @@ public class AutoBattleManager : MonoBehaviour
             //유격
             if (attackers[attackerIndex].guerrilla && attackers[attackerIndex].health > 0 && attackerIndex+1 < attackers.Count)
             {
-                Debug.Log("유격");
+                //Debug.Log("유격");
 
                 CallDamageText(0, "유격 ", !isTeam);
 
@@ -1010,7 +1011,7 @@ public class AutoBattleManager : MonoBehaviour
             //착취
             if (attackers[attackerIndex].drain && attackers[attackerIndex].health > 0)
             {
-                Debug.Log("착취");
+                //Debug.Log("착취");
 
                 CallDamageText(0, "착취 ", !isTeam);
 

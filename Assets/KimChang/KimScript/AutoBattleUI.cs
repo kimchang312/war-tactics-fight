@@ -97,7 +97,7 @@ public class AutoBattleUI : MonoBehaviour
     //데미지 표시
     public void ShowDamage(float damage, string text, bool team,int unitIndex=0)
     {
-        float offsetX = 300f;
+        float offsetX = 50f;
         GameObject damageObj = objectPool.GetDamageText();
         TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
 
@@ -114,10 +114,12 @@ public class AutoBattleUI : MonoBehaviour
             }
             else
             {
-                GameObject unit = FindUnit(unitIndex, team);
+                damageObj.SetActive(false);
+                GameObject unit = FindUnit(unitIndex, !team);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition =
                        unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                damageObj.SetActive(true);
             }
 
         }
@@ -129,10 +131,12 @@ public class AutoBattleUI : MonoBehaviour
             }
             else
             {
-                GameObject unit = FindUnit(unitIndex, team);
+                damageObj.SetActive(false);
+                GameObject unit = FindUnit(unitIndex, !team);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition =
                     unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                damageObj.SetActive(true);
             }
 
         }

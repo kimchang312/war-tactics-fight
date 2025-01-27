@@ -115,7 +115,7 @@ public class GameTextData
         { 130, (new[] { "수호", "Guard", "守護" }, new[] { "후열 유닛이 받는 피해를 대신 입습니다.",
                        "Takes damage on behalf of backline units.",
                        "後列のユニットが受けるダメージを代わりに受けます。" }) },
-        { 131, (new[] { "암살", "Assasination", "暗殺" }, new[] { "상대 후열 유닛에게 피해를 입힙니다.",
+        { 131, (new[] { "암살", "Assassination", "暗殺" }, new[] { "상대 후열 유닛에게 피해를 입힙니다.",
                        "Deals damage to the opponent's backline units.",
                        "相手の後列ユニットにダメージを与えます。" }) },
         { 132, (new[] { "착취", "Drain", "搾取" }, new[] { "상대 유닛을 처치하면 체력과 공격력을 얻습니다.",
