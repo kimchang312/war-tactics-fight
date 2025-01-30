@@ -17,6 +17,7 @@ public class StageButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     private void Start()
     {
         button.onClick.AddListener(OnStageSelected); // ✅ 버튼 클릭 시 이동 요청
+        UpdateButtonState(); // ✅ 초기 버튼 상태 업데이트
     }
 
     public void SetStage(StageNode stage, StageTooltip tooltip, StageUIManager uiManager)
@@ -25,6 +26,38 @@ public class StageButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         stageTooltip = tooltip;
         stageUIManager = uiManager; // ✅ StageUIManager 인스턴스 저장
         stageText.text = "레벨 " + stage.level;
+
+        UpdateButtonState(); // ✅ 상태 업데이트
+    }
+    // ✅ 버튼의 클릭 가능 여부를 직접 조절하는 메서드 추가
+    public void SetInteractable(bool isInteractable)
+    {
+        if (button != null)
+        {
+            button.interactable = isInteractable;
+        }
+    }
+
+    // ✅ 스테이지 상태를 UI에 반영하는 메서드 추가
+    public void UpdateButtonState()
+    {
+        if (stageData == null) return;
+
+        button.interactable = !stageData.isLocked; // 🔹 잠긴 상태면 클릭 불가능
+        stageText.alpha = stageData.isClickable ? 1.0f : 0.5f; // 🔹 클릭 가능 여부에 따라 투명도 조절
+
+        if (stageData.isCleared)
+        {
+            stageText.color = Color.green; // 🔹 클리어된 스테이지는 녹색으로 표시
+        }
+        else if (stageData.isLocked)
+        {
+            stageText.color = Color.gray; // 🔹 잠긴 스테이지는 회색으로 표시
+        }
+        else
+        {
+            stageText.color = Color.white; // 🔹 기본 상태
+        }
     }
 
     public void OnPointerEnter(PointerEventData eventData)

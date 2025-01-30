@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class StageUIManager : MonoBehaviour
 {
+    private List<StageNode> allStages; //모든 스테이지 리스트
+
     public GameObject stageButtonPrefab;
     public RectTransform stageContainer;
     public RectTransform content; // Scroll View의 Content
@@ -22,7 +24,11 @@ public class StageUIManager : MonoBehaviour
     {
         return stageMapManager != null ? stageMapManager.GetCurrentStage() : null;
     }
-
+    // StageMapManager에서 allStages 전달
+    public void Initialize(List<StageNode> stages)
+    {
+        allStages = stages;
+    }
     private void Awake()
     {
 
@@ -80,6 +86,17 @@ public class StageUIManager : MonoBehaviour
             else
             {
                 button.SetStage(stage, stageTooltip, this);
+            }
+
+            // ✅ UI 컴포넌트를 StageNode에 자동 연결
+            StageUIComponent uiComponent = buttonObj.GetComponent<StageUIComponent>();
+            if (uiComponent == null)
+            {
+                Debug.LogError($"❌ {stage.name}의 StageUIComponent가 없습니다! Prefab을 확인하세요.");
+            }
+            else
+            {
+                stage.SetUIComponent(uiComponent);
             }
 
             // ✅ 시작 노드(레벨 1)에서 마커를 초기 위치로 배치
@@ -144,16 +161,72 @@ public class StageUIManager : MonoBehaviour
         Debug.Log("🟢 Stage UI 생성 완료");
     }*/
 
-    void UpdateStageUI(StageNode newStage)
+    public void UpdateStageUI(StageNode newStage)
     {
+        if (newStage == null)
+        {
+            Debug.LogError("❌ UpdateStageUI() 호출 실패: newStage가 null입니다!");
+            return;
+        }
         Debug.Log("🔵 스테이지 이동: " + newStage.level);
+        if (allStages == null || allStages.Count == 0)
+        {
+            Debug.LogError("❌ allStages 리스트가 null이거나 비어 있습니다! StageMapManager에서 정상적으로 전달되었는지 확인하세요.");
+            return;
+        }
 
+        Debug.Log($"🔵 UI 업데이트: {newStage.name}");
+        // 현재 스테이지를 업데이트
         currentStage = newStage;
 
-        // 스크롤된 Content의 위치를 반영하여 마커 위치 업데이트
-        UpdateMarkerPosition(newStage.position);
+        if (currentStage == null)
+        {
+            Debug.LogError("❌ UI 업데이트 실패: currentStage가 null입니다!");
+            return;
+        }
+        // ✅ `GetUIComponent()`가 `null`인지 확인
+        var stageUI = newStage.GetUIComponent();
+        if (stageUI == null)
+        {
+            Debug.LogError($"❌ {newStage.name}의 UI 컴포넌트가 존재하지 않습니다!");
+            return;
+        }
+
+        // 마커 위치 업데이트
+        UpdateMarkerPosition(currentStage.position);
+
+        // ✅ `allStages`가 `null`이거나 비어 있는지 확인 후 처리
+        if (allStages == null || allStages.Count == 0)
+        {
+            Debug.LogError("❌ allStages 리스트가 null이거나 비어 있습니다!");
+            return;
+        }
+
+        // 스테이지 상태 업데이트 (연결된 스테이지만 잠금 해제)
+        foreach (var stage in allStages)
+        {
+            stage.SetLocked(!currentStage.nextStages.Contains(stage) && stage != currentStage);
+            stage.SetClickable(!stage.isLocked); // ✅ 클릭 가능 여부 설정
+        }
+
+        // UI 상호작용 상태 업데이트
+        foreach (var stage in allStages)
+        {
+            var stageUIComponent = stage.GetUIComponent(); // 스테이지 UI 참조 메서드
+            if (stageUIComponent != null)
+            {
+                stageUIComponent.SetInteractable(!stage.isLocked); // ✅ 잠금 상태에 따라 클릭 가능 여부 설정
+            }
+            else
+            {
+                Debug.LogError($"❌ {stage.name}의 StageUIComponent가 존재하지 않습니다!");
+            }
+        }
+
+        // 스테이지의 투명도 업데이트
         UpdateStageOpacity();
     }
+
 
     // ✅ 현재 위치 마커 이동 함수
     void UpdateMarkerPosition(Vector2 stagePosition)
@@ -239,5 +312,15 @@ public class StageUIManager : MonoBehaviour
 
         Debug.Log($"✅ 새로운 마커 생성 완료: {markerPrefab.name}");
     }
+    public void InitializeUI(List<StageNode> stages)
+    {
+        if (stages == null || stages.Count == 0)
+        {
+            Debug.LogError("❌ StageUIManager.InitializeUI() 호출 실패: 전달된 allStages가 null이거나 비어 있습니다!");
+            return;
+        }
 
+        allStages = stages;
+        Debug.Log($"✅ StageUIManager가 {allStages.Count}개의 스테이지를 정상적으로 받았습니다.");
+    }
 }
