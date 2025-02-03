@@ -11,7 +11,7 @@ public class StageMapManager : MonoBehaviour
     public GameObject linePrefab;
     public Canvas canvas;
 
-    public List<StageNode> allStages = new List<StageNode>();
+    public List<StageNode> allStages;
     public StageNode currentStage;
 
     public static Action<List<StageNode>> OnStageGenerated;  // UI에서 스테이지 리스트 받기
@@ -58,9 +58,10 @@ public class StageMapManager : MonoBehaviour
 
     void GenerateStages()
     {
-        int levels = 15; // 총 레벨 수
-        float xSpacing = 300f; // 레벨 간 X축 간격
-        float ySpacing = 200f; // 스테이지 간 Y축 간격
+        int levels = 15;   // 가로(레벨) 개수
+        int totalRows = 7; // 세로(칸) 개수
+        float xSpacing = 230f; // 레벨 간 X축 간격
+        float ySpacing = 140f; // 스테이지 간 Y축 간격
         float startX = -700f; // X축 시작 위치
         float startY = 425f; // Y축 시작 위치
 
@@ -79,34 +80,73 @@ public class StageMapManager : MonoBehaviour
             stage.SetLocked(true);
             stage.SetClickable(false);
         }
-        // 스테이지 생성
+        // 각 레벨(가로 열)마다 스테이지 생성
         for (int level = 1; level <= levels; level++)
         {
-            float xOffset = startX + (level - 1) * xSpacing; // X축 위치 (레벨별)
-            int stagesPerLevel = (level == 1) ? 1 : random.Next(2, 6); // 레벨 1은 스테이지 1개 고정, 나머지는 2~5개의 스테이지 생성
-            
-            for (int i = 0; i < stagesPerLevel; i++)
+            float xOffset = startX + (level - 1) * xSpacing; // 해당 레벨의 X 좌표
+
+            int stagesPerLevel = 0;
+            List<int> chosenRows = new List<int>();
+
+            // 레벨 1과 레벨 15는 스테이지 1개 고정
+            if (level == 1 || level == 15)
             {
-                float yOffset = startY - i * ySpacing; // Y축 위치 (스테이지별)
-                Vector2 position = new Vector2(xOffset, yOffset); // 위치 설정
-                string stageName = $"Stage {level}-{i + 1}";
+                stagesPerLevel = 1;
+                if (level == 15)
+                {
+                    // 레벨 15는 4번째 칸(인덱스 3)로 고정
+                    chosenRows.Add(3);
+                }
+                else // level == 1인 경우
+                {
+                    // 기존 로직처럼 임의의 칸에서 선택 (혹은 고정 위치를 원하면 여기서 수정)
+                    List<int> availableRows = new List<int>();
+                    for (int i = 0; i < totalRows; i++)
+                    {
+                        availableRows.Add(i);
+                    }
+                    availableRows = availableRows.OrderBy(x => random.Next()).ToList();
+                    chosenRows.Add(availableRows[0]);
+                }
+            }
+            else
+            {
+                // 레벨 2 ~ 14: 2 ~ 5개의 스테이지를 랜덤 생성
+                stagesPerLevel = random.Next(2, 6);
+                List<int> availableRows = new List<int>();
+                for (int i = 0; i < totalRows; i++)
+                {
+                    availableRows.Add(i);
+                }
+                availableRows = availableRows.OrderBy(x => random.Next()).ToList();
+                chosenRows = availableRows.Take(stagesPerLevel).ToList();
+            }
+
+            // 선택된 각 칸에 대해 스테이지 생성
+            foreach (int row in chosenRows)
+            {
+                float yOffset = startY - row * ySpacing; // 해당 칸의 Y 좌표 계산
+                Vector2 position = new Vector2(xOffset, yOffset);
+                string stageName = $"Stage {level}-{row + 1}";
                 StageNode newStage = new StageNode(level, position, stageName);
 
-                newStage.SetLocked(true); // 기본적으로 모든 스테이지를 잠금 상태로 설정
-                newStage.SetClickable(false); // ✅ 모든 스테이지 기본적으로 클릭 불가능하도록 설정
+                newStage.SetLocked(true);
+                newStage.SetClickable(false);
 
                 allStages.Add(newStage);
                 totalStages++;
 
-                if (level == 1 && i == 0)
+                // 레벨 1의 첫 번째 스테이지를 초기 스테이지로 설정
+                if (level == 1 && currentStage == null)
                 {
                     currentStage = newStage;
-                    currentStage.isCleared = true; // ✅ 초기 스테이지 방문 상태 설정
+                    currentStage.isCleared = true; // 방문 상태로 설정
                     currentStage.SetLocked(false);
                     currentStage.SetClickable(true);
                 }
             }
         }
+
         Debug.Log($"[GenerateStages] 생성된 총 스테이지 수: {totalStages}");
 
         if (currentStage == null)
@@ -115,31 +155,16 @@ public class StageMapManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[GenerateStages] 총 생성된 스테이지 수: {totalStages}");
-
-        /* 스테이지 연결
-        for (int level = 1; level < levels; level++)
-        {
-            List<StageNode> currentLevelStages = allStages.FindAll(stage => stage.level == level);
-            List<StageNode> nextLevelStages = allStages.FindAll(stage => stage.level == level + 1);
-
-            foreach (StageNode stage in currentLevelStages)
-            {
-                ConnectToNextStagesWithRules(stage, nextLevelStages);
-            }
-        }*/
-
         Debug.Log($"🟢 총 생성된 스테이지 개수: {allStages.Count}");
 
         // UI 업데이트를 위한 이벤트 호출
         OnStageGenerated?.Invoke(allStages);
-        // ✅ 스테이지 연결을 여기서 호출
+
+        // 스테이지 연결 및 상태 초기화 호출
         ConnectStages();
-
-        // ✅ 스테이지 상태 초기화
         InitializeStageStates();
-
     }
+
     void InitializeStageStates()
     {
         foreach (var stage in allStages)
@@ -300,35 +325,51 @@ public class StageMapManager : MonoBehaviour
     void ConnectStages()
     {
         Debug.Log("🔵 스테이지 연결 시작");
-
-        for (int level = 1; level < 15; level++)
+        int levelsCount = 15; // 생성된 레벨 수 (1~15)
+        for (int level = 1; level < levelsCount; level++)
         {
             List<StageNode> currentLevelStages = allStages.FindAll(stage => stage.level == level);
             List<StageNode> nextLevelStages = allStages.FindAll(stage => stage.level == level + 1);
 
             if (nextLevelStages.Count == 0)
             {
-                if (level < 14) // ✅ 15레벨 이후는 디버그 로그 출력 안 함
+                if (level < levelsCount - 1) // ✅ 15레벨 이후는 디버그 로그 출력 안 함
                 {
                     Debug.LogWarning($"⚠️ 레벨 {level}에 연결할 다음 레벨 스테이지가 없습니다!");
                 }
                 continue;
             }
 
-            foreach (StageNode stage in currentLevelStages)
+            // 1. 필수 연결: 각 스테이지가 다음 레벨의 스테이지 중 가장 가까운 스테이지와 연결하도록 함.
+            foreach (StageNode currentStage in currentLevelStages)
             {
-                int connections = UnityEngine.Random.Range(1, Mathf.Min(4, nextLevelStages.Count + 1)); // ✅ 1~3개 랜덤 연결
-                HashSet<StageNode> connectedStages = new HashSet<StageNode>();
-
-                while (connectedStages.Count < connections)
+                if (currentStage.nextStages.Count == 0) // 아직 연결이 없으면...
                 {
-                    StageNode nextStage = nextLevelStages[UnityEngine.Random.Range(0, nextLevelStages.Count)];
-                    if (!connectedStages.Contains(nextStage))
+                    StageNode nearest = nextLevelStages
+                        .OrderBy(stage => Vector2.Distance(currentStage.position, stage.position))
+                        .FirstOrDefault();
+
+                    if (nearest != null)
                     {
-                        stage.nextStages.Add(nextStage);
-                        nextStage.previousStages.Add(stage);
-                        connectedStages.Add(nextStage);
-                        Debug.Log($"✅ {stage.name} → {nextStage.name} 연결됨.");
+                        currentStage.nextStages.Add(nearest);
+                        nearest.previousStages.Add(currentStage);
+                        Debug.Log($"✅ {currentStage.name} → {nearest.name} 연결됨 (필수 연결)");
+                    }
+                }
+            }
+
+            // 2. 추가 연결: 각 스테이지에 대해 0~2개의 추가 연결을 랜덤으로 추가
+            foreach (StageNode currentStage in currentLevelStages)
+            {
+                int additionalConnections = UnityEngine.Random.Range(0, 3); // 0~2 추가 연결
+                for (int i = 0; i < additionalConnections; i++)
+                {
+                    StageNode randomNextStage = nextLevelStages[UnityEngine.Random.Range(0, nextLevelStages.Count)];
+                    if (!currentStage.nextStages.Contains(randomNextStage))
+                    {
+                        currentStage.nextStages.Add(randomNextStage);
+                        randomNextStage.previousStages.Add(currentStage);
+                        Debug.Log($"✅ {currentStage.name} → {randomNextStage.name} 추가 연결됨");
                     }
                 }
             }
