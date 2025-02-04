@@ -12,13 +12,14 @@ public class UnitDataBase
     public int unitId;         // 유닛 ID
     public string unitExplain; // 유닛 설명
 
-    public string unitImg;        // 유닛 이미지 ID
+    public string unitImg;     // 유닛 이미지 ID
 
     public string unitFaction; // 유닛이 속한 진영
     public int factionIdx;     // 진영 인덱스
     public int unitPrice;      // 유닛 가격
 
-    public int[] unitTag;      // 유닛 태그 (기본값 -1)
+    public int[] unitTag;      // 유닛 태그 (기본값은 branchIdx)
+    public bool alive;         //생존 유무
 
     // 스탯 정보
     public float maxHealth;    // 유닛 최대 체력
@@ -38,6 +39,7 @@ public class UnitDataBase
     public bool agility;        // 날쌤 유무
     public bool strongCharge;   // 강한 돌격 유무
     public bool perfectAccuracy;// 필중 유무
+    public bool solidarity;     // 결속 (기본값 false)
 
     public string blink = "빈"; // 빈칸
 
@@ -47,7 +49,7 @@ public class UnitDataBase
     public bool throwSpear;     // 창 던지기
     public bool slaughter;      // 학살
     public bool guerrilla;      // 게릴라
-    public bool guard;          // 경호
+    public bool guard;          // 수호
     public bool assassination;  // 암살
     public bool drain;          // 흡수
     public bool overwhelm;      // 압도
@@ -60,10 +62,10 @@ public class UnitDataBase
         string unitExplain, string unitImg, string unitFaction, int factionIdx, int unitPrice,
         float health, float armor, float attackDamage, float mobility, float range, float antiCavalry,
         bool lightArmor, bool heavyArmor, bool rangedAttack, bool bluntWeapon, bool pierce,
-        bool agility, bool strongCharge, bool perfectAccuracy, bool slaughter,
-        bool charge, bool defense, bool throwSpear, bool guerrilla,
-        bool guard, bool assassination, bool drain, bool overwhelm,
-        string blink, float maxHealth, int[] unitTag = null, int uniqueId = -1)
+        bool agility, bool strongCharge, bool perfectAccuracy, bool slaughter, bool charge,
+        bool defense, bool throwSpear, bool guerrilla, bool guard, bool assassination,
+        bool drain, bool overwhelm, string blink, float maxHealth, int[] unitTag = null,
+        bool solidarity = false, int uniqueId = -1, bool alive = true) // solidarity 기본값 false로 설정
     {
         this.idx = idx;
         this.unitName = unitName;
@@ -98,12 +100,16 @@ public class UnitDataBase
         this.assassination = assassination;
         this.drain = drain;
         this.overwhelm = overwhelm;
+        this.solidarity = solidarity; // 기본값 false
         this.blink = blink;
         this.maxHealth = maxHealth;
+        this.alive = alive;
 
-        // unitTag가 null이면 기본값 -1 설정
-        this.unitTag = unitTag ?? new int[] { -1 };
+        // unitTag가 null이거나 비어 있으면 기본값으로 branchIdx를 포함
+        this.unitTag = (unitTag == null || unitTag.Length == 0) ? new int[] { branchIdx } : unitTag;
+
         this.UniqueId = uniqueId;
+        
     }
 
     public static UnitDataBase ConvertToUnitDataBase(List<string> rowData)
@@ -128,27 +134,29 @@ public class UnitDataBase
         float.TryParse(rowData[14], out range); // range
         float.TryParse(rowData[15], out antiCavalry); // antiCavalry
 
-        bool.TryParse(rowData[16], out lightArmor); // lightArmor
-        bool.TryParse(rowData[17], out heavyArmor); // heavyArmor
-        bool.TryParse(rowData[18], out rangedAttack); // rangedAttack
-        bool.TryParse(rowData[19], out bluntWeapon); // bluntWeapon
-        bool.TryParse(rowData[20], out pierce); // pierce
-        bool.TryParse(rowData[21], out agility); // agility
-        bool.TryParse(rowData[22], out strongCharge); // strongCharge
-        bool.TryParse(rowData[23], out perfectAccuracy); // perfectAccuracy
-        bool.TryParse(rowData[24], out slaughter); // slaughter
-        bool.TryParse(rowData[25], out charge); // charge
-        bool.TryParse(rowData[26], out defense); // defense
-        bool.TryParse(rowData[27], out throwSpear); // throwSpear
-        bool.TryParse(rowData[28], out guerrilla); // guerrilla
-        bool.TryParse(rowData[29], out guard); // guard
-        bool.TryParse(rowData[30], out assassination); // assassination
-        bool.TryParse(rowData[31], out drain); // drain
-        bool.TryParse(rowData[32], out overwhelm); // overwhelm
+        bool.TryParse(rowData[16], out lightArmor);
+        bool.TryParse(rowData[17], out heavyArmor);
+        bool.TryParse(rowData[18], out rangedAttack);
+        bool.TryParse(rowData[19], out bluntWeapon);
+        bool.TryParse(rowData[20], out pierce);
+        bool.TryParse(rowData[21], out agility);
+        bool.TryParse(rowData[22], out strongCharge);
+        bool.TryParse(rowData[23], out perfectAccuracy);
+        bool.TryParse(rowData[24], out slaughter);
+        bool.TryParse(rowData[25], out charge);
+        bool.TryParse(rowData[26], out defense);
+        bool.TryParse(rowData[27], out throwSpear);
+        bool.TryParse(rowData[28], out guerrilla);
+        bool.TryParse(rowData[29], out guard);
+        bool.TryParse(rowData[30], out assassination);
+        bool.TryParse(rowData[31], out drain);
+        bool.TryParse(rowData[32], out overwhelm);
 
-        // unitTag 파싱
-        int[] unitTag = { -1 };
-        if (!string.IsNullOrEmpty(rowData[33]))
+        // 기본값을 설정하여 예외 방지
+        int[] unitTag = { branchIdx }; // 기본값을 branchIdx로 설정
+
+        // unitTag 데이터가 존재하는 경우에만 처리
+        if (rowData.Count > 33 && !string.IsNullOrEmpty(rowData[33]))
         {
             string[] tags = rowData[33].Split(',');
             unitTag = Array.ConvertAll(tags, int.Parse);
@@ -160,7 +168,7 @@ public class UnitDataBase
             health, armor, attackDamage, mobility, range, antiCavalry,
             lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy,
             slaughter, charge, defense, throwSpear, guerrilla, guard, assassination, drain, overwhelm,
-            "빈", health, unitTag
+            "빈", health, unitTag, false,-1,true // solidarity 기본값 false
         );
     }
 }

@@ -7,10 +7,12 @@ public class ObjectPool : MonoBehaviour
     [SerializeField] private GameObject battleUnitPrefab;    //전투화면 유닛
     [SerializeField] private Transform canvasTransform;         //캔버스
     [SerializeField] private GameObject abilityPrefab;      //특성+기술 아이콘
+    [SerializeField] private GameObject warRelicPrefab;     //전쟁유산
 
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();
     private readonly Queue<GameObject> abilityPool = new();
+    private readonly Queue<GameObject> warRelicPool = new();
 
     private readonly List<GameObject> activeBattleUnits = new(); // 활성화된 유닛을 추적
     private readonly List<GameObject> activeAbilitys= new();      //활성화된 능력 아이콘 추적
@@ -24,14 +26,17 @@ public class ObjectPool : MonoBehaviour
             GameObject damageInstance = Instantiate(damageTextPrefab, transform);
             GameObject unitInstance = Instantiate(battleUnitPrefab, transform);
             GameObject abilityInstance= Instantiate(abilityPrefab, transform);
+            GameObject warRelicInstance = Instantiate(warRelicPrefab, transform);
 
             damageInstance.SetActive(false);
             unitInstance.SetActive(false);
             abilityInstance.SetActive(false);
+            warRelicInstance.SetActive(false);
 
             damageTextPool.Enqueue(damageInstance);
             battleUnitPool.Enqueue(unitInstance);
             abilityPool.Enqueue(abilityInstance);
+            warRelicPool.Enqueue(abilityInstance);
         }
     }
 
@@ -53,7 +58,6 @@ public class ObjectPool : MonoBehaviour
         instance.transform.SetParent(canvasTransform,transform);
         activeAbilitys.Add(instance);
         return instance;
-
     }
 
     // 활성화된 아이콘 리스트 반환
@@ -162,5 +166,31 @@ public class ObjectPool : MonoBehaviour
         damageTextPool.Enqueue(damageText);
     }
 
+    //유산 가져오기
+    public GameObject GetWarRelic()
+    {
+        GameObject instance;
 
+        if(warRelicPool.Count > 0)
+        {
+            instance=warRelicPool.Dequeue();
+        }
+        else
+        {
+            instance = Instantiate(warRelicPrefab,transform);
+        }
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, transform);
+
+        return instance;
+    }
+
+    //유산 반환
+    public void ReturnWarRelic(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+        gameObject.transform.SetParent(canvasTransform, transform);
+        warRelicPool.Enqueue(gameObject);
+    }
+    
 }

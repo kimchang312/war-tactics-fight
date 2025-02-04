@@ -101,7 +101,7 @@ public class AutoBattleUI : MonoBehaviour
         GameObject damageObj = objectPool.GetDamageText();
         TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
 
-        damagetext.text = $"-{damage} {text}";
+        damagetext.text = $"{-1*damage} {text}";
 
         RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
 
@@ -539,5 +539,28 @@ public class AutoBattleUI : MonoBehaviour
             staticsWindow.SetActive(!staticsWindow.activeSelf);
         }
     }
+
+    //유산 생성
+    public void CreateWarRelic()
+    {
+        var warRelics = RogueLikeData.Instance.GetAllOwnedRelics();
+        if (warRelics == null || warRelics.Count == 0)
+            return;
+
+        float startX = -900f;
+        float startY = 350f;
+        float spacingX = 100f;
+
+        for (int i = 0; i < warRelics.Count; i++)
+        {
+            GameObject relicObject = objectPool.GetWarRelic(); // ObjectPool에서 유물 오브젝트 가져오기
+            RectTransform relicTransform = relicObject.GetComponent<RectTransform>();
+            
+            relicTransform.anchoredPosition = new Vector2(startX+spacingX*100, startY);
+
+            relicObject.name = $"{warRelics[i].id}";
+        }
+    }
+
 }
 

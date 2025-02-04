@@ -439,6 +439,7 @@ MonoBehaviour:
   battleUnitPrefab: {fileID: 6319876841313589093, guid: 60ffdbfb469b6624fb3143be6b391a6e, type: 3}
   canvasTransform: {fileID: 308014011}
   abilityPrefab: {fileID: 7355244959479386498, guid: 0f2747f20dce40642abde34d83689a3e, type: 3}
+  warRelicPrefab: {fileID: 3343579240121916961, guid: 0da25f3544f241c4f9253b903c39e352, type: 3}
 --- !u!4 &9976924
 Transform:
   m_ObjectHideFlags: 0

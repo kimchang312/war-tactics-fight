@@ -1,32 +1,40 @@
-public class WarRelic
-{
-    public int id;                // 유물 고유 ID
-    public string name;           // 유물 이름
-    public string description;    // 유물 설명
-    public RelicType type;        // 유물 타입 (예: StatBoost, SpecialEffect 등)
-    public int rank;              // 유물 등급
-    public float attackAdd;       // 추가 공격력
-    public float healthAdd;       // 추가 체력
-    public float armorAdd;        // 추가 방어력
-    public float mobilityAdd;     // 추가 기동성
-
-    public WarRelic(int id, string name, int rank, string description, RelicType type, 
-                    float attackAdd = 0, float healthAdd = 0, float armorAdd = 0, float mobilityAdd = 0)
-    {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.type = type;
-        this.rank = rank;
-        this.attackAdd = attackAdd;
-        this.healthAdd = healthAdd;
-        this.armorAdd = armorAdd;
-        this.mobilityAdd = mobilityAdd;
-    }
-}
+using System;
 
 public enum RelicType
 {
-    StatBoost,      // 스탯 강화형
-    SpecialEffect   // 특수 효과형
+    AllEffect,
+    SpecialEffect,
+    StateBoost,
+    BattleActive,
+    ActiveState         //BattleActive,StateBoost의 효과가 둘다 있는경우
+
 }
+public class WarRelic
+{
+    public int id;
+    public string name;
+    public int grade; // 0: 저주, 1: 일반, 10: 전설
+    public string tooltip;
+    public RelicType type;
+    public Action executeAction; // 유물에 연결된 실행 함수
+    public bool used;       //1회성 유물의 경우 사용 여부
+
+    public WarRelic(int id, string name, int grade, string tooltip, RelicType type, Action executeAction = null, bool used = false)
+    {
+        this.id = id;
+        this.name = name;
+        this.grade = grade;
+        this.tooltip = tooltip;
+        this.type = type;
+        this.executeAction = executeAction;
+        this.used = used;
+    }
+
+    public void Execute()
+    {
+        executeAction?.Invoke(); // 함수 실행
+    }
+
+    
+}
+

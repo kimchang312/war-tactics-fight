@@ -40,9 +40,10 @@ public class TestUnit
             assassination: false,
             drain: false,
             overwhelm: false,
+            solidarity: true,
             blink: "빈칸",
             maxHealth: 130,
-            unitTag: new int[] { 10 } // unitTag에 10 추가
+            unitTag: new int[] { 0,10 } // unitTag에 10 추가
         );
     }
 }
