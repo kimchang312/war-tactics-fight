@@ -11,7 +11,7 @@ public class FightStartBtn : MonoBehaviour
 
     // ���� ����, ���� ����
     private List<int> myUnitIds = new List<int> {1,1,1,1 };
-    private List<int> enemyUnitIds = new List<int> { 20};
+    private List<int> enemyUnitIds = new List<int> { 20,3,3};
 
     void Start()
     {

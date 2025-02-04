@@ -357,7 +357,7 @@ public class AutoBattleUI : MonoBehaviour
             if (attr.Value)
             {
                 // 원거리 특성 제외
-                if (attr.Name != "rangedAttack")
+                if (attr.Name != "rangedAttack" && attr.Name !="alive")
                 {
                     GameObject iconImage = objectPool.GetAbility();
                     
@@ -544,19 +544,21 @@ public class AutoBattleUI : MonoBehaviour
     public void CreateWarRelic()
     {
         var warRelics = RogueLikeData.Instance.GetAllOwnedRelics();
+
         if (warRelics == null || warRelics.Count == 0)
             return;
 
-        float startX = -900f;
+        float startX = -620f;
         float startY = 350f;
         float spacingX = 100f;
 
         for (int i = 0; i < warRelics.Count; i++)
         {
             GameObject relicObject = objectPool.GetWarRelic(); // ObjectPool에서 유물 오브젝트 가져오기
+            Debug.Log(relicObject.name);
             RectTransform relicTransform = relicObject.GetComponent<RectTransform>();
             
-            relicTransform.anchoredPosition = new Vector2(startX+spacingX*100, startY);
+            relicTransform.anchoredPosition = new Vector2(startX+(spacingX*i), startY);
 
             relicObject.name = $"{warRelics[i].id}";
         }
