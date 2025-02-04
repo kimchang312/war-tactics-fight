@@ -89,6 +89,8 @@ public class AutoBattleManager : MonoBehaviour
     {
         currentState = BattleState.None;
 
+        
+
         List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
         List<int> enemyIds = PlayerData.Instance.GetEnemyUnitIndexes();
         if (myIds.Count <= 0) return;
@@ -592,6 +594,9 @@ public class AutoBattleManager : MonoBehaviour
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
         }
 
+        //유산 이미지 생성
+        autoBattleUI.CreateWarRelic();
+
         // 유닛 데이터 받아옴
         (myUnits, enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
 
@@ -1080,7 +1085,7 @@ public class AutoBattleManager : MonoBehaviour
                     float damage = attackers[rangeUnits[i]].attackDamage*finalDamage;
 
                     //팔랑크스가 발동 되었을 때 (임의: 데미지 10%감소)
-                    if (ownedRelics.FirstOrDefault(relic => relic.id == 18).used)
+                    if (PhalanxTacticsBook())
                     {
                         damage *= 0.9f;
                     }
@@ -1354,6 +1359,12 @@ public class AutoBattleManager : MonoBehaviour
             return (unit.armor * 9);
         }
         return 0;
+    }
+
+    //유산 18
+    private bool PhalanxTacticsBook()
+    {
+        return ownedRelics.FirstOrDefault(relic => relic.id == 18)?.used ?? false;
     }
 
     //유산 28

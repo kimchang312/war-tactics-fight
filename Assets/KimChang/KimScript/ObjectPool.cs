@@ -36,7 +36,7 @@ public class ObjectPool : MonoBehaviour
             damageTextPool.Enqueue(damageInstance);
             battleUnitPool.Enqueue(unitInstance);
             abilityPool.Enqueue(abilityInstance);
-            warRelicPool.Enqueue(abilityInstance);
+            warRelicPool.Enqueue(warRelicInstance);
         }
     }
 
