@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -10,17 +9,12 @@ public class FightResult : MonoBehaviour
     [SerializeField] private GameObject loseImg;
     [SerializeField] private GameObject drawImg;
     [SerializeField] private Button goTitleBtn;
+    [SerializeField] private TextMeshProUGUI scoreText;
 
     // Start is called before the first frame update
     void Start()
     {
         goTitleBtn.onClick.AddListener(OnGoTitleButtonClick);
-        /*
-        this.gameObject.SetActive(false);
-        winImg.SetActive(false);
-        loseImg.SetActive(false);
-        drawImg.SetActive(false);
-        */
     }
 
     public void EndGame(int result)
@@ -63,5 +57,11 @@ public class FightResult : MonoBehaviour
     private void DrawGame()
     {
         drawImg.SetActive(true);
+    }
+
+    //점수 보여주기
+    public void ViewScore(int result)
+    {
+        scoreText.text = $"점수: {result}";
     }
 }
