@@ -30,7 +30,9 @@ public class RogueLikeData
 
     private List<UnitDataBase> myUnits = new List<UnitDataBase>();
     private List<UnitDataBase> enemyUnits = new List<UnitDataBase>();
+
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
+    private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
 
     private int currentStageX = 0;
     private int currentStageY = 0;
@@ -44,12 +46,17 @@ public class RogueLikeData
     private float myFinalDamage = 1;
     private float enemyFinalDamage = 1;
 
+
+    // 생성자에서 초기화
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
+        relicIdsByType = new Dictionary<RelicType, HashSet<int>>();
+
         foreach (RelicType type in Enum.GetValues(typeof(RelicType)))
         {
             relicsByType[type] = new List<WarRelic>();
+            relicIdsByType[type] = new HashSet<int>(); // 중복 검사용 HashSet 초기화
         }
     }
 
@@ -103,33 +110,48 @@ public class RogueLikeData
         }
     }
 
-    //유물 추가하기
+    // 중복 방지 유물 추가 함수
     public void AcquireRelic(int relicId)
     {
         WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
         if (relic != null && relicsByType.ContainsKey(relic.type))
         {
-            relicsByType[relic.type].Add(relic);
+            // HashSet을 사용한 빠른 중복 확인
+            if (!relicIdsByType[relic.type].Contains(relicId))
+            {
+                relicsByType[relic.type].Add(relic);
+                relicIdsByType[relic.type].Add(relicId); // 중복 관리 HashSet에도 추가
+            }
         }
     }
-
     //특정 타입 유물만 가져오기
     public List<WarRelic> GetRelicsByType(RelicType type)
     {
+        HashSet<int> uniqueIds = new HashSet<int>();
         List<WarRelic> result = new List<WarRelic>();
-        if (relicsByType.ContainsKey(type))
+
+        void AddUniqueRelics(RelicType relicType)
         {
-            result.AddRange(relicsByType[type]);
-        }
-        if (type == RelicType.StateBoost || type == RelicType.BattleActive)
-        {
-            if (relicsByType.ContainsKey(RelicType.ActiveState))
+            if (!relicsByType.ContainsKey(relicType)) return;
+            foreach (var relic in relicsByType[relicType])
             {
-                result.AddRange(relicsByType[RelicType.ActiveState]);
+                if (uniqueIds.Add(relic.id)) // 중복된 ID 방지
+                {
+                    result.Add(relic);
+                }
             }
         }
+
+        AddUniqueRelics(type);
+
+        if (type == RelicType.StateBoost || type == RelicType.BattleActive)
+        {
+            AddUniqueRelics(RelicType.ActiveState);
+        }
+
         return result;
     }
+
 
     // 특정 등급의 유물 가져오기
     public List<WarRelic> GetRelicsByGrade(int grade)

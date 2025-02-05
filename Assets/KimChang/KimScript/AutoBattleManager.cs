@@ -36,6 +36,8 @@ public class AutoBattleManager : MonoBehaviour
 
     //보유 유물
     private List<WarRelic> ownedRelics = new List<WarRelic>();
+    // 중복 방지를 위한 HashSet
+    private HashSet<int> ownedRelicIds = new HashSet<int>();
 
     //유닛별 고유 id
     private static int globalUnitId = 0;
@@ -88,8 +90,6 @@ public class AutoBattleManager : MonoBehaviour
     private async void Start()
     {
         currentState = BattleState.None;
-
-        
 
         List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
         List<int> enemyIds = PlayerData.Instance.GetEnemyUnitIndexes();
@@ -424,7 +424,7 @@ public class AutoBattleManager : MonoBehaviour
             if (enemyAllDamage > 0)
             {
                 //유산 28
-                if (HeartGemNecklace(myUnits[myUnitIndex].health)) 
+                if (RelicManager.HeartGemNecklace(myUnits[myUnitIndex].health, ownedRelics)) 
                 {
                     myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
 
@@ -432,7 +432,7 @@ public class AutoBattleManager : MonoBehaviour
                 }
 
                 //15
-                relicDamage += ReactiveThornArmor(myUnits[myUnitIndex]);
+                relicDamage += RelicManager.ReactiveThornArmor(myUnits[myUnitIndex], ownedRelics);
 
                 myAllDamage += relicDamage;
 
@@ -464,21 +464,21 @@ public class AutoBattleManager : MonoBehaviour
 
         //내 유닛 공격
         myDamage =
-             ProcessChrash(myUnits[myUnitIndex],ref enemyUnits,enemyUnitIndex , ref mySkills, ref enemySkills,myFinalDamage);
+             ProcessChrash(myUnits[myUnitIndex],ref enemyUnits,enemyUnitIndex , ref mySkills, ref enemySkills,myFinalDamage,true);
         //상대 유닛 공격
         enemyDamage =
-             ProcessChrash(enemyUnits[enemyUnitIndex],ref myUnits,myUnitIndex, ref enemySkills, ref mySkills,enemyFinalDamage);
+             ProcessChrash(enemyUnits[enemyUnitIndex],ref myUnits,myUnitIndex, ref enemySkills, ref mySkills,enemyFinalDamage,false);
 
         //유산 30
-        myDamage = BrokenStraightSword(myDamage);
+        //myDamage = RelicManager.BrokenStraightSword(myDamage, ownedRelics);
 
         if (enemyDamage > 0)
         {
             //유산 28
-            if (HeartGemNecklace(myUnits[myUnitIndex].health)) myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
+            if (RelicManager.HeartGemNecklace(myUnits[myUnitIndex].health, ownedRelics)) myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
 
             //15
-            relicDamage += ReactiveThornArmor(myUnits[myUnitIndex]);
+            relicDamage += RelicManager.ReactiveThornArmor(myUnits[myUnitIndex], ownedRelics);
 
             myDamage += relicDamage;
         }
@@ -512,16 +512,16 @@ public class AutoBattleManager : MonoBehaviour
             myUnits[myUnitIndex].health -= enemyDamage;
             
             //유산 28
-            if(HeartGemNecklace(myUnits[myUnitIndex].health)) myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
+            if(RelicManager.HeartGemNecklace(myUnits[myUnitIndex].health, ownedRelics)) myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
 
-            CallDamageText(enemyDamage, "원거리 ", true);
+            CallDamageText(enemyDamage, "원거리 ", false);
 
             //통계 기록: 받은 피해
             unitStats[myUnits[myUnitIndex].UniqueId].AddDamageTaken(enemyDamage);
 
             //유산 작동
             //15
-            relicDamage = ReactiveThornArmor(myUnits[myUnitIndex]);
+            relicDamage = RelicManager.ReactiveThornArmor(myUnits[myUnitIndex], ownedRelics);
             myDamage += relicDamage;
         }
 
@@ -571,9 +571,16 @@ public class AutoBattleManager : MonoBehaviour
                 myUnitIndex += myAdd;
                 enemyUnitIndex += enemyAdd;
             }
-            if (myAdd > 0 && Relic55())
+            if (myAdd > 0 && RelicManager.Relic55(ownedRelics))
             {
-                enemyUnits[enemyUnitIndex].health -= 9;
+                if (myBackUnitHp > 0)
+                {
+                    enemyUnits[enemyUnitIndex].health -= myUnits[myUnitIndex].health*0.1f;
+                }
+                else
+                {
+                    enemyUnits[enemyUnitIndex].health -= myUnits[myDeathUnitIndex].health * 0.1f;
+                }
 
                 ManageUnitDeath();
             }
@@ -594,22 +601,15 @@ public class AutoBattleManager : MonoBehaviour
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
         }
 
-        //유산 이미지 생성
-        autoBattleUI.CreateWarRelic();
+        //로딩창 시작
+        autoBattleUI.ToggleLoadingWindow();
 
+        //test 유산 추가
+        //RogueLikeData.Instance.AcquireRelic(1);
+        //RogueLikeData.Instance.AcquireRelic(27);
+        
         // 유닛 데이터 받아옴
         (myUnits, enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
-
-        /*
-        // 첫 번째 유닛으로 군단병 추가
-        UnitDataBase legionnaire = TestUnit.CreateLegionnaire();
-        legionnaire.UniqueId = GenerateUniqueUnitId(legionnaire.branchIdx, true, legionnaire.idx);
-        // 첫 번째 유닛으로 추가
-        myUnits.Insert(0, legionnaire);
-        //결속 계산
-        CalculataeSolidarity(ref myUnits);
-        CalculataeSolidarity(ref enemyUnits);
-        */
 
         myUnitIndex = 0;
         enemyUnitIndex = 0;
@@ -635,30 +635,8 @@ public class AutoBattleManager : MonoBehaviour
         for (int i = 0; i < enemyUnitMax; i++)
             if (enemyUnits[i].rangedAttack) enemyRangeUnits.Add(i);
 
-        //배율 초기화
-        RogueLikeData.Instance.ResetFinalDamage();
-
-        //유산 저장
-        GetRelicData();
-        CheckFusion();
-        // 아군, 적군 데이터를 RogueLikeData 싱글톤에 저장
-        RogueLikeData.Instance.AllMyUnits(myUnits);
-        RogueLikeData.Instance.AllEnemyUnits(enemyUnits);
-
-        //예시 유물
-        //RogueLikeData.Instance.AcquireRelic(12);
-
-        //해주 유산 확인
-        curseBlock = RogueLikeData.Instance.GetOwnedRelicById(23) == null ? false : true;
-
-        //스탯 유산 적용
-        RunStateRelic();
-
-        myFinalDamage = RogueLikeData.Instance.GetMyMultipleDamage();
-        enemyFinalDamage = RogueLikeData.Instance.GetEnemyMultipleDamage();
-
-        myUnits = RogueLikeData.Instance.GetMyUnits();
-
+        //유산 및 데이터 저장
+        ProcessRelic();
 
         // 통계 초기화
         foreach (var unit in myUnits)
@@ -676,6 +654,9 @@ public class AutoBattleManager : MonoBehaviour
                 unitStats[unit.UniqueId] = new UnitCombatStatics(unit.UniqueId, unit.unitName); // 적군
             }
         }
+
+        //로딩창 종료
+        autoBattleUI.ToggleLoadingWindow();
 
         // 상태를 Preparation으로 설정
         currentState = BattleState.Preparation;
@@ -715,12 +696,12 @@ public class AutoBattleManager : MonoBehaviour
             // 전투 종료 후 승리 여부 판단
             if (myUnitIndex < myUnitMax && enemyUnitIndex >= enemyUnitMax)
             {
-                Debug.Log($"나의 승리 {myUnits[myUnitIndex].unitName + myUnits[myUnitIndex].health}");
+                Debug.Log($"나의 승리");
                 return 0;  // 나의 승리
             }
             else if (enemyUnitIndex < enemyUnitMax && myUnitIndex >= myUnitMax)
             {
-                Debug.Log($"나의 패배 {enemyUnits[enemyUnitIndex].unitName + enemyUnits[enemyUnitIndex].health}");
+                Debug.Log($"나의 패배");
                 return 1;  // 적이 승리
             }
             else
@@ -764,11 +745,8 @@ public class AutoBattleManager : MonoBehaviour
             //점수 표기
             ManageScore(result);
 
-            // 전투 통계 저장
-            SaveCombatStatistics();
-
             //통계 표시 
-            ViewStatics();
+            UnitCombatStatics.ProcessBattleStatics(unitStats,autoBattleUI);
 
             //ui마지막 업데이트
             //유닛 숫자 UI 최신화
@@ -806,8 +784,7 @@ public class AutoBattleManager : MonoBehaviour
             //유산 작동
             if (isTeam)
             {
-                damage = BrokenStraightSword(damage);
-                damage *= TechnicalManual() ? 9 : 1;
+                damage *= RelicManager.TechnicalManual(ownedRelics) ? 1.2f : 1;
             }
 
             //통계 기록: 투창 발동
@@ -843,8 +820,7 @@ public class AutoBattleManager : MonoBehaviour
             //유산 작동
             if (isTeam)
             {
-                damage = BrokenStraightSword(damage);
-                damage *= TechnicalManual() ? 9 : 1;
+                damage *= RelicManager.TechnicalManual(ownedRelics) ? 1.2f : 1;
             }
 
             // 통계 기록: 암살 스킬 사용
@@ -858,12 +834,6 @@ public class AutoBattleManager : MonoBehaviour
                 if (!CalculateAccuracy(defenders[defenderIndex], attacker.perfectAccuracy))
                 {
                     float actualDamage = damage;
-
-                    //유산 33
-                    if (!SplitShield())
-                    {
-                        actualDamage = damage * (1 - (defenders[defenderIndex].armor) / (10 + defenders[defenderIndex].armor));
-                    }
 
                     defenders[defenderIndex].health -= actualDamage;
 
@@ -963,29 +933,30 @@ public class AutoBattleManager : MonoBehaviour
                 if (defender.defense)
                 {
                     reduceDamage += defenseValue;
-                    attackerSkill += "수비태세 ";
-                    defenderSkill += "수비태세 ";
-
-                    //통계 기록: 돌격 발동
-                    unitStats[defender.UniqueId].IncrementTraitUsage("수비태세");
                 }
             }
-        }
-        else
-        {
-            //첫 공 이 아닌데 상대가 돌격이 끝나고 공격자는 수비태세인 경우
-            if (attacker.defense && defender.charge)
+            if (attacker.defense)
             {
-                reduceDamage += defenseValue;
-                attackerSkill += "수비태세 ";
+                if (defender.charge)
+                {
+                    reduceDamage -= defenseValue;
+                }
+                else
+                {
+                    reduceDamage += defenseValue;
+                }
+                attackerSkill += "수비태세";
+
+                //통계 기록: 수비태세 발동
+                unitStats[attacker.UniqueId].IncrementTraitUsage("수비태세");
             }
         }
-
+        
         return (multiplier, reduceDamage);
     }
 
     //충돌 계산
-    private float ProcessChrash(UnitDataBase attacker,ref List<UnitDataBase> defenders,int defenderIndex, ref string attackerSkill,ref string defenderSkill,float finalDamage)
+    private float ProcessChrash(UnitDataBase attacker,ref List<UnitDataBase> defenders,int defenderIndex, ref string attackerSkill,ref string defenderSkill,float finalDamage,bool isTeam)
     {
         float multiplier;
         float reduceDamage;
@@ -1039,15 +1010,17 @@ public class AutoBattleManager : MonoBehaviour
         }
         else
         {
-            //유산 33
-            if (!SplitShield())
-            {
-                //장갑 계산
-                damage = attacker.attackDamage * (1 - (defenders[defenderIndex].armor) / (10 + defenders[defenderIndex].armor));
-            }
+            //장갑 계산
+            damage = attacker.attackDamage * (1 - (defenders[defenderIndex].armor) / (10 + defenders[defenderIndex].armor));
         }
 
         damage = (damage+ bonusDamage - reduceDamage)*finalDamage;
+
+        //팔랑크스
+        if (!isTeam && attacker.branchIdx == 2 && RelicManager.PhalanxTacticsBook(ownedRelics))
+        {
+            damage *= 0.5f;
+        }
 
         //방어자의 회피 계산
         if (CalculateAccuracy(defenders[defenderIndex], attacker.perfectAccuracy))
@@ -1084,15 +1057,13 @@ public class AutoBattleManager : MonoBehaviour
                     
                     float damage = attackers[rangeUnits[i]].attackDamage*finalDamage;
 
-                    //팔랑크스가 발동 되었을 때 (임의: 데미지 10%감소)
-                    if (PhalanxTacticsBook())
+                    if (!isTeam)
                     {
-                        damage *= 0.9f;
-                    }
-                    //유산 30
-                    if (isTeam)
-                    {
-                        damage = BrokenStraightSword(damage);
+                        //팔랑크스가 발동 되었을 때 ( 데미지 50%감소)
+                        if (RelicManager.PhalanxTacticsBook(ownedRelics))
+                        {
+                            damage *= 0.5f;
+                        }
                     }
 
                     if (!CalculateAccuracy(defenders[defenderIndex], attackers[rangeUnits[i]].perfectAccuracy))    //상대 회피 실패
@@ -1122,10 +1093,8 @@ public class AutoBattleManager : MonoBehaviour
                         unitStats[defenders[defenderIndex].UniqueId].IncrementDodges();
                         unitStats[defenders[defenderIndex].UniqueId].AddDodgedDamage(damage);
                     }
-
                 }
             }
-
         }
         return allDamage;
     }
@@ -1224,58 +1193,6 @@ public class AutoBattleManager : MonoBehaviour
     }
 
 
-    // 전투 통계 저장
-    private void SaveCombatStatistics()
-    {
-        // 현재 시간 기반 파일 이름 생성
-        string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"); // 형식: 2023-12-31_23-59-59
-        // 지정된 경로 설정
-        string directoryPath = @"C:\Users\admin\Desktop\BattleStatics";
-        string filePath = Path.Combine(directoryPath, $"BattleStatics.json_{timestamp}");
-
-        // 폴더가 없으면 저장 작업 중단
-        if (!Directory.Exists(directoryPath))
-        {
-            Debug.LogWarning($"전투 통계 저장 실패: 폴더가 존재하지 않습니다. ({directoryPath})");
-            return;
-        }
-
-        // 통계 저장
-        CombatStatisticsManager statsManager = new CombatStatisticsManager(unitStats);
-        statsManager.SaveStatisticsToFile(filePath);
-
-        Debug.Log($"전투 통계가 저장되었습니다: {filePath}");
-    }
-
-    //전투 종료 통계 표시
-    private void ViewStatics()
-    {
-        // Dictionary -> List 변환
-        List<UnitCombatStatics> unitStatsList = unitStats.Values.ToList();
-
-        UnitCombatStatics myMostDam = UnitCombatStatics.GetAllyWithHighestDamageDealt(unitStatsList);
-        UnitCombatStatics myMostTaken = UnitCombatStatics.GetAllyWithHighestDamageTaken(unitStatsList);
-        UnitCombatStatics enemyMostDam = UnitCombatStatics.GetEnemyWithHighestDamageDealt(unitStatsList);
-        UnitCombatStatics enemyMostTaken = UnitCombatStatics.GetEnemyWithHighestDamageTaken(unitStatsList);
-
-        //num 0
-        autoBattleUI.ViewStatics(
-            $"아군 피해량의 {(myMostDam.TotalDamageDealt/UnitCombatStatics.GetTotalDamageDealt(unitStatsList,true))*100}%",
-            UnitCombatStatics.FilterHighDamage(myMostDam), 0,(myMostDam.UnitID) & 0x3FF);
-        //num 1
-        autoBattleUI.ViewStatics(
-            $"아군 받은 피해량의 {myMostTaken.TotalDamageTaken/(UnitCombatStatics.GetTotalDamageTaken(unitStatsList, false))*100}%",
-            UnitCombatStatics.FilterHighTaken(myMostTaken), 1, (myMostTaken.UnitID) & 0x3FF);
-        //num 2
-        autoBattleUI.ViewStatics(
-            $"적군 피해량의 {enemyMostDam.TotalDamageDealt/(UnitCombatStatics.GetTotalDamageDealt(unitStatsList, true))*100}%",
-            UnitCombatStatics.FilterHighDamage(enemyMostDam), 2, (enemyMostDam.UnitID) & 0x3FF);
-        //num 3
-        autoBattleUI.ViewStatics(
-            $"적군 받은 피해량의 {enemyMostTaken.TotalDamageTaken/(UnitCombatStatics.GetTotalDamageTaken(unitStatsList, false))*100}%",
-            UnitCombatStatics.FilterHighTaken(enemyMostTaken), 3, (enemyMostTaken.UnitID) & 0x3FF);
-    }
-
     //결속 발동
     private void CalculataeSolidarity(ref List<UnitDataBase> units)
     {
@@ -1295,157 +1212,61 @@ public class AutoBattleManager : MonoBehaviour
         }
     }
 
-    //유물 저장
+    //유산 총괄
+    private void ProcessRelic()
+    {
+        //배율 초기화
+        RogueLikeData.Instance.ResetFinalDamage();
+        
+        //유산 저장
+        GetRelicData();
+        RelicManager.CheckFusion(ref ownedRelics);
+        // 아군, 적군 데이터를 RogueLikeData 싱글톤에 저장
+        RogueLikeData.Instance.AllMyUnits(myUnits);
+        RogueLikeData.Instance.AllEnemyUnits(enemyUnits);
+
+        //해주 유산 확인
+        curseBlock = RogueLikeData.Instance.GetOwnedRelicById(23) == null ? false : true;
+
+        //스탯 유산 적용
+        RelicManager.RunStateRelic(ownedRelics,curseBlock);
+
+        myFinalDamage = RogueLikeData.Instance.GetMyMultipleDamage();
+        enemyFinalDamage = RogueLikeData.Instance.GetEnemyMultipleDamage();
+
+        myUnits = RogueLikeData.Instance.GetMyUnits();
+
+        //유산 이미지 생성
+        autoBattleUI.CreateWarRelic();
+    }
+
+    //유산 저장
     private void GetRelicData()
     {
-        ownedRelics = RogueLikeData.Instance.GetRelicsByType(RelicType.AllEffect);
-        ownedRelics.AddRange(RogueLikeData.Instance.GetRelicsByType(RelicType.SpecialEffect));
-        ownedRelics.AddRange(RogueLikeData.Instance.GetRelicsByType(RelicType.StateBoost));
-        ownedRelics.AddRange(RogueLikeData.Instance.GetRelicsByType(RelicType.BattleActive));
-        ownedRelics.AddRange(RogueLikeData.Instance.GetRelicsByType(RelicType.ActiveState));
-    }
+        ownedRelics.Clear();
+        ownedRelicIds.Clear();
 
-    // 보유한 유물 중 ID 24, 25, 26을 모두 가지고 있는지 확인하고, 있으면 유물 27 추가
-    private void CheckFusion()
-    {
-        // 이미 유물 27을 보유하고 있으면 실행할 필요 없음
-        if (ownedRelics.Any(relic => relic.id == 27)) return;
-
-        HashSet<int> requiredRelicIds = new HashSet<int> { 24, 25, 26 };
-        HashSet<int> ownedRelicIds = new HashSet<int>(ownedRelics.Select(relic => relic.id));
-
-        // 모든 필수 유물(24, 25, 26)을 보유하고 있는지 확인
-        if (requiredRelicIds.All(id => ownedRelicIds.Contains(id)))
+        // 중복을 방지하며 유산 추가하는 메서드
+        void AddRelics(List<WarRelic> relics)
         {
-            // RogueLikeData에 유물 27 추가
-            RogueLikeData.Instance.AcquireRelic(27);
-
-            // 유물이 정상적으로 존재하는 경우만 추가
-            ownedRelics.Add(WarRelicDatabase.GetRelicById(27));
-        }
-    }
-
-
-    //스탯 유물 발동
-    private void RunStateRelic()
-    {
-        List<WarRelic> stateRelics = ownedRelics.Where(relic => relic.type == RelicType.StateBoost || relic.type == RelicType.ActiveState).ToList();
-
-        if (stateRelics.Count <= 0) return;
-
-        foreach (var relic in stateRelics)
-        {
-            if(curseBlock && relic.grade==0)
-                continue;
-
-            relic.Execute();
-        }
-    }
-
-    //전투 유물 발동
-    private void RunBattleRelic()
-    {
-
-    }
-
-    //유산 15 
-    private float ReactiveThornArmor(UnitDataBase unit)
-    {
-        if(ownedRelics.FirstOrDefault(relic => relic.id == 15)==null) return 0;
-
-        if (unit.heavyArmor)
-        {
-            Debug.Log("반응성의 가시 갑옷 발동");
-            return (unit.armor * 9);
-        }
-        return 0;
-    }
-
-    //유산 18
-    private bool PhalanxTacticsBook()
-    {
-        return ownedRelics.FirstOrDefault(relic => relic.id == 18)?.used ?? false;
-    }
-
-    //유산 28
-    private bool HeartGemNecklace(float health)
-    {
-        if (health > 0) return false;
-        var relic = ownedRelics.FirstOrDefault(relic => relic.id == 28);
-        if (relic == null || !relic.used) return false;
-        Debug.Log("하트 보석 목걸이 발동");
-        relic.used = true;
-        return true;
-    }
-
-    // 유산 30
-    private float BrokenStraightSword(float damage)
-    {
-        if (ownedRelics.FirstOrDefault(relic=>relic.id==30) != null)
-        {
-            // 10% 확률 (0~99 중 0~9가 나올 경우)
-            if (UnityEngine.Random.Range(0, 100) < 10)
+            foreach (var relic in relics)
             {
-                Debug.Log("부러진 직검 발동");
-                return damage * 0.9f; // 데미지 10% 감소
+                if (ownedRelicIds.Add(relic.id)) // HashSet에 추가 성공하면 중복 아님
+                {
+                    ownedRelics.Add(relic);
+                }
             }
         }
 
-        return damage; // 원래 데미지 반환
+        // 유물 데이터 가져오기
+        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.AllEffect));
+        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.SpecialEffect));
+        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.StateBoost));
+        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.BattleActive));
+        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.ActiveState));
     }
 
-    // 유산 33
-    private bool SplitShield()
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 33) != null)
-        {
-            // 10% 확률 (0~99 중 0~9가 나올 경우)
-            if (UnityEngine.Random.Range(0, 100) < 10)
-            {
-                Debug.Log("갈라진 방패 발동");
-                return true; 
-            }
-        }
-
-        return false;
-    }
-
-    //유산 35
-    private void Relic35(ref List<UnitDataBase> units)
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 35) == null) return;
-        int onlyOne=0;
-        int unitIndex = -1;
-        for (int i=0;i< units.Count;i++)
-        {
-            if (units[i].health > 0)
-            {
-                onlyOne++;
-                unitIndex = i;
-                units[i].attackDamage += 9;
-            }
-        }
-        if (onlyOne == 1)
-        {
-            units[unitIndex].attackDamage += 9;
-            units[unitIndex].armor += 9;
-            units[unitIndex].mobility += 9;
-        }
-    }
-
-    //유산 47
-    private bool TechnicalManual()
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 47) == null) return false;
-        return true;
-    }
-
-    //유산 55
-    private bool Relic55()
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 55) == null) return false;
-        return true;
-    }
+   
 }
 
 
