@@ -211,6 +211,39 @@ public class RogueLikeData
         return allRelics;
     }
 
+    // 보유한 모든 유물의 ID만 반환하는 함수
+    public List<int> GetAllOwnedRelicIds()
+    {
+        List<int> relicIds = new List<int>();
+
+        foreach (var relicList in relicsByType.Values)
+        {
+            foreach (var relic in relicList)
+            {
+                relicIds.Add(relic.id);
+            }
+        }
+
+        return relicIds;
+    }
+
+    //보유 유산 전부 삭제
+    public void ResetOwnedRelics()
+    {
+        // 각 유물 타입별로 저장된 유물 리스트를 비웁니다.
+        foreach (RelicType type in relicsByType.Keys)
+        {
+            relicsByType[type].Clear();
+        }
+
+        // 중복 체크용 HashSet도 모두 비웁니다.
+        foreach (RelicType type in relicIdsByType.Keys)
+        {
+            relicIdsByType[type].Clear();
+        }
+    }
+
+
     //현재 스테이지 수정
     public void SetCurrentStage(int x, int y, StageType type)
     {
@@ -284,9 +317,8 @@ public class RogueLikeData
     {
         myUnits.Clear();
         enemyUnits.Clear();
-        foreach (var type in relicsByType.Keys)
-        {
-            relicsByType[type].Clear();
-        }
+        ResetOwnedRelics();
     }
+
+
 }
