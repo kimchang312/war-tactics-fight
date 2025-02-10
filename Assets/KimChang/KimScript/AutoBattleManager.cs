@@ -14,7 +14,7 @@ public class AutoBattleManager : MonoBehaviour
     [SerializeField] private AutoBattleUI autoBattleUI;       //UI 관리 스크립트
 
     private readonly GoogleSheetLoader sheetLoader = new();
-    
+
     private readonly float heavyArmorValue=15.0f;                //중갑 피해 감소
     private readonly float bluntWeaponValue = 15.0f;             //둔기 추가 피해
     private readonly float throwSpearValue = 50.0f;              //투창 추가 피해
@@ -212,7 +212,7 @@ public class AutoBattleManager : MonoBehaviour
                     break;
             }
         }
-        else
+        else    //유닛 사망 시 승패무 채크 후 준비 페이즈로
         {
             HandleEnd();
         }
@@ -559,17 +559,29 @@ public class AutoBattleManager : MonoBehaviour
         //유닛 사망 검사
         if (myUnits[myUnitIndex].health <= 0 || enemyUnits[enemyUnitIndex].health <= 0 || myBackUnitHp <=0 || enemyBackUnitHp <=0)
         {
-            isFirstAttack=true;
-
             int myAdd=0;
             int enemyAdd=0;
-            ProcessDeath(ref myUnits,ref enemyUnits, myUnitIndex, enemyUnitIndex, enemyBackUnitHp, enemyDeathUnitIndex, ref enemyAdd, true);
-            ProcessDeath(ref enemyUnits,ref myUnits, enemyUnitIndex,myUnitIndex,myBackUnitHp,myDeathUnitIndex,ref myAdd, false);
+            bool isGuerrilla=false;
+            ProcessDeath(ref myUnits,ref enemyUnits, myUnitIndex, enemyUnitIndex, enemyBackUnitHp, enemyDeathUnitIndex, ref enemyAdd, true,ref isGuerrilla);
+            ProcessDeath(ref enemyUnits,ref myUnits, enemyUnitIndex,myUnitIndex,myBackUnitHp,myDeathUnitIndex,ref myAdd, false,ref isGuerrilla);
             // 암살+유격으로 죽은게 아닌 경우 == 다음 유닛으로 넘어감
             if (myBackUnitHp > 0 && enemyBackUnitHp > 0)
             {
                 myUnitIndex += myAdd;
                 enemyUnitIndex += enemyAdd;
+
+                isFirstAttack = true;
+            }
+            else if (isGuerrilla)
+            {
+                isFirstAttack = true;
+            }
+            else
+            {
+                myDeathUnitIndex = 0;
+                enemyDeathUnitIndex = 0;
+
+                return false;
             }
             if (myAdd > 0 && RelicManager.Relic55(ownedRelics))
             {
@@ -833,7 +845,7 @@ public class AutoBattleManager : MonoBehaviour
                 unitStats[defenders[defenderIndex].UniqueId].IncrementSkillUsage("수호");
                 if (!CalculateAccuracy(defenders[defenderIndex], attacker.perfectAccuracy))
                 {
-                    float actualDamage = damage;
+                    float actualDamage = damage * (1 - defenders[defenderIndex].armor / (10 + defenders[defenderIndex].armor));
 
                     defenders[defenderIndex].health -= actualDamage;
 
@@ -986,7 +998,7 @@ public class AutoBattleManager : MonoBehaviour
             unitStats[attacker.UniqueId].IncrementTraitUsage("도살");
         }
         //대기병
-        if (defenders[defenderIndex].branchIdx == 5 || defenders[defenderIndex].branchIdx == 6)
+        if (attacker.antiCavalry>0 &&(defenders[defenderIndex].branchIdx == 5 || defenders[defenderIndex].branchIdx == 6))
         {
             bonusDamage += attacker.antiCavalry;
             attackerSkill += "대기병 ";
@@ -1000,7 +1012,7 @@ public class AutoBattleManager : MonoBehaviour
         actualDamage = damage+ bonusDamage - reduceDamage;
         
         //관통
-        if (attacker.perfectAccuracy)
+        if (attacker.pierce)
         {
             attackerSkill += "관통 ";
 
@@ -1101,7 +1113,7 @@ public class AutoBattleManager : MonoBehaviour
 
 
     //사망 처리
-    private void ProcessDeath(ref List<UnitDataBase> attackers,ref List<UnitDataBase> defenders,int attackerIndex,int defenderIndex,float backUnitHp,int deathUnitIndex,ref int unitAdd,bool isTeam )
+    private void ProcessDeath(ref List<UnitDataBase> attackers,ref List<UnitDataBase> defenders,int attackerIndex,int defenderIndex,float backUnitHp,int deathUnitIndex,ref int unitAdd,bool isTeam ,ref bool isGuerrilla)
     {
         if (defenders[defenderIndex].health <=0 || backUnitHp <= 0)
         {
@@ -1111,14 +1123,14 @@ public class AutoBattleManager : MonoBehaviour
             //유격
             if (attackers[attackerIndex].guerrilla && attackers[attackerIndex].health > 0 && attackerIndex+1 < attackers.Count)
             {
-                //Debug.Log("유격");
-
                 CallDamageText(0, "유격 ", !isTeam);
 
                 //통계 기록: 유격 발동
                 unitStats[attackers[attackerIndex].UniqueId].IncrementSkillUsage("유격");
 
                 (attackers[attackerIndex + 1], attackers[attackerIndex]) = (attackers[attackerIndex],attackers[attackerIndex+1]);
+                
+                isGuerrilla = true;
             }
             //착취
             if (attackers[attackerIndex].drain && attackers[attackerIndex].health > 0)

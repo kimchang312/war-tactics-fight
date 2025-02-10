@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using DG.Tweening;
 using System.Text.RegularExpressions;
 using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
+
 
 
 #if UNITY_EDITOR
@@ -47,6 +49,7 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
     [SerializeField] private GameObject staticsWindow;
     [SerializeField] private Button staticsToggleBtn;
+    [SerializeField] private Button GoTestBtn;                  
 
     [SerializeField] private GameObject loadingWindow;        //로딩창
 
@@ -70,6 +73,7 @@ public class AutoBattleUI : MonoBehaviour
         myHpBar.interactable = false;
         enemyHpBar.interactable = false;
         staticsToggleBtn.onClick.AddListener(ToggleStaticsWindow);
+        GoTestBtn.onClick.AddListener(ClickGoTestBtn);
 
         // 입력 완료 시 처리하는 이벤트 등록
         relicInput.onEndEdit.AddListener(OnEndEdit);
@@ -630,6 +634,12 @@ public class AutoBattleUI : MonoBehaviour
     public void ToggleLoadingWindow()
     {
         loadingWindow.SetActive(!loadingWindow.activeSelf);
+    }
+
+    //테스트 화면으로
+    private void ClickGoTestBtn()
+    {
+        SceneManager.LoadScene("Upgrade");
     }
 
 }
