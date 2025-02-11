@@ -30,7 +30,7 @@ public class StageMapManager : MonoBehaviour
     private void Start()
     {
         GenerateStages();
-
+        PrintAllStageConnections();
         // ✅ allStages가 정상적으로 채워졌는지 확인
         if (allStages == null || allStages.Count == 0)
         {
@@ -165,7 +165,7 @@ public class StageMapManager : MonoBehaviour
 
 
 
-void InitializeStageStates()
+    void InitializeStageStates()
     {
         foreach (var stage in allStages)
         {
@@ -189,7 +189,7 @@ void InitializeStageStates()
             Debug.LogError("❌ 시작 스테이지에 연결된 스테이지가 없습니다! 스테이지 생성 로직을 확인하세요.");
         }
     }
-    
+
     public void MoveToStage(StageNode newStage)
     {
         if (newStage == null)
@@ -230,48 +230,52 @@ void InitializeStageStates()
             nextStage.SetClickable(true);
         }
         // ✅ `newStage`가 null이 아닌 경우만 호출
-    if (stageUIManager != null && newStage != null)
-    {
-        Debug.Log($"🟢 StageUIManager.UpdateStageUI() 호출: {newStage.name}");
-        stageUIManager.UpdateStageUI(newStage);
-    }
-    else
-    {
-        Debug.LogError("❌ StageUIManager 또는 newStage가 null입니다!");
-    }
+        if (stageUIManager != null && newStage != null)
+        {
+            Debug.Log($"🟢 StageUIManager.UpdateStageUI() 호출: {newStage.name}");
+            stageUIManager.UpdateStageUI(newStage);
+        }
+        else
+        {
+            Debug.LogError("❌ StageUIManager 또는 newStage가 null입니다!");
+        }
         OnStageChanged?.Invoke(newStage);
     }
 
     //다음 스테이지와의 연결을 표시하는 선을 표시하는 메서드 -미적용중
     void DrawConnection(StageNode fromStage, StageNode toStage)
     {
-        // LineRenderer 프리팹이 없을 경우 처리
+        // linePrefab이 제대로 할당되어 있는지 확인
         if (linePrefab == null)
         {
             Debug.LogError("❌ LineRenderer 프리팹이 할당되지 않았습니다. Inspector에서 확인하세요.");
             return;
         }
 
-        // LineRenderer 프리팹 생성
+        // linePrefab 인스턴스 생성 (StageMapManager 오브젝트의 자식으로 생성)
         GameObject lineObj = Instantiate(linePrefab, transform);
+
+        // LineRenderer 컴포넌트 가져오기
         LineRenderer line = lineObj.GetComponent<LineRenderer>();
+        if (line == null)
+        {
+            Debug.LogError("❌ 생성된 오브젝트에 LineRenderer 컴포넌트가 없습니다!");
+            return;
+        }
 
-        // LineRenderer의 정렬 옵션 설정
-        line.sortingLayerName = "UI"; // UI와 동일한 Sorting Layer 사용
-        line.sortingOrder = 1;        // UI 요소보다 위에 표시되도록 설정
-
-        // LineRenderer 선 두께 설정
-        line.startWidth = 0.05f;
-        line.endWidth = 0.05f;
-
-        // 스테이지 버튼 위치 계산 (Screen Space - Overlay에서는 localPosition 그대로 사용)
-        Vector3 fromPosition = new Vector3(fromStage.position.x, fromStage.position.y, 0f);
-        Vector3 toPosition = new Vector3(toStage.position.x, toStage.position.y, 0f);
-
-        // LineRenderer의 위치 설정
+        // LineRenderer의 속성 설정 (필요에 따라 조정)
         line.positionCount = 2;
-        line.SetPosition(0, fromPosition);
-        line.SetPosition(1, toPosition);
+        line.startWidth = 0.2f;
+        line.endWidth = 0.2f;
+        line.sortingLayerName = "UI"; // UI 레이어와 동일한 레이어로 설정 (UI와 겹치게 하려면)
+        line.sortingOrder = 1;
+
+        // 스테이지의 위치를 사용하여 선의 시작점과 끝점 설정  
+        // (여기서는 fromStage.position과 toStage.position이 적절한 좌표라고 가정)
+        Vector3 startPos = new Vector3(fromStage.position.x, fromStage.position.y, 0f);
+        Vector3 endPos = new Vector3(toStage.position.x, toStage.position.y, 0f);
+        line.SetPosition(0, startPos);
+        line.SetPosition(1, endPos);
     }
 
     void ConnectStages()
@@ -285,23 +289,22 @@ void InitializeStageStates()
 
             if (nextLevelStages.Count == 0)
             {
-                if (level < levelsCount - 1) // ✅ 15레벨 이후는 디버그 로그 출력 안 함
-                {
+                if (level < levelsCount - 1)
                     Debug.LogWarning($"⚠️ 레벨 {level}에 연결할 다음 레벨 스테이지가 없습니다!");
-                }
                 continue;
             }
 
-            // 필수 연결: 같은 gridID 우선, 그 외 생성 순서에 따라 가장 가까운 스테이지 연결
+            // 1. 필수 연결: 같은 gridID(같은 격자 칸) 우선 연결,
+            // 없으면 생성 순서와 거리를 고려하여 후보 선택
             foreach (StageNode cur in currentLevelStages)
             {
                 if (cur.nextStages.Count == 0)
                 {
-                    // 우선, 다음 레벨 중 gridID가 같은(즉, 같은 칸) 스테이지를 찾음
+                    // 우선, 다음 레벨 중 gridID가 같은 스테이지를 찾음
                     StageNode candidate = nextLevelStages.Find(s => s.gridID == cur.gridID);
                     if (candidate == null)
                     {
-                        // 없다면 생성 순서(creationIndex)와 거리를 함께 고려해서 후보 선택
+                        // 없다면, 거리를 기준으로 정렬 후 생성 순서를 보조 조건으로 후보 선택
                         candidate = nextLevelStages
                                     .OrderBy(s => Vector2.Distance(cur.position, s.position))
                                     .ThenBy(s => s.creationIndex)
@@ -312,13 +315,16 @@ void InitializeStageStates()
                         cur.nextStages.Add(candidate);
                         candidate.previousStages.Add(cur);
                         Debug.Log($"✅ {cur.name} → {candidate.name} 연결됨 (필수 연결)");
+                        // 연결 선 그리기
+                        DrawConnection(cur, candidate);
                     }
                 }
             }
-            // 추가 연결: 각 스테이지에 대해 추가 0~2 연결 (필요 시)
+
+            // 2. 추가 연결: 각 스테이지에 대해 0~2개의 추가 연결을 랜덤으로 추가
             foreach (StageNode cur in currentLevelStages)
             {
-                int additionalConnections = UnityEngine.Random.Range(0, 3);
+                int additionalConnections = UnityEngine.Random.Range(0, 3); // 0, 1 또는 2개 추가
                 for (int i = 0; i < additionalConnections; i++)
                 {
                     StageNode randomNext = nextLevelStages[UnityEngine.Random.Range(0, nextLevelStages.Count)];
@@ -327,12 +333,63 @@ void InitializeStageStates()
                         cur.nextStages.Add(randomNext);
                         randomNext.previousStages.Add(cur);
                         Debug.Log($"✅ {cur.name} → {randomNext.name} 추가 연결됨");
+                        // 추가 연결 선 그리기
+                        DrawConnection(cur, randomNext);
                     }
                 }
             }
         }
         Debug.Log("🟢 스테이지 연결 완료");
     }
+    public void PrintAllStageConnections()
+    {
+        if (allStages == null || allStages.Count == 0)
+        {
+            Debug.LogWarning("스테이지가 하나도 생성되지 않았습니다.");
+            return;
+        }
 
+        Debug.Log("====== 전체 스테이지 연결 정보 ======");
+        foreach (StageNode stage in allStages)
+        {
+            // 다음 연결 정보 수집
+            string nextConnections = "";
+            if (stage.nextStages != null && stage.nextStages.Count > 0)
+            {
+                foreach (StageNode next in stage.nextStages)
+                {
+                    nextConnections += $"{next.name}({next.gridID}), ";
+                }
+                // 마지막 콤마 제거
+                if (nextConnections.EndsWith(", "))
+                    nextConnections = nextConnections.Substring(0, nextConnections.Length - 2);
+            }
+            else
+            {
+                nextConnections = "없음";
+            }
+
+            // 이전 연결 정보 수집 (필요한 경우)
+            string prevConnections = "";
+            if (stage.previousStages != null && stage.previousStages.Count > 0)
+            {
+                foreach (StageNode prev in stage.previousStages)
+                {
+                    prevConnections += $"{prev.name}({prev.gridID}), ";
+                }
+                if (prevConnections.EndsWith(", "))
+                    prevConnections = prevConnections.Substring(0, prevConnections.Length - 2);
+            }
+            else
+            {
+                prevConnections = "없음";
+            }
+
+            Debug.Log($"스테이지: {stage.name} (GridID: {stage.gridID}, Level: {stage.level})\n" +
+                      $"    이전 연결: {prevConnections}\n" +
+                      $"    다음 연결: {nextConnections}");
+        }
+        Debug.Log("====== 연결 정보 출력 완료 ======");
+    }
 }
 
