@@ -179,7 +179,7 @@ public class AutoBattleUI : MonoBehaviour
 
 
     //유닛 갯수 만큼 유닛 이미지 생성
-    public void CreateUnitBox(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<UnitDataBase> myRangeUnits, List<UnitDataBase> enemyRangeUnits)
+    public void CreateUnitBox(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<RogueUnitDataBase> myRangeUnits, List<RogueUnitDataBase> enemyRangeUnits)
     {
         Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0), new Vector3(-397, -385, 0) };
         Vector3[] enemyPositions = { new Vector3(200, 94, 0), new Vector3(152, -385, 0), new Vector3(430, -385, 0) };
@@ -275,7 +275,7 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //유닛 이미지 생성
-    private void CreateUnitImages(List<UnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
+    private void CreateUnitImages(List<RogueUnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
     {
         int unitIndex = 0;
 
@@ -355,7 +355,7 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     // 능력치 아이콘 생성
-    private void CreateAbilityIcons(UnitDataBase unit, bool isTeam)
+    private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
         float posY = -103;
         float myTeamPosX = -280;

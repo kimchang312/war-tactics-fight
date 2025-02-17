@@ -9,7 +9,7 @@ public class GoogleSheetLoader
     private List<List<string>> unitExcel; // 유닛 데이터 리스트
 
     private const string googleSheetURL = "https://docs.google.com/spreadsheets/d/1B_imPK0NF8GQ4tmMgGxOykMRguaBjDgnou8zLAYejCU/export?format=tsv&range=A4:AH";
-    private const string unitStateSheetURL = "https://docs.google.com/spreadsheets/d/1jWndX9egtj8QCLwxqWRKbU1rKKDpY5ybf99HY0MVUig/export?format=tsv&range=A4:BA62";
+    private const string unitStateSheetURL = "https://docs.google.com/spreadsheets/d/1jWndX9egtj8QCLwxqWRKbU1rKKDpY5ybf99HY0MVUig/export?format=tsv&range=A4:BD62";
 
     public List<List<string>> GetExcelData() => excel;
     public List<List<string>> GetUnitExcelData() => unitExcel;

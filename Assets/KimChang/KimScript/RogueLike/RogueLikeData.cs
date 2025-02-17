@@ -28,8 +28,8 @@ public class RogueLikeData
         Boss
     }
 
-    private List<UnitDataBase> myUnits = new List<UnitDataBase>();
-    private List<UnitDataBase> enemyUnits = new List<UnitDataBase>();
+    private List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>();
+    private List<RogueUnitDataBase> enemyUnits = new List<RogueUnitDataBase>();
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
@@ -38,11 +38,12 @@ public class RogueLikeData
     private int currentStageY = 0;
     private StageType currentStageType = StageType.Battle;
 
-    private int maxGold=0;
     private int currentGold = 0;
+    /*
+    private int maxGold=0;
     private int earnedGold = 0;
     private int spentGold = 0;
-
+    */
     private float myFinalDamage = 1;
     private float enemyFinalDamage = 1;
 
@@ -61,55 +62,28 @@ public class RogueLikeData
     }
 
     //내 유닛 전부 수정하기
-    public void AllMyUnits(List<UnitDataBase> units)
+    public void AllMyUnits(List<RogueUnitDataBase> units)
     {
-        myUnits = new List<UnitDataBase>(units);
+        myUnits = new List<RogueUnitDataBase>(units);
     }
 
     //상대 유닛 전부 수정하기
-    public void AllEnemyUnits(List<UnitDataBase> units)
+    public void AllEnemyUnits(List<RogueUnitDataBase> units)
     {
-        enemyUnits = new List<UnitDataBase>(units);
+        enemyUnits = new List<RogueUnitDataBase>(units);
     }
 
     //내 유닛 가져오기
-    public List<UnitDataBase> GetMyUnits()
+    public List<RogueUnitDataBase> GetMyUnits()
     {
-        return new List<UnitDataBase>(myUnits);
+        return new List<RogueUnitDataBase>(myUnits);
     }
 
     //상대 유닛 가져오기
-    public List<UnitDataBase> GetEnemyUnits()
+    public List<RogueUnitDataBase> GetEnemyUnits()
     {
-        return new List<UnitDataBase>(enemyUnits);
+        return new List<RogueUnitDataBase>(enemyUnits);
     }
-
-    //내 유닛 하나 수정하기
-    public void UpdateMyUnit(int uniqueId, UnitDataBase updatedUnit)
-    {
-        for (int i = 0; i < myUnits.Count; i++)
-        {
-            if (myUnits[i].UniqueId == uniqueId)
-            {
-                myUnits[i] = updatedUnit;
-                return;
-            }
-        }
-    }
-
-    //상대 유닛 하나 수정하기
-    public void UpdateEnemyUnit(int uniqueId, UnitDataBase updatedUnit)
-    {
-        for (int i = 0; i < enemyUnits.Count; i++)
-        {
-            if (enemyUnits[i].UniqueId == uniqueId)
-            {
-                enemyUnits[i] = updatedUnit;
-                return;
-            }
-        }
-    }
-
     // 중복 방지 유물 추가 함수
     public void AcquireRelic(int relicId)
     {
@@ -243,7 +217,7 @@ public class RogueLikeData
         }
     }
 
-
+    /*
     //현재 스테이지 수정
     public void SetCurrentStage(int x, int y, StageType type)
     {
@@ -251,28 +225,30 @@ public class RogueLikeData
         currentStageY = y;
         currentStageType = type;
     }
+    */
 
     //현재 스테이지 가져오기
     public (int x, int y, StageType type) GetCurrentStage()
     {
         return (currentStageX, currentStageY, currentStageType);
     }
-
+    /*
     //현재 골드 수정
     public void SetCurrentGold(int gold)
     {
         currentGold = gold;
     }
 
+     //사용한 골드 가져오기
+    public int GetReduceGold()
+    {
+        return spentGold;
+    }
+    */
     //현재 골드 가져오기
     public int GetCurrentGold()
     {
         return currentGold;
-    }
-    //사용한 골드 가져오기
-    public int GetReduceGold()
-    {
-        return spentGold;
     }
 
     //데미지 배율 초기화
@@ -281,7 +257,7 @@ public class RogueLikeData
         myFinalDamage = 1;
         enemyFinalDamage = 1;
     }
-
+    /*
     //내 데미지 배율 수정
     public void SetMyMultipleDamage(float multiple)
     {
@@ -292,6 +268,7 @@ public class RogueLikeData
     {
         enemyFinalDamage = multiple;
     }
+    */
     //내 데미지 배율 추가
     public void AddMyMultipleDamage(float multiple)
     {
@@ -312,13 +289,13 @@ public class RogueLikeData
     {
         return enemyFinalDamage;
     }
-
+    /*
     public void Clear()
     {
         myUnits.Clear();
         enemyUnits.Clear();
         ResetOwnedRelics();
     }
-
+    */
 
 }
