@@ -97,9 +97,8 @@ public class RelicManager
     }
 
     //유산 28
-    public static bool HeartGemNecklace(float health)
+    public static bool HeartGemNecklace()
     {
-        if (health > 0) return false;
         var relic = ownedRelics.FirstOrDefault(relic => relic.id == 28);
         if (relic == null || !relic.used) return false;
         relic.used = true;

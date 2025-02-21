@@ -13,6 +13,7 @@ public class AutoBattleManager : MonoBehaviour
 {
 
     [SerializeField] private AutoBattleUI autoBattleUI;       //UI 관리 스크립트
+    private AbilityManager abilityManager = new AbilityManager();
 
     private readonly GoogleSheetLoader sheetLoader = new();
 
@@ -26,7 +27,7 @@ public class AutoBattleManager : MonoBehaviour
     private readonly float assassinationValue = 2.0f;            //암살 배율
     private readonly float drainHealValue = 20.0f;               //착취 회복량
     private readonly float drainGainAttackValue = 10.0f;         //착취 공격력 증가량
-    private float subjugationDamageValue = 1.1f;                 //제압 데미지
+    private float suppressionValue = 1.1f;                 //제압 데미지
     private float thornsDamageValue = 10.0f;                      //가시 데미지
     private float fireDamageValue = 10.0f;                       //작열 데미지
     private float bloodSuckingValue = 1.2f;                       //흡혈 회복량
@@ -38,6 +39,8 @@ public class AutoBattleManager : MonoBehaviour
 
     List<RogueUnitDataBase> myUnits = new();
     List<RogueUnitDataBase> enemyUnits = new();
+    List<RogueUnitDataBase> myDeathUnits = new();
+    List<RogueUnitDataBase> enemyDeathUnits = new();
 
     //유닛 전투 통계
     private Dictionary<int, UnitCombatStatics> unitStats = new();
@@ -94,6 +97,8 @@ public class AutoBattleManager : MonoBehaviour
     //데미지 배율
     private float myFinalDamage = 0;
     private float enemyFinalDamage = 0;
+
+
 
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private async void Start()
@@ -218,7 +223,7 @@ public class AutoBattleManager : MonoBehaviour
         await phaseHandler();
         UpdateUnitHp();
         //유닛이 죽지 않았고 끝나지 않음
-        if (!ManageUnitDeath() && !(myUnitIndex >= myUnitMax || enemyUnitIndex >= enemyUnitMax))
+        if (!ManageUnitDeath() && !(myUnits.Count ==0 || enemyUnits.Count ==0))
         {
             switch (currentState)
             {
@@ -272,12 +277,11 @@ public class AutoBattleManager : MonoBehaviour
     private void  UpdateUnitHp()
     {
         //범위 확인
-        int myCurrentIndex = myUnitIndex >= myUnitMax ? myUnitMax - 1 : myUnitIndex;
-        int enemyCurrentIndex = enemyUnitIndex >= enemyUnitMax ? enemyUnitMax - 1 : enemyUnitIndex;
-        float myUnitHp = myUnits[myCurrentIndex].health;
-        float enemyHp = enemyUnits[enemyCurrentIndex].health;
-        float myMAxHp = myUnits[myCurrentIndex].maxHealth;
-        float enemyMaxHp = enemyUnits[enemyCurrentIndex].maxHealth;
+        if (myUnits.Count== 0 || enemyUnits.Count==0) return;
+        float myUnitHp = myUnits[0].health;
+        float enemyHp = enemyUnits[0].health;
+        float myMAxHp = myUnits[0].maxHealth;
+        float enemyMaxHp = enemyUnits[0].maxHealth;
        
         if (myUnitHp < 0)
         {
@@ -295,7 +299,12 @@ public class AutoBattleManager : MonoBehaviour
     private float CalculateDodge(RogueUnitDataBase unit)
     {
         float dodge ;
-        float smoke = unit.effectDictionary[2] != null ? 15 : 0;
+        float smoke = 0;
+        // 키 2가 존재하는지 확인 후 값을 가져옴
+        if (unit.effectDictionary.TryGetValue(2, out BuffDebuffData _))
+        {
+            smoke = 15;
+        }
         dodge = (2 + (13 / 9) * (unit.mobility - 1)) +(unit.agility?10.0f:0) + smoke;
 
         return Mathf.Clamp(dodge, 0, 100);
@@ -414,9 +423,15 @@ public class AutoBattleManager : MonoBehaviour
 
         autoBattleUI.CreateUnitBox(myAliveUnits, enemyAliveUnits, CalculateDodge(myUnits[myCurrentIndex]), CalculateDodge(enemyUnits[enemyCurrentIndex]),myRangeUnits,enemyRangUnits);
     }
-
     //준비 페이즈
     private void PreparationPhase()
+    {
+        abilityManager.ProcessPreparationAbility(myUnits, enemyUnits, isFirstAttack, true, myFinalDamage);
+        abilityManager.ProcessPreparationAbility(enemyUnits,myUnits,isFirstAttack, false, enemyFinalDamage);
+    }
+
+    //준비 페이즈
+    private void PreparationPhases()
     {
         //후열 유닛 체력
         myBackUnitHp = 1;
@@ -450,7 +465,7 @@ public class AutoBattleManager : MonoBehaviour
             if (enemyAllDamage > 0)
             {
                 //유산 28
-                if (RelicManager.HeartGemNecklace(myUnits[myUnitIndex].health)) 
+                if (myUnits[myUnitIndex].health<=0 && RelicManager.HeartGemNecklace()) 
                 {
                     float heal = HealHealth(myUnits[myUnitIndex], myUnits[myUnitIndex].maxHealth);
                     myUnits[myUnitIndex].health = heal;
@@ -482,6 +497,13 @@ public class AutoBattleManager : MonoBehaviour
     //충돌 페이즈
     private void ChrashPhase()
     {
+        abilityManager.ProcessChrashAbility(myUnits, enemyUnits, isFirstAttack, myFinalDamage, true);
+        abilityManager.ProcessChrashAbility(enemyUnits,myUnits, isFirstAttack, enemyFinalDamage, false);
+    }
+
+    //충돌 페이즈
+    private void ChrashPhases()
+    {
         float myDamage;
         float enemyDamage;
 
@@ -500,7 +522,7 @@ public class AutoBattleManager : MonoBehaviour
         if (enemyDamage > 0)
         {
             //유산 28
-            if (RelicManager.HeartGemNecklace(myUnits[myUnitIndex].health)) myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
+            if (myUnits[myUnitIndex].health <= 0 && RelicManager.HeartGemNecklace()) myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
 
             //15
             relicDamage += RelicManager.ReactiveThornArmor(myUnits[myUnitIndex]);
@@ -526,6 +548,14 @@ public class AutoBattleManager : MonoBehaviour
     //지원 페이즈
     private void SupportPhase()
     {
+        abilityManager.ProcessSupportAbility(myUnits, enemyUnits, true, myFinalDamage);
+        abilityManager.ProcessSupportAbility(enemyUnits,myUnits, false, enemyFinalDamage);
+
+    }
+
+    //지원 페이즈
+    private void SupportPhases()
+    {
         float myDamage = 0;
         float enemyDamage = 0;
 
@@ -538,7 +568,7 @@ public class AutoBattleManager : MonoBehaviour
             myUnits[myUnitIndex].health -= enemyDamage;
             
             //유산 28
-            if(RelicManager.HeartGemNecklace(myUnits[myUnitIndex].health)) myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
+            if(myUnits[myUnitIndex].health <= 0 && RelicManager.HeartGemNecklace()) myUnits[myUnitIndex].health = myUnits[myUnitIndex].maxHealth;
 
             CallDamageText(enemyDamage, "원거리 ", false);
 
@@ -585,10 +615,14 @@ public class AutoBattleManager : MonoBehaviour
         //유닛 체력 UI 최신화
         UpdateUnitHp();
     }
-
+    //유닛 사망 처리
+    private bool ManageUnitDeath()
+    {
+        return abilityManager.ProcessDeath(ref myUnits, ref enemyUnits, ref myDeathUnits, ref enemyDeathUnits, ref isFirstAttack);
+    }
 
     //유닛 사망 처리 통합본
-    private bool ManageUnitDeath()
+    private bool ManageUnitDeaths()
     {
         //유닛 사망 검사
         if (myUnits[myUnitIndex].health <= 0 || enemyUnits[enemyUnitIndex].health <= 0 || myBackUnitHp <=0 || enemyBackUnitHp <=0)
@@ -731,9 +765,32 @@ public class AutoBattleManager : MonoBehaviour
 
         await Task.Yield();
     }
-
     //종료 확인
     private int CheckEnd()
+    {
+        if (myUnits.Count == 0 || enemyUnits.Count == 0)
+        {
+            if (enemyUnits.Count == 0 || enemyUnits.Count > 0)
+            {
+                Debug.Log("나의 승리");
+                return 0;
+            }
+            else if (enemyUnits.Count > 0 || myUnits.Count == 0)
+            {
+                Debug.Log("나의 패배");
+                return 1;
+            }
+            else
+            {
+                Debug.Log("무승부");
+                return 2;
+            }
+        }
+
+        return 3;
+    }
+    //종료 확인
+    private int CheckEnds()
     {
         if (myUnitIndex >= myUnitMax || enemyUnitIndex >= enemyUnitMax)
         {
@@ -877,7 +934,7 @@ public class AutoBattleManager : MonoBehaviour
                 unitStats[defenders[defenderIndex].UniqueId].IncrementSkillUsage("수호");
                 if (!CalculateAccuracy(defenders[defenderIndex], attackers[attackerIndex].perfectAccuracy))
                 {
-                    float actualDamage = damage * (1 - defenders[defenderIndex].armor / (10 + defenders[defenderIndex].armor));
+                    float actualDamage = damage * (1 - (defenders[defenderIndex].armor / (10 + defenders[defenderIndex].armor)));
 
                     defenders[defenderIndex].health -= actualDamage;
 
@@ -1061,7 +1118,7 @@ public class AutoBattleManager : MonoBehaviour
         {
             attackerSkill += "제압 ";
 
-            bonusDamage *= subjugationDamageValue;
+            bonusDamage *= suppressionValue;
         }
 
         damage = attackers[attackerIndex].attackDamage * multiplier;
@@ -1079,7 +1136,7 @@ public class AutoBattleManager : MonoBehaviour
         else
         {
             //장갑 계산
-            damage = attackers[attackerIndex].attackDamage * (1 - (defenders[defenderIndex].armor) / (10 + defenders[defenderIndex].armor));
+            damage *= (1 - (defenders[defenderIndex].armor) / (10 + defenders[defenderIndex].armor));
         }
 
         damage = (damage+ bonusDamage)*finalDamage;
@@ -1683,60 +1740,7 @@ public class AutoBattleManager : MonoBehaviour
         //유산 이미지 생성
         autoBattleUI.CreateWarRelic();
     }
-    /*
-    //유산 총괄
-    private void ProcessaRelic()
-    {
-        //배율 초기화
-        RogueLikeData.Instance.ResetFinalDamage();
-        
-        //유산 저장
-        GetRelicData();
-        RelicManager.CheckFusion(ref ownedRelics);
-        // 아군, 적군 데이터를 RogueLikeData 싱글톤에 저장
-        RogueLikeData.Instance.AllMyUnits(myUnits);
-        RogueLikeData.Instance.AllEnemyUnits(enemyUnits);
-
-        //해주 유산 확인
-        bool curseBlock = RogueLikeData.Instance.GetOwnedRelicById(23) == null ? false : true;
-
-        //스탯 유산 적용
-        RelicManager.RunStateRelic(ownedRelics,curseBlock);
-
-        myFinalDamage = RogueLikeData.Instance.GetMyMultipleDamage();
-        enemyFinalDamage = RogueLikeData.Instance.GetEnemyMultipleDamage();
-
-        myUnits = RogueLikeData.Instance.GetMyUnits();
-
-        //유산 이미지 생성
-        autoBattleUI.CreateWarRelic();
-    }
-
-    //유산 저장
-    private void GetRelicData()
-    {
-        ownedRelics.Clear();
-        ownedRelicIds.Clear();
-
-        // 중복을 방지하며 유산 추가하는 메서드
-        void AddRelics(List<WarRelic> relics)
-        {
-            foreach (var relic in relics)
-            {
-                if (ownedRelicIds.Add(relic.id)) // HashSet에 추가 성공하면 중복 아님
-                {
-                    ownedRelics.Add(relic);
-                }
-            }
-        }
-
-        // 유물 데이터 가져오기
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.AllEffect));
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.SpecialEffect));
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.StateBoost));
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.BattleActive));
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.ActiveState));
-    }*/
+    
 
     
 }
