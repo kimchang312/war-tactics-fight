@@ -123,7 +123,6 @@ public class RelicManager
         if (onlyOne == 1)
         {
             units[unitIndex].attackDamage *= 1.3f;
-            //units[unitIndex].armor += 9;
             units[unitIndex].mobility += 4;
         }
     }
@@ -139,6 +138,24 @@ public class RelicManager
     public static bool Relic55()
     {
         if (ownedRelics.FirstOrDefault(relic => relic.id == 55) == null) return false;
+        return true;
+    }
+    //유산 75 신성한 문서
+    public static bool SacredDocument()
+    {
+        if (ownedRelics.FirstOrDefault(relic => relic.id == 75) == null) return false;
+        return true;
+    }
+    //유산 78 뿔피리
+    public static bool Horn()
+    {
+        if (ownedRelics.FirstOrDefault(relic => relic.id == 78) == null) return false;
+        return true;
+    }
+    //유산 84 창술 교범
+    public static bool SpearManual()
+    {
+        if (ownedRelics.FirstOrDefault(relic => relic.id == 84) == null) return false;
         return true;
     }
 }

@@ -35,9 +35,9 @@ public class UpgradeManager
     // private 생성자로 외부에서 생성 방지
     private UpgradeManager()
     {
-        // 병종 수 7개 고정
-        upgradeValues = new UpgradeValues[7];
-        for (int i = 0; i < 7; i++)
+        // 병종 수 9개 고정
+        upgradeValues = new UpgradeValues[9];
+        for (int i = 0; i < 9; i++)
         {
             upgradeValues[i] = new UpgradeValues();
         }
