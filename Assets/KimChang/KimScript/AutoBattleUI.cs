@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using DG.Tweening;
 using System.Text.RegularExpressions;
 using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
+
 
 
 #if UNITY_EDITOR
@@ -47,6 +49,7 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
     [SerializeField] private GameObject staticsWindow;
     [SerializeField] private Button staticsToggleBtn;
+    [SerializeField] private Button GoTestBtn;                  
 
     [SerializeField] private GameObject loadingWindow;        //로딩창
 
@@ -70,6 +73,7 @@ public class AutoBattleUI : MonoBehaviour
         myHpBar.interactable = false;
         enemyHpBar.interactable = false;
         staticsToggleBtn.onClick.AddListener(ToggleStaticsWindow);
+        GoTestBtn.onClick.AddListener(ClickGoTestBtn);
 
         // 입력 완료 시 처리하는 이벤트 등록
         relicInput.onEndEdit.AddListener(OnEndEdit);
@@ -102,29 +106,22 @@ public class AutoBattleUI : MonoBehaviour
         enemyHpBar.value = enemyUnitHP;
     }
 
-    //유닛 체력 바
-    private void UpdateHpBar(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
-    {
-        myHpBar.maxValue = myMaxHp;
-        myHpBar.value = myUnitHP;
-
-        enemyHpBar.maxValue = enemyMaxHp;
-        enemyHpBar.value = enemyUnitHP;
-    }
-
 
     //데미지 표시
-    public void ShowDamage(float damage, string text, bool team,int unitIndex=0)
+    public void ShowDamage(float _damage, string text, bool team,int unitIndex=0)
     {
         float offsetX = 50f;
+        float damage = -_damage;
         GameObject damageObj = objectPool.GetDamageText();
         TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
 
-        damagetext.text = $"{-1*damage} {text}";
+        damagetext.color =damage >=0? Color.green : Color.red;
+
+        damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
 
         RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
 
-        //team = true== 상대 유닛 머리위, false == 내 유닛 머리위
+        //team = true== 내 머리위, false == 상대 머리위
         if (team)
         {
            if (unitIndex == 0)
@@ -134,6 +131,7 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 damageObj.SetActive(false);
+                Debug.Log(text);
                 GameObject unit = FindUnit(unitIndex, !team);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition =
@@ -175,7 +173,7 @@ public class AutoBattleUI : MonoBehaviour
 
 
     //유닛 갯수 만큼 유닛 이미지 생성
-    public void CreateUnitBox(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<UnitDataBase> myRangeUnits, List<UnitDataBase> enemyRangeUnits)
+    public void CreateUnitBox(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<RogueUnitDataBase> myRangeUnits, List<RogueUnitDataBase> enemyRangeUnits)
     {
         Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0), new Vector3(-397, -385, 0) };
         Vector3[] enemyPositions = { new Vector3(200, 94, 0), new Vector3(152, -385, 0), new Vector3(430, -385, 0) };
@@ -243,7 +241,7 @@ public class AutoBattleUI : MonoBehaviour
         rectTransform.anchoredPosition = position;
 
         // 이미지 설정 & 투명도 정상화
-        Sprite sprite = Resources.Load<Sprite>($"KIcon/rangedAttack");
+        Sprite sprite = Resources.Load<Sprite>($"KIcon/AbilityIcon/rangedAttack");
         Image img = unit.GetComponent<Image>();
         Color originalColor = img.color;
         img.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f);
@@ -271,14 +269,12 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //유닛 이미지 생성
-    private void CreateUnitImages(List<UnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
+    private void CreateUnitImages(List<RogueUnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
     {
-        int unitIndex = 0;
-
-        for (int i = 0; (i < units.Count || unitIndex < units.Count); i++, unitIndex++)
+        for (int i = 0; i < units.Count ; i++)
         {
             string unitTeam = isMyUnit ? "My" : "Enemy";
-            if (units[unitIndex].health > 0)
+            if (units[i].health > 0)
             {
                 GameObject unitImage = objectPool.GetBattleUnit();
                 Transform childUnit = unitImage.transform.GetChild(0);
@@ -316,7 +312,7 @@ public class AutoBattleUI : MonoBehaviour
                 childRectTrasform.sizeDelta = i == 0 ? new Vector2(firstSize, firstSize) : new Vector2(secondSize, secondSize);
 
                 // 이미지 설정 & 투명도 정상화
-                Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[unitIndex].unitImg}");
+                Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[i].unitImg}");
                 Image img = unitImage.GetComponent<Image>();
                 Color originalColor = img.color;
                 img.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f); 
@@ -328,12 +324,9 @@ public class AutoBattleUI : MonoBehaviour
                 unitFrame.sprite = frameSprite;
 
                 //유닛 이름 설정
-                unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{unitIndex}";
+                unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
             }
-            else
-            {
-                i--;
-            }
+            
 
         }
 
@@ -351,7 +344,7 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     // 능력치 아이콘 생성
-    private void CreateAbilityIcons(UnitDataBase unit, bool isTeam)
+    private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
         float posY = -103;
         float myTeamPosX = -280;
@@ -386,7 +379,7 @@ public class AutoBattleUI : MonoBehaviour
                     rectTransform.localScale = Vector3.one;
 
                     // 이미지 설정
-                    Sprite sprite = Resources.Load<Sprite>($"KIcon/{attr.Name}");
+                    Sprite sprite = Resources.Load<Sprite>($"KIcon/AbilityIcon/{attr.Name}");
                     Image img = iconImage.GetComponent<Image>();
                     img.sprite = sprite;
 
@@ -469,7 +462,7 @@ public class AutoBattleUI : MonoBehaviour
         }
         FadeOutUnit(unit);
     }
-
+    //생성된 유닛 검색
     private GameObject FindUnit(int unitIndex, bool isMyUnit)
     {
         var cache = isMyUnit ? myUnitCache : enemyUnitCache;
@@ -630,6 +623,12 @@ public class AutoBattleUI : MonoBehaviour
     public void ToggleLoadingWindow()
     {
         loadingWindow.SetActive(!loadingWindow.activeSelf);
+    }
+
+    //테스트 화면으로
+    private void ClickGoTestBtn()
+    {
+        SceneManager.LoadScene("Upgrade");
     }
 
 }

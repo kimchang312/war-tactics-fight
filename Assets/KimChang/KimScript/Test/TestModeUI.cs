@@ -30,6 +30,11 @@ public class TestModeUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI enemyUnitIdListText;
     [SerializeField] private TextMeshProUGUI warRelicIdListText;
 
+    [SerializeField] private TextMeshProUGUI myAllPriceText;
+    [SerializeField] private TextMeshProUGUI enemyAllPriceText;
+
+    UnitPriceDatabase priceDatabase = new UnitPriceDatabase();
+
     private void Start()
     {
         if (fightStartBtn == null)
@@ -160,11 +165,15 @@ public class TestModeUI : MonoBehaviour
     //
     private void SetStringMyIds()
     {
-         myUnitIdListText.text = $"MyUnitList: {string.Join(",", fightStartBtn.GetMyFightUnits())}";
+         List<int> ids = fightStartBtn.GetMyFightUnits();
+         myUnitIdListText.text = $"MyUnitList: {string.Join(",", ids)}";
+         myAllPriceText.text= $"가격: {priceDatabase.GetTotalPrice(ids)}";
     }
     private void SetStringEnemyIds()
     {
+        List<int> ids = fightStartBtn.GetEnemyFightUnits();
         enemyUnitIdListText.text = $"EnemyUnitIdList: {string.Join(",", fightStartBtn.GetEnemyFightUnits())}";
+        enemyAllPriceText.text = $"가격: {priceDatabase.GetTotalPrice(ids)}";
     }
 
     //유산 추가
