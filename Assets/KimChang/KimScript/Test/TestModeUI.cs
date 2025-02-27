@@ -113,7 +113,7 @@ public class TestModeUI : MonoBehaviour
         {
             if (int.TryParse(match.Value, out int number))
             {
-                if(number >=0 && number <= 25)
+                if(number >=0 && number <= 66)
                 {
                     myUnitIds.Add(number);
                 }
