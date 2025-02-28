@@ -819,9 +819,9 @@ public class AbilityManager
     {
         if (defenders[defenderIndex].martyrdom)
         {
-            if(defenderIndex+1 < defenders.Count)
+            if(defenderIndex+1 < defenders.Count && defenders[defenderIndex + 1].health>0)
             {
-                defenders[defenderIndex + 1].attackDamage = Mathf.Round(defenders[defenderIndex].attackDamage * martyrdomValue);
+                defenders[defenderIndex + 1].attackDamage = Mathf.Round(defenders[defenderIndex+1].attackDamage * martyrdomValue);
                 //유산
                 if (RelicManager.SacredDocument()) 
                 {
