@@ -935,67 +935,87 @@ public class AbilityManager
     //파수꾼 시너지
     private void CalculateWarden(List<RogueUnitDataBase> units)
     {
-        var findUnits = units.Where(u => u.branchIdx == 0).ToList();
-        if (findUnits.Count >= 4)
+        if (units.Any(u => u.idx == 21))
         {
-            foreach (var unit in findUnits)
+            var findUnits = units.Where(u => u.branchIdx == 0).ToList();
+            if (findUnits.Count >= 4)
             {
-                unit.antiCavalry += 20;
+                foreach (var unit in findUnits)
+                {
+                    unit.antiCavalry += 20;
+                }
             }
         }
+        
     }
     //장검병 시너지
     private void CalculateLongSwordMan(List<RogueUnitDataBase> units)
     {
-        var findUnits = units.Where(u => u.branchIdx == 1).ToList();
-        if (findUnits.Count >= 4)
+        if (units.Any(u => u.idx == 22))
         {
-            foreach (var unit in findUnits)
+            var findUnits = units.Where(u => u.branchIdx == 1).ToList();
+            if (findUnits.Count >= 4)
             {
-                unit.strongCharge =true;
+                foreach (var unit in findUnits)
+                {
+                    unit.strongCharge = true;
+                }
             }
         }
+           
     }
     //장궁병 시너지
     private void CalculateLongBowMan(List<RogueUnitDataBase> units)
     {
-        var findUnits = units.Where(u => u.branchIdx == 2).ToList();
-        if (findUnits.Count >= 3)
+        if (units.Any(u => u.idx == 23))
         {
-            foreach (var unit in findUnits)
+            var findUnits = units.Where(u => u.branchIdx == 2).ToList();
+            if (findUnits.Count >= 3)
             {
-                unit.attackDamage += 10;
+                foreach (var unit in findUnits)
+                {
+                    unit.attackDamage += 10;
+                }
             }
         }
+            
     }
     //철옹성
     private void CalculateSteelCastle(List<RogueUnitDataBase> units)
     {
-        var findUnits = units.Where(u => u.branchIdx == 3).ToList();
-        if (findUnits.Count >= 3)
+        if (units.Any(u => u.idx == 24))
         {
-            foreach (var unit in findUnits)
+            var findUnits = units.Where(u => u.branchIdx == 3).ToList();
+            if (findUnits.Count >= 3)
             {
-                unit.maxHealth += 40;
-                unit.health += 40;
+                foreach (var unit in findUnits)
+                {
+                    unit.maxHealth += 40;
+                    unit.health += 40;
+                }
             }
         }
+            
     }
     //전투망치 시너지
     private void CalculateBattleHammer(List<RogueUnitDataBase> units, bool isTeam)
     {
-        var findUnits = units.Where(u => u.branchIdx == 6).ToList();
-        if (findUnits.Count >= 4)
+        if (units.Any(u => u.idx == 25))
         {
-            if (isTeam)
+            var findUnits = units.Where(u => u.branchIdx == 6).ToList();
+            if (findUnits.Count >= 4)
             {
-                myBluntWeaponValue += 5;
-            }
-            else
-            {
-                enemyBluntWeaponValue += 5;
+                if (isTeam)
+                {
+                    myBluntWeaponValue += 5;
+                }
+                else
+                {
+                    enemyBluntWeaponValue += 5;
+                }
             }
         }
+            
     }
     //제국 시너지
     private void CalculateEmpire(List<RogueUnitDataBase> units)
