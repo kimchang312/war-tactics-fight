@@ -305,12 +305,16 @@ public class AbilityManager
         myDeathUnits.AddRange(tempMyDeathUnits);
         enemyDeathUnits.AddRange(tempEnemyDeathUnits);
 
-        //첫번째 유닛이 변경되었다면 버그남
-        if (myFrontUnit != myUnits[0] || enemyFrontUnit != enemyUnits[0])
+        //첫번째 유닛이
+        if (myUnits.Count > 0 || enemyUnits.Count >0)
         {
-            isFirstAttack = true;
-            return true;
+            if (myFrontUnit != myUnits[0] || enemyFrontUnit != enemyUnits[0])
+            {
+                isFirstAttack = true;
+                return true;
+            }
         }
+        
         return false;
     }
     // 개별 유닛 사망 처리
