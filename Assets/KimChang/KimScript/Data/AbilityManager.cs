@@ -71,24 +71,19 @@ public class AbilityManager
             float damage = 0;
 
             // 특성과 기술을 한 번에 적용할 수 있도록 Dictionary 활용
-            Dictionary<Func<RogueUnitDataBase, bool>, Action> abilities = new()
-        {
-            { unit => unit.smokeScreen, () => CalculateSmokeScreen(attackers,isTeam) },
-            { unit => unit.overwhelm, () => CalculateOverwhelm(frontAttacker, frontDefender,ref text) },
-            { unit => unit.throwSpear, () => CalculateThrowSpear(frontAttacker, frontDefender, finalDamage,ref damage,ref text) },
-            { unit => unit.assassination, () => CalculateAssassination(frontAttacker, defenders, finalDamage,ref damage,ref text,isTeam) },
-            { unit => unit.wounding, () => CalculateWounding(frontAttacker, frontDefender,ref text) }
-        };
+            var abilityActions = new List<Action>
+{
+    () => { if (frontAttacker.smokeScreen) CalculateSmokeScreen(attackers, isTeam); },
+    () => { if (frontAttacker.overwhelm) CalculateOverwhelm(frontAttacker, frontDefender, ref text); },
+    () => { if (frontAttacker.throwSpear) CalculateThrowSpear(frontAttacker, frontDefender, finalDamage, ref damage, ref text); },
+    () => { if (frontAttacker.assassination) CalculateAssassination(frontAttacker, defenders, finalDamage, ref damage, ref text, isTeam); },
+    () => { if (frontAttacker.wounding) CalculateWounding(frontAttacker, frontDefender, ref text); }
+};
 
-            foreach (var ability in abilities)
-            {
-                if (ability.Key(frontAttacker))
-                {
-                    ability.Value();
-                }
-            }
+            foreach (var action in abilityActions) action();
 
-            if(damage > 0) CallDamageText(damage, text, !isTeam);
+
+            if (damage > 0) CallDamageText(damage, text, !isTeam);
         }
     }
 
@@ -279,8 +274,8 @@ public class AbilityManager
         }
 
         // 유닛 실제 삭제 (루프 내에서 삭제하지 않음 → 안정적인 삭제)
-        foreach (int index in myDeathIndexes) myUnits.RemoveAt(index);
-        foreach (int index in enemyDeathIndexes) enemyUnits.RemoveAt(index);
+        foreach (int index in myDeathIndexes.OrderByDescending(i => i)) myUnits.RemoveAt(index);
+        foreach (int index in enemyDeathIndexes.OrderByDescending(i => i)) enemyUnits.RemoveAt(index);
 
         // 사망한 유닛들에 대한 이벤트 한 번만 호출
         if (tempEnemyDeathUnits.Count > 0 || tempMyDeathUnits.Count > 0)
@@ -305,16 +300,18 @@ public class AbilityManager
         myDeathUnits.AddRange(tempMyDeathUnits);
         enemyDeathUnits.AddRange(tempEnemyDeathUnits);
 
-        //첫번째 유닛이
-        if (myUnits.Count > 0 || enemyUnits.Count >0)
+        //둘중 한쪽의 유닛이 없을 때
+        if (myUnits.Count == 0 || enemyUnits.Count == 0)
         {
-            if (myFrontUnit != myUnits[0] || enemyFrontUnit != enemyUnits[0])
-            {
-                isFirstAttack = true;
-                return true;
-            }
+            return true;
         }
-        
+        //첫번쨰 유닛 사망 채크
+        if (myFrontUnit != myUnits[0] || enemyFrontUnit != enemyUnits[0])
+        {
+            isFirstAttack = true;
+            return true;
+        }
+
         return false;
     }
     // 개별 유닛 사망 처리
@@ -583,24 +580,17 @@ public class AbilityManager
         float dodge;
         float addDodge = 0;
         float mulityDodge = 13;
-        // 키 2가 존재하는지 확인 후 값을 가져옴
-        if (unit.effectDictionary.ContainsKey(2))
+        Dictionary<int, Action> dodgeEffects = new()
         {
-            addDodge += 15;
-        }
-        //제국 시너지 유무
-        if(unit.effectDictionary.ContainsKey(4))
+            { 2, () => addDodge += 15 },
+            { 4, () => addDodge += 5 },
+            { 5, () => mulityDodge *= 2 },
+            { 6, () => addDodge += 5 }
+        };
+
+        foreach (var key in dodgeEffects.Keys)
         {
-            addDodge += 5;
-        }
-        //유산
-        if (unit.effectDictionary.ContainsKey(5))
-        {
-            mulityDodge *= 2;
-        }
-        if (unit.effectDictionary.ContainsKey(6))
-        {
-            addDodge += 5;
+            if (unit.effectDictionary.ContainsKey(key)) dodgeEffects[key]();
         }
 
         dodge = (2 + ((mulityDodge / 9) * (unit.mobility - 1))) + (unit.agility ? 10.0f : 0) + addDodge;
@@ -616,7 +606,7 @@ public class AbilityManager
 
         float dogeRate = CalculateDodge(unit);
 
-        bool result = dogeRate > Random.Range(0, 100);
+        bool result = dogeRate >= Random.Range(0, 101);
 
         return result;
     }
@@ -849,20 +839,12 @@ public class AbilityManager
     //영웅 유닛 채크
     private void CheckHeroUnit(List<RogueUnitDataBase> units, bool isTeam)
     {
-        foreach (RogueUnitDataBase unit in units)
-        {
-            if (unit.branchIdx == 8)
-            {
-                if (isTeam)
-                {
-                    myHeroUnits.Add(unit.idx, unit);
-                }
-                else
-                {
-                    enemyHeroUnits.Add(unit.idx, unit);
-                }
-            }
-        }
+        var heroUnits = units.Where(unit => unit.branchIdx == 8).ToList();
+        if (isTeam)
+            heroUnits.ForEach(unit => myHeroUnits.TryAdd(unit.idx, unit));
+        else
+            heroUnits.ForEach(unit => enemyHeroUnits.TryAdd(unit.idx, unit));
+
     }
     //핏빛 사제
     private void CalculateBloodPriest(List<RogueUnitDataBase> units,bool isTeam)
