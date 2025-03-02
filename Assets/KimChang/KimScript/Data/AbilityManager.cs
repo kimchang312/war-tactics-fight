@@ -305,7 +305,7 @@ public class AbilityManager
         myDeathUnits.AddRange(tempMyDeathUnits);
         enemyDeathUnits.AddRange(tempEnemyDeathUnits);
 
-        //첫번째 유닛이 변경되었다면 
+        //첫번째 유닛이 변경되었다면 버그남
         if (myFrontUnit != myUnits[0] || enemyFrontUnit != enemyUnits[0])
         {
             isFirstAttack = true;
@@ -540,10 +540,10 @@ public class AbilityManager
         return (reduceDamage,text);
     }
 
-    //돌격 계산
+    // 돌격 계산
     private float CalculateCharge(float mobility)
     {
-        return 1.1f + (1.9f / (9 * (mobility - 1)));
+        return ((0.95f / 100f) * (mobility * mobility))+1.75f;
     }
     //둔기
     private void CalculateBluntWeapon(bool isTeam,ref float reduceDamage,ref string text)
