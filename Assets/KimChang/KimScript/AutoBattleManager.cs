@@ -51,12 +51,16 @@ public class AutoBattleManager : MonoBehaviour
     private enum BattleState
     {
         None,
+        Check,        // 전투 전 확인 단계
+        Start,        // 확인 후 전투 시작
         Preparation,
         Crash,
         Support,
+        Animation,    // 전투 중 애니메이션 삽입
         Death,
         End
     }
+
 
     private BattleState currentState = BattleState.None;
 
@@ -104,10 +108,16 @@ public class AutoBattleManager : MonoBehaviour
     private async void Update()
     {
         if(isProcessing || Time.timeScale == 0) return;
-        
-        switch (currentState) 
-        { 
+
+        switch (currentState)
+        {
             case BattleState.None:
+                break;
+            case BattleState.Check:
+                await HandleCheck();
+                break;
+            case BattleState.Start:
+                await HandlePhase(HandleStart);
                 break;
             case BattleState.Preparation:
                 if (HandleEnd()) break;
@@ -118,6 +128,11 @@ public class AutoBattleManager : MonoBehaviour
                 break;
             case BattleState.Support:
                 await HandlePhase(HandleSupport);
+                break;
+            case BattleState.Animation:
+                await HandleAnimation(); // 기본적으로 1.5초 애니메이션 실행 (필요에 따라 변경 가능)
+                break;
+            case BattleState.Death:
                 break;
             case BattleState.End:
                 break;
@@ -179,6 +194,9 @@ public class AutoBattleManager : MonoBehaviour
         {
             switch (currentState)
             {
+                case BattleState.Start:
+                    currentState = BattleState.Preparation; 
+                    break;
                 case BattleState.Preparation:
                     currentState = BattleState.Crash;
                     break;
@@ -270,6 +288,21 @@ public class AutoBattleManager : MonoBehaviour
         }
 
         autoBattleUI.CreateUnitBox(myUnits, enemyUnits, abilityManager.CalculateDodge(myUnits[0]), abilityManager.CalculateDodge(enemyUnits[0]),myRangeUnits,enemyRangUnits);
+    }
+
+    //전투 전 발동
+    private void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage)
+    {
+        abilityManager.ProcessBeforeBattle(units, defenders, isTeam, finalDamage, autoBattleUI);
+    }
+    //전투 당 한번
+    private bool StartBattlePhase()
+    {
+        myFrontUnit = myUnits[0];
+        enemyFrontUnit = enemyUnits[0];
+
+        return abilityManager.ProcessStartBattle(myUnits, enemyUnits, myFinalDamage, true) 
+            || abilityManager.ProcessStartBattle(enemyUnits, myUnits, enemyFinalDamage, false);
     }
     //준비 페이즈
     private void PreparationPhase()
@@ -363,21 +396,44 @@ public class AutoBattleManager : MonoBehaviour
             }
         }
 
-        //전투전 발동
-        ProcessBeforeBattle(myUnits,enemyUnits,true,myFinalDamage);
-        ProcessBeforeBattle(enemyUnits,myUnits,false,enemyFinalDamage);
-
-        //전열 유닛
-        myFrontUnit = myUnits[0];
-        enemyFrontUnit = enemyUnits[0];
-
         //로딩창 종료
         autoBattleUI.ToggleLoadingWindow();
-
+        //유닛 생성
+        UpdateUnitUI();
         // 상태를 Preparation으로 설정
-        currentState = BattleState.Preparation;
+        currentState = BattleState.Check;
+    }
+    // 확인 단계 처리 (전투 시작 전에 필요한 확인 작업 수행)
+    private async Task HandleCheck()
+    {
+        Debug.Log("전투 확인 단계");
+
+        // 전투 전 능력 발동
+        ProcessBeforeBattle(myUnits, enemyUnits, true, myFinalDamage);
+        ProcessBeforeBattle(enemyUnits, myUnits, false, enemyFinalDamage);
+
+        await Task.Delay((int)waittingTime);
+        currentState = BattleState.Start;
     }
 
+    // 시작 단계 처리 (전투 시작을 위한 초기화)
+    private async Task HandleStart()
+    {
+        Debug.Log("전투 시작");
+
+        bool result = StartBattlePhase();
+
+        await Task.Yield();  // 변경 사항이 없으면 즉시 다음 단계로 이동
+
+    }
+
+    // 애니메이션 단계 처리 (전투 중 원하는 타이밍에 실행)
+    private async Task HandleAnimation()
+    {
+        Debug.Log("애니메이션 실행");
+        await Task.Yield(); // 입력된 시간만큼 대기
+        currentState = BattleState.Preparation;
+    }
     //준비 페이즈 관리
     private async Task HandlePreparation()
     {
@@ -508,11 +564,6 @@ public class AutoBattleManager : MonoBehaviour
              | (unitIdx & 0x3FF);         // 유닛 고유 번호 (0~9번째 비트, 10비트 제한)
     }
 
-    //전투 전 발동
-    private void ProcessBeforeBattle(List<RogueUnitDataBase> units,List<RogueUnitDataBase> defenders,bool isTeam,float finalDamage)
-    {
-        abilityManager.ProcessBeforeBattle(units,defenders,isTeam, finalDamage,autoBattleUI);
-    }
 
     //유산 호출 및 초기화
     private void ProcessRelic()
@@ -537,8 +588,6 @@ public class AutoBattleManager : MonoBehaviour
         //유산 이미지 생성
         autoBattleUI.CreateWarRelic();
     }
-    
-
     
 }
 
