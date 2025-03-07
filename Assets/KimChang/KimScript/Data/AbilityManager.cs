@@ -912,27 +912,33 @@ public class AbilityManager
     //군단장
     private void CalculateCorpsCommander(bool isTeam)
     {
-        if (isTeam && myHeroUnits.TryGetValue(52, out List<RogueUnitDataBase> heroList))
+        int heroId = 52;
+        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
+        if (heroList.Count <= 0) return;
+        if (isTeam)
         {
             mybindingAttackDamage += 5 * heroList.Count;  // 보유한 영웅 수만큼 효과 적용
         }
-        else if (!isTeam && enemyHeroUnits.TryGetValue(52, out List<RogueUnitDataBase> enemyHeroList))
+        else if (!isTeam)
         {
-            enemybindingAttackDamage += 5 * enemyHeroList.Count;
+            enemybindingAttackDamage += 5 * heroList.Count;
         }
         return;
     }
     //유목민 족장
     private void CalculateNomadicChief(List<RogueUnitDataBase> units, bool isTeam)
     {
-        if(isTeam && myHeroUnits.ContainsKey(55))
+        int heroId = 55;
+        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
+        if (heroList.Count <= 0) return;
+        if (isTeam)
         {
             foreach (var unit in units)
             {
                 if(unit.tagIdx ==1) unit.bindingForce = true;
             }
         }
-        else if(!isTeam && enemyHeroUnits.ContainsKey(55))
+        else if(!isTeam)
         {
             foreach (var unit in units)
             {
@@ -943,18 +949,18 @@ public class AbilityManager
     // 떠도는 자 효과 적용
     private void CalculateWanderer(bool isTeam)
     {
+        int heroId = 57;
+        List<RogueUnitDataBase> wandererList = GetHeroUnitList(isTeam, heroId);
+        if (wandererList.Count <= 0) return;
         Dictionary<int, List<RogueUnitDataBase>> targetHeroUnits = isTeam ? myHeroUnits : enemyHeroUnits;
 
-        if (targetHeroUnits.TryGetValue(57, out List<RogueUnitDataBase> wanderers) && targetHeroUnits.Count > 1)
+        foreach (var heroList in targetHeroUnits.Values)
         {
-            foreach (var heroList in targetHeroUnits.Values)
+            foreach (var hero in heroList)
             {
-                foreach (var hero in heroList)
+                if (hero.idx != heroId)  // 떠도는 자가 아닌 다른 영웅에게 효과 적용
                 {
-                    if (hero.idx != 57)  // 떠도는 자가 아닌 다른 영웅에게 효과 적용
-                    {
-                        hero.health += 40;
-                    }
+                    hero.health += 40 * wandererList.Count;
                 }
             }
         }
@@ -962,11 +968,10 @@ public class AbilityManager
     // 암살단장(Assassination Leader)의 선제타격 실행
     private bool ExecuteAssassinationLeaderStrike(bool isTeam, List<RogueUnitDataBase> defenders, float finalDamage)
     {
-        Dictionary<int, List<RogueUnitDataBase>> heroUnits = isTeam ? myHeroUnits : enemyHeroUnits;
-
-        if (!heroUnits.TryGetValue(58, out List<RogueUnitDataBase> heroList)) return false;
-
+        int heroId = 58;
+        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
         bool use = false;
+        if (heroList.Count <= 0) return use; 
 
         foreach (var hero in heroList)
         {
@@ -988,16 +993,37 @@ public class AbilityManager
         return use;
     }
     //기괴한 주교
-    private void CalculateBizarreBishop()
+    private void CalculateBizarreBishop(List<RogueUnitDataBase> units,bool isTeam)
     {
+        int heroId = 59;
+        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
+        if (heroList.Count <= 0) return;
+        int id = 7, type = 0, rank = 1, duration = -1;
+        foreach (var unit in units)
+        {
+            unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
+        }
+    }
+    //불사 효과
+    private void CalculateImmortality(ref List<RogueUnitDataBase> units,int unitIndex)
+    {
+        int id = 7;
+        if (!units[unitIndex].effectDictionary.ContainsKey(id)) return;
+        
+        // 불사 효과 제거
+        units[unitIndex].effectDictionary.Remove(id);
+        units[unitIndex].health = 10;
 
+        // 유닛을 리스트에서 제거 후 후열 가장 뒤로 이동
+        RogueUnitDataBase immortalUnit = units[unitIndex];
+        units.RemoveAt(unitIndex);
+        units.Add(immortalUnit);
     }
     //노인 기사
     private void CalculateOldKnight(RogueUnitDataBase unit,int deadCount,bool isTeam)
     {
-        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, 60);
-        if(heroList.Count <=0 || deadCount <=0) return;
-
+        if (unit.idx != 60 || unit.health<=0) return;
+        
     }
     //불굴의 방패
     private void CalculateIndomitableShield()
