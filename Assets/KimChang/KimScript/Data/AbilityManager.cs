@@ -30,8 +30,8 @@ public class AbilityManager
     private AutoBattleUI autoBattleUI;
 
     //영웅 유닛 id, 유무
-    Dictionary<int, RogueUnitDataBase> myHeroUnits = new();
-    Dictionary<int, RogueUnitDataBase> enemyHeroUnits = new();
+    Dictionary<int, List<RogueUnitDataBase>> myHeroUnits = new();
+    Dictionary<int, List<RogueUnitDataBase>> enemyHeroUnits = new();
 
     //전투 전 발동(패시브)
     public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage,AutoBattleUI _autoBattleUI)
@@ -40,7 +40,7 @@ public class AbilityManager
 
         CheckHeroUnit(units, isTeam);
 
-        CalculateBloodPriest(units, isTeam);
+        CalculateBloodPriest(units);
         CalculateCorpsCommander(isTeam);
         CalculateNomadicChief(units, isTeam);
         CalculateWanderer(isTeam);
@@ -55,10 +55,13 @@ public class AbilityManager
         CalculateSevenUnion(units);
 
         CalculataeSolidarity(units, isTeam);
-
-        //CalculateFirstStrike(units, defenders, finalDamage,isTeam);
     }
     //전투당 한번(선재 타격 등)
+    public bool ProcessStartBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders,float finalDamage,bool isTeam)
+    {
+        return CalculateFirstStrike(units, defenders, finalDamage, isTeam);
+    }
+
     //준비 페이즈 시 발동
     public void ProcessPreparationAbility(List<RogueUnitDataBase> attackers,List<RogueUnitDataBase> defenders,bool istFirstAttack,bool isTeam,float _finalDamage)
     {
@@ -75,7 +78,7 @@ public class AbilityManager
 {
     () => { if (frontAttacker.smokeScreen) CalculateSmokeScreen(attackers, isTeam); },
     () => { if (frontAttacker.overwhelm) CalculateOverwhelm(frontAttacker, frontDefender, ref text); },
-    () => { if (frontAttacker.throwSpear) CalculateThrowSpear(frontAttacker, frontDefender, finalDamage, ref damage, ref text); },
+    () => { if (frontAttacker.throwSpear) CalculateThrowSpear(frontAttacker, frontDefender, finalDamage, ref damage, ref text,isTeam); },
     () => { if (frontAttacker.assassination) CalculateAssassination(frontAttacker, defenders, finalDamage, ref damage, ref text, isTeam); },
     () => { if (frontAttacker.wounding) CalculateWounding(frontAttacker, frontDefender, ref text); }
 };
@@ -101,7 +104,7 @@ public class AbilityManager
         {
             ChrashIsFirstAttack(frontAttaker, frontDefender, ref multiplier, ref reduceDamage,ref firstText, isTeam);
         }
-
+        Debug.Log(frontAttaker.unitName+multiplier + "배율" + reduceDamage + "추뎀");
         for (int i = 0; i < 2; i++)
         {
             string text = firstText;
@@ -157,7 +160,7 @@ public class AbilityManager
             }
 
             // 회피 판정
-            if (CalculateAccuracy(frontDefender, frontAttaker.perfectAccuracy))
+            if (CalculateAccuracy(frontDefender, frontAttaker,isTeam))
             {
                 normalDamage = 0;
 
@@ -168,7 +171,7 @@ public class AbilityManager
                 //반격
                 if (isFirstAttack && frontDefender.counter)
                 {
-                    if (!CalculateAccuracy(frontAttaker, frontDefender.perfectAccuracy))
+                    if (!CalculateAccuracy(frontAttaker, frontDefender,isTeam))
                     {
                         frontAttaker.health -= normalDamage;
 
@@ -336,17 +339,29 @@ public class AbilityManager
     {
         //유닛들 하나씩 순회 하며 특정 능력 유닛 채크
         //봉풀자 채크
-        if(isTeam && myHeroUnits.TryGetValue(53,out RogueUnitDataBase hero) && deadAttackers.Count>0)
+        if(isTeam && myHeroUnits.TryGetValue(53, out List<RogueUnitDataBase> heroList) && deadAttackers.Count>0)
         {
-            hero.maxHealth += 10 * deadAttackers.Count;
-            hero.health += 10 * deadAttackers.Count;
-            hero.attackDamage += 5 * deadAttackers.Count;
+            foreach (var hero in heroList)
+            {
+                if (hero.health > 0)
+                {
+                    hero.maxHealth += 10;
+                    hero.health += 10;
+                    hero.attackDamage += 5;
+                }
+            }
         }
-        if(!isTeam && enemyHeroUnits.TryGetValue(53,out RogueUnitDataBase unit) && deadAttackers.Count>0)
+        if(!isTeam && enemyHeroUnits.TryGetValue(53, out List<RogueUnitDataBase> eHeroList) && deadAttackers.Count>0)
         {
-            unit.maxHealth += 10 * deadAttackers.Count;
-            unit.health += 10 * deadAttackers.Count;
-            unit.attackDamage += 5 * deadAttackers.Count;
+            foreach (var hero in eHeroList)
+            {
+                if (hero.health > 0)
+                {
+                    hero.maxHealth += 10;
+                    hero.health += 10;
+                    hero.attackDamage += 5;
+                }
+            }
         }
 
         //스킬 사용 유닛이 안죽었을 시
@@ -368,6 +383,8 @@ public class AbilityManager
                 attackers[0].health = MathF.Min(attackers[0].maxHealth, heal + attackers[0].health);
                 attackers[0].attackDamage += drainGainAttackValue;
             }
+            //노인기사
+            
             if (isFrontDefendrDead)
             {
                 //무한
@@ -380,8 +397,9 @@ public class AbilityManager
     }
 
     //선제 타격
-    private void CalculateFirstStrike(List<RogueUnitDataBase> attakers, List<RogueUnitDataBase> defenders,float finalDamage,bool isTeam)
+    private bool CalculateFirstStrike(List<RogueUnitDataBase> attakers, List<RogueUnitDataBase> defenders,float finalDamage,bool isTeam)
     {
+        bool use = false;
         foreach (RogueUnitDataBase attacker in attakers)
         {
             if (attacker.firstStrike && !attacker.fStriked && CheckBackUnit(defenders))
@@ -392,11 +410,15 @@ public class AbilityManager
 
                 attacker.fStriked = true;
 
-                CallDamageText(damage, "선제타격 ", !isTeam);
+                use = true;
+                CallDamageText(damage, "선제타격 ", !isTeam, minHealthIndex);
             }
         }
-        
+        // 암살단장(Assassination Leader, idx == 58)이 있을 경우 선제 타격 4회 실행
+        use |= ExecuteAssassinationLeaderStrike(isTeam, defenders, finalDamage);
+        return use;
     }
+
     //위압
     private void CalculateOverwhelm(RogueUnitDataBase attacker,RogueUnitDataBase defender,ref string text)
     {
@@ -404,10 +426,10 @@ public class AbilityManager
         text += "위압 ";
     }
     //투창
-    private void CalculateThrowSpear(RogueUnitDataBase attacker, RogueUnitDataBase defender,float finalDamage,ref float _damage,ref string text)
+    private void CalculateThrowSpear(RogueUnitDataBase attacker, RogueUnitDataBase defender,float finalDamage,ref float _damage,ref string text,bool isTeam)
     {
         float damage = throwSpearValue * finalDamage;
-        if (!CalculateAccuracy(defender, attacker.perfectAccuracy))
+        if (!CalculateAccuracy(defender, attacker,isTeam))
         {
             defender.health -= damage;
 
@@ -425,7 +447,7 @@ public class AbilityManager
         float damage = attacker.attackDamage *assassinationValue* finalDamage;
         if (defenders[0].guard)
         {
-            if (!CalculateAccuracy(defenders[0], attacker.perfectAccuracy))
+            if (!CalculateAccuracy(defenders[0], attacker,isTeam))
             {
                 defenders[0].health -= damage * (1 - (defenders[0].armor / (defenders[0].armor + 10)));
 
@@ -477,7 +499,6 @@ public class AbilityManager
         if (attacker.charge)
         {
             multiplier = CalculateCharge(attacker.mobility);
-
             text += "돌격 ";
             //유산
             if (RelicManager.Horn()) multiplier += 0.3f; 
@@ -544,7 +565,7 @@ public class AbilityManager
     // 돌격 계산
     private float CalculateCharge(float mobility)
     {
-        return ((0.95f / 100f) * (mobility * mobility))+1.75f;
+        return ((0.95f / 100f) * (mobility * mobility))+1.05f;
     }
     //둔기
     private void CalculateBluntWeapon(bool isTeam,ref float reduceDamage,ref string text)
@@ -599,15 +620,26 @@ public class AbilityManager
     }
 
     //회피 유무 계산
-    private bool CalculateAccuracy(RogueUnitDataBase unit, bool isPerfectAccuracy)
+    private bool CalculateAccuracy(RogueUnitDataBase defender, RogueUnitDataBase attacker,bool isTeam)
     {
-        if (isPerfectAccuracy)
+        if (attacker.perfectAccuracy)
             return false; // 필중 특성인 경우 회피 불가
 
-        float dogeRate = CalculateDodge(unit);
+        float dogeRate = CalculateDodge(defender);
 
         bool result = dogeRate >= Random.Range(0, 101);
-
+        if (result)
+        {
+            //방어자가 회피 성공시 암살단장의 효과 발동 isTeam==true라는건 attacker가 내 유닛이라는것 defender는 이때 enemy가 됨
+            if(isTeam && enemyHeroUnits.TryGetValue(58, out List<RogueUnitDataBase> heroList))
+            {
+                attacker.health -= 20*heroList.Count;
+            }
+            else if(!isTeam && myHeroUnits.TryGetValue(58, out List<RogueUnitDataBase> myHeroList))
+            {
+                attacker.health -=20*myHeroUnits.Count;
+            }
+        } 
         return result;
     }
 
@@ -776,7 +808,7 @@ public class AbilityManager
                 if (k == 1 && !attacker.doubleShot) break; // 연발 공격이 없으면 1회 공격만
 
                 // 회피 여부 확인
-                if (CalculateAccuracy(defenders[0], attacker.perfectAccuracy))
+                if (CalculateAccuracy(defenders[0], attacker,isTeam))
                     continue;
 
                 // 중갑 적용 (heavyArmorValue 감소, 최소 0 보장)
@@ -835,46 +867,78 @@ public class AbilityManager
             defender.effectDictionary[id] = new(id,type, rank, durateion);
         }
     }
-
-    //영웅 유닛 채크
+    // 영웅 유닛을 체크하고 저장
     private void CheckHeroUnit(List<RogueUnitDataBase> units, bool isTeam)
     {
         var heroUnits = units.Where(unit => unit.branchIdx == 8).ToList();
-        if (isTeam)
-            heroUnits.ForEach(unit => myHeroUnits.TryAdd(unit.idx, unit));
-        else
-            heroUnits.ForEach(unit => enemyHeroUnits.TryAdd(unit.idx, unit));
 
+        Dictionary<int, List<RogueUnitDataBase>> targetHeroUnits = isTeam ? myHeroUnits : enemyHeroUnits;
+
+        foreach (var unit in heroUnits)
+        {
+            if (!targetHeroUnits.ContainsKey(unit.idx))
+            {
+                targetHeroUnits[unit.idx] = new List<RogueUnitDataBase>();
+            }
+            targetHeroUnits[unit.idx].Add(unit);
+        }
     }
-    //핏빛 사제
-    private void CalculateBloodPriest(List<RogueUnitDataBase> units,bool isTeam)
+    // 영웅 유닛 검색 (없으면 빈 리스트 반환)
+    private List<RogueUnitDataBase> GetHeroUnitList(bool isTeam, int id)
     {
-        //if(isTeam && myHeroUnits.ContainsKey())
+        return (isTeam ? myHeroUnits : enemyHeroUnits).TryGetValue(id, out var heroList) ? heroList : new();
+    }
+
+    // 진홍 사제 효과 적용 (앞에 있는 유닛들에게 흡혈 부여)
+    private void CalculateBloodPriest(List<RogueUnitDataBase> units)
+    {
+        for (int i = 1; i < units.Count; i++)  // 첫 유닛은 앞에 대상이 없으므로 시작 인덱스 1부터
+        {
+            if (units[i].idx == 50)  // 핏빛 사제 발견 
+            {
+                // 사거리에서 1을 빼고, 0 이하가 되지 않도록 보정
+                int range = Mathf.Max(0, (int)units[i].range - 1);
+                // 앞쪽 유닛의 개수를 고려하여 효과 적용 범위 제한
+                int effectiveRange = Mathf.Min(range, i);
+
+                for (int j = 1; j <= effectiveRange; j++)
+                {
+                    int targetIndex = i - j;
+                    units[targetIndex].lifeDrain = true;  // 흡혈 특성 부여
+                }
+            }
+        }
     }
     //군단장
     private void CalculateCorpsCommander(bool isTeam)
     {
-        if (isTeam && myHeroUnits.ContainsKey(52))
+        int heroId = 52;
+        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
+        if (heroList.Count <= 0) return;
+        if (isTeam)
         {
-            mybindingAttackDamage += 5;
+            mybindingAttackDamage += 5 * heroList.Count;  // 보유한 영웅 수만큼 효과 적용
         }
-        else if (!isTeam && enemyHeroUnits.ContainsKey(52))
+        else if (!isTeam)
         {
-            enemybindingAttackDamage += 5;
+            enemybindingAttackDamage += 5 * heroList.Count;
         }
         return;
     }
     //유목민 족장
     private void CalculateNomadicChief(List<RogueUnitDataBase> units, bool isTeam)
     {
-        if(isTeam && myHeroUnits.ContainsKey(55))
+        int heroId = 55;
+        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
+        if (heroList.Count <= 0) return;
+        if (isTeam)
         {
             foreach (var unit in units)
             {
                 if(unit.tagIdx ==1) unit.bindingForce = true;
             }
         }
-        else if(!isTeam && enemyHeroUnits.ContainsKey(55))
+        else if(!isTeam)
         {
             foreach (var unit in units)
             {
@@ -882,23 +946,89 @@ public class AbilityManager
             }
         }
     }
-    //떠도는자
+    // 떠도는 자 효과 적용
     private void CalculateWanderer(bool isTeam)
     {
-        if(isTeam && myHeroUnits.ContainsKey(57) && myHeroUnits.Count>1)
+        int heroId = 57;
+        List<RogueUnitDataBase> wandererList = GetHeroUnitList(isTeam, heroId);
+        if (wandererList.Count <= 0) return;
+        Dictionary<int, List<RogueUnitDataBase>> targetHeroUnits = isTeam ? myHeroUnits : enemyHeroUnits;
+
+        foreach (var heroList in targetHeroUnits.Values)
         {
-            foreach(var hero in myHeroUnits)
+            foreach (var hero in heroList)
             {
-                if (hero.Value.idx != 57) hero.Value.health += 40;
+                if (hero.idx != heroId)  // 떠도는 자가 아닌 다른 영웅에게 효과 적용
+                {
+                    hero.health += 40 * wandererList.Count;
+                }
             }
         }
-        else if(!isTeam && enemyHeroUnits.ContainsKey(57) && enemyHeroUnits.Count >1)
+    }
+    // 암살단장(Assassination Leader)의 선제타격 실행
+    private bool ExecuteAssassinationLeaderStrike(bool isTeam, List<RogueUnitDataBase> defenders, float finalDamage)
+    {
+        int heroId = 58;
+        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
+        bool use = false;
+        if (heroList.Count <= 0) return use; 
+
+        foreach (var hero in heroList)
         {
-            foreach (var hero in enemyHeroUnits)
+            for (int i = 0; i < 4; i++) // 4회 실행
             {
-                if (hero.Value.idx != 57) hero.Value.health += 40;
+                int minHealthIndex = CalculateMinHealthIndex(defenders);
+                if (minHealthIndex == -1) break; // 유효한 대상이 없으면 루프 종료
+
+                float damage = hero.attackDamage * 2 * finalDamage;
+                defenders[minHealthIndex].health -= damage;
+
+                hero.fStriked = true;
+                use = true;
+
+                CallDamageText(damage, "선제타격", !isTeam, minHealthIndex);
             }
         }
+
+        return use;
+    }
+    //기괴한 주교
+    private void CalculateBizarreBishop(List<RogueUnitDataBase> units,bool isTeam)
+    {
+        int heroId = 59;
+        List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
+        if (heroList.Count <= 0) return;
+        int id = 7, type = 0, rank = 1, duration = -1;
+        foreach (var unit in units)
+        {
+            unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
+        }
+    }
+    //불사 효과
+    private void CalculateImmortality(ref List<RogueUnitDataBase> units,int unitIndex)
+    {
+        int id = 7;
+        if (!units[unitIndex].effectDictionary.ContainsKey(id)) return;
+        
+        // 불사 효과 제거
+        units[unitIndex].effectDictionary.Remove(id);
+        units[unitIndex].health = 10;
+
+        // 유닛을 리스트에서 제거 후 후열 가장 뒤로 이동
+        RogueUnitDataBase immortalUnit = units[unitIndex];
+        units.RemoveAt(unitIndex);
+        units.Add(immortalUnit);
+    }
+    //노인 기사
+    private void CalculateOldKnight(RogueUnitDataBase unit,int deadCount,bool isTeam)
+    {
+        if (unit.idx != 60 || unit.health<=0) return;
+        
+    }
+    //불굴의 방패
+    private void CalculateIndomitableShield()
+    {
+
     }
     //결속 발동
     private void CalculataeSolidarity(List<RogueUnitDataBase> units, bool isTeam)
