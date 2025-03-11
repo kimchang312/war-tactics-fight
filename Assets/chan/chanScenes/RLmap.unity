@@ -481,6 +481,41 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &705917635
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 705917636}
+  m_Layer: 0
+  m_Name: lineparent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &705917636
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 705917635}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 713579220}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -1412.9, y: -8.5}
+  m_SizeDelta: {x: 1920, y: 1080}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &713579219
 GameObject:
   m_ObjectHideFlags: 0
@@ -510,6 +545,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1889547510}
+  - {fileID: 705917636}
   - {fileID: 1322327644}
   m_Father: {fileID: 193473410}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1109,7 +1145,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1167134280
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1714,12 +1750,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e798306425d4f2e44bb74108335b805b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stageButtonPrefab: {fileID: 6132502621805899083, guid: a0e897dcd208d524abf82771d29b2783, type: 3}
   stageContainer: {fileID: 1322327644}
+  stageButtonPrefab: {fileID: 6132502621805899083, guid: a0e897dcd208d524abf82771d29b2783, type: 3}
+  uiLinePrefab: {fileID: 0}
+  lineParent: {fileID: 0}
   content: {fileID: 1322327644}
-  stageTooltip: {fileID: 1889173483}
-  markerPrefab: {fileID: 5230185607287131339, guid: df227eddeee844d448e5f1455707dcad, type: 3}
   scrollRect: {fileID: 777234321}
+  markerPrefab: {fileID: 5230185607287131339, guid: df227eddeee844d448e5f1455707dcad, type: 3}
+  stageTooltip: {fileID: 1889173483}
   stageMapManager: {fileID: 2072340138}
 --- !u!4 &1889547510
 Transform:
@@ -1857,9 +1895,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0255d75f3e907345bce746ec1aa1aa3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  totalFloors: 15
+  floorStartPosition: {x: 0, y: -300}
+  verticalSpacing: 150
+  horizontalSpacing: 200
+  minNodesPerFloor: 2
+  maxNodesPerFloor: 5
   stageUIManager: {fileID: 1889547509}
-  linePrefab: {fileID: 4040668215148940105, guid: 995cce33d53deb745aa4d40eaa6b9234, type: 3}
-  canvas: {fileID: 972372228}
 --- !u!4 &2072340139
 Transform:
   m_ObjectHideFlags: 0

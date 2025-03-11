@@ -1,55 +1,56 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StageNode
+public enum EncounterType
 {
-    public int level;             // 스테이지의 레벨
-    public Vector2 position;      // UI에서 표시할 기본 위치 (계산된 기준 좌표)
-    public string name;
-    public string gridID;         // 예: "1-a", "1-b", ... "15-g"
-    public int creationIndex;     // 생성 순서 (전체 스테이지 번호)
+    None,
+    //Event, 이벤트 스테이지 표현 방법 정하기
+    Monster,
+    Elite,
+    Treasure,
+    Rest,
+    Shop,
+    Boss
+}
 
-    public List<StageNode> nextStages = new List<StageNode>();       // 연결된 다음 스테이지
-    public List<StageNode> previousStages = new List<StageNode>();   // 연결된 이전 스테이지
-    public bool isCleared = false;      // 해당 스테이지 클리어 여부
-    public bool isLocked = true;        // 기본 잠금 상태
-    public bool isClickable = false;    // 클릭 가능 여부
+public class StageNode : MonoBehaviour
+{
+    // 기본 정보 (슬레이 더 스파이어 예시와 유사)
+    public int floor;             // 층 번호 (1부터 시작)
+    public string nodeName;       // 노드 이름 (예: "Start", "Floor 3 Node 1")
+    public string gridID;         // UI 배치를 위한 ID (예: "1-a", "1-b", ...)
+    public int creationIndex;     // 생성 순서 번호
 
+    // 맵 생성 알고리즘에서 사용하는 연결 정보
+    public List<Vector2Int> incoming = new List<Vector2Int>();
+    public List<Vector2Int> outgoing = new List<Vector2Int>();
 
-    private StageUIComponent stageUIComponent;
+    // 상태 플래그
+    public bool isCleared = false;
+    public bool isLocked = true;
+    public bool isClickable = false;
+
+    // UI 배치 정보 (맵 내 실제 위치)
+    public Vector2 position;      // UI 상에서의 좌표 (맵 생성 시 설정됨)
+    public int indexOnFloor;      // 해당 층 내 수평 인덱스
+
+    // Encounter 정보
+    public EncounterType encounter = EncounterType.None;
+
+    // UI 관련 참조
+    public StageUIComponent uiComponent;
     public StageButton stageButton;
 
-    public StageNode(int level, Vector2 position,string name)
-    {
-        this.level = level;
-        this.position = position;
-        this.name = name;
-        // gridID와 creationIndex는 외부에서 할당할 예정
-        nextStages = new List<StageNode>();
-    }
-    // UI 컴포넌트 설정 메서드
-    public void SetUIComponent(StageUIComponent component)
-    {
-        if (component != null)
-        {
-            stageUIComponent = component;
-            Debug.Log($"✅ {name}의 UI 컴포넌트가 정상적으로 연결됨.");
-        }
-        else
-        {
-            Debug.LogError($"❌ {name}의 UI 컴포넌트가 존재하지 않습니다!");
-        }
-    }
+    // 편의 프로퍼티: 그리드 좌표 (x = indexOnFloor, y = floor)
+    public Vector2Int point => new Vector2Int(indexOnFloor, floor);
 
-    // ✅ UI 상태 업데이트 메서드 추가
+    // UI 업데이트 메서드
     public void UpdateUI()
     {
         if (stageButton != null)
-        {
             stageButton.UpdateButtonState();
-        }
     }
-    // ✅ 상태 변경 메서드 추가
+
     public void SetCleared(bool cleared)
     {
         isCleared = cleared;
@@ -66,14 +67,21 @@ public class StageNode
     {
         isClickable = clickable;
         if (stageButton != null)
-        {
-            stageButton.SetInteractable(clickable); // ✅ 버튼의 interactable on/off 조절
-        }
+            stageButton.SetInteractable(clickable);
         UpdateUI();
     }
 
-    public StageUIComponent GetUIComponent()
+    // UI 컴포넌트 설정
+    public void SetUIComponent(StageUIComponent component)
     {
-        return stageUIComponent;
+        if (component != null)
+        {
+            uiComponent = component;
+            Debug.Log($"✅ {nodeName}의 UI 컴포넌트가 연결됨.");
+        }
+        else
+        {
+            Debug.LogError($"❌ {nodeName}의 UI 컴포넌트가 없습니다!");
+        }
     }
 }

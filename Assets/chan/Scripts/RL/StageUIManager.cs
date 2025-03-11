@@ -1,287 +1,259 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class StageUIManager : MonoBehaviour
 {
-    private List<StageNode> allStages; //모든 스테이지 리스트
-
-    public GameObject stageButtonPrefab;
+    [Header("UI References")]
     public RectTransform stageContainer;
-    public RectTransform content; // Scroll View의 Content
+    public GameObject stageButtonPrefab;
+    public GameObject uiLinePrefab; // UI Image 기반 선 프리팹
+    public Transform lineParent;
+
+    [Header("Scroll View & Marker")]
+    public RectTransform content;
+    public ScrollRect scrollRect;
+    public GameObject markerPrefab;
+
+    [Header("Other UI Elements")]
     public StageTooltip stageTooltip;
-    public GameObject markerPrefab; // ✅ 현재 위치를 표시할 마커
-    public ScrollRect scrollRect; //scroll rect 참조
 
-    private int levels = 15; // 총 레벨 수
-    private float screenWidth = 1920f; // 화면 너비
-    private float ySpacing = 200f; // Y축 간격
-
+    private List<StageNode> stageNodes = new List<StageNode>();
+    private List<StageNode> allStages;
     private StageNode currentStage;
-    public StageMapManager stageMapManager; // ✅ StageMapManager 참조
+
+    public StageMapManager stageMapManager;
+
+    private readonly List<LineConnection> lineConnections = new List<LineConnection>();
+
+    private void Awake()
+    {
+        if (lineParent == null)
+        {
+            GameObject lp = new GameObject("LineParent");
+            lp.transform.SetParent(stageContainer, false);
+            lineParent = lp.transform;
+            Debug.LogWarning("StageUIManager: lineParent가 할당되지 않음. 새 LineParent 생성됨.");
+        }
+
+        if (scrollRect != null)
+            scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
+
+        StageButton.OnStageButtonClicked += MoveToStage;
+        StageMapManager.OnMapGenerated += GenerateStageUI;
+        StageMapManager.OnStageChanged += UpdateStageUI;
+
+        Debug.Log(markerPrefab == null ? "🟢 Marker is null" : "🔴 Marker already exists");
+    }
+
+    private void Start()
+    {
+        SetupScrollView();
+        if (currentStage != null)
+            UpdateMarkerPosition(currentStage.position);
+    }
+
+    private void OnDestroy()
+    {
+        StageButton.OnStageButtonClicked -= MoveToStage;
+    }
+
+    private void OnDisable()
+    {
+        StageMapManager.OnMapGenerated -= GenerateStageUI;
+        StageMapManager.OnStageChanged -= UpdateStageUI;
+    }
 
     public StageNode GetCurrentStage()
     {
         return stageMapManager != null ? stageMapManager.GetCurrentStage() : null;
     }
-    // StageMapManager에서 allStages 전달
-    public void Initialize(List<StageNode> stages)
-    {
-        allStages = stages;
-    }
-    private void Awake()
-    {
 
-        Debug.Log(markerPrefab == null ? "🟢 Marker is null" : "🔴 Marker already exists");
-        if (scrollRect != null)
+    public void InitializeUI(List<StageNode> nodes)
+    {
+        if (nodes == null || nodes.Count == 0)
         {
-            scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
+            Debug.LogError("StageUIManager.InitializeUI() 실패: 전달된 StageNode 리스트가 null이거나 비어 있음.");
+            return;
         }
-
-        StageButton.OnStageButtonClicked += MoveToStage;
-        StageMapManager.OnStageGenerated += GenerateStageUI;
-        StageMapManager.OnStageChanged += UpdateStageUI;
+        allStages = nodes;
+        Debug.Log($"StageUIManager: {allStages.Count}개의 스테이지 정상 수신.");
     }
-    private void Start()
-    {
-        SetupScrollView();
 
-        if (currentStage != null)
+    void GenerateStageUI(List<StageNode> nodes)
+    {
+        Debug.Log("Stage UI 생성 시작");
+
+        foreach (Transform child in stageContainer)
+            Destroy(child.gameObject);
+        foreach (Transform child in lineParent)
+            Destroy(child.gameObject);
+
+        allStages = nodes;
+        stageNodes = nodes;
+
+        foreach (StageNode node in stageNodes)
         {
-            UpdateMarkerPosition(currentStage.position); // 초기 위치에 마커 설정
-        }
-    }
+            Debug.Log($"스테이지 버튼 생성: 층 {node.floor}, gridID {node.gridID}, 위치 {node.position}");
 
-    private void OnDestroy()
-    {
-        // ✅ 이벤트 해제 (메모리 누수 방지)
-        StageButton.OnStageButtonClicked -= MoveToStage;
-    }
-    private void OnDisable()
-    {
-        StageMapManager.OnStageGenerated -= GenerateStageUI;
-        StageMapManager.OnStageChanged -= UpdateStageUI;
-    }
-
-    void GenerateStageUI(List<StageNode> allStages)
-    {
-        Debug.Log("🔵 Stage UI 생성 시작");
-
-        GenerateMarker(); // 마커 생성
-
-        foreach (StageNode stage in allStages)
-        {
-            Debug.Log($"🟡 스테이지 버튼 생성: 레벨 {stage.level}, gridID {stage.gridID}, 위치 {stage.position}");
-
-            // 부모 컨테이너를 gridID로 찾기
-            Transform gridContainer = stageContainer.Find(stage.gridID);
+            Transform gridContainer = stageContainer.Find(node.gridID);
             if (gridContainer == null)
             {
-                Debug.LogError($"❌ 그리드 컨테이너 {stage.gridID}를 찾을 수 없습니다. stageContainer 하위에 해당 이름을 가진 오브젝트가 필요합니다.");
-                gridContainer = stageContainer; // fallback
+                Debug.LogWarning($"그리드 컨테이너 '{node.gridID}'를 찾을 수 없음. 기본 stageContainer 사용.");
+                gridContainer = stageContainer;
             }
 
-            // Instantiate 시 gridContainer를 부모로 지정하고, 로컬 위치는 (0,0) 또는 약간의 랜덤 오프셋 적용
-            GameObject buttonObj = Instantiate(stageButtonPrefab, gridContainer);
-            // 예시: 셀 중앙에 배치하고, 필요 시 약간의 랜덤 오프셋 추가
-            RectTransform buttonRect = buttonObj.GetComponent<RectTransform>();
+            GameObject btnObj = Instantiate(stageButtonPrefab, gridContainer);
+            RectTransform rt = btnObj.GetComponent<RectTransform>();
             Vector2 randomOffset = new Vector2(Random.Range(-10f, 10f), Random.Range(-10f, 10f));
-            buttonRect.anchoredPosition = randomOffset;
+            rt.anchoredPosition = randomOffset;
 
-            StageButton button = buttonObj.GetComponent<StageButton>();
-            if (button == null)
-                Debug.LogError("❌ StageButton 컴포넌트가 없습니다! Prefab을 확인하세요.");
+            StageButton sb = btnObj.GetComponent<StageButton>();
+            if (sb != null)
+                sb.SetStageNode(node);
             else
-                button.SetStage(stage, stageTooltip, this);
+                Debug.LogError("StageButton 컴포넌트 없음! 프리팹 확인.");
 
-            StageUIComponent uiComponent = buttonObj.GetComponent<StageUIComponent>();
-            if (uiComponent == null)
-                Debug.LogError($"❌ {stage.name}의 StageUIComponent가 없습니다! Prefab을 확인하세요.");
+            StageUIComponent uiComp = btnObj.GetComponent<StageUIComponent>();
+            if (uiComp != null)
+                node.uiComponent = uiComp;
             else
-                stage.SetUIComponent(uiComponent);
+                Debug.LogError($"{node.nodeName}의 StageUIComponent 없음! 프리팹 확인.");
 
-            if (stage.level == 1)
+            if (node.floor == 1)
             {
-                currentStage = stage;
-                UpdateMarkerPosition(stage.position);
+                currentStage = node;
+                UpdateMarkerPosition(node.position);
             }
         }
-        Debug.Log("🟢 Stage UI 생성 완료");
+        DrawAllConnections();
+        Debug.Log("Stage UI 생성 완료");
     }
-    private void SetupScrollView()
+
+    void DrawAllConnections()
+    {
+        foreach (Transform child in lineParent)
+            Destroy(child.gameObject);
+        foreach (StageNode node in stageNodes)
+        {
+            foreach (Vector2Int p in node.outgoing)
+            {
+                StageNode target = allStages.FirstOrDefault(n => n.point.Equals(p));
+                if (target != null)
+                    AddLineConnection(node, target);
+            }
+        }
+    }
+
+    void AddLineConnection(StageNode from, StageNode to)
+    {
+        if (uiLinePrefab == null) return;
+        GameObject lineObj = Instantiate(uiLinePrefab, lineParent);
+        RectTransform rt = lineObj.GetComponent<RectTransform>();
+        Vector2 fromPos = from.position;
+        Vector2 toPos = to.position;
+        Vector2 diff = toPos - fromPos;
+        float distance = diff.magnitude;
+        float thickness = rt.sizeDelta.y;
+        rt.pivot = new Vector2(0, 0.5f);
+        rt.anchoredPosition = fromPos;
+        rt.sizeDelta = new Vector2(distance, thickness);
+        float angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
+        rt.rotation = Quaternion.Euler(0, 0, angle);
+
+        // 선 연결 정보 저장 (여기서는 LineRenderer는 사용하지 않으므로 null)
+        lineConnections.Add(new LineConnection(null, null, from, to));
+    }
+
+    void SetupScrollView()
     {
         if (scrollRect != null)
-        {
-            // 초기 스크롤 위치를 가장 왼쪽으로 설정
             scrollRect.horizontalNormalizedPosition = 0f;
-        }
-        Canvas.ForceUpdateCanvases(); // Canvas 강제 업데이트
+        Canvas.ForceUpdateCanvases();
     }
-    /*
-    void GenerateStageUI(List<StageNode> allStages)
+
+    void UpdateMarkerPosition(Vector2 pos)
     {
-        Debug.Log("🔵 Stage UI 생성 시작");
-
-        // Content 크기 설정
-        content.sizeDelta = new Vector2(levels * screenWidth, content.sizeDelta.y);
-
-        foreach (StageNode stage in allStages)
+        if (markerPrefab == null || stageContainer == null)
         {
-            Debug.Log($"🟡 스테이지 버튼 생성: 레벨 {stage.level}, 위치 {stage.position}");
-
-            GameObject buttonObj = Instantiate(stageButtonPrefab, content);
-            RectTransform buttonRect = buttonObj.GetComponent<RectTransform>();
-
-            // X축은 레벨에 따라 이동, Y축은 스테이지 배치
-            Vector2 position = new Vector2((stage.level - 1) * screenWidth, 425f - stage.position.y);
-            buttonRect.anchoredPosition = position;
-
-            StageButton button = buttonObj.GetComponent<StageButton>();
-            if (button == null)
-            {
-                Debug.LogError("❌ StageButton 컴포넌트가 없습니다! Prefab을 확인하세요.");
-            }
-            else
-            {
-                button.SetStage(stage, stageTooltip, this);
-            }
-
-            // ✅ 시작 노드(레벨 1)에서 마커를 초기 위치로 배치
-            if (stage.level == 1)
-            {
-                currentStage = stage;
-                UpdateMarkerPosition(position);
-            }
+            Debug.LogError("StageContainer 또는 Marker 미설정.");
+            return;
         }
+        RectTransform markerRect = markerPrefab.GetComponent<RectTransform>();
+        markerRect.anchoredPosition = pos;
+        Debug.Log($"마커 위치 업데이트: {pos}");
+    }
 
-        Debug.Log("🟢 Stage UI 생성 완료");
-    }*/
+    public void OnScrollValueChanged(Vector2 scrollPos)
+    {
+        if (currentStage == null || markerPrefab == null)
+        {
+            Debug.LogWarning("현재 스테이지 또는 Marker 미설정.");
+            return;
+        }
+        UpdateMarkerPosition(currentStage.position);
+    }
 
     public void UpdateStageUI(StageNode newStage)
     {
         if (newStage == null)
         {
-            Debug.LogError("❌ UpdateStageUI() 호출 실패: newStage가 null입니다!");
+            Debug.LogError("UpdateStageUI() 실패: newStage가 null.");
             return;
         }
-        Debug.Log("🔵 스테이지 이동: " + newStage.level);
-        if (allStages == null || allStages.Count == 0)
-        {
-            Debug.LogError("❌ allStages 리스트가 null이거나 비어 있습니다! StageMapManager에서 정상적으로 전달되었는지 확인하세요.");
-            return;
-        }
-        Debug.Log($"🔵 UI 업데이트: {newStage.name}");
+        Debug.Log("스테이지 이동: " + newStage.nodeName);
         currentStage = newStage;
         if (currentStage == null)
         {
-            Debug.LogError("❌ UI 업데이트 실패: currentStage가 null입니다!");
+            Debug.LogError("UI 업데이트 실패: currentStage가 null.");
             return;
         }
-        var stageUI = newStage.GetUIComponent();
-        if (stageUI == null)
+        StageUIComponent comp = newStage.uiComponent;
+        if (comp == null)
         {
-            Debug.LogError($"❌ {newStage.name}의 UI 컴포넌트가 존재하지 않습니다!");
+            Debug.LogError($"{newStage.nodeName}의 UI 컴포넌트가 존재하지 않음!");
             return;
         }
         UpdateMarkerPosition(currentStage.position);
-        foreach (var stage in allStages)
+        foreach (StageNode node in stageNodes)
         {
-            stage.SetLocked(!currentStage.nextStages.Contains(stage) && stage != currentStage);
-            stage.SetClickable(!stage.isLocked);
-        }
-        foreach (var stage in allStages)
-        {
-            var stageUIComponent = stage.GetUIComponent();
-            if (stageUIComponent != null)
-                stageUIComponent.SetInteractable(!stage.isLocked);
-            else
-                Debug.LogError($"❌ {stage.name}의 StageUIComponent가 존재하지 않습니다!");
+            bool active = (node == currentStage || currentStage.outgoing.Contains(node.point));
+            node.uiComponent?.SetInteractable(active);
         }
         UpdateStageOpacity();
     }
 
-
-    // ✅ 현재 위치 마커 이동 함수
-    void UpdateMarkerPosition(Vector2 stagePosition)
-    {
-        if (markerPrefab == null || stageContainer == null)
-        {
-            Debug.LogError("❌ StageContainer 또는 마커가 설정되지 않았습니다.");
-            return;
-        }
-
-        // StageContainer 좌표계를 기준으로 마커 위치 설정
-        RectTransform markerRect = markerPrefab.GetComponent<RectTransform>();
-        markerRect.anchoredPosition = stagePosition;
-
-        Debug.Log($"📍 마커 위치 업데이트 완료: {stagePosition}");
-    }
-
-    public void OnScrollValueChanged(Vector2 scrollPosition)
-    {
-        if (currentStage == null || markerPrefab == null)
-        {
-            Debug.LogWarning("❌ 현재 스테이지 또는 마커가 설정되지 않았습니다.");
-            return;
-        }
-
-        // 선택된 스테이지의 위치로 마커 이동
-        UpdateMarkerPosition(currentStage.position);
-    }
-
-    // ✅ 같은 노드 및 이전 노드의 오퍼시티 낮추기
     void UpdateStageOpacity()
     {
-        foreach (Transform child in stageContainer)
+        foreach (Transform container in stageContainer)
         {
-            StageButton button = child.GetComponent<StageButton>();
-            if (button != null)
+            foreach (Transform child in container)
             {
-                float opacity = (button.GetStageData() == currentStage || currentStage.nextStages.Contains(button.GetStageData())) ? 1f : 0.5f;
-                CanvasGroup canvasGroup = button.GetComponent<CanvasGroup>();
-                if (canvasGroup == null)
-                    canvasGroup = button.gameObject.AddComponent<CanvasGroup>();
-                canvasGroup.alpha = opacity;
+                StageButton button = child.GetComponent<StageButton>();
+                if (button != null)
+                {
+                    bool isActive = (button.GetStageData() == currentStage || currentStage.outgoing.Contains(button.GetStageData().point));
+                    float opacity = isActive ? 1f : 0.5f;
+                    CanvasGroup cg = button.GetComponent<CanvasGroup>();
+                    if (cg == null)
+                        cg = button.gameObject.AddComponent<CanvasGroup>();
+                    cg.alpha = opacity;
+                }
             }
         }
     }
 
-    void MoveToStage(StageNode newStage)
+    public void MoveToStage(StageNode newStage)
     {
         if (newStage == null)
         {
-            Debug.LogWarning("❌ 이동할 스테이지가 없습니다!");
+            Debug.LogWarning("이동할 스테이지 없음!");
             return;
         }
-        stageMapManager.MoveToStage(newStage);
+        if (stageMapManager != null)
+            stageMapManager.MoveToStage(newStage);
         currentStage = newStage;
         UpdateMarkerPosition(newStage.position);
-    }
-
-    void GenerateMarker()
-    {
-        if (markerPrefab == null)
-        {
-            Debug.LogError("❌ Marker Prefab이 설정되지 않았습니다.");
-            return;
-        }
-        markerPrefab = Instantiate(markerPrefab, stageContainer);
-        RectTransform markerRect = markerPrefab.GetComponent<RectTransform>();
-        markerRect.anchorMin = new Vector2(0.5f, 0.5f);
-        markerRect.anchorMax = new Vector2(0.5f, 0.5f);
-        markerRect.pivot = new Vector2(0.5f, 0.5f);
-        markerRect.anchoredPosition = Vector2.zero;
-        Debug.Log($"✅ 새로운 마커 생성 완료: {markerPrefab.name}");
-    }
-    public void InitializeUI(List<StageNode> stages)
-    {
-        if (stages == null || stages.Count == 0)
-        {
-            Debug.LogError("❌ StageUIManager.InitializeUI() 호출 실패: 전달된 allStages가 null이거나 비어 있습니다!");
-            return;
-        }
-
-        allStages = stages;
-        Debug.Log($"✅ StageUIManager가 {allStages.Count}개의 스테이지를 정상적으로 받았습니다.");
     }
 }
