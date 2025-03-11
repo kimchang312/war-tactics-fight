@@ -1,4 +1,5 @@
 using Google.GData.Extensions;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,6 +8,8 @@ using UnityEngine.UI;
 
 public class UnitUpgradeUI : MonoBehaviour
 {
+
+
     [SerializeField] private Button toggleUpgradeBtn;
     [SerializeField] private Button closeAllUpgradeBtn;
     [SerializeField] private Button closeOneUpgradeBtn;
@@ -37,6 +40,7 @@ public class UnitUpgradeUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI selectUpgradeText;     //선택한 강화
 
     [SerializeField] private Button upgradeBtn;                     //강화 버튼
+
 
     private enum UpgradeState { 
         Health,
@@ -385,4 +389,6 @@ public class UnitUpgradeUI : MonoBehaviour
     {
         SceneManager.LoadScene("Main");
     }
+
+    
 }

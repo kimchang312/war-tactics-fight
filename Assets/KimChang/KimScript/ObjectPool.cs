@@ -8,11 +8,13 @@ public class ObjectPool : MonoBehaviour
     [SerializeField] private Transform canvasTransform;         //캔버스
     [SerializeField] private GameObject abilityPrefab;      //특성+기술 아이콘
     [SerializeField] private GameObject warRelicPrefab;     //전쟁유산
+    [SerializeField] private GameObject onlyUnitPrefab;     //배경 없는 유닛
 
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();
     private readonly Queue<GameObject> abilityPool = new();
     private readonly Queue<GameObject> warRelicPool = new();
+    private readonly Queue<GameObject> onlyUnitPool = new();
 
     private readonly List<GameObject> activeBattleUnits = new(); // 활성화된 유닛을 추적
     private readonly List<GameObject> activeAbilitys= new();      //활성화된 능력 아이콘 추적
@@ -27,16 +29,19 @@ public class ObjectPool : MonoBehaviour
             GameObject unitInstance = Instantiate(battleUnitPrefab, transform);
             GameObject abilityInstance= Instantiate(abilityPrefab, transform);
             GameObject warRelicInstance = Instantiate(warRelicPrefab, transform);
+            GameObject onlyUnitInstance = Instantiate(onlyUnitPrefab, transform);
 
             damageInstance.SetActive(false);
             unitInstance.SetActive(false);
             abilityInstance.SetActive(false);
             warRelicInstance.SetActive(false);
+            onlyUnitInstance.SetActive(false);
 
             damageTextPool.Enqueue(damageInstance);
             battleUnitPool.Enqueue(unitInstance);
             abilityPool.Enqueue(abilityInstance);
             warRelicPool.Enqueue(warRelicInstance);
+            onlyUnitPool.Enqueue(onlyUnitInstance);
         }
     }
 
@@ -192,5 +197,31 @@ public class ObjectPool : MonoBehaviour
         gameObject.transform.SetParent(canvasTransform, transform);
         warRelicPool.Enqueue(gameObject);
     }
-    
+
+    //배경 없는 유닛 가져오기
+    public GameObject GetOnlyUnit()
+    {
+        GameObject instance;
+
+        if (onlyUnitPool.Count > 0)
+        {
+            instance = onlyUnitPool.Dequeue();
+        }
+        else
+        {
+            instance = Instantiate(onlyUnitPrefab, transform);
+        }
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, transform);
+
+        return instance;
+    }
+
+    //배경 없는 유닛 반환
+    public void ReturnOnlyUnit(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+        onlyUnitPool.Enqueue(gameObject);
+    }
+
 }

@@ -214,7 +214,6 @@ public class AutoBattleUI : MonoBehaviour
     // 기존 유닛 이미지 반환 및 비활성화
     private void ClearExistingUnitImages()
     {
-
         foreach (var unit in objectPool.GetActiveBattleUnits())
         {
             objectPool.ReturnBattleUnit(unit); // 유닛 비활성화 및 반환
