@@ -110,7 +110,6 @@ public class AbilityManager
         {
             ChrashIsFirstAttack(frontAttaker, defenders, ref multiplier, ref reduceDamage,ref firstText, isTeam);
         }
-        Debug.Log(frontAttaker.unitName+multiplier + "배율" + reduceDamage + "추뎀");
         for (int i = 0; i < 2; i++)
         {
             string text = firstText;
@@ -140,7 +139,7 @@ public class AbilityManager
             {
                 damage *= 0.5f;
             }
-            float normalDamage = damage;
+            float normalDamage = MathF.Round(damage);
 
             //충격
             if (isFirstAttack && frontAttaker.charge && frontAttaker.impact)
@@ -149,7 +148,7 @@ public class AbilityManager
 
                 if (impactIndex > 0)
                 {
-                    float impactDamage = normalDamage * (1 - defenders[impactIndex].armor / (defenders[impactIndex].armor + 10));
+                    float impactDamage = MathF.Round(normalDamage * (1 - defenders[impactIndex].armor / (defenders[impactIndex].armor + 10)));
 
                     defenders[impactIndex].health -= impactDamage;
                     
@@ -203,7 +202,7 @@ public class AbilityManager
                 // 흡혈 (한 번만 적용)
                 if (frontAttaker.lifeDrain)
                 {
-                    float heal = HealHealth(frontAttaker, Mathf.Min(Mathf.Round(frontAttaker.health * bloodSuckingValue), frontAttaker.maxHealth));
+                    float heal = HealHealth(frontAttaker, Mathf.Min(Mathf.Round(frontAttaker.health+(normalDamage * bloodSuckingValue)), frontAttaker.maxHealth));
                     frontAttaker.health = heal;
 
                     CallDamageText(-heal, "흡혈 ", isTeam);
@@ -226,7 +225,7 @@ public class AbilityManager
     public void ProcessSupportAbility(List<RogueUnitDataBase> attackers, List<RogueUnitDataBase> defenders,bool isTeam,float finalDamage, bool isFirstAttack) 
     {
         //원거리 공격
-        float damage =CalculateRangeAttack(attackers, defenders,isTeam,finalDamage, isFirstAttack);
+        float damage = MathF.Round(CalculateRangeAttack(attackers, defenders,isTeam,finalDamage, isFirstAttack));
 
         defenders[0].health -= damage;
 
@@ -392,8 +391,8 @@ public class AbilityManager
             if (attacker.firstStrike && !attacker.fStriked && CheckBackUnit(defenders))
             {
                 int minHealthIndex = CalculateMinHealthIndex(defenders);
-                float damage = attacker.attackDamage*2*finalDamage;
-                defenders[minHealthIndex].health -= attacker.attackDamage * 2 * finalDamage;
+                float damage =MathF.Round(attacker.attackDamage*2*finalDamage);
+                defenders[minHealthIndex].health -= damage;
 
                 attacker.fStriked = true;
 
@@ -415,7 +414,7 @@ public class AbilityManager
     //투창
     private void CalculateThrowSpear(RogueUnitDataBase attacker, RogueUnitDataBase defender,float finalDamage,ref float _damage,ref string text,bool isTeam,bool isFirstAttack)
     {
-        float damage = throwSpearValue * finalDamage;
+        float damage = MathF.Round(throwSpearValue * finalDamage);
         if (!CalculateAccuracy(defender, attacker,isTeam, isFirstAttack))
         {
             defender.health -= damage;
@@ -431,12 +430,12 @@ public class AbilityManager
     {
         int minHealthIndex = CalculateMinHealthIndex(defenders);
         if (minHealthIndex == -1) return;
-        float damage = attacker.attackDamage *assassinationValue* finalDamage;
+        float damage = MathF.Round(attacker.attackDamage * assassinationValue * finalDamage);
         if (defenders[0].guard)
         {
             if (!CalculateAccuracy(defenders[0], attacker,isTeam, isFirstAttack))
             {
-                defenders[0].health -= damage * (1 - (defenders[0].armor / (defenders[0].armor + 10)));
+                defenders[0].health -= MathF.Round(damage * (1 - (defenders[0].armor / (defenders[0].armor + 10))));
 
                 _damage += damage;
                 text += "암살수호 ";
@@ -1303,7 +1302,7 @@ public class AbilityManager
     {
         if (units.Any(u => u.idx == 21))
         {
-            var findUnits = units.Where(u => u.branchIdx == 0 || u.branchIdx == 8).ToList();
+            var findUnits = units.Where(u => u.branchIdx == 0).ToList();
             if (findUnits.Count >= 4)
             {
                 foreach (var unit in findUnits)
@@ -1319,7 +1318,7 @@ public class AbilityManager
     {
         if (units.Any(u => u.idx == 22))
         {
-            var findUnits = units.Where(u => u.branchIdx == 1 || u.branchIdx == 8).ToList();
+            var findUnits = units.Where(u => u.branchIdx == 1).ToList();
             if (findUnits.Count >= 4)
             {
                 foreach (var unit in findUnits)
@@ -1335,7 +1334,7 @@ public class AbilityManager
     {
         if (units.Any(u => u.idx == 23))
         {
-            var findUnits = units.Where(u => u.branchIdx == 2 || u.branchIdx == 8).ToList();
+            var findUnits = units.Where(u => u.branchIdx == 2).ToList();
             if (findUnits.Count >= 3)
             {
                 foreach (var unit in findUnits)
@@ -1351,7 +1350,7 @@ public class AbilityManager
     {
         if (units.Any(u => u.idx == 24))
         {
-            var findUnits = units.Where(u => u.branchIdx == 3 || u.branchIdx == 8).ToList();
+            var findUnits = units.Where(u => u.branchIdx == 3).ToList();
             if (findUnits.Count >= 3)
             {
                 foreach (var unit in findUnits)
@@ -1368,7 +1367,7 @@ public class AbilityManager
     {
         if (units.Any(u => u.idx == 25))
         {
-            var findUnits = units.Where(u => u.branchIdx == 6 || u.branchIdx == 8).ToList();
+            var findUnits = units.Where(u => u.branchIdx == 6).ToList();
             if (findUnits.Count >= 4)
             {
                 if (isTeam)
@@ -1423,6 +1422,6 @@ public class AbilityManager
     //데미지 ui 호출
     private void CallDamageText(float damage, string text, bool team, int unitIndex = 0)
     {
-        autoBattleUI.ShowDamage(MathF.Floor(damage), text, !team, unitIndex);
+        autoBattleUI.ShowDamage(MathF.Round(damage), text, !team, unitIndex);
     }
 }

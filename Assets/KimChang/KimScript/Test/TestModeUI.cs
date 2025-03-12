@@ -68,6 +68,8 @@ public class TestModeUI : MonoBehaviour
 
         SetStringMyIds();
         SetStringEnemyIds();
+
+        SetStringWarRelic();
     }
 
     // 테스트 유닛 윈도우 토글
@@ -235,9 +237,9 @@ public class TestModeUI : MonoBehaviour
     // 유닛 무리 생성 (Coroutine)
     private IEnumerator CreatUnitCorpsCoroutine(List<int> unitIds, bool isTeam)
     {
-        Vector2 startPosition = isTeam ? new Vector2(-125, -100) : new Vector2(125, -100);
-        int xOffset = isTeam ? -100 : 100;
-        int yOffset = -80;
+        Vector2 startPosition = isTeam ? new Vector2(-125, 0) : new Vector2(125, 0);
+        int xOffset = isTeam ? -200 : 200;
+        int yOffset = -175;
         int columns = 3;
 
         GameObject parent = isTeam ? myCorps : enemyCorps;
@@ -255,7 +257,7 @@ public class TestModeUI : MonoBehaviour
             int unitId = unitIds[i] > 12 ? -1 : unitIds[i];
 
             // 이미지 설정
-            Sprite sprite = Resources.Load<Sprite>($"KIcon/OnlyUnitImages/{unitId}");
+            Sprite sprite = Resources.Load<Sprite>($"UnitImages/Unit_Img_{unitId}");
             Image imageComponent = unit.GetComponent<Image>();
             if (imageComponent != null)
             {
@@ -272,7 +274,7 @@ public class TestModeUI : MonoBehaviour
             rectTransform.anchoredPosition = new Vector2(xPos, yPos);
 
             // DoTween으로 y-100 이동
-            rectTransform.DOAnchorPosY(rectTransform.anchoredPosition.y - 100, 0.5f)
+            rectTransform.DOAnchorPosY(rectTransform.anchoredPosition.y - 50, 0.5f)
                 .SetEase(Ease.OutQuad);
 
             // false일 때 좌우 반전

@@ -17,6 +17,11 @@ public class FightResult : MonoBehaviour
         goTitleBtn.onClick.AddListener(OnGoTitleButtonClick);
     }
 
+    public void CloseThis()
+    {
+        gameObject.SetActive(false);
+    }
+
     public void EndGame(int result)
     {
         int siblingCount = this.transform.parent.childCount; // 형제 개수 확인

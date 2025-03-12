@@ -29,19 +29,24 @@ public class ObjectPool : MonoBehaviour
             GameObject unitInstance = Instantiate(battleUnitPrefab, transform);
             GameObject abilityInstance= Instantiate(abilityPrefab, transform);
             GameObject warRelicInstance = Instantiate(warRelicPrefab, transform);
-            GameObject onlyUnitInstance = Instantiate(onlyUnitPrefab, transform);
-
+            
             damageInstance.SetActive(false);
             unitInstance.SetActive(false);
             abilityInstance.SetActive(false);
             warRelicInstance.SetActive(false);
-            onlyUnitInstance.SetActive(false);
 
             damageTextPool.Enqueue(damageInstance);
             battleUnitPool.Enqueue(unitInstance);
             abilityPool.Enqueue(abilityInstance);
             warRelicPool.Enqueue(warRelicInstance);
-            onlyUnitPool.Enqueue(onlyUnitInstance);
+
+            if (onlyUnitPrefab != null)
+            {
+                GameObject onlyUnitInstance = Instantiate(onlyUnitPrefab, transform);
+                onlyUnitInstance.SetActive(false);
+                onlyUnitPool.Enqueue(onlyUnitInstance);
+            }
+
         }
     }
 

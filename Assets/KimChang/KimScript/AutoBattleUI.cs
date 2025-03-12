@@ -8,9 +8,6 @@ using DG.Tweening;
 using System.Text.RegularExpressions;
 using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
-
-
-
 #if UNITY_EDITOR
 using UnityEditor.Playables;
 #endif
@@ -23,6 +20,7 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject canvas;
 
     [SerializeField] private FightResult fightResult;           //전투 종료 시 보여주는 화면
+    [SerializeField] private RewardUI rewardUI;
 
     [SerializeField] private TextMeshProUGUI _myUnitCountUI;
     [SerializeField] private TextMeshProUGUI _enemyUnitCountUI;
@@ -49,9 +47,14 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
     [SerializeField] private GameObject staticsWindow;
     [SerializeField] private Button staticsToggleBtn;
-    [SerializeField] private Button GoTestBtn;                  
+    [SerializeField] private Button GoTestBtn;
+    [SerializeField] private Button rewardArrowBtn;
 
     [SerializeField] private GameObject loadingWindow;        //로딩창
+
+    [SerializeField] private GameObject endWindow;
+
+    [SerializeField] private GameObject rewardWindow;          //보상 창
 
     [SerializeField] private GameObject relicBox;           
 
@@ -70,16 +73,16 @@ public class AutoBattleUI : MonoBehaviour
 
     private void Start()
     {
+        ResetUIActive();
+
         myHpBar.interactable = false;
         enemyHpBar.interactable = false;
         staticsToggleBtn.onClick.AddListener(ToggleStaticsWindow);
         GoTestBtn.onClick.AddListener(ClickGoTestBtn);
-
+        rewardArrowBtn.onClick.AddListener(OpenRewardWindow);
         // 입력 완료 시 처리하는 이벤트 등록
         relicInput.onEndEdit.AddListener(OnEndEdit);
     }
-
-
     //유닛 갯수 
     public void UpdateUnitCountUI(int myUnitCount, int enemyUnitCount)
     {
@@ -87,8 +90,6 @@ public class AutoBattleUI : MonoBehaviour
         _enemyUnitCountUI.text = $"{enemyUnitCount}";
 
     }
-
-
     //유닛 체력
     public void UpateUnitHPUI(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
     {
@@ -105,7 +106,6 @@ public class AutoBattleUI : MonoBehaviour
         enemyHpBar.maxValue = enemyMaxHp;
         enemyHpBar.value = enemyUnitHP;
     }
-
 
     //데미지 표시
     public void ShowDamage(float _damage, string text, bool team,int unitIndex=0)
@@ -415,6 +415,8 @@ public class AutoBattleUI : MonoBehaviour
     public void FightEnd(int result)
     {
         fightResult.EndGame(result);
+
+        rewardUI.CreateRelics();
     }
 
     //점수 보여주기
@@ -422,7 +424,6 @@ public class AutoBattleUI : MonoBehaviour
     {
         fightResult.ViewScore(result);
     }
-
 
     //능력 창 띄위기
     public void CreateAbility(string ability, bool myTeam)
@@ -562,7 +563,6 @@ public class AutoBattleUI : MonoBehaviour
 
         if (warRelics == null || warRelics.Count == 0)
             return;
-        Debug.Log(warRelics.Count);
         float startX = -900f;
         float startY = 350f;
         float spacingX = 100f;
@@ -630,5 +630,31 @@ public class AutoBattleUI : MonoBehaviour
         SceneManager.LoadScene("Upgrade");
     }
 
+    //보상 창 열기+ 통계,점수,승패 창 닫기 
+    private void OpenRewardWindow()
+    {
+        staticsWindow.SetActive(false);
+        endWindow.SetActive(false);
+        staticsToggleBtn.gameObject.SetActive(false);
+
+        rewardWindow.SetActive(true);
+    }
+    //보상 창 닫기
+    private void CloseRewardWindow()
+    {
+        rewardWindow.SetActive(false);
+    }
+
+
+    //ui 활성화 비활성화 초기화
+    private void ResetUIActive()
+    {
+        fightResult.CloseThis();
+        endWindow.SetActive(true);
+        staticsToggleBtn.gameObject.SetActive(true);
+        GoTestBtn.gameObject.SetActive(true);
+        rewardArrowBtn.gameObject.SetActive(true);
+        rewardWindow.SetActive(false);
+    }
 }
 
