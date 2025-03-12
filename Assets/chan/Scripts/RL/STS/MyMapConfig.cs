@@ -11,4 +11,7 @@ public class MapConfig : ScriptableObject
     public IntMinMax numOfStartingNodes;
     public int extraPaths;
     public List<MapLayer> layers;
+
+    // GridWidth 프로퍼티: 보스 전 노드 개수와 시작 노드 개수 중 큰 값을 반환
+    public int GridWidth => Mathf.Max(numOfPreBossNodes.max, numOfStartingNodes.max);
 }

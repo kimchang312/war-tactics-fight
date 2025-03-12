@@ -1,6 +1,6 @@
-using Map;
 using System.Collections.Generic;
 using UnityEngine;
+using Map;
 
 public enum NodeType
 {
