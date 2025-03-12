@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEngine;
-using Map;  // MapData, MapConfig, MapLayer, NodeBlueprint, NodeType 등이 이 네임스페이스에 있음
+using Map;  // MapData, MapConfig, MapLayer, NodeBlueprint, NodeType 등이 포함됨
 
 public class StageMapManager : MonoBehaviour
 {
-    // MapConfig 등 설정 데이터 참조
-    public MapConfig config;
+    public MapConfig config;  // 설정 데이터 (ScriptableObject)
     public float verticalSpacing = 150f;
     public float horizontalSpacing = 200f;
 
@@ -20,7 +18,7 @@ public class StageMapManager : MonoBehaviour
     // 각 층 간 거리 값
     private List<float> layerDistances;
 
-    // 재사용 가능한 Random 인스턴스
+    // 재사용 가능한 System.Random 인스턴스
     private System.Random rnd = new System.Random();
     private int stageCreationCounter = 0;
 
@@ -29,6 +27,11 @@ public class StageMapManager : MonoBehaviour
 
     private void Start()
     {
+        if (config == null)
+        {
+            Debug.LogError("Config is not assigned.");
+            return;
+        }
         GenerateMap();
         ConnectMap();
         AssignEncounters();
@@ -48,8 +51,9 @@ public class StageMapManager : MonoBehaviour
         // 보스 노드 이름은 config.nodeBlueprints에서 Boss 타입 중 랜덤 선택
         string bossName = config.nodeBlueprints.Where(b => b.nodeType == NodeType.Boss).ToList().Random().name;
 
-        // 생성된 맵 데이터를 MapData 객체로 생성
-        CurrentMap = new MapData(config.name, bossName, nodesList, new List<Vector2Int>());
+        // StageNode를 데이터 모델 Node로 변환
+        List<Node> dataNodes = nodesList.Select(n => n.ToNode()).ToList();
+        CurrentMap = new MapData(config.name, bossName, dataNodes, new List<Vector2Int>());
         Debug.Log(CurrentMap.ToJson());
 
         OnMapGenerated?.Invoke(nodesList);
@@ -57,11 +61,21 @@ public class StageMapManager : MonoBehaviour
 
     public StageNode GetCurrentStage()
     {
-        // 예시로 첫 번째 층의 첫 노드를 반환 (추가 로직이 필요하면 currentStage 관리 가능)
         return layersNodes.FirstOrDefault()?.FirstOrDefault();
     }
 
-    // 맵 생성: 각 층별 StageNode를 생성 및 배치 후 무작위 오프셋 적용
+    public void MoveToStage(StageNode newStage)
+    {
+        if (newStage == null)
+        {
+            Debug.LogError("MoveToStage() 호출 실패: newStage가 null입니다!");
+            return;
+        }
+        Debug.Log($"스테이지 이동: {newStage.nodeName}");
+        OnStageChanged?.Invoke(newStage);
+    }
+
+    // 맵 생성: 각 층별 StageNode 생성 및 배치 후 무작위 오프셋 적용
     private void GenerateMap()
     {
         layersNodes.Clear();
@@ -92,7 +106,7 @@ public class StageMapManager : MonoBehaviour
         {
             // 랜덤 노드 타입 선택
             List<NodeType> supportedTypes = config.randomNodes.Where(t => config.nodeBlueprints.Any(b => b.nodeType == t)).ToList();
-            NodeType nodeType = Random.Range(0f, 1f) < layer.randomizeNodes && supportedTypes.Count > 0
+            NodeType nodeType = UnityEngine.Random.Range(0f, 1f) < layer.randomizeNodes && supportedTypes.Count > 0
                 ? supportedTypes.Random()
                 : layer.nodeType;
             string blueprintName = config.nodeBlueprints.Where(b => b.nodeType == nodeType).ToList().Random().name;
@@ -103,6 +117,7 @@ public class StageMapManager : MonoBehaviour
             node.nodeName = $"Floor {layerIndex + 1} Node {i}";
             node.indexOnFloor = i;
             node.gridID = $"{node.floor}-{(char)('a' + i)}";
+            node.nodeType = nodeType; // 노드 타입 설정
 
             float posX = -offset + i * layer.nodesApartDistance;
             float posY = layerDistances.Take(layerIndex + 1).Sum();
@@ -124,8 +139,8 @@ public class StageMapManager : MonoBehaviour
 
             foreach (StageNode node in list)
             {
-                float xRnd = Random.Range(-0.5f, 0.5f);
-                float yRnd = Random.Range(-0.5f, 0.5f);
+                float xRnd = UnityEngine.Random.Range(-0.5f, 0.5f);
+                float yRnd = UnityEngine.Random.Range(-0.5f, 0.5f);
                 float x = xRnd * layer.nodesApartDistance;
                 float y = (yRnd < 0 ? prevDist : nextDist) * yRnd;
                 node.position += new Vector2(x, y) * layer.randomizePosition;
@@ -171,15 +186,15 @@ public class StageMapManager : MonoBehaviour
             foreach (StageNode node in layer)
             {
                 if (node.floor == 1)
-                    node.encounter = EncounterType.Monster;
+                    node.nodeType = NodeType.Monster;
                 else if (node.floor == config.layers.Count)
-                    node.encounter = EncounterType.Rest;
+                    node.nodeType = NodeType.Rest;
                 else if (node.floor == 9)
-                    node.encounter = EncounterType.Treasure;
+                    node.nodeType = NodeType.Treasure;
                 else
                 {
                     int roll = rnd.Next(100);
-                    node.encounter = roll < 80 ? EncounterType.Monster : EncounterType.Elite;
+                    node.nodeType = roll < 80 ? NodeType.Monster : NodeType.Elite;
                 }
             }
         }
@@ -194,7 +209,7 @@ public class StageMapManager : MonoBehaviour
         boss.indexOnFloor = 0;
         boss.gridID = $"{boss.floor}-a";
         boss.position = new Vector2(0, bossY);
-        boss.encounter = EncounterType.Boss;
+        boss.nodeType = NodeType.Boss;
 
         List<StageNode> lastLayer = layersNodes.Last();
         foreach (StageNode node in lastLayer)
@@ -203,9 +218,7 @@ public class StageMapManager : MonoBehaviour
             boss.incoming.Add(node.point);
         }
         layersNodes.Add(new List<StageNode> { boss });
-        // flatten layersNodes into a single list if needed
         List<StageNode> allNodesFlat = layersNodes.SelectMany(list => list).ToList();
-        // 추가 처리는 필요에 따라...
     }
 
     private void RemoveCrossConnections()
@@ -215,13 +228,17 @@ public class StageMapManager : MonoBehaviour
             for (int j = 0; j < config.layers.Count - 1; j++)
             {
                 StageNode node = GetNode(new Vector2Int(i, j));
-                if (node == null || (node.incoming.Count == 0 && node.outgoing.Count == 0)) continue;
+                if (node == null || (node.incoming.Count == 0 && node.outgoing.Count == 0))
+                    continue;
                 StageNode right = GetNode(new Vector2Int(i + 1, j));
-                if (right == null || (right.incoming.Count == 0 && right.outgoing.Count == 0)) continue;
+                if (right == null || (right.incoming.Count == 0 && right.outgoing.Count == 0))
+                    continue;
                 StageNode top = GetNode(new Vector2Int(i, j + 1));
-                if (top == null || (top.incoming.Count == 0 && top.outgoing.Count == 0)) continue;
+                if (top == null || (top.incoming.Count == 0 && top.outgoing.Count == 0))
+                    continue;
                 StageNode topRight = GetNode(new Vector2Int(i + 1, j + 1));
-                if (topRight == null || (topRight.incoming.Count == 0 && topRight.outgoing.Count == 0)) continue;
+                if (topRight == null || (topRight.incoming.Count == 0 && topRight.outgoing.Count == 0))
+                    continue;
 
                 if (!node.outgoing.Any(p => p.Equals(topRight.point))) continue;
                 if (!right.outgoing.Any(p => p.Equals(top.point))) continue;
@@ -232,7 +249,7 @@ public class StageMapManager : MonoBehaviour
                 right.outgoing.Add(topRight.point);
                 topRight.incoming.Add(right.point);
 
-                float r = Random.Range(0f, 1f);
+                float r = UnityEngine.Random.Range(0f, 1f);
                 if (r < 0.2f)
                 {
                     node.outgoing.Remove(topRight.point);

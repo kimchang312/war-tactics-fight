@@ -11,7 +11,7 @@ public class StageButton : MonoBehaviour
     {
         stageNode = node;
         if (label != null)
-            label.text = node.nodeName + "\n" + node.encounter.ToString();
+            label.text = node.nodeName + "\n" + node.nodeType.ToString();
     }
 
     public StageNode GetStageData()

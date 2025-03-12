@@ -1,7 +1,8 @@
+using Map;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum EncounterType
+public enum NodeType
 {
     None,
     //Event, 이벤트 스테이지 표현 방법 정하기
@@ -34,8 +35,8 @@ public class StageNode : MonoBehaviour
     public Vector2 position;      // UI 상에서의 좌표 (맵 생성 시 설정됨)
     public int indexOnFloor;      // 해당 층 내 수평 인덱스
 
-    // Encounter 정보
-    public EncounterType encounter = EncounterType.None;
+    // 추가: 노드의 타입 (EncounterType 대신 NodeType 사용)
+    public NodeType nodeType = NodeType.None;
 
     // UI 관련 참조
     public StageUIComponent uiComponent;
@@ -43,6 +44,15 @@ public class StageNode : MonoBehaviour
 
     // 편의 프로퍼티: 그리드 좌표 (x = indexOnFloor, y = floor)
     public Vector2Int point => new Vector2Int(indexOnFloor, floor);
+
+    // 데이터 모델(Node)로 변환하는 메서드
+    public Node ToNode()
+    {
+        Node nodeData = new Node(this.nodeType, this.nodeName, this.point);
+        nodeData.position = this.position;
+        // 추가적으로 필요한 필드를 설정할 수 있습니다.
+        return nodeData;
+    }
 
     // UI 업데이트 메서드
     public void UpdateUI()

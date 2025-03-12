@@ -11,7 +11,7 @@ namespace Map
 
         [Tooltip("Nodes that will be used on layers with Randomize Nodes > 0")]
         public List<NodeType> randomNodes = new List<NodeType>
-            { NodeType.Mystery, NodeType.Store, NodeType.Treasure, NodeType.MinorEnemy, NodeType.RestSite };
+            {  NodeType.Monster, NodeType.Elite, NodeType.Treasure, NodeType.Rest, NodeType.Shop };
 
         // 보스 전 노드와 시작 노드 중 큰 값을 기준으로 그리드 가로 길이를 결정
         public int GridWidth => Mathf.Max(numOfPreBossNodes.max, numOfStartingNodes.max);
