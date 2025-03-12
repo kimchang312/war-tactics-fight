@@ -800,11 +800,12 @@ public class AbilityManager
                     continue;
 
                 // 중갑 적용 (heavyArmorValue 감소, 최소 0 보장)
-                if (damage > 0 && defenders[0].heavyArmor && attacker.pierce)
+                if (damage > 0 &&defenders[0].heavyArmor && !defenders[0].pierce)
                 {
                     damage = Mathf.Max(0, damage - heavyArmorValue);
+                    
                 }
-
+                
                 // 작열 적용
                 CalculateBurning(attacker, defenders,ref text);
 
