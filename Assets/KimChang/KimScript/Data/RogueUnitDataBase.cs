@@ -79,6 +79,22 @@ public class RogueUnitDataBase
 
     public Dictionary<int, BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
 
+
+    // Spearman 데이터 저장
+    private static RogueUnitDataBase spearmanData;
+
+    // Spearman 데이터 로드 함수
+    public static void LoadSpearmanData(List<string> rowData)
+    {
+        spearmanData = ConvertToUnitDataBase(rowData);
+    }
+
+    // Spearman 데이터 반환 함수
+    public static RogueUnitDataBase GetSpearmanData()
+    {
+        return spearmanData;
+    }
+
     // 생성자
     public RogueUnitDataBase(
     int idx, string unitName, string unitBranch, int branchIdx,string unitId,

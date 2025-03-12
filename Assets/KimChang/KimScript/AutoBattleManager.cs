@@ -107,11 +107,14 @@ public class AutoBattleManager : MonoBehaviour
 
     private async void Update()
     {
-        if(isProcessing || Time.timeScale == 0) return;
+        if (isProcessing || Time.timeScale == 0) return;
+
+        isProcessing = true;
 
         switch (currentState)
         {
             case BattleState.None:
+                isProcessing = false;
                 break;
             case BattleState.Check:
                 await HandleCheck();
@@ -120,8 +123,10 @@ public class AutoBattleManager : MonoBehaviour
                 await HandlePhase(HandleStart);
                 break;
             case BattleState.Preparation:
-                if (HandleEnd()) break;
-                await HandlePhase(HandlePreparation);
+                if (!HandleEnd())
+                    await HandlePhase(HandlePreparation);
+                else
+                    isProcessing = false;
                 break;
             case BattleState.Crash:
                 await HandlePhase(HandleCrash);
@@ -130,21 +135,28 @@ public class AutoBattleManager : MonoBehaviour
                 await HandlePhase(HandleSupport);
                 break;
             case BattleState.Animation:
-                await HandleAnimation(); // 기본적으로 1.5초 애니메이션 실행 (필요에 따라 변경 가능)
+                await HandleAnimation();
                 break;
             case BattleState.Death:
-                break;
             case BattleState.End:
+                isProcessing = false;
                 break;
         }
     }
+
 
     //유닛 id를 바탕으로 유닛 데이터 저장
     private async Task<(List<RogueUnitDataBase>, List<RogueUnitDataBase>)> GetUnits(List<int> myUnitIds, List<int> enemyUnitIds)
     {
         // Google Sheet에서 전체 유닛 데이터를 로드
-        List<RogueUnitDataBase> allUnits = await LoadRogueUnitData();
 
+        await sheetLoader.LoadUnitSheetData();
+        // Spearman 데이터 로드
+        List<string> spearmanRow = sheetLoader.GetRowUnitData(0); // idx가 0인 창병 데이터
+        if (spearmanRow != null)
+        {
+            RogueUnitDataBase.LoadSpearmanData(spearmanRow);
+        }
         // 내 유닛 ID들을 기반으로 유닛을 가져와서 myUnits에 저장
         foreach (int unitId in myUnitIds)
         {
@@ -186,16 +198,16 @@ public class AutoBattleManager : MonoBehaviour
     //페이즈 관리
     private async Task HandlePhase(Func<Task> phaseHandler)
     {
-        isProcessing = true;
         await phaseHandler();
         UpdateUnitHp();
+
         //유닛이 죽지 않았고 끝나지 않음
-        if (!ManageUnitDeath() && !(myUnits.Count ==0 || enemyUnits.Count ==0))
+        if (!ManageUnitDeath() && !(myUnits.Count == 0 || enemyUnits.Count == 0))
         {
             switch (currentState)
             {
                 case BattleState.Start:
-                    currentState = BattleState.Preparation; 
+                    currentState = BattleState.Preparation;
                     break;
                 case BattleState.Preparation:
                     currentState = BattleState.Crash;
@@ -209,14 +221,15 @@ public class AutoBattleManager : MonoBehaviour
                     break;
             }
         }
-        else    //유닛 사망 시 승패무 채크 후 준비 페이즈로
+        else
         {
             HandleEnd();
         }
-        await Task.Delay((int)waittingTime); // 0.5초 대기
+
+        await Task.Delay((int)waittingTime); // 대기 시간
         isProcessing = false;
-        
     }
+
 
     //유닛 갯수 최신화
     private void UpdateUnitCount()
@@ -287,7 +300,7 @@ public class AutoBattleManager : MonoBehaviour
             }
         }
 
-        autoBattleUI.CreateUnitBox(myUnits, enemyUnits, abilityManager.CalculateDodge(myUnits[0]), abilityManager.CalculateDodge(enemyUnits[0]),myRangeUnits,enemyRangUnits);
+        autoBattleUI.CreateUnitBox(myUnits, enemyUnits, abilityManager.CalculateDodge(myUnits[0],true,isFirstAttack), abilityManager.CalculateDodge(enemyUnits[0],false,isFirstAttack),myRangeUnits,enemyRangUnits);
     }
 
     //전투 전 발동
@@ -333,8 +346,8 @@ public class AutoBattleManager : MonoBehaviour
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
 
-        abilityManager.ProcessSupportAbility(myUnits, enemyUnits, true, myFinalDamage);
-        abilityManager.ProcessSupportAbility(enemyUnits,myUnits, false, enemyFinalDamage);
+        abilityManager.ProcessSupportAbility(myUnits, enemyUnits, true, myFinalDamage, isFirstAttack);
+        abilityManager.ProcessSupportAbility(enemyUnits,myUnits, false, enemyFinalDamage, isFirstAttack);
 
     }
 
@@ -408,13 +421,14 @@ public class AutoBattleManager : MonoBehaviour
     {
         Debug.Log("전투 확인 단계");
 
-        // 전투 전 능력 발동
         ProcessBeforeBattle(myUnits, enemyUnits, true, myFinalDamage);
         ProcessBeforeBattle(enemyUnits, myUnits, false, enemyFinalDamage);
 
         await Task.Delay((int)waittingTime);
         currentState = BattleState.Start;
+        isProcessing = false; // 체크가 끝난 후 상태를 변경
     }
+
 
     // 시작 단계 처리 (전투 시작을 위한 초기화)
     private async Task HandleStart()
@@ -555,7 +569,7 @@ public class AutoBattleManager : MonoBehaviour
     }
 
     // 유닛 별 고유 ID 생성
-    private int GenerateUniqueUnitId(int branchIdx, bool isTeam, int unitIdx)
+    public static int GenerateUniqueUnitId(int branchIdx, bool isTeam, int unitIdx)
     {
         int teamBit = isTeam ? 0 : 1; // 팀 정보
         return (teamBit << 31)             // 팀 비트 (31번째 비트)
