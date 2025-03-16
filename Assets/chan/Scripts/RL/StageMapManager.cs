@@ -7,20 +7,15 @@ using Map;  // MapData, MapConfig, MapLayer, NodeBlueprint, NodeType 등이 포�
 public class StageMapManager : MonoBehaviour
 {
     public MapConfig config;  // 설정 데이터 (ScriptableObject)
-    public float verticalSpacing = 150f;
-    public float horizontalSpacing = 200f;
+    public float horizontalSpacing = 200f;  // 열 간격 (x축)
+    public float verticalSpacing = 150f;      // 행 간격 (y축)
 
-    // 생성된 맵 데이터를 MapData 타입으로 보관
     public MapData CurrentMap { get; private set; }
 
-    // 각 층별 StageNode들을 저장하는 리스트
-    private List<List<StageNode>> layersNodes = new List<List<StageNode>>();
-    // 각 층 간 거리 값
-    private List<float> layerDistances;
+    // 각 행별 StageNode들을 저장하는 리스트
+    private List<List<StageNode>> rowNodes = new List<List<StageNode>>();
 
-    // 재사용 가능한 System.Random 인스턴스
     private System.Random rnd = new System.Random();
-    private int stageCreationCounter = 0;
 
     public static event Action<List<StageNode>> OnMapGenerated;
     public static event Action<StageNode> OnStageChanged;
@@ -37,21 +32,15 @@ public class StageMapManager : MonoBehaviour
         AssignEncounters();
         ConnectBossRoom();
 
-        if (layersNodes == null || layersNodes.Count == 0)
+        if (rowNodes == null || rowNodes.Count == 0)
         {
             Debug.LogError("❌ 맵 노드가 생성되지 않았습니다.");
             return;
         }
 
-        // 모든 StageNode들을 평탄화하여 하나의 리스트로 모음
-        List<StageNode> nodesList = layersNodes.SelectMany(list => list)
-            .Where(n => n.incoming.Count > 0 || n.outgoing.Count > 0 || n.floor == 1)
-            .ToList();
+        List<StageNode> nodesList = rowNodes.SelectMany(list => list).ToList();
 
-        // 보스 노드 이름은 config.nodeBlueprints에서 Boss 타입 중 랜덤 선택
         string bossName = config.nodeBlueprints.Where(b => b.nodeType == NodeType.Boss).ToList().Random().name;
-
-        // StageNode를 데이터 모델 Node로 변환
         List<Node> dataNodes = nodesList.Select(n => n.ToNode()).ToList();
         CurrentMap = new MapData(config.name, bossName, dataNodes, new List<Vector2Int>());
         Debug.Log(CurrentMap.ToJson());
@@ -61,7 +50,7 @@ public class StageMapManager : MonoBehaviour
 
     public StageNode GetCurrentStage()
     {
-        return layersNodes.FirstOrDefault()?.FirstOrDefault();
+        return rowNodes.FirstOrDefault()?.FirstOrDefault();
     }
 
     public void MoveToStage(StageNode newStage)
@@ -75,95 +64,69 @@ public class StageMapManager : MonoBehaviour
         OnStageChanged?.Invoke(newStage);
     }
 
-    // 맵 생성: 각 층별 StageNode 생성 및 배치 후 무작위 오프셋 적용
     private void GenerateMap()
     {
-        layersNodes.Clear();
-        GenerateLayerDistances();
+        rowNodes.Clear();
 
-        for (int i = 0; i < config.layers.Count; i++)
-            PlaceLayer(i);
+        // config.layers.Count를 행 수로 사용, config.GridWidth를 열 수로 사용
+        for (int row = 0; row < config.layers.Count; row++)
+            PlaceRow(row);
 
-        RandomizeNodePositions();
+        // 무작위 오프셋 적용 안 함
     }
 
-    private void GenerateLayerDistances()
+    private void PlaceRow(int rowIndex)
     {
-        layerDistances = new List<float>();
-        foreach (MapLayer layer in config.layers)
-            layerDistances.Add(layer.distanceFromPreviousLayer.GetValue());
-    }
+        MapLayer layer = config.layers[rowIndex];
+        List<StageNode> nodesInRow = new List<StageNode>();
 
-    private void PlaceLayer(int layerIndex)
-    {
-        MapLayer layer = config.layers[layerIndex];
-        List<StageNode> nodesOnLayer = new List<StageNode>();
+        // 각 행의 너비 = horizontalSpacing * config.GridWidth, 중앙 정렬 offset 계산
+        float totalWidth = horizontalSpacing * config.GridWidth;
+        float offset = totalWidth / 2f;
 
-        // 중앙 정렬을 위한 offset 계산
-        float offset = layer.nodesApartDistance * config.GridWidth / 2f;
-
-        for (int i = 0; i < config.GridWidth; i++)
+        for (int col = 0; col < config.GridWidth; col++)
         {
-            // 랜덤 노드 타입 선택
             List<NodeType> supportedTypes = config.randomNodes.Where(t => config.nodeBlueprints.Any(b => b.nodeType == t)).ToList();
             NodeType nodeType = UnityEngine.Random.Range(0f, 1f) < layer.randomizeNodes && supportedTypes.Count > 0
                 ? supportedTypes.Random()
                 : layer.nodeType;
             string blueprintName = config.nodeBlueprints.Where(b => b.nodeType == nodeType).ToList().Random().name;
 
-            // StageNode 생성 (GameObject 생성 후 컴포넌트 추가)
-            StageNode node = new GameObject($"StageNode_{layerIndex}_{i}").AddComponent<StageNode>();
-            node.floor = layerIndex + 1;
-            node.nodeName = $"Floor {layerIndex + 1} Node {i}";
-            node.indexOnFloor = i;
-            node.gridID = $"{node.floor}-{(char)('a' + i)}";
-            node.nodeType = nodeType; // 노드 타입 설정
+            StageNode node = new GameObject($"StageNode_{rowIndex}_{col}").AddComponent<StageNode>();
+            node.floor = rowIndex + 1;  // 행 번호
+            node.indexOnFloor = col;    // 열 번호
+            node.nodeName = $"Row {rowIndex + 1} Column {col + 1}";
+            node.gridID = $"{rowIndex + 1}-{(char)('a' + col)}";
+            node.nodeType = nodeType;
 
-            float posX = -offset + i * layer.nodesApartDistance;
-            float posY = layerDistances.Take(layerIndex + 1).Sum();
+            // x 좌표: -offset + col * horizontalSpacing + (horizontalSpacing/2)
+            // y 좌표: -rowIndex * verticalSpacing (행마다 일정한 간격)
+            float posX = -offset + col * horizontalSpacing + horizontalSpacing / 2f;
+            float posY = -rowIndex * verticalSpacing;
             node.position = new Vector2(posX, posY);
 
-            nodesOnLayer.Add(node);
+            nodesInRow.Add(node);
         }
-        layersNodes.Add(nodesOnLayer);
-    }
-
-    private void RandomizeNodePositions()
-    {
-        for (int i = 0; i < layersNodes.Count; i++)
-        {
-            List<StageNode> list = layersNodes[i];
-            MapLayer layer = config.layers[i];
-            float nextDist = i + 1 < layerDistances.Count ? layerDistances[i + 1] : 0f;
-            float prevDist = layerDistances[i];
-
-            foreach (StageNode node in list)
-            {
-                float xRnd = UnityEngine.Random.Range(-0.5f, 0.5f);
-                float yRnd = UnityEngine.Random.Range(-0.5f, 0.5f);
-                float x = xRnd * layer.nodesApartDistance;
-                float y = (yRnd < 0 ? prevDist : nextDist) * yRnd;
-                node.position += new Vector2(x, y) * layer.randomizePosition;
-            }
-        }
+        rowNodes.Add(nodesInRow);
     }
 
     private void ConnectMap()
     {
-        for (int layer = 0; layer < layersNodes.Count - 1; layer++)
+        // 행별 연결 (위에서 아래로 진행)
+        for (int row = 0; row < rowNodes.Count - 1; row++)
         {
-            List<StageNode> currentNodes = layersNodes[layer];
-            List<StageNode> nextNodes = layersNodes[layer + 1];
-            foreach (StageNode current in currentNodes)
+            List<StageNode> currentRow = rowNodes[row];
+            List<StageNode> nextRow = rowNodes[row + 1];
+            foreach (StageNode current in currentRow)
             {
                 List<StageNode> candidates = new List<StageNode>();
-                int idx = current.indexOnFloor;
-                if (idx >= 0 && idx < nextNodes.Count)
-                    candidates.Add(nextNodes[idx]);
-                if (idx - 1 >= 0)
-                    candidates.Add(nextNodes[idx - 1]);
-                if (idx + 1 < nextNodes.Count)
-                    candidates.Add(nextNodes[idx + 1]);
+                int col = current.indexOnFloor;
+                if (col >= 0 && col < nextRow.Count)
+                    candidates.Add(nextRow[col]);
+                if (col - 1 >= 0)
+                    candidates.Add(nextRow[col - 1]);
+                if (col + 1 < nextRow.Count)
+                    candidates.Add(nextRow[col + 1]);
 
                 candidates = candidates.Distinct().ToList();
 
@@ -181,9 +144,9 @@ public class StageMapManager : MonoBehaviour
 
     private void AssignEncounters()
     {
-        foreach (var layer in layersNodes)
+        foreach (var row in rowNodes)
         {
-            foreach (StageNode node in layer)
+            foreach (StageNode node in row)
             {
                 if (node.floor == 1)
                     node.nodeType = NodeType.Monster;
@@ -202,27 +165,30 @@ public class StageMapManager : MonoBehaviour
 
     private void ConnectBossRoom()
     {
-        float bossY = layerDistances.Sum();
+        // 보스 노드는 마지막 행 아래에 추가
+        float bossY = verticalSpacing * config.layers.Count;
         StageNode boss = new GameObject("StageNode_Boss").AddComponent<StageNode>();
         boss.floor = config.layers.Count + 1;
         boss.nodeName = "Boss";
         boss.indexOnFloor = 0;
-        boss.gridID = $"{boss.floor}-a";
-        boss.position = new Vector2(0, bossY);
+        boss.gridID = $"1-{boss.floor}";
+        float posX = 0; // 중앙 정렬
+        float posY = -bossY;
+        boss.position = new Vector2(posX, posY);
         boss.nodeType = NodeType.Boss;
 
-        List<StageNode> lastLayer = layersNodes.Last();
-        foreach (StageNode node in lastLayer)
+        List<StageNode> lastRow = rowNodes.Last();
+        foreach (StageNode node in lastRow)
         {
             node.outgoing.Add(boss.point);
             boss.incoming.Add(node.point);
         }
-        layersNodes.Add(new List<StageNode> { boss });
-        List<StageNode> allNodesFlat = layersNodes.SelectMany(list => list).ToList();
+        rowNodes.Add(new List<StageNode> { boss });
     }
 
     private void RemoveCrossConnections()
     {
+        // 필요에 따라 수정 (위아래 진행 방식에 맞게)
         for (int i = 0; i < config.GridWidth - 1; i++)
         {
             for (int j = 0; j < config.layers.Count - 1; j++)
@@ -273,6 +239,6 @@ public class StageMapManager : MonoBehaviour
 
     private StageNode GetNode(Vector2Int p)
     {
-        return layersNodes.SelectMany(list => list).FirstOrDefault(n => n.point.Equals(p));
+        return rowNodes.SelectMany(list => list).FirstOrDefault(n => n.point.Equals(p));
     }
 }

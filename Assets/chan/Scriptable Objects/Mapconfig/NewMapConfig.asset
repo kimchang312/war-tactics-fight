@@ -13,7 +13,12 @@ MonoBehaviour:
   m_Name: NewMapConfig
   m_EditorClassIdentifier: 
   nodeBlueprints:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: c8d614c8f9fd0144cac8c9dd1730910d, type: 2}
+  - {fileID: 11400000, guid: bcfe53ebf1c70d747a010bc33191811e, type: 2}
+  - {fileID: 11400000, guid: e2c879a43ff58a749b33b17bbb918658, type: 2}
+  - {fileID: 11400000, guid: db5aeaaf17acdfc4bb6670c2d0ede353, type: 2}
+  - {fileID: 11400000, guid: 906b4b3e2a7c28244b4829c7ede2f82f, type: 2}
+  - {fileID: 11400000, guid: 582e47c2d6ae55f45aade3abd91c473b, type: 2}
   randomNodes: 0100000002000000030000000400000005000000
   numOfPreBossNodes:
     min: 4
@@ -22,4 +27,109 @@ MonoBehaviour:
     min: 3
     max: 4
   extraPaths: 0
-  layers: []
+  layers:
+  - nodesApartDistance: 0
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0
+  - nodesApartDistance: 2
+    distanceFromPreviousLayer:
+      min: 0
+      max: 0
+    nodeType: 1
+    randomizeNodes: 0
+    randomizePosition: 0

@@ -915,7 +915,6 @@ RectTransform:
   - {fileID: 1889173484}
   - {fileID: 386943359}
   - {fileID: 777234320}
-  - {fileID: 1335846191}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1158,11 +1157,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8753cd3a4c5b835498455ef3bf5fcea1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  button: {fileID: 8738937062171550701, guid: a0e897dcd208d524abf82771d29b2783, type: 3}
-  stageImage: {fileID: 7806993754082154597, guid: a0e897dcd208d524abf82771d29b2783, type: 3}
-  isCleared: 0
-  isLocked: 1
-  isClickable: 0
 --- !u!4 &1167134281
 Transform:
   m_ObjectHideFlags: 0
@@ -1327,7 +1321,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1335846191}
   m_Father: {fileID: 713579220}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1397,16 +1392,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1335846190}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 972372225}
+  m_Father: {fileID: 1322327644}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.03137207, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1335846192
@@ -1421,14 +1416,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 868065182871ef34eb8d1c89e970e327, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridParent: {fileID: 1322327644}
-  gridCellPrefab: {fileID: 4404665234386150450, guid: e56110a455a751f428377c74949f6b2c, type: 3}
-  levels: 15
-  rows: 7
-  xSpacing: 230
-  ySpacing: 140
-  startX: -700
-  startY: 425
+  columns: 7
+  rows: 15
+  cellSize: {x: 100, y: 100}
+  spacing: {x: 10, y: 10}
+  gridCells: []
 --- !u!1 &1578104262
 GameObject:
   m_ObjectHideFlags: 0
@@ -1753,7 +1745,7 @@ MonoBehaviour:
   stageContainer: {fileID: 1322327644}
   stageButtonPrefab: {fileID: 6132502621805899083, guid: a0e897dcd208d524abf82771d29b2783, type: 3}
   uiLinePrefab: {fileID: 0}
-  lineParent: {fileID: 0}
+  lineParent: {fileID: 705917636}
   content: {fileID: 1322327644}
   scrollRect: {fileID: 777234321}
   markerPrefab: {fileID: 5230185607287131339, guid: df227eddeee844d448e5f1455707dcad, type: 3}
@@ -1895,13 +1887,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0255d75f3e907345bce746ec1aa1aa3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  totalFloors: 15
-  floorStartPosition: {x: 0, y: -300}
-  verticalSpacing: 150
+  config: {fileID: 11400000, guid: 45d1c0c2f8e7fda4fafd24137422ad12, type: 2}
   horizontalSpacing: 200
-  minNodesPerFloor: 2
-  maxNodesPerFloor: 5
-  stageUIManager: {fileID: 1889547509}
+  verticalSpacing: 150
 --- !u!4 &2072340139
 Transform:
   m_ObjectHideFlags: 0

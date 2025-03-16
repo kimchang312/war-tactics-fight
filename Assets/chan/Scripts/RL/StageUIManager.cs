@@ -2,20 +2,20 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using Map;
+using Map;  // MapData, MapConfig, MapLayer, NodeBlueprint, NodeType 등이 포함됨
 
 public class StageUIManager : MonoBehaviour
 {
     [Header("UI References")]
-    public RectTransform stageContainer;
+    public RectTransform stageContainer;       // 노드 버튼들을 배치할 컨테이너
     public GameObject stageButtonPrefab;
-    public GameObject uiLinePrefab; // UI Image 기반 선 프리팹
+    public GameObject uiLinePrefab;              // UI Image 기반 선 프리팹
     public Transform lineParent;
 
     [Header("Scroll View & Marker")]
-    public RectTransform content;
+    public RectTransform content;              // Scroll View의 Content
     public ScrollRect scrollRect;
-    public GameObject markerPrefab;
+    public GameObject markerPrefab;            // 현재 위치를 표시할 Marker 프리팹
 
     [Header("Other UI Elements")]
     public StageTooltip stageTooltip;
@@ -30,6 +30,7 @@ public class StageUIManager : MonoBehaviour
 
     private void Awake()
     {
+        // 만약 lineParent가 할당되지 않았다면, stageContainer의 자식으로 새로 생성
         if (lineParent == null)
         {
             GameObject lp = new GameObject("LineParent");
@@ -86,41 +87,57 @@ public class StageUIManager : MonoBehaviour
     {
         Debug.Log("Stage UI 생성 시작");
 
+        // StageContainer의 자식 중 GridCellGenerator 오브젝트는 유지하고, 나머지 삭제
+        List<Transform> childrenToDelete = new List<Transform>();
         foreach (Transform child in stageContainer)
+        {
+            if (child.name != "GridGenerator")
+                childrenToDelete.Add(child);
+        }
+        foreach (Transform child in childrenToDelete)
             Destroy(child.gameObject);
+        // lineParent 자식 모두 삭제
         foreach (Transform child in lineParent)
             Destroy(child.gameObject);
 
         allStages = nodes;
         stageNodes = nodes;
 
+        // GridCellGenerator가 stageContainer의 자식으로 있다고 가정
+        Transform gridGen = stageContainer.Find("GridGenerator");
+        if (gridGen == null)
+        {
+            Debug.LogWarning("GridGenerator 오브젝트를 stageContainer에서 찾을 수 없습니다.");
+        }
+
         foreach (StageNode node in stageNodes)
         {
             Debug.Log($"스테이지 버튼 생성: 층 {node.floor}, gridID {node.gridID}, 위치 {node.position}");
 
-            Transform gridContainer = stageContainer.Find(node.gridID);
+            // GridCellGenerator 내부에서 gridID에 해당하는 격자 셀을 찾습니다.
+            Transform gridContainer = gridGen != null ? gridGen.Find(node.gridID) : stageContainer;
             if (gridContainer == null)
             {
-                Debug.LogWarning($"그리드 컨테이너 '{node.gridID}'를 찾을 수 없음. 기본 stageContainer 사용.");
-                gridContainer = stageContainer;
+                Debug.LogError($"그리드 컨테이너 '{node.gridID}'를 찾을 수 없습니다.");
+                continue;
             }
 
             GameObject btnObj = Instantiate(stageButtonPrefab, gridContainer);
             RectTransform rt = btnObj.GetComponent<RectTransform>();
-            Vector2 randomOffset = new Vector2(Random.Range(-10f, 10f), Random.Range(-10f, 10f));
-            rt.anchoredPosition = randomOffset;
+            // 격자 셀의 중앙에 배치
+            rt.anchoredPosition = Vector2.zero;
 
             StageButton sb = btnObj.GetComponent<StageButton>();
             if (sb != null)
                 sb.SetStageNode(node);
             else
-                Debug.LogError("StageButton 컴포넌트 없음! 프리팹 확인.");
+                Debug.LogError("StageButton 컴포넌트가 없습니다! 프리팹 확인.");
 
             StageUIComponent uiComp = btnObj.GetComponent<StageUIComponent>();
             if (uiComp != null)
                 node.uiComponent = uiComp;
             else
-                Debug.LogError($"{node.nodeName}의 StageUIComponent 없음! 프리팹 확인.");
+                Debug.LogError($"{node.nodeName}의 StageUIComponent가 없습니다! 프리팹 확인.");
 
             if (node.floor == 1)
             {
@@ -163,7 +180,7 @@ public class StageUIManager : MonoBehaviour
         float angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
         rt.rotation = Quaternion.Euler(0, 0, angle);
 
-        // 선 연결 정보 저장 (여기서는 LineRenderer는 사용하지 않으므로 null)
+        // 선 연결 정보 저장 (여기서는 실제 LineRenderer, UILineRenderer는 사용하지 않으므로 null)
         lineConnections.Add(new LineConnection(null, null, from, to));
     }
 
