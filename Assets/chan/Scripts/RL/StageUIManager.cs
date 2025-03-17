@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using Map;  // MapData, MapConfig, MapLayer, NodeBlueprint, NodeType 등이 포함됨
+using DG.Tweening;
 
 public class StageUIManager : MonoBehaviour
 {
@@ -87,7 +88,7 @@ public class StageUIManager : MonoBehaviour
     {
         Debug.Log("Stage UI 생성 시작");
 
-        // StageContainer의 자식 중 GridCellGenerator 오브젝트는 유지하고, 나머지 삭제
+        // stageContainer의 자식 중 "GridGenerator" 오브젝트는 삭제하지 않고, 나머지 삭제
         List<Transform> childrenToDelete = new List<Transform>();
         foreach (Transform child in stageContainer)
         {
@@ -96,14 +97,13 @@ public class StageUIManager : MonoBehaviour
         }
         foreach (Transform child in childrenToDelete)
             Destroy(child.gameObject);
-        // lineParent 자식 모두 삭제
         foreach (Transform child in lineParent)
             Destroy(child.gameObject);
 
         allStages = nodes;
         stageNodes = nodes;
 
-        // GridCellGenerator가 stageContainer의 자식으로 있다고 가정
+        // stageContainer의 자식 중 "GridGenerator" 오브젝트를 찾습니다.
         Transform gridGen = stageContainer.Find("GridGenerator");
         if (gridGen == null)
         {
@@ -112,9 +112,9 @@ public class StageUIManager : MonoBehaviour
 
         foreach (StageNode node in stageNodes)
         {
-            Debug.Log($"스테이지 버튼 생성: 층 {node.floor}, gridID {node.gridID}, 위치 {node.position}");
+            Debug.Log($"스테이지 버튼 생성: 행 {node.floor}, gridID {node.gridID}, 위치 {node.position}");
 
-            // GridCellGenerator 내부에서 gridID에 해당하는 격자 셀을 찾습니다.
+            // GridGenerator 내부에서 gridID에 해당하는 격자 셀을 찾습니다.
             Transform gridContainer = gridGen != null ? gridGen.Find(node.gridID) : stageContainer;
             if (gridContainer == null)
             {
@@ -124,8 +124,7 @@ public class StageUIManager : MonoBehaviour
 
             GameObject btnObj = Instantiate(stageButtonPrefab, gridContainer);
             RectTransform rt = btnObj.GetComponent<RectTransform>();
-            // 격자 셀의 중앙에 배치
-            rt.anchoredPosition = Vector2.zero;
+            rt.anchoredPosition = Vector2.zero;  // 부모 셀의 중앙에 배치
 
             StageButton sb = btnObj.GetComponent<StageButton>();
             if (sb != null)
@@ -148,6 +147,7 @@ public class StageUIManager : MonoBehaviour
         DrawAllConnections();
         Debug.Log("Stage UI 생성 완료");
     }
+
 
     void DrawAllConnections()
     {
@@ -199,7 +199,8 @@ public class StageUIManager : MonoBehaviour
             return;
         }
         RectTransform markerRect = markerPrefab.GetComponent<RectTransform>();
-        markerRect.anchoredPosition = pos;
+        // 기존 바로 변경하는 대신 Tween을 사용하여 부드럽게 이동
+        //markerRect.DOAnchorPos(pos, 0.3f);
         Debug.Log($"마커 위치 업데이트: {pos}");
     }
 

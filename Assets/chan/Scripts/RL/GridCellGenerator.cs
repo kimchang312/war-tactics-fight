@@ -5,8 +5,8 @@ using UnityEngine.UI;
 public class GridCellGenerator : MonoBehaviour
 {
     [Header("Grid Settings")]
-    public int columns = 7;
-    public int rows = 15;
+    public int columns;
+    public int rows;
     public Vector2 cellSize = new Vector2(150, 150);
     public Vector2 spacing = new Vector2(20, 20);
 
@@ -43,12 +43,12 @@ public class GridCellGenerator : MonoBehaviour
         gridCells.Clear();
 
         // 각 셀의 위치를 계산하여 생성
-        for (int row = 0; row < rows; row++)
+        for (int col = 0; col < columns; col++)
         {
-            for (int col = 0; col < columns; col++)
+            for (int row = 0; row < rows; row++)
             {
                 // 새로운 셀(GameObject) 생성
-                GameObject cell = new GameObject($"Cell_{row}_{col}", typeof(RectTransform));
+                GameObject cell = new GameObject($"Cell_{col}_{row}", typeof(RectTransform));
                 // 이 셀을 현재 GridCellGenerator 오브젝트의 자식으로 설정
                 cell.transform.SetParent(transform, false);
                 RectTransform rt = cell.GetComponent<RectTransform>();
@@ -62,7 +62,7 @@ public class GridCellGenerator : MonoBehaviour
                 rt.anchoredPosition = new Vector2(xPos, yPos);
 
                 // StageMapManager에서 참조할 gridID와 일치하도록 이름 설정 (예: "1-a", "1-b", ...)
-                cell.name = $"{row + 1}-{(char)('a' + col)}";
+                cell.name = $"{col + 1}-{(char)('a' + row)}";
 
                 gridCells.Add(rt);
             }

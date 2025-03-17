@@ -7,13 +7,16 @@ using Map;  // MapData, MapConfig, MapLayer, NodeBlueprint, NodeType 등이 포�
 public class StageMapManager : MonoBehaviour
 {
     public MapConfig config;  // 설정 데이터 (ScriptableObject)
-    public float horizontalSpacing = 200f;  // 열 간격 (x축)
+    public float horizontalSpacing = 200f;  // 레벨(열) 간격 (x축)
     public float verticalSpacing = 150f;      // 행 간격 (y축)
 
     public MapData CurrentMap { get; private set; }
 
-    // 각 행별 StageNode들을 저장하는 리스트
-    private List<List<StageNode>> rowNodes = new List<List<StageNode>>();
+    // 최종 경로를 병합하여 구성한 노드들: 각 레벨별 StageNode 리스트 (총 15 레벨, 각 레벨 최대 7행)
+    private List<List<StageNode>> columnNodes = new List<List<StageNode>>();
+
+    // 독립 경로들을 임시 저장 (각 경로는 Level 1~15의 StageNode 시퀀스)
+    private List<List<StageNode>> generatedPaths = new List<List<StageNode>>();
 
     private System.Random rnd = new System.Random();
 
@@ -27,18 +30,17 @@ public class StageMapManager : MonoBehaviour
             Debug.LogError("Config is not assigned.");
             return;
         }
-        GenerateMap();
-        ConnectMap();
+        GeneratePaths();
         AssignEncounters();
         ConnectBossRoom();
 
-        if (rowNodes == null || rowNodes.Count == 0)
+        if (columnNodes == null || columnNodes.Count == 0)
         {
             Debug.LogError("❌ 맵 노드가 생성되지 않았습니다.");
             return;
         }
 
-        List<StageNode> nodesList = rowNodes.SelectMany(list => list).ToList();
+        List<StageNode> nodesList = columnNodes.SelectMany(list => list).ToList();
 
         string bossName = config.nodeBlueprints.Where(b => b.nodeType == NodeType.Boss).ToList().Random().name;
         List<Node> dataNodes = nodesList.Select(n => n.ToNode()).ToList();
@@ -50,7 +52,7 @@ public class StageMapManager : MonoBehaviour
 
     public StageNode GetCurrentStage()
     {
-        return rowNodes.FirstOrDefault()?.FirstOrDefault();
+        return columnNodes.FirstOrDefault()?.FirstOrDefault();
     }
 
     public void MoveToStage(StageNode newStage)
@@ -64,89 +66,113 @@ public class StageMapManager : MonoBehaviour
         OnStageChanged?.Invoke(newStage);
     }
 
-    private void GenerateMap()
+    /// <summary>
+    /// 슬레이 더 스파이어 스타일 경로 생성 방식 (가로15, 세로7)
+    /// - Level 1: 7칸(행 a~g) 중 6개의 경로 시작 (최소 2개의 서로 다른 시작 행 보장)
+    /// - Level 2~14: 이전 레벨의 노드와 인접한 행(같은, 위 대각, 아래 대각) 후보 중 무작위 선택
+    /// - Level 15: 강제적으로 D칸(행 'd', 인덱스 3) 선택
+    /// </summary>
+    private void GeneratePaths()
     {
-        rowNodes.Clear();
+        generatedPaths.Clear();
+        int numPaths = 6;
+        int totalRows = config.GridWidth; // 예: 7
+        int totalLevels = config.layers.Count; // 예: 15
 
-        // config.layers.Count를 행 수로 사용, config.GridWidth를 열 수로 사용
-        for (int row = 0; row < config.layers.Count; row++)
-            PlaceRow(row);
-
-        // 무작위 오프셋 적용 안 함
-    }
-
-    private void PlaceRow(int rowIndex)
-    {
-        MapLayer layer = config.layers[rowIndex];
-        List<StageNode> nodesInRow = new List<StageNode>();
-
-        // 각 행의 너비 = horizontalSpacing * config.GridWidth, 중앙 정렬 offset 계산
-        float totalWidth = horizontalSpacing * config.GridWidth;
-        float offset = totalWidth / 2f;
-
-        for (int col = 0; col < config.GridWidth; col++)
+        // Level 1 시작 노드 선택: 행(0~6) 무작위 선택
+        List<int> startRows = new List<int>();
+        for (int i = 0; i < numPaths; i++)
         {
-            List<NodeType> supportedTypes = config.randomNodes.Where(t => config.nodeBlueprints.Any(b => b.nodeType == t)).ToList();
-            NodeType nodeType = UnityEngine.Random.Range(0f, 1f) < layer.randomizeNodes && supportedTypes.Count > 0
-                ? supportedTypes.Random()
-                : layer.nodeType;
-            string blueprintName = config.nodeBlueprints.Where(b => b.nodeType == nodeType).ToList().Random().name;
-
-            StageNode node = new GameObject($"StageNode_{rowIndex}_{col}").AddComponent<StageNode>();
-            node.floor = rowIndex + 1;  // 행 번호
-            node.indexOnFloor = col;    // 열 번호
-            node.nodeName = $"Row {rowIndex + 1} Column {col + 1}";
-            node.gridID = $"{rowIndex + 1}-{(char)('a' + col)}";
-            node.nodeType = nodeType;
-
-            // x 좌표: -offset + col * horizontalSpacing + (horizontalSpacing/2)
-            // y 좌표: -rowIndex * verticalSpacing (행마다 일정한 간격)
-            float posX = -offset + col * horizontalSpacing + horizontalSpacing / 2f;
-            float posY = -rowIndex * verticalSpacing;
-            node.position = new Vector2(posX, posY);
-
-            nodesInRow.Add(node);
+            int row = UnityEngine.Random.Range(0, totalRows);
+            startRows.Add(row);
         }
-        rowNodes.Add(nodesInRow);
-    }
-
-    private void ConnectMap()
-    {
-        // 행별 연결 (위에서 아래로 진행)
-        for (int row = 0; row < rowNodes.Count - 1; row++)
+        // 최소 2개의 서로 다른 시작 행 보장
+        if (startRows.Distinct().Count() < 2)
         {
-            List<StageNode> currentRow = rowNodes[row];
-            List<StageNode> nextRow = rowNodes[row + 1];
-            foreach (StageNode current in currentRow)
+            int newVal;
+            do { newVal = UnityEngine.Random.Range(0, totalRows); }
+            while (newVal == startRows[0]);
+            startRows[1] = newVal;
+        }
+
+        // 각 경로 생성: Level 1부터 Level 15까지
+        for (int p = 0; p < numPaths; p++)
+        {
+            List<StageNode> path = new List<StageNode>();
+            int currentRow = startRows[p];
+            // Level 1:
+            StageNode node = CreatePathNode(1, currentRow);
+            path.Add(node);
+            // Level 2 ~ 14:
+            for (int level = 2; level < totalLevels; level++)
             {
-                List<StageNode> candidates = new List<StageNode>();
-                int col = current.indexOnFloor;
-                if (col >= 0 && col < nextRow.Count)
-                    candidates.Add(nextRow[col]);
-                if (col - 1 >= 0)
-                    candidates.Add(nextRow[col - 1]);
-                if (col + 1 < nextRow.Count)
-                    candidates.Add(nextRow[col + 1]);
+                List<int> candidates = new List<int> { currentRow };
+                if (currentRow - 1 >= 0) candidates.Add(currentRow - 1);
+                if (currentRow + 1 < totalRows) candidates.Add(currentRow + 1);
+                int nextRow = candidates.Random();
+                StageNode nextNode = CreatePathNode(level, nextRow);
+                path.Add(nextNode);
+                currentRow = nextRow;
+            }
+            // Level 15: 강제 D칸 → 행 인덱스 3 ("d")
+            int forcedRow = 3;
+            StageNode finalNode = CreatePathNode(totalLevels, forcedRow);
+            path.Add(finalNode);
 
-                candidates = candidates.Distinct().ToList();
+            generatedPaths.Add(path);
+        }
 
-                foreach (StageNode next in candidates)
+        // 경로 통합: 각 Level(1~15)별로, 동일한 행(알파벳)에서 중복 제거
+        columnNodes.Clear();
+        for (int level = 1; level <= totalLevels; level++)
+        {
+            List<StageNode> levelNodes = new List<StageNode>();
+            foreach (var path in generatedPaths)
+            {
+                StageNode n = path.FirstOrDefault(node => node.floor == level);
+                if (n != null && !levelNodes.Any(x => x.indexOnFloor == n.indexOnFloor))
                 {
-                    if (!current.outgoing.Contains(next.point))
-                    {
-                        current.outgoing.Add(next.point);
-                        next.incoming.Add(current.point);
-                    }
+                    levelNodes.Add(n);
                 }
             }
+            // 정렬 (행(알파벳) 순: a, b, c, ...)
+            levelNodes = levelNodes.OrderBy(n => n.indexOnFloor).ToList();
+            columnNodes.Add(levelNodes);
         }
+    }
+
+    /// <summary>
+    /// Level와 row에 따라 StageNode 생성.
+    /// 여기서 Level은 왼쪽→오른쪽(1~15)이며, row는 0~6 (a~g)
+    /// gridID는 "{알파벳}-{Level}" 형식, 예: "a-1", "b-1", ..., "g-15"
+    /// </summary>
+    private StageNode CreatePathNode(int level, int row)
+    {
+        StageNode node = new GameObject($"StageNode_{level}_{row}").AddComponent<StageNode>();
+        node.floor = level;             // Level (1~15)
+        node.indexOnFloor = row;        // 행 (0~6)
+        node.nodeName = $"Level {level} Row {(char)('a' + row)}";
+        node.gridID = $"{level}-{(char)('a' + row)}";
+        // 위치 계산:
+        // x 좌표: 중앙 정렬을 위해, 총 레벨 수(15) 기준으로 계산
+        float totalWidth = horizontalSpacing * config.layers.Count;
+        float xOffset = totalWidth / 2f;
+        float posX = -xOffset + (level - 1) * horizontalSpacing + horizontalSpacing / 2f;
+        // y 좌표: 각 행은 verticalSpacing에 따라, 위쪽이 높은 값
+        float totalHeight = verticalSpacing * config.GridWidth;
+        float yOffset = totalHeight / 2f;
+        float posY = yOffset - row * verticalSpacing;
+        node.position = new Vector2(posX, posY);
+        node.nodeType = NodeType.Monster;
+        return node;
     }
 
     private void AssignEncounters()
     {
-        foreach (var row in rowNodes)
+        // 예시 규칙: Level 1는 Monster, Level 15는 Rest, Level 9는 Treasure, 나머지는 Monster/Elite 랜덤
+        for (int level = 1; level <= columnNodes.Count; level++)
         {
-            foreach (StageNode node in row)
+            foreach (StageNode node in columnNodes[level - 1])
             {
                 if (node.floor == 1)
                     node.nodeType = NodeType.Monster;
@@ -165,80 +191,38 @@ public class StageMapManager : MonoBehaviour
 
     private void ConnectBossRoom()
     {
-        // 보스 노드는 마지막 행 아래에 추가
-        float bossY = verticalSpacing * config.layers.Count;
+        // 보스 노드는 Level 16에 생성 (Level 15 아래)
+        float bossX = horizontalSpacing * config.layers.Count;
         StageNode boss = new GameObject("StageNode_Boss").AddComponent<StageNode>();
         boss.floor = config.layers.Count + 1;
         boss.nodeName = "Boss";
-        boss.indexOnFloor = 0;
-        boss.gridID = $"1-{boss.floor}";
-        float posX = 0; // 중앙 정렬
-        float posY = -bossY;
+        boss.indexOnFloor = 3;  // 강제 D칸 (행 'd')
+        boss.gridID = $"{boss.floor - 1}-{(char)('a' + 3)}";  // 예: "d-16"
+        float totalWidth = horizontalSpacing * config.layers.Count;
+        float xOffset = totalWidth / 2f;
+        float posX = -xOffset + (boss.floor - 1) * horizontalSpacing + horizontalSpacing / 2f;
+        float totalHeight = verticalSpacing * config.GridWidth;
+        float yOffset = totalHeight / 2f;
+        float posY = yOffset - 3 * verticalSpacing;
         boss.position = new Vector2(posX, posY);
         boss.nodeType = NodeType.Boss;
 
-        List<StageNode> lastRow = rowNodes.Last();
-        foreach (StageNode node in lastRow)
+        List<StageNode> lastLevel = columnNodes.Last();
+        foreach (StageNode node in lastLevel)
         {
             node.outgoing.Add(boss.point);
             boss.incoming.Add(node.point);
         }
-        rowNodes.Add(new List<StageNode> { boss });
+        columnNodes.Add(new List<StageNode> { boss });
     }
 
     private void RemoveCrossConnections()
     {
-        // 필요에 따라 수정 (위아래 진행 방식에 맞게)
-        for (int i = 0; i < config.GridWidth - 1; i++)
-        {
-            for (int j = 0; j < config.layers.Count - 1; j++)
-            {
-                StageNode node = GetNode(new Vector2Int(i, j));
-                if (node == null || (node.incoming.Count == 0 && node.outgoing.Count == 0))
-                    continue;
-                StageNode right = GetNode(new Vector2Int(i + 1, j));
-                if (right == null || (right.incoming.Count == 0 && right.outgoing.Count == 0))
-                    continue;
-                StageNode top = GetNode(new Vector2Int(i, j + 1));
-                if (top == null || (top.incoming.Count == 0 && top.outgoing.Count == 0))
-                    continue;
-                StageNode topRight = GetNode(new Vector2Int(i + 1, j + 1));
-                if (topRight == null || (topRight.incoming.Count == 0 && topRight.outgoing.Count == 0))
-                    continue;
-
-                if (!node.outgoing.Any(p => p.Equals(topRight.point))) continue;
-                if (!right.outgoing.Any(p => p.Equals(top.point))) continue;
-
-                node.outgoing.Add(top.point);
-                top.incoming.Add(node.point);
-
-                right.outgoing.Add(topRight.point);
-                topRight.incoming.Add(right.point);
-
-                float r = UnityEngine.Random.Range(0f, 1f);
-                if (r < 0.2f)
-                {
-                    node.outgoing.Remove(topRight.point);
-                    topRight.incoming.Remove(node.point);
-                    right.outgoing.Remove(top.point);
-                    top.incoming.Remove(right.point);
-                }
-                else if (r < 0.6f)
-                {
-                    node.outgoing.Remove(topRight.point);
-                    topRight.incoming.Remove(node.point);
-                }
-                else
-                {
-                    right.outgoing.Remove(top.point);
-                    top.incoming.Remove(right.point);
-                }
-            }
-        }
+        // 교차 제거 로직은 추가 구현 필요 시 작성
     }
 
     private StageNode GetNode(Vector2Int p)
     {
-        return rowNodes.SelectMany(list => list).FirstOrDefault(n => n.point.Equals(p));
+        return columnNodes.SelectMany(list => list).FirstOrDefault(n => n.point.Equals(p));
     }
 }
