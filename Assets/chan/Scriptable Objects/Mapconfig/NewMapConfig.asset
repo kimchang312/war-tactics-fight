@@ -21,11 +21,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 582e47c2d6ae55f45aade3abd91c473b, type: 2}
   randomNodes: 0100000002000000030000000400000005000000
   numOfPreBossNodes:
-    min: 4
-    max: 5
+    min: 6
+    max: 7
   numOfStartingNodes:
-    min: 3
-    max: 4
+    min: 6
+    max: 7
   extraPaths: 0
   layers:
   - nodesApartDistance: 0

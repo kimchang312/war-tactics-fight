@@ -544,7 +544,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1889547510}
   - {fileID: 705917636}
   - {fileID: 1322327644}
   m_Father: {fileID: 193473410}
@@ -1416,10 +1415,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 868065182871ef34eb8d1c89e970e327, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  columns: 7
-  rows: 15
+  columns: 15
+  rows: 7
   cellSize: {x: 100, y: 100}
-  spacing: {x: 10, y: 10}
+  spacing: {x: 20, y: 20}
   gridCells: []
 --- !u!1 &1578104262
 GameObject:
@@ -1760,11 +1759,11 @@ Transform:
   m_GameObject: {fileID: 1889547508}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 876.62396, y: -447.44562, z: -16.926025}
+  m_LocalPosition: {x: 876.62396, y: 632.5544, z: -16.926025}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 713579220}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2058769798
 GameObject:
@@ -2047,3 +2046,4 @@ SceneRoots:
   - {fileID: 2072340139}
   - {fileID: 1167134281}
   - {fileID: 7463192382863529434}
+  - {fileID: 1889547510}
