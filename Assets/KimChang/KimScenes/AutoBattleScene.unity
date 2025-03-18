@@ -1528,7 +1528,7 @@ MonoBehaviour:
   enemyMostDamageText: {fileID: 1907443578}
   enemyMostTakenImg: {fileID: 4223550}
   enemyMostTakenText: {fileID: 1421262685}
-  moraleText: {fileID: 0}
+  moraleText: {fileID: 1240606560}
   objectPool: {fileID: 9976923}
   abilityPool: {fileID: 146627628}
   battleUnit: {fileID: 6319876841313589093, guid: 60ffdbfb469b6624fb3143be6b391a6e, type: 3}

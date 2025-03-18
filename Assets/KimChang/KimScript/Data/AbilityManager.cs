@@ -381,6 +381,8 @@ public class AbilityManager
                 {
                     attackers[0].energy = Math.Min(attackers[0].maxEnergy, attackers[0].energy + 1);
                 }
+                //돌격대장
+                CalculateAssaultLeader(attackers,isTeam);
             }
         }
     }
@@ -937,6 +939,15 @@ public class AbilityManager
         }
 
     }
+    //돌격대장
+    private void CalculateAssaultLeader(List<RogueUnitDataBase> units,bool isTeam)
+    {
+        if (!isTeam || units[0].idx != 54 || units[0].health <1) return;
+        int morale = RogueLikeData.Instance.GetMorale();
+        RogueLikeData.Instance.SetMorale(morale+10);
+        CalculateFirstMorale(units, isTeam, true);
+    }
+
     //유목민 족장
     private void CalculateNomadicChief(List<RogueUnitDataBase> units, bool isTeam)
     {
@@ -1309,11 +1320,11 @@ public class AbilityManager
         }
     }
     //사기 전투 전
-    private void CalculateFirstMorale(List<RogueUnitDataBase> units,bool isTeam)
+    private void CalculateFirstMorale(List<RogueUnitDataBase> units,bool isTeam,bool isBattle=false)
     {
         if(!isTeam) return;
         int morale = RogueLikeData.Instance.GetMorale();
-        float multiplier = 1.0f;
+        float multiplier =0f;
 
         // 사기 수치에 따른 능력치 조정
         if (morale >= 90)
@@ -1334,10 +1345,12 @@ public class AbilityManager
         }
 
         // 사기 10 이하이면 탈주 로직 실행
-        if (morale <= 10)
+        if (morale <= 10 && !isBattle)
         {
             RemoveLowMoraleUnits(units);
         }
+
+        autoBattleUI.UpdateMorale();
     }
     //사기 탈주
     private void RemoveLowMoraleUnits(List<RogueUnitDataBase> units)

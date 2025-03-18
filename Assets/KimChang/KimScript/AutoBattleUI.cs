@@ -134,7 +134,6 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 damageObj.SetActive(false);
-                Debug.Log(text);
                 GameObject unit = FindUnit(unitIndex, !team);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition =
@@ -160,20 +159,42 @@ public class AutoBattleUI : MonoBehaviour
             }
 
         }
-
+        //전투 애니메이션
+        BattleAnimation(damage, text, team);
         //
         CreateAbility(text, team);
 
         // 데미지 제거
         StartCoroutine(HideAfterDelay(damageObj));
     }
+    private void BattleAnimation(float damage, string text, bool team)
+    {
+        // team = true -> 상대 공격, false -> 나의 공격
+        if (damage >= 0 || text == "작열 " || text=="원거리 ") return;
 
+        GameObject unit = FindUnit(0, team);
+        RectTransform rectTransform = unit.GetComponent<RectTransform>();
+
+        Vector2 originPos = rectTransform.anchoredPosition; // 원래 UI 위치
+        float direction = team ? -1f : 1f; // team이 true면 반대 방향
+
+        Vector2 moveBackPos = originPos + new Vector2(direction * -50f, 0f); // 뒤로 이동할 위치
+        Vector2 moveForwardPos = originPos + new Vector2(direction * 50f, 0f); // 앞으로 이동할 위치
+
+        // DOTween 애니메이션 시퀀스
+        DG.Tweening.Sequence attackSequence = DOTween.Sequence();
+        attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f)) // 뒤로 0.05초 이동
+                      .AppendInterval(0.2f) // 0.2초 대기
+                      .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f)) // 앞으로 0.2초 이동
+                      .Append(rectTransform.DOAnchorPos(originPos, 0.05f)); // 원래 위치로 0.05초 이동
+
+        rectTransform.DOKill();
+    }
     private IEnumerator HideAfterDelay(GameObject damageObj)
     {
         yield return new WaitForSeconds(waittingTime/1000f);
         objectPool.ReturnDamageText(damageObj);
     }
-
 
     //유닛 갯수 만큼 유닛 이미지 생성
     public void CreateUnitBox(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<RogueUnitDataBase> myRangeUnits, List<RogueUnitDataBase> enemyRangeUnits)
@@ -186,7 +207,6 @@ public class AutoBattleUI : MonoBehaviour
         float firstSize = 250;
         float secondSize = 200;
         float unitInterval = 210;
-
 
         //유닛 초기화
         ClearExistingUnitImages();
@@ -465,27 +485,20 @@ public class AutoBattleUI : MonoBehaviour
         }
         FadeOutUnit(unit);
     }
-    //생성된 유닛 검색
+    // 생성된 유닛 검색 (캐싱 없이 항상 새로 검색)
     private GameObject FindUnit(int unitIndex, bool isMyUnit)
     {
-        var cache = isMyUnit ? myUnitCache : enemyUnitCache;
-        if (cache.TryGetValue(unitIndex, out GameObject unit))
-        {
-            return unit; // 이미 캐싱된 유닛이면 바로 반환
-        }
-
         string unitName = $"{(isMyUnit ? "MyUnit" : "EnemyUnit")}{unitIndex}";
 
         foreach (Transform child in canvasTransform)
         {
             if (child.name == unitName && child.gameObject.activeSelf)
             {
-                cache[unitIndex] = child.gameObject; // 캐싱
-                return child.gameObject;
+                return child.gameObject; // 정확한 유닛을 찾아 반환
             }
         }
 
-        return null; // 유닛이 없으면 null 반환
+        return null; // 유닛을 찾지 못하면 null 반환
     }
 
     //유닛 투명
@@ -648,7 +661,6 @@ public class AutoBattleUI : MonoBehaviour
         rewardWindow.SetActive(false);
     }
 
-
     //ui 활성화 비활성화 초기화
     private void ResetUIActive()
     {
@@ -666,5 +678,7 @@ public class AutoBattleUI : MonoBehaviour
         int morale = RogueLikeData.Instance.GetMorale();
         moraleText.text = $"{morale}";
     }
+
+   
 }
 

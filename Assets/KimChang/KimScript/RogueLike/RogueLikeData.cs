@@ -250,7 +250,6 @@ public class RogueLikeData
     {
         return currentGold;
     }
-
     public int GetMorale()
     {
         return playerMorale;
