@@ -1275,7 +1275,7 @@ public class AbilityManager
         if(heroUnits.Count <= 0) return;
         foreach (var unit in units)
         {
-            unit.attackDamage += unit.antiCavalry * 0.5f;
+            unit.attackDamage += unit.baseAntiCavalry * 0.5f;
         }
     }
     //폭풍의 창 회피율 증가
@@ -1305,6 +1305,17 @@ public class AbilityManager
             }
         }
     }
+    //사기 전투 전
+    private void CalculateFirstMorale(List<RogueUnitDataBase> units)
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+
+        
+
+    }
+    //사기(스탯) 발동
+
+
     //파수꾼 시너지
     private void CalculateWarden(List<RogueUnitDataBase> units)
     {
