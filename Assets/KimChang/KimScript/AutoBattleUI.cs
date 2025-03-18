@@ -35,6 +35,7 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private Image enemyMostTakenImg;  
     [SerializeField] private TextMeshProUGUI enemyMostTakenText;    //가장 많은 피해 받은 적 유닛
 
+    [SerializeField] private TextMeshProUGUI moraleText;        //사기 수치
     [SerializeField] private ObjectPool objectPool;            //  obj풀링
     [SerializeField] private GameObject abilityPool;              //기술+특성 풀
 
@@ -82,6 +83,8 @@ public class AutoBattleUI : MonoBehaviour
         rewardArrowBtn.onClick.AddListener(OpenRewardWindow);
         // 입력 완료 시 처리하는 이벤트 등록
         relicInput.onEndEdit.AddListener(OnEndEdit);
+
+        UpdateMorale();
     }
     //유닛 갯수 
     public void UpdateUnitCountUI(int myUnitCount, int enemyUnitCount)
@@ -655,6 +658,13 @@ public class AutoBattleUI : MonoBehaviour
         GoTestBtn.gameObject.SetActive(true);
         rewardArrowBtn.gameObject.SetActive(true);
         rewardWindow.SetActive(false);
+    }
+
+    //사기 값 수정
+    public void UpdateMorale()
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+        moraleText.text = $"{morale}";
     }
 }
 

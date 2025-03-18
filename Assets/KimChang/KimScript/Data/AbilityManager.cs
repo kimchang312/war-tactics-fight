@@ -41,6 +41,9 @@ public class AbilityManager
 
         CheckHeroUnit(units, isTeam);
 
+        //사기 발동
+        CalculateFirstMorale(units,isTeam);
+
         //유닛 효과
         CalculateBloodPriest(units);
         CalculateCorpsCommander(isTeam);
@@ -1306,15 +1309,58 @@ public class AbilityManager
         }
     }
     //사기 전투 전
-    private void CalculateFirstMorale(List<RogueUnitDataBase> units)
+    private void CalculateFirstMorale(List<RogueUnitDataBase> units,bool isTeam)
     {
+        if(!isTeam) return;
         int morale = RogueLikeData.Instance.GetMorale();
+        float multiplier = 1.0f;
 
-        
+        // 사기 수치에 따른 능력치 조정
+        if (morale >= 90)
+            multiplier = 0.2f;
+        else if (morale >= 70)
+            multiplier = 0.1f;
+        else if (morale <= 30)
+            multiplier = -0.1f;
 
+        // 유닛 능력치 조정
+        foreach (var unit in units)
+        {
+            if (morale <= 30 && unit.bravery) continue; // '용맹' 특성을 가진 유닛은 디버프 적용 안 함
+
+            unit.maxHealth += Mathf.Round(unit.baseHealth * multiplier);
+            unit.health = unit.maxHealth;
+            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * multiplier);
+        }
+
+        // 사기 10 이하이면 탈주 로직 실행
+        if (morale <= 10)
+        {
+            RemoveLowMoraleUnits(units);
+        }
     }
-    //사기(스탯) 발동
+    //사기 탈주
+    private void RemoveLowMoraleUnits(List<RogueUnitDataBase> units)
+    {
+        List<RogueUnitDataBase> removableUnits = new List<RogueUnitDataBase>();
 
+        // 희귀도 1~3 유닛 중 '용맹'이 없는 유닛만 탈주 후보로 추가
+        foreach (var unit in units)
+        {
+            if (unit.rarity >= 1 && unit.rarity <= 3 && !unit.bravery)
+            {
+                removableUnits.Add(unit);
+            }
+        }
+
+        // 탈주할 유닛이 있으면 무작위로 한 유닛 선택하여 제거
+        if (removableUnits.Count > 0)
+        {
+            RogueUnitDataBase leavingUnit = removableUnits[UnityEngine.Random.Range(0, removableUnits.Count)];
+            units.Remove(leavingUnit);
+            Debug.Log($"{leavingUnit.unitName}이(가) 사기가 낮아 부대를 떠남!");
+        }
+    }
 
     //파수꾼 시너지
     private void CalculateWarden(List<RogueUnitDataBase> units)
