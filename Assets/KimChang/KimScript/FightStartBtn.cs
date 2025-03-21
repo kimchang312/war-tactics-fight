@@ -10,8 +10,8 @@ public class FightStartBtn : MonoBehaviour
     [SerializeField] private Button fightButton;               //ArranageUnitsScene에 있는 Fight 버튼과 연결
 
     // ���� ����, ���� ����
-    private List<int> myUnitIds = new List<int> {0,0,0,0};
-    private List<int> enemyUnitIds = new List<int> {0,0,0};
+    private List<int> myUnitIds = new List<int> {54,0};
+    private List<int> enemyUnitIds = new List<int> {0,0,0,0,0,0};
 
     void Start()
     {

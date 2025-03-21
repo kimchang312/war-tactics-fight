@@ -22,6 +22,7 @@ public class TestModeUI : MonoBehaviour
     [SerializeField] private TMP_InputField myUnitIdInput;
     [SerializeField] private TMP_InputField enemyUnitIdInput;
     [SerializeField] private TMP_InputField warRelicIdInput;
+    [SerializeField] private TMP_InputField moraleInput;
 
     [SerializeField] private GameObject testUnitWindow;
     [SerializeField] private GameObject testRelicWindow;
@@ -33,6 +34,7 @@ public class TestModeUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI myUnitIdListText;
     [SerializeField] private TextMeshProUGUI enemyUnitIdListText;
     [SerializeField] private TextMeshProUGUI warRelicIdListText;
+    [SerializeField] private TextMeshProUGUI moraleText;
 
     [SerializeField] private TextMeshProUGUI myAllPriceText;
     [SerializeField] private TextMeshProUGUI enemyAllPriceText;
@@ -48,6 +50,7 @@ public class TestModeUI : MonoBehaviour
         {
             fightStartBtn = GetComponent<FightStartBtn>();
         }
+        moraleText.text = $"사기: {RogueLikeData.Instance.GetMorale()}";
 
         // 윈도우 토글 버튼 이벤트 등록
         toggleTestUnitBtn.onClick.AddListener(ToggleTestUnitWindow);
@@ -65,6 +68,7 @@ public class TestModeUI : MonoBehaviour
         myUnitIdInput.onSubmit.AddListener(OnEndEditMyUnit);
         enemyUnitIdInput.onSubmit.AddListener (OnEndEditEnemyUnit);
         warRelicIdInput.onSubmit.AddListener(AddWarRelic);
+        moraleInput.onEndEdit.AddListener((_) => UpdateMorale());
 
         SetStringMyIds();
         SetStringEnemyIds();
@@ -303,5 +307,18 @@ public class TestModeUI : MonoBehaviour
             objectPool.ReturnOnlyUnit(child.gameObject);
         }
     }
-
+    //사기 수치 초기화
+    private void UpdateMorale()
+    {
+        if (int.TryParse(moraleInput.text, out int moraleValue))
+        {
+            RogueLikeData.Instance.SetMorale(moraleValue);
+            moraleText.text = $"사기: {RogueLikeData.Instance.GetMorale()}";
+        }
+        else
+        {
+            // 유효하지 않은 입력값이면 기본값 유지
+            moraleInput.text = RogueLikeData.Instance.GetMorale().ToString();
+        }
+    }
 }

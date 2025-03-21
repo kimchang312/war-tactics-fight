@@ -111,23 +111,34 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //데미지 표시
-    public void ShowDamage(float _damage, string text, bool team,int unitIndex=0)
+    public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
     {
         float offsetX = 50f;
         float damage = -_damage;
+
+        // 전투 애니메이션 실행
+        BattleAnimation(damage, text, team, isAttack);
+
+        // 0.25초 후 나머지 코드 실행
+        StartCoroutine(DelayedDamageDisplay(damage, text, team, unitIndex, offsetX));
+    }
+
+    private IEnumerator DelayedDamageDisplay(float damage, string text, bool team, int unitIndex, float offsetX)
+    {
+        yield return new WaitForSeconds(waittingTime/2); // 0.25초 대기
+
         GameObject damageObj = objectPool.GetDamageText();
         TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
 
-        damagetext.color =damage >=0? Color.green : Color.red;
-
+        damagetext.color = damage >= 0 ? Color.green : Color.red;
         damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
 
         RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
 
-        //team = true== 내 머리위, false == 상대 머리위
+        // team = true(내 머리위), false(상대 머리위)
         if (team)
         {
-           if (unitIndex == 0)
+            if (unitIndex == 0)
             {
                 rectTransform.anchoredPosition = myTeam;
             }
@@ -136,11 +147,9 @@ public class AutoBattleUI : MonoBehaviour
                 damageObj.SetActive(false);
                 GameObject unit = FindUnit(unitIndex, !team);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
-                rectTransform.anchoredPosition =
-                       unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
                 damageObj.SetActive(true);
             }
-
         }
         else
         {
@@ -153,33 +162,31 @@ public class AutoBattleUI : MonoBehaviour
                 damageObj.SetActive(false);
                 GameObject unit = FindUnit(unitIndex, !team);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
-                rectTransform.anchoredPosition =
-                    unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
                 damageObj.SetActive(true);
             }
-
         }
-        //전투 애니메이션
-        BattleAnimation(damage, text, team);
-        //
+
+        // 능력 효과 표시
         CreateAbility(text, team);
 
         // 데미지 제거
         StartCoroutine(HideAfterDelay(damageObj));
     }
-    private void BattleAnimation(float damage, string text, bool team)
+
+    private void BattleAnimation(float damage, string text, bool team,bool isAttack)
     {
         // team = true -> 상대 공격, false -> 나의 공격
-        if (damage >= 0 || text == "작열 " || text=="원거리 ") return;
+        if (!isAttack) return;
 
         GameObject unit = FindUnit(0, team);
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
 
         Vector2 originPos = rectTransform.anchoredPosition; // 원래 UI 위치
-        float direction = team ? -1f : 1f; // team이 true면 반대 방향
+        float direction = team ? 1f : -1f; // team이 true면 반대 방향
 
-        Vector2 moveBackPos = originPos + new Vector2(direction * -50f, 0f); // 뒤로 이동할 위치
-        Vector2 moveForwardPos = originPos + new Vector2(direction * 50f, 0f); // 앞으로 이동할 위치
+        Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f); // 뒤로 이동할 위치
+        Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f); // 앞으로 이동할 위치
 
         // DOTween 애니메이션 시퀀스
         DG.Tweening.Sequence attackSequence = DOTween.Sequence();

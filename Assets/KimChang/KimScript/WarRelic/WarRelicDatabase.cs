@@ -73,7 +73,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(53, "불운의 황금 동전", 10, "주는 모든 피해가 2배로 적용됨. 단, 이 전쟁 유산을 획득할 때 높은 확률로 랜덤한 다른 전설 전쟁 유산으로 대체됨.", RelicType.StateBoost, () => Relic54()));
         relics.Add(new WarRelic(54, "저주 인형", 1, "아군 유닛 사망 시 전열 적 유닛에게 피해.", RelicType.BattleActive, () => Relic55()));
         relics.Add(new WarRelic(55, "혼돈의 주사위", 20, "아군 유닛들의 체력, 공격력이 매 전투마다 최소 60%에서 최대 200%까지 무작위로 분배된다.", RelicType.StateBoost, () => Relic56()));
-        relics.Add(new WarRelic(56, "광전사의 머리칼", 10, "전투에서 적 처치로도 사기를 일정 수치 회복하게 된다.", RelicType.BattleActive, () => Relic57()));
+        relics.Add(new WarRelic(56, "광전사의 머리칼", 10, "(1) 전투 승리 시 사기를 (상대한 적 유닛 수 * 1) 증가시킴.  (2) 비전투 레벨로 이동 시 사기 5 감소.", RelicType.BattleActive, () => Relic57()));
         relics.Add(new WarRelic(57, "용사의 훈장", 20, "영웅 유닛 최대 보유수 1 증가.", RelicType.SpecialEffect, () => Relic58()));
         relics.Add(new WarRelic(58, "횡령 증거품", 0, "용병단, 상단, 군사 아카데미의 금화 가격이 20% 증가한다.", RelicType.SpecialEffect, () => Relic59()));
         relics.Add(new WarRelic(59, "승전보", 0, "군사 아카데미 리롤 기회 -1.", RelicType.SpecialEffect, () => Relic60()));
@@ -716,7 +716,7 @@ public static class WarRelicDatabase
 
     }
 
-    //52
+    //51
     private static void Relic52()
     {
 
@@ -728,19 +728,19 @@ public static class WarRelicDatabase
 
     }
 
-    //54
+    //53
     private static void Relic54()
     {
         RogueLikeData.Instance.AddMyMultipleDamage(1);
     }
 
-    //55
+    //54
     private static void Relic55()
     {
 
     }
 
-    // 혼돈의 주사위 (Relic 56) - 최소 60%, 최대 200% 값으로 설정
+    // 혼돈의 주사위 (Relic 55) - 최소 60%, 최대 200% 값으로 설정
     private static void Relic56()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
@@ -762,31 +762,31 @@ public static class WarRelicDatabase
     }
 
 
-    //57
+    //56
     private static void Relic57()
     {
 
     }
 
-    //58
+    //57
     private static void Relic58()
     {
 
     }
 
-    //59
+    //58
     private static void Relic59()
     {
 
     }
 
-    //60
+    //59
     private static void Relic60()
     {
 
     }
 
-    //61
+    //60
     private static void NamelessLegionBadge()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
@@ -978,7 +978,7 @@ public static class WarRelicDatabase
         }
         RogueLikeData.Instance.AllMyUnits(units);
     }
-    //벼려진 마창 82
+    //벼려진 마창 81
     private static void ForgedStable()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
@@ -989,7 +989,7 @@ public static class WarRelicDatabase
         }
         RogueLikeData.Instance.AllMyUnits(units);
     }
-    //반응 갑옷 83
+    //반응 갑옷 82
     private static void ReactiveArmor()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
@@ -999,7 +999,7 @@ public static class WarRelicDatabase
         }
         RogueLikeData.Instance.AllMyUnits(units);
     }
-    //창술 교범 84
+    //창술 교범 83
     private static void SpearManual()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
@@ -1013,12 +1013,12 @@ public static class WarRelicDatabase
         }
         RogueLikeData.Instance.AllMyUnits(units);
     }
-    //치유석 85
+    //치유석 84
     private static void HealingStone()
     {
 
     }
-    //정예병 모집서
+    //정예병 모집서 85
     private static void EliteRecruitment()
     {
 

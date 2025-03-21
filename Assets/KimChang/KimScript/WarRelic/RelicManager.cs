@@ -134,10 +134,16 @@ public class RelicManager
         return true;
     }
 
-    //유산 55
+    //유산 54
     public static bool Relic55()
     {
         if (ownedRelics.FirstOrDefault(relic => relic.id == 55) == null) return false;
+        return true;
+    }
+    //유산 56
+    public static bool Relic57()
+    {
+        if (ownedRelics.FirstOrDefault(relic=>relic.id ==57)==null) return false;
         return true;
     }
     //유산 75 신성한 문서
