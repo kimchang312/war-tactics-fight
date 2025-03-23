@@ -21,6 +21,15 @@ public class RogueUnitDataBase
     public int unitPrice;      // 유닛 가격
     public int rarity;         // 희귀도
 
+    // 기본 스탯      
+    public float baseHealth;
+    public float baseArmor;
+    public float baseAttackDamage;
+    public float baseMobility;
+    public float baseRange;
+    public float baseAntiCavalry;
+    public int baseEnergy;
+
     // 스탯 정보
     public float health;       // 유닛 체력
     public float armor;        // 유닛 장갑
@@ -100,8 +109,9 @@ public class RogueUnitDataBase
     int idx, string unitName, string unitBranch, int branchIdx,string unitId,
     string unitExplain, string unitImg,
     string unitFaction, int factionIdx, string tag, int tagIdx, int unitPrice, int rarity,
-    float health, float armor, float attackDamage, float mobility, float range,
-    float antiCavalry, int energy, bool lightArmor, bool heavyArmor, bool rangedAttack,
+    float health, float armor, float attackDamage, float mobility, float range,float antiCavalry, int energy,
+    float baseHealth,float baseArmor,float baseAttackDamage,float baseMobility,float baseRange,float baseAntiCavalry,int baseEnergy,
+    bool lightArmor, bool heavyArmor, bool rangedAttack,
     bool bluntWeapon, bool pierce, bool agility, bool strongCharge, bool perfectAccuracy,
     bool slaughter, bool bindingForce, bool bravery, bool suppression, bool plunder,
     bool doubleShot, bool scorching, bool thorns, bool endless, bool impact, bool healing,
@@ -124,6 +134,15 @@ public class RogueUnitDataBase
         this.tagIdx = tagIdx;
         this.unitPrice = unitPrice;
         this.rarity = rarity;
+        //기본 스탯
+        this.baseHealth = health;
+        this.baseArmor = armor;
+        this.baseAttackDamage = attackDamage;
+        this.baseMobility = mobility;
+        this.baseRange = range;
+        this.baseAntiCavalry = antiCavalry;
+        this.baseEnergy = energy;
+
         this.health = health;
         this.armor = armor;
         this.attackDamage = attackDamage;
@@ -131,6 +150,7 @@ public class RogueUnitDataBase
         this.range = range;
         this.antiCavalry = antiCavalry;
         this.energy = energy;
+
         this.lightArmor = lightArmor;
         this.heavyArmor = heavyArmor;
         this.rangedAttack = rangedAttack;
@@ -177,8 +197,8 @@ public class RogueUnitDataBase
     {
         if (rowData == null || rowData.Count == 0) return null;
 
-        int idx, branchIdx, factionIdx, tagIdx, unitPrice, rarity,energy, maxEnergy;
-        float health, armor, attackDamage, mobility, range, antiCavalry, maxHealth;
+        int idx, branchIdx, factionIdx, tagIdx, unitPrice, rarity,energy, maxEnergy, baseEnergy;
+        float health, armor, attackDamage, mobility, range, antiCavalry, maxHealth, baseHealth, baseArmor, baseAttackDamage, baseMobility, baseRange, baseAntiCavalry;
 
         int.TryParse(rowData[0], out idx); // idx
         int.TryParse(rowData[3], out branchIdx); // branchIdx
@@ -195,6 +215,13 @@ public class RogueUnitDataBase
         float.TryParse(rowData[17], out range); // range
         float.TryParse(rowData[18], out antiCavalry); // antiCavalry
 
+        baseHealth = health;
+        baseArmor = armor;
+        baseAttackDamage = attackDamage;
+        baseMobility = mobility;
+        baseRange = range;
+        baseAntiCavalry = antiCavalry;
+        baseEnergy = energy;
         maxHealth = health; // 최대 체력은 기본적으로 health와 동일
         maxEnergy = energy;
 
@@ -253,7 +280,7 @@ public class RogueUnitDataBase
 
         return new RogueUnitDataBase(
             idx, unitName, unitBranch, branchIdx, unitId, unitExplain, unitImg, unitFaction, factionIdx, tag, tagIdx, unitPrice, rarity,
-            health, armor, attackDamage, mobility, range, antiCavalry, energy,
+            health, armor, attackDamage, mobility, range, antiCavalry, energy, baseHealth, baseArmor, baseAttackDamage, baseMobility, baseRange, baseAntiCavalry,baseEnergy,
             lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy, slaughter,
             bindingForce, bravery, suppression, plunder, doubleShot, scorching, thorns, endless, impact, healing, lifeDrain,
             charge, defense, throwSpear, guerrilla, guard, assassination, drain, overwhelm,

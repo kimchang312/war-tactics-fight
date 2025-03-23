@@ -16,7 +16,6 @@ public class RogueLikeData
             return instance;
         }
     }
-
     public enum StageType
     {
         Battle,
@@ -39,6 +38,7 @@ public class RogueLikeData
     private StageType currentStageType = StageType.Battle;
 
     private int currentGold = 0;
+    private int playerMorale = 50;
     /*
     private int maxGold=0;
     private int earnedGold = 0;
@@ -250,7 +250,14 @@ public class RogueLikeData
     {
         return currentGold;
     }
-
+    public int GetMorale()
+    {
+        return playerMorale;
+    }
+    public void SetMorale(int value)
+    {
+        playerMorale = value;
+    }
     //데미지 배율 초기화
     public void ResetFinalDamage()
     {

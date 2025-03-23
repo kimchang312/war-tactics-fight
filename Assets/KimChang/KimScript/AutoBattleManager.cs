@@ -515,6 +515,9 @@ public class AutoBattleManager : MonoBehaviour
         {
             currentState = BattleState.End;
 
+            //사기 계산
+            abilityManager.EndBattleMorale(myDeathUnits, enemyDeathUnits);
+
             //종료 시 UI 표기
             autoBattleUI.FightEnd(result);
 
