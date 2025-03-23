@@ -110,7 +110,7 @@ public class AutoBattleUI : MonoBehaviour
         enemyHpBar.value = enemyUnitHP;
     }
 
-    //데미지 표시
+    // 데미지 표시
     public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
     {
         float offsetX = 50f;
@@ -119,17 +119,17 @@ public class AutoBattleUI : MonoBehaviour
         // 전투 애니메이션 실행
         BattleAnimation(damage, text, team, isAttack);
 
-        // 0.25초 후 나머지 코드 실행
+        // 0.25초 뒤에 데미지 텍스트를 표시하도록 코루틴 실행
         StartCoroutine(DelayedDamageDisplay(damage, text, team, unitIndex, offsetX));
     }
-
     private IEnumerator DelayedDamageDisplay(float damage, string text, bool team, int unitIndex, float offsetX)
     {
-        yield return new WaitForSeconds(waittingTime/2); // 0.25초 대기
+        yield return new WaitForSeconds(waittingTime*0.0005f);  // 0.25초 대기
 
-        GameObject damageObj = objectPool.GetDamageText();
+        GameObject damageObj = objectPool.GetDamageText();  // 오브젝트 풀에서 가져오기
+        damageObj.SetActive(true);  // 이제 오브젝트를 활성화
+
         TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
-
         damagetext.color = damage >= 0 ? Color.green : Color.red;
         damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
 
@@ -144,11 +144,9 @@ public class AutoBattleUI : MonoBehaviour
             }
             else
             {
-                damageObj.SetActive(false);
                 GameObject unit = FindUnit(unitIndex, !team);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
-                damageObj.SetActive(true);
             }
         }
         else
@@ -159,11 +157,9 @@ public class AutoBattleUI : MonoBehaviour
             }
             else
             {
-                damageObj.SetActive(false);
                 GameObject unit = FindUnit(unitIndex, !team);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
-                damageObj.SetActive(true);
             }
         }
 
