@@ -4,12 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using Map;  // MapData, MapConfig, MapLayer, NodeBlueprint, NodeType 등이 포함됨
 using DG.Tweening;
+using System;
 
 public class StageUIManager : MonoBehaviour
 {
     [Header("UI References")]
     public RectTransform stageContainer;       // 노드 버튼들을 배치할 컨테이너
-    public GameObject stageButtonPrefab;
+    // stageButtonPrefab는 더 이상 사용하지 않습니다.
     public GameObject uiLinePrefab;              // UI Image 기반 선 프리팹
     public Transform lineParent;
 
@@ -29,6 +30,9 @@ public class StageUIManager : MonoBehaviour
 
     private readonly List<LineConnection> lineConnections = new List<LineConnection>();
 
+    // 중복 구독 방지를 위한 플래그
+    private bool eventsSubscribed = false;
+
     private void Awake()
     {
         // 만약 lineParent가 할당되지 않았다면, stageContainer의 자식으로 새로 생성
@@ -43,9 +47,14 @@ public class StageUIManager : MonoBehaviour
         if (scrollRect != null)
             scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
 
-        StageButton.OnStageButtonClicked += MoveToStage;
-        StageMapManager.OnMapGenerated += GenerateStageUI;
-        StageMapManager.OnStageChanged += UpdateStageUI;
+        // 중복 구독 방지를 위해 플래그 확인
+        if (!eventsSubscribed)
+        {
+            StageButton.OnStageButtonClicked += MoveToStage;
+            StageMapManager.OnMapGenerated += GenerateStageUI;
+            StageMapManager.OnStageChanged += UpdateStageUI;
+            eventsSubscribed = true;
+        }
 
         Debug.Log(markerPrefab == null ? "🟢 Marker is null" : "🔴 Marker already exists");
     }
@@ -84,11 +93,15 @@ public class StageUIManager : MonoBehaviour
         Debug.Log($"StageUIManager: {allStages.Count}개의 스테이지 정상 수신.");
     }
 
+    /// <summary>
+    /// StageMapManager에서 생성한 StageNode 오브젝트들을, GridGenerator에서 생성한 격자 셀에 재배치합니다.
+    /// 별도의 프리팹 인스턴스화를 하지 않고, StageNode 오브젝트 자체를 재사용합니다.
+    /// </summary>
     void GenerateStageUI(List<StageNode> nodes)
     {
         Debug.Log("Stage UI 생성 시작");
 
-        // stageContainer의 자식 중 "GridGenerator" 오브젝트는 삭제하지 않고, 나머지 삭제
+        // stageContainer의 자식들 중 "GridGenerator" 오브젝트는 유지하고, 나머지는 삭제
         List<Transform> childrenToDelete = new List<Transform>();
         foreach (Transform child in stageContainer)
         {
@@ -103,47 +116,67 @@ public class StageUIManager : MonoBehaviour
         allStages = nodes;
         stageNodes = nodes;
 
-        // stageContainer의 자식 중 "GridGenerator" 오브젝트를 찾습니다.
+        // StageUIManager는 stageContainer 내의 "GridGenerator" 오브젝트 아래에 있는 격자 셀을 참조합니다.
         Transform gridGen = stageContainer.Find("GridGenerator");
         if (gridGen == null)
         {
             Debug.LogWarning("GridGenerator 오브젝트를 stageContainer에서 찾을 수 없습니다.");
         }
+        else
+        {
+            Debug.Log("GridGenerator 오브젝트를 찾았습니다: " + gridGen.name);
+        }
 
         foreach (StageNode node in stageNodes)
         {
-            Debug.Log($"스테이지 버튼 생성: 행 {node.floor}, gridID {node.gridID}, 위치 {node.position}");
+            Debug.Log($"[Before Reparent] {node.name} 현재 부모: {(node.transform.parent != null ? node.transform.parent.name : "null")}, gridID: {node.gridID}, 위치: {node.position}");
 
-            // GridGenerator 내부에서 gridID에 해당하는 격자 셀을 찾습니다.
-            Transform gridContainer = gridGen != null ? gridGen.Find(node.gridID) : stageContainer;
+            // 레벨(행)이 config.layers.Count보다 큰 경우(예: Boss 등)는 기본 stageContainer 사용
+            Transform gridContainer = null;
+            if (node.floor > stageMapManager.config.layers.Count)
+            {
+                gridContainer = stageContainer;
+                Debug.Log($"노드 {node.name}은(는) Boss 등 격자 범위를 벗어남. 기본 stageContainer 사용.");
+            }
+            else
+            {
+                gridContainer = gridGen != null ? gridGen.Find(node.gridID) : stageContainer;
+            }
+
             if (gridContainer == null)
             {
                 Debug.LogError($"그리드 컨테이너 '{node.gridID}'를 찾을 수 없습니다.");
                 continue;
             }
-
-            GameObject btnObj = Instantiate(stageButtonPrefab, gridContainer);
-            RectTransform rt = btnObj.GetComponent<RectTransform>();
-            rt.anchoredPosition = Vector2.zero;  // 부모 셀의 중앙에 배치
-
-            StageButton sb = btnObj.GetComponent<StageButton>();
-            if (sb != null)
-                sb.SetStageNode(node);
             else
-                Debug.LogError("StageButton 컴포넌트가 없습니다! 프리팹 확인.");
+            {
+                Debug.Log($"노드 {node.name}의 gridContainer로 '{gridContainer.name}'를 찾았습니다.");
+            }
 
-            StageUIComponent uiComp = btnObj.GetComponent<StageUIComponent>();
-            if (uiComp != null)
-                node.uiComponent = uiComp;
+            // StageNode 오브젝트를 해당 격자 셀의 자식으로 재배치
+            node.transform.SetParent(gridContainer, false);
+            Debug.Log($"[After Reparent] {node.name}의 새 부모: {node.transform.parent.name}");
+
+            // 격자 셀의 중앙에 배치 (anchoredPosition = (0,0))
+            RectTransform nodeRect = node.GetComponent<RectTransform>();
+            if (nodeRect != null)
+            {
+                nodeRect.anchoredPosition = Vector2.zero;
+                Debug.Log($"노드 {node.name}의 anchoredPosition 재설정됨.");
+            }
             else
-                Debug.LogError($"{node.nodeName}의 StageUIComponent가 없습니다! 프리팹 확인.");
+            {
+                Debug.LogWarning($"노드 {node.name}에 RectTransform이 없습니다.");
+            }
 
+            // Level 1 노드를 currentStage로 지정하고 마커 위치 업데이트
             if (node.floor == 1)
             {
                 currentStage = node;
                 UpdateMarkerPosition(node.position);
             }
         }
+
         DrawAllConnections();
         Debug.Log("Stage UI 생성 완료");
     }
@@ -199,8 +232,9 @@ public class StageUIManager : MonoBehaviour
             return;
         }
         RectTransform markerRect = markerPrefab.GetComponent<RectTransform>();
-        // 기존 바로 변경하는 대신 Tween을 사용하여 부드럽게 이동
-        //markerRect.DOAnchorPos(pos, 0.3f);
+        // 부드러운 이동을 위해 Tween 사용 (주석 처리되어 있으면 직접 업데이트)
+        // markerRect.DOAnchorPos(pos, 0.3f);
+        markerRect.anchoredPosition = pos;
         Debug.Log($"마커 위치 업데이트: {pos}");
     }
 

@@ -6,10 +6,11 @@ using Map;  // MapData, MapConfig, MapLayer, NodeBlueprint, NodeType 등이 포�
 
 public class StageMapManager : MonoBehaviour
 {
+    public StageUIManager stageUIManager; // StageUIManager의 참조 (Inspector에서 할당)
     public MapConfig config;  // 설정 데이터 (ScriptableObject)
     public float horizontalSpacing = 200f;  // 레벨(열) 간격 (x축)
     public float verticalSpacing = 150f;      // 행 간격 (y축)
-
+    public GameObject stageNodePrefab; // Inspector에 할당할 StageNode 프리팹
     public MapData CurrentMap { get; private set; }
 
     // 최종 경로를 병합하여 구성한 노드들: 각 레벨별 StageNode 리스트 (총 15 레벨, 각 레벨 최대 7행)
@@ -148,24 +149,26 @@ public class StageMapManager : MonoBehaviour
     /// </summary>
     private StageNode CreatePathNode(int level, int row)
     {
-        StageNode node = new GameObject($"StageNode_{level}_{row}").AddComponent<StageNode>();
-        node.floor = level;             // Level (1~15)
-        node.indexOnFloor = row;        // 행 (0~6)
+        // stageContainer(또는 GridGenerator 오브젝트)를 부모로 지정하여 Instantiate
+        Transform parent = stageUIManager.stageContainer;
+        StageNode node = Instantiate(stageNodePrefab, parent).GetComponent<StageNode>();
+        node.name = $"StageNode_{level}_{row}";
+        node.floor = level;
+        node.indexOnFloor = row;
         node.nodeName = $"Level {level} Row {(char)('a' + row)}";
         node.gridID = $"{level}-{(char)('a' + row)}";
         // 위치 계산:
-        // x 좌표: 중앙 정렬을 위해, 총 레벨 수(15) 기준으로 계산
         float totalWidth = horizontalSpacing * config.layers.Count;
         float xOffset = totalWidth / 2f;
         float posX = -xOffset + (level - 1) * horizontalSpacing + horizontalSpacing / 2f;
-        // y 좌표: 각 행은 verticalSpacing에 따라, 위쪽이 높은 값
         float totalHeight = verticalSpacing * config.GridWidth;
         float yOffset = totalHeight / 2f;
         float posY = yOffset - row * verticalSpacing;
         node.position = new Vector2(posX, posY);
-        node.nodeType = NodeType.Monster;
+        node.nodeType = NodeType.Monster; // 초기 설정 (나중에 AssignEncounters에서 조정)
         return node;
     }
+
 
     private void AssignEncounters()
     {
@@ -193,20 +196,27 @@ public class StageMapManager : MonoBehaviour
     {
         // 보스 노드는 Level 16에 생성 (Level 15 아래)
         float bossX = horizontalSpacing * config.layers.Count;
-        StageNode boss = new GameObject("StageNode_Boss").AddComponent<StageNode>();
-        boss.floor = config.layers.Count + 1;
+        // StageNode 프리팹을 사용하여 보스 노드를 생성합니다.
+        StageNode boss = Instantiate(stageNodePrefab).GetComponent<StageNode>();
+        boss.name = "StageNode_Boss";
+        boss.floor = config.layers.Count + 1; // 예: 16
         boss.nodeName = "Boss";
-        boss.indexOnFloor = 3;  // 강제 D칸 (행 'd')
-        boss.gridID = $"{boss.floor - 1}-{(char)('a' + 3)}";  // 예: "d-16"
+        boss.indexOnFloor = 3;  // 강제 D칸 (행 'd', 인덱스 3)
+                                // gridID는 격자 컨테이너와 일치하도록 "Level-문자" 형식 (예: "16-d")
+        boss.gridID = $"{boss.floor}-{(char)('a' + 3)}";
+
         float totalWidth = horizontalSpacing * config.layers.Count;
         float xOffset = totalWidth / 2f;
         float posX = -xOffset + (boss.floor - 1) * horizontalSpacing + horizontalSpacing / 2f;
+
         float totalHeight = verticalSpacing * config.GridWidth;
         float yOffset = totalHeight / 2f;
-        float posY = yOffset - 3 * verticalSpacing;
+        // 보스 노드는 중앙(예: y=0)으로 배치하거나, 다른 기준에 따라 설정합니다.
+        float posY = 0;
         boss.position = new Vector2(posX, posY);
         boss.nodeType = NodeType.Boss;
 
+        // Level 15의 노드들을 가져와 보스 노드와 연결합니다.
         List<StageNode> lastLevel = columnNodes.Last();
         foreach (StageNode node in lastLevel)
         {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Map;
 
 public enum NodeType
@@ -52,6 +53,28 @@ public class StageNode : MonoBehaviour
         nodeData.position = this.position;
         // 추가적으로 필요한 필드를 설정할 수 있습니다.
         return nodeData;
+    }
+    private void Awake()
+    {
+        // UI 컴포넌트가 미리 할당되어 있지 않다면, 자동으로 추가
+        if (uiComponent == null)
+        {
+            uiComponent = GetComponent<StageUIComponent>();
+            if (uiComponent == null)
+            {
+                Debug.LogWarning($"{nodeName} - StageUIComponent가 발견되지 않음. 자동 추가합니다.");
+                uiComponent = gameObject.AddComponent<StageUIComponent>();
+            }
+        }
+        if (stageButton == null)
+        {
+            stageButton = GetComponent<StageButton>();
+            if (stageButton == null)
+            {
+                Debug.LogWarning($"{nodeName} - StageButton이 발견되지 않음. 자동 추가합니다.");
+                stageButton = gameObject.AddComponent<StageButton>();
+            }
+        }
     }
 
     // UI 업데이트 메서드

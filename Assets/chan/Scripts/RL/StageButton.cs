@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class StageButton : MonoBehaviour
 {
-    public Text label;
+    public TMP_Text label;
 
     private StageNode stageNode;
 
