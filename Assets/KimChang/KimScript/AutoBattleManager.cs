@@ -306,6 +306,7 @@ public class AutoBattleManager : MonoBehaviour
     //전투 전 발동
     private void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage)
     {
+
         abilityManager.ProcessBeforeBattle(units, defenders, isTeam, finalDamage, autoBattleUI);
     }
     //전투 당 한번
@@ -420,7 +421,8 @@ public class AutoBattleManager : MonoBehaviour
     private async Task HandleCheck()
     {
         Debug.Log("전투 확인 단계");
-
+        SaveData saveData = new SaveData();
+        saveData.SaveDataFile();
         ProcessBeforeBattle(myUnits, enemyUnits, true, myFinalDamage);
         ProcessBeforeBattle(enemyUnits, myUnits, false, enemyFinalDamage);
 

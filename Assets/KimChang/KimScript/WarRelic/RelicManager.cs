@@ -39,23 +39,23 @@ public class RelicManager
     }
 
 
-    // 보유한 유물 중 ID 24, 25, 26을 모두 가지고 있는지 확인하고, 있으면 유물 27 추가
+    // 보유한 유물 중 ID 23, 24, 25을 모두 가지고 있는지 확인하고, 있으면 유물 27 추가
     public static void CheckFusion()
     {
-        // 이미 유물 27을 보유하고 있으면 실행할 필요 없음
-        if (ownedRelics.Any(relic => relic.id == 27)) return;
+        // 이미 유물 26을 보유하고 있으면 실행할 필요 없음
+        if (ownedRelics.Any(relic => relic.id == 26)) return;
 
-        HashSet<int> requiredRelicIds = new HashSet<int> { 24, 25, 26 };
+        HashSet<int> requiredRelicIds = new HashSet<int> { 23, 24, 25 };
         HashSet<int> ownedRelicIds = new HashSet<int>(ownedRelics.Select(relic => relic.id));
 
-        // 모든 필수 유물(24, 25, 26)을 보유하고 있는지 확인
+        // 모든 필수 유물(23, 24, 25)을 보유하고 있는지 확인
         if (requiredRelicIds.All(id => ownedRelicIds.Contains(id)))
         {
-            // RogueLikeData에 유물 27 추가
-            RogueLikeData.Instance.AcquireRelic(27);
+            // RogueLikeData에 유물 26 추가
+            RogueLikeData.Instance.AcquireRelic(26);
 
             // 유물이 정상적으로 존재하는 경우만 추가
-            ownedRelics.Add(WarRelicDatabase.GetRelicById(27));
+            ownedRelics.Add(WarRelicDatabase.GetRelicById(26));
             return;
         }
 
@@ -68,7 +68,7 @@ public class RelicManager
         List<WarRelic> stateRelics = ownedRelics.Where(relic => relic.type == RelicType.StateBoost || relic.type == RelicType.ActiveState).ToList();
 
         if (stateRelics.Count <= 0) return;
-
+        curseBlock = CurseDoll();
         foreach (var relic in stateRelics)
         {
             if (curseBlock && relic.grade == 0)
@@ -78,37 +78,20 @@ public class RelicManager
         }
     }
 
-    //유산 15 
-    public static float ReactiveThornArmor(RogueUnitDataBase unit)
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 15) == null) return 0;
 
-        if (unit.heavyArmor)
-        {
-            return (unit.armor * 3);
-        }
-        return 0;
-    }
-
-    //유산 18
-    public static bool PhalanxTacticsBook()
-    {
-        return ownedRelics.FirstOrDefault(relic => relic.id == 18)?.used ?? false;
-    }
-
-    //유산 28
+    //유산 27 하트 보석 목걸이
     public static bool HeartGemNecklace()
     {
-        var relic = ownedRelics.FirstOrDefault(relic => relic.id == 28);
+        var relic = ownedRelics.FirstOrDefault(relic => relic.id == 27);
         if (relic == null || !relic.used) return false;
         relic.used = true;
         return true;
     }
 
-    //유산 35
-    public static void Relic35(ref List<RogueUnitDataBase> units)
+    //유산 34 생존자의 넝마떼기
+    public static void SurvivorOfRag(ref List<RogueUnitDataBase> units)
     {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 35) == null) return;
+        if (ownedRelics.FirstOrDefault(relic => relic.id == 34) == null) return;
         int onlyOne = 0;
         int unitIndex = -1;
         for (int i = 0; i < units.Count; i++)
@@ -127,38 +110,38 @@ public class RelicManager
         }
     }
 
-    //유산 47
+    //유산 46 기술 비급서
     public static bool TechnicalManual()
     {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 47) == null) return false;
+        if (ownedRelics.FirstOrDefault(relic => relic.id == 46) == null) return false;
         return true;
     }
 
-    //유산 54
-    public static bool Relic55()
+    //유산 54 저주 인형
+    public static bool CurseDoll()
     {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 55) == null) return false;
+        if (ownedRelics.FirstOrDefault(relic => relic.id == 54) == null) return false;
         return true;
     }
-    //유산 56
-    public static bool Relic57()
+    //유산 56 광전사의 머리칼
+    public static bool LightWarriorHair()
     {
-        if (ownedRelics.FirstOrDefault(relic=>relic.id ==57)==null) return false;
+        if (ownedRelics.FirstOrDefault(relic=>relic.id ==56)==null) return false;
         return true;
     }
-    //유산 75 신성한 문서
+    //유산 74 신성한 문서
     public static bool SacredDocument()
     {
         if (ownedRelics.FirstOrDefault(relic => relic.id == 75) == null) return false;
         return true;
     }
-    //유산 78 뿔피리
+    //유산 77 뿔피리
     public static bool Horn()
     {
         if (ownedRelics.FirstOrDefault(relic => relic.id == 78) == null) return false;
         return true;
     }
-    //유산 84 창술 교범
+    //유산 83 창술 교범
     public static bool SpearManual()
     {
         if (ownedRelics.FirstOrDefault(relic => relic.id == 84) == null) return false;

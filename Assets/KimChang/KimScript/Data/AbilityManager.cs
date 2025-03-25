@@ -139,11 +139,7 @@ public class AbilityManager
                 if(i==0) text += "관통 ";  
             }
             damage = (damage - reduceDamage) * finalDamage;
-            //팔랑크스
-            if (!isTeam && frontAttaker.branchIdx == 2 && RelicManager.PhalanxTacticsBook())
-            {
-                damage *= 0.5f;
-            }
+
             float normalDamage = MathF.Round(damage);
 
             //충격
@@ -246,10 +242,6 @@ public class AbilityManager
 
         defenders[0].health -= damage;
 
-        if (!isTeam && damage > 0)
-        {
-            attackers[0].health -= RelicManager.ReactiveThornArmor(attackers[0]);
-        }
         //치유
         ProcessHealing(attackers,isTeam);
         //지원 종료
@@ -309,17 +301,6 @@ public class AbilityManager
             OnUnitDeath(tempMyDeathUnits, tempEnemyDeathUnits, ref myUnits, enemyUnits, true, myUnitDied, enemyUnitDied);
         }
 
-        // Relic 55 발동
-        if (tempMyDeathUnits.Count > 0 && enemyUnits.Count > 0 && RelicManager.Relic55())
-        {
-            enemyUnits[0].health -= tempMyDeathUnits.Sum(unit => unit.health * 0.1f);
-
-            if (enemyUnits[0].health <= 0)
-            {
-                ProcessUnitDeath(enemyUnits, 0, tempEnemyDeathUnits, ref enemyUnitDied, autoBattleUI, false);
-                enemyDeathIndexes.Add(0);
-            }
-        }
 
         // 사망한 유닛을 최종 사망 리스트에 추가
         myDeathUnits.AddRange(tempMyDeathUnits);
@@ -820,12 +801,6 @@ public class AbilityManager
                 continue; // 유효한 원거리 공격자가 아니면 스킵
 
             float damage = attacker.attackDamage * finalDamage;
-
-            // 팔랑크스 전술 적용 (아군이 아닐 때)
-            if (!isTeam && RelicManager.PhalanxTacticsBook())
-            {
-                damage *= 0.5f;
-            }
 
             for (int k = 0; k < 2; k++)
             {
@@ -1558,7 +1533,7 @@ public class AbilityManager
         {
             addMorale += 35;
         }
-        if (RelicManager.Relic57()) addMorale += deadEnemyUnits.Count;
+        if (RelicManager.LightWarriorHair()) addMorale += deadEnemyUnits.Count;
         morale += addMorale;
         RogueLikeData.Instance.SetMorale(morale);
     }
@@ -1568,7 +1543,7 @@ public class AbilityManager
         // 첫 번째로 살아있는 유닛을 찾음
         foreach (var defender in defenders)
         {
-            if (defender.health > 0) // 체력이 0보다 크다면 살아있는 유닛
+            if (defender.health > 1) // 체력이 0보다 크다면 살아있는 유닛
             {
                 return defender.guard ? defender : null; // guard가 있다면 해당 유닛 반환, 없다면 null 반환
             }

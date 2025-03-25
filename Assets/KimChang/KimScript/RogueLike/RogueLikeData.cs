@@ -39,11 +39,9 @@ public class RogueLikeData
 
     private int currentGold = 0;
     private int playerMorale = 50;
-    /*
-    private int maxGold=0;
+    //private int maxGold=0;
     private int earnedGold = 0;
     private int spentGold = 0;
-    */
     private float myFinalDamage = 1;
     private float enemyFinalDamage = 1;
 
@@ -60,7 +58,12 @@ public class RogueLikeData
             relicIdsByType[type] = new HashSet<int>(); // 중복 검사용 HashSet 초기화
         }
     }
-
+    //내 데이터 전부 반환
+    public SavePlayerData GetRogueLikeData()
+    {
+        SavePlayerData data = new SavePlayerData(0,myUnits,currentGold,earnedGold,spentGold,playerMorale,currentStageX,currentStageY,currentStageType);
+        return data;
+    }
     //내 유닛 전부 수정하기
     public void AllMyUnits(List<RogueUnitDataBase> units)
     {
