@@ -75,11 +75,11 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(53, "불운의 황금 동전", 10, "적 유닛이 받는 피해가 50% 증가한다. 단, 이 전쟁 유산을 획득할 때 75% 확률로 랜덤한 다른 전설 전쟁 유산으로 대체된다. ", RelicType.StateBoost, () => GoldenCoinOfUnLuck()));
         relics.Add(new WarRelic(54, "저주 인형", 1, "아군 유닛 사망 시 전열 적 유닛에게 사망한 아군 유닛 체력의 10%만큼 피해를 준다.", RelicType.BattleActive, () => CurseDoll()));
         relics.Add(new WarRelic(55, "혼돈의 주사위", 20, "아군 유닛들의 체력, 공격력이 매 전투마다 최소 60%에서 최대 200%까지 무작위로 분배된다.", RelicType.StateBoost, () => ChaosDice()));
-        relics.Add(new WarRelic(56, "광전사의 머리칼", 10, "전투에서 적을 처치한 수 만큼 사기를 1 회복한다. 전투가 없는 지역으로 이동시 사기가 5 감소한다.", RelicType.BattleActive, () => LightWarriorHair()));
+        relics.Add(new WarRelic(56, "광전사의 머리칼", 10, "전투에서 적을 처치한 수 만큼 사기를 1 회복한다. 전투가 없는 지역으로 이동시 사기가 5 감소한다.", RelicType.SpecialEffect, () => LightWarriorHair()));
         relics.Add(new WarRelic(57, "용사의 훈장", 20, "영웅 유닛 최대 보유수 1 증가.", RelicType.SpecialEffect, () => MedalOfBrave()));
         relics.Add(new WarRelic(58, "횡령 증거품", 0, "용병단, 상단, 군사 아카데미의 금화 가격이 20% 증가한다.", RelicType.SpecialEffect, () => EvidenceOfEmbezzlement()));
         relics.Add(new WarRelic(59, "승전보", 0, "보스 전투 승리 시 아군 유닛의 모든 기력이 최대로 회복된다.", RelicType.SpecialEffect, () => VictoryNews()));
-        relics.Add(new WarRelic(60, "무명의 군단 배지", 10, "영웅 유닛을 보유하지 않을 시 아군 유닛의 체력과 공격력이 20% 증가하고, 장갑이 2 증가한다.", RelicType.SpecialEffect, () => NamelessLegionBadge()));
+        relics.Add(new WarRelic(60, "무명의 군단 배지", 10, "영웅 유닛을 보유하지 않을 시 아군 유닛의 체력과 공격력이 20% 증가하고, 장갑이 2 증가한다.", RelicType.StateBoost, () => NamelessLegionBadge()));
         relics.Add(new WarRelic(61, "뜨거운 심장 모형", 1, "아군 유닛의 체력이 10% 증가한다.", RelicType.StateBoost,()=>HotHeartModel()));
         relics.Add(new WarRelic(62, "약자낙인 인두", 0, "아군 유닛의 체력이 15% 감소한다.", RelicType.StateBoost,()=>UnderDogStigma()));
         relics.Add(new WarRelic(63, "매우 진한 스프", 20, "아군 유닛의 체력과 공격력이 10%, 장갑과 기동력이 1 증가한다.", RelicType.StateBoost, () =>VeryThickSoup()));
@@ -396,35 +396,33 @@ public static class WarRelicDatabase
     {
         // RogueLikeData 싱글톤 사용
         var units = RogueLikeData.Instance.GetMyUnits();
-        bool isAllSame= true;
 
         foreach (var unit in units)
         {
             if (unit.branchIdx == 2)
             {
-                unit.attackDamage += MathF.Round(unit.baseAttackDamage * 1.2f);
-            }
-            else
-            {
-                isAllSame=false;
+                unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
             }
         }
-        if (isAllSame)
-        {
-            foreach(var unit in units)
-            {
-                unit.range += 2;
-                unit.mobility += 4;
-            }
-        }
-
         RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //민병대 나팔 20
     private static void MilitiaHorn()
     {
+        // RogueLikeData 싱글톤 사용
+        var units = RogueLikeData.Instance.GetMyUnits();
 
+        foreach (var unit in units)
+        {
+            if (unit.rarity == 1)
+            {
+                unit.maxHealth += MathF.Round(unit.baseHealth * 0.15f);
+                unit.health = unit.maxHealth;
+                unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.15f);
+            }
+        }
+        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //소름끼치는 구슬 21
@@ -679,7 +677,8 @@ public static class WarRelicDatabase
                 
             }
             unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.2f);
-
+            if (unit.lightArmor) unit.mobility += 5;
+            else unit.armor += 5;
         }
         if (allCorret)
         {
@@ -732,7 +731,7 @@ public static class WarRelicDatabase
     //불운의 황금 동전 53
     private static void GoldenCoinOfUnLuck()
     {
-        RogueLikeData.Instance.AddMyMultipleDamage(1);
+        RogueLikeData.Instance.AddMyMultipleDamage(0.5f);
     }
 
     //저주 인형 54
@@ -787,7 +786,7 @@ public static class WarRelicDatabase
 
     }
 
-    //60
+    //무명의 군단 배지 60
     private static void NamelessLegionBadge()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
@@ -873,22 +872,18 @@ public static class WarRelicDatabase
     private static void LootBag()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
-        foreach (var unit in units)
+        var plunder = units.FirstOrDefault(u=>u.plunder);
+        if (plunder == null) return;
+        // plunder가 false인 유닛들을 필터링합니다.
+        var availableUnits = units.Where(u => !u.plunder).ToList();
+
+        // availableUnits를 랜덤하게 섞은 후, 최대 2개를 선택합니다.
+        var selectedUnits = availableUnits.OrderBy(u => random.Next()).Take(2);
+
+        // 선택된 유닛들의 plunder 값을 true로 변경합니다.
+        foreach (var sUnit in selectedUnits)
         {
-            if(unit.plunder)
-            {
-                // plunder가 false인 유닛들을 필터링합니다.
-                var availableUnits = units.Where(u => !u.plunder).ToList();
-
-                // availableUnits를 랜덤하게 섞은 후, 최대 2개를 선택합니다.
-                var selectedUnits = availableUnits.OrderBy(u => random.Next()).Take(2);
-
-                // 선택된 유닛들의 plunder 값을 true로 변경합니다.
-                foreach (var sUnit in selectedUnits)
-                {
-                    sUnit.plunder = true;
-                }
-            }
+            sUnit.plunder = true;
         }
         RogueLikeData.Instance.AllMyUnits(units);
     }

@@ -68,7 +68,7 @@ public class RelicManager
         List<WarRelic> stateRelics = ownedRelics.Where(relic => relic.type == RelicType.StateBoost || relic.type == RelicType.ActiveState).ToList();
 
         if (stateRelics.Count <= 0) return;
-        curseBlock = CurseDoll();
+        curseBlock = CheckRelicById(22);
         foreach (var relic in stateRelics)
         {
             if (curseBlock && relic.grade == 0)
@@ -77,17 +77,14 @@ public class RelicManager
             relic.Execute();
         }
     }
-
-
-    //유산 27 하트 보석 목걸이
-    public static bool HeartGemNecklace()
+    //유산 유무 채크
+    public static bool CheckRelicById(int relicId)
     {
-        var relic = ownedRelics.FirstOrDefault(relic => relic.id == 27);
+        var relic = ownedRelics.FirstOrDefault(relic => relic.id == relicId);
         if (relic == null || !relic.used) return false;
         relic.used = true;
         return true;
     }
-
     //유산 34 생존자의 넝마떼기
     public static void SurvivorOfRag(ref List<RogueUnitDataBase> units)
     {
@@ -110,41 +107,4 @@ public class RelicManager
         }
     }
 
-    //유산 46 기술 비급서
-    public static bool TechnicalManual()
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 46) == null) return false;
-        return true;
-    }
-
-    //유산 54 저주 인형
-    public static bool CurseDoll()
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 54) == null) return false;
-        return true;
-    }
-    //유산 56 광전사의 머리칼
-    public static bool LightWarriorHair()
-    {
-        if (ownedRelics.FirstOrDefault(relic=>relic.id ==56)==null) return false;
-        return true;
-    }
-    //유산 74 신성한 문서
-    public static bool SacredDocument()
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 75) == null) return false;
-        return true;
-    }
-    //유산 77 뿔피리
-    public static bool Horn()
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 78) == null) return false;
-        return true;
-    }
-    //유산 83 창술 교범
-    public static bool SpearManual()
-    {
-        if (ownedRelics.FirstOrDefault(relic => relic.id == 84) == null) return false;
-        return true;
-    }
 }

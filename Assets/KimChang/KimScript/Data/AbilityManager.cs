@@ -80,7 +80,7 @@ public class AbilityManager
         {
             RogueUnitDataBase frontAttacker = attackers[0];
             RogueUnitDataBase frontDefender = defenders[0];
-            float finalDamage = _finalDamage + ((isTeam && RelicManager.TechnicalManual()) ? 1.2f : 1) - 1;
+            float finalDamage = _finalDamage + ((isTeam && RelicManager.CheckRelicById(46)) ? 1.2f : 1) - 1;
             string text = "";
             float damage = 0;
 
@@ -269,7 +269,7 @@ public class AbilityManager
         {
             if (myUnits[i].health <= 0)
             {
-                if (i == 0 && RelicManager.HeartGemNecklace())
+                if (i == 0 && RelicManager.CheckRelicById(27))
                 {
                     myUnits[i].health = myUnits[i].maxHealth; // 유닛 체력 회복
                     continue;
@@ -301,6 +301,17 @@ public class AbilityManager
             OnUnitDeath(tempMyDeathUnits, tempEnemyDeathUnits, ref myUnits, enemyUnits, true, myUnitDied, enemyUnitDied);
         }
 
+        // Relic 54 저주인형 발동
+        if (tempMyDeathUnits.Count > 0 && enemyUnits.Count > 0 && RelicManager.CheckRelicById(54))
+        {
+            enemyUnits[0].health -= tempMyDeathUnits.Sum(unit => unit.health * 0.1f);
+
+            if (enemyUnits[0].health <= 0)
+            {
+                ProcessUnitDeath(enemyUnits, 0, tempEnemyDeathUnits, ref enemyUnitDied, autoBattleUI, false);
+                enemyDeathIndexes.Add(0);
+            }
+        }
 
         // 사망한 유닛을 최종 사망 리스트에 추가
         myDeathUnits.AddRange(tempMyDeathUnits);
@@ -505,7 +516,7 @@ public class AbilityManager
             multiplier = CalculateCharge(attacker.mobility);
             text += "돌격 ";
             //유산
-            if (RelicManager.Horn()) multiplier += 0.3f; 
+            if (RelicManager.CheckRelicById(77)) multiplier += 0.3f; 
             //강한 돌격
             if (attacker.strongCharge)
             {
@@ -533,7 +544,7 @@ public class AbilityManager
             }
             else
             {
-                if (!(isTeam && RelicManager.SpearManual()))
+                if (!(isTeam && RelicManager.CheckRelicById(83)))
                 {
                     reduceDamage += defenseValue;
 
@@ -852,7 +863,7 @@ public class AbilityManager
             {
                 defenders[defenderIndex + 1].attackDamage = Mathf.Round(defenders[defenderIndex+1].attackDamage * martyrdomValue);
                 //유산
-                if (RelicManager.SacredDocument()) 
+                if (RelicManager.CheckRelicById(74)) 
                 {
                     defenders[defenderIndex + 1].maxHealth += defenders[defenderIndex].attackDamage;
                     defenders[defenderIndex + 1].health += defenders[defenderIndex].attackDamage;
@@ -1321,20 +1332,21 @@ public class AbilityManager
     {
         if(!isTeam) return;
         int morale = RogueLikeData.Instance.GetMorale();
+        int reduceMorale = RelicManager.CheckRelicById(28) ? -10 : 0;
         float multiplier =0f;
 
         // 사기 수치에 따른 능력치 조정
-        if (morale >= 90)
+        if (morale >= (90+ reduceMorale))
             multiplier = 0.2f;
-        else if (morale >= 70)
+        else if (morale >= (70+ reduceMorale))
             multiplier = 0.1f;
-        else if (morale <= 30)
+        else if (morale <= (30+ reduceMorale))
             multiplier = -0.1f;
 
         // 유닛 능력치 조정
         foreach (var unit in units)
         {
-            if (morale <= 30 && unit.bravery) continue; // '용맹' 특성을 가진 유닛은 디버프 적용 안 함
+            if (morale <= (30+ reduceMorale) && unit.bravery) continue; // '용맹' 특성을 가진 유닛은 디버프 적용 안 함
             float health = Mathf.Round(unit.baseHealth * multiplier);
             unit.maxHealth += health;
             unit.health += health;
@@ -1342,7 +1354,7 @@ public class AbilityManager
         }
 
         // 사기 10 이하이면 탈주 로직 실행
-        if (morale <= 10 && !isBattle)
+        if (morale <= (10+ reduceMorale) && !isBattle)
         {
             RemoveLowMoraleUnits(units);
         }
@@ -1533,7 +1545,7 @@ public class AbilityManager
         {
             addMorale += 35;
         }
-        if (RelicManager.LightWarriorHair()) addMorale += deadEnemyUnits.Count;
+        if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
         morale += addMorale;
         RogueLikeData.Instance.SetMorale(morale);
     }
