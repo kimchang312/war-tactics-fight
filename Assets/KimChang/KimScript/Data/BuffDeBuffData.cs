@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class BuffDebuffData
 {
     public int EffectType { get; set; } // 0: 버프, 1: 디버프

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 
+[System.Serializable]
 public class RogueUnitDataBase 
 {
     // 기본 정보

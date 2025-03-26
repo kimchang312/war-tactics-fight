@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class RogueLikeData
 {
@@ -39,13 +40,11 @@ public class RogueLikeData
 
     private int currentGold = 0;
     private int playerMorale = 50;
-    //private int maxGold=0;
-    private int earnedGold = 0;
     private int spentGold = 0;
     private float myFinalDamage = 1;
     private float enemyFinalDamage = 1;
 
-
+    private int sariStack = 0;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -61,7 +60,10 @@ public class RogueLikeData
     //내 데이터 전부 반환
     public SavePlayerData GetRogueLikeData()
     {
-        SavePlayerData data = new SavePlayerData(0,myUnits,currentGold,earnedGold,spentGold,playerMorale,currentStageX,currentStageY,currentStageType);
+        SavePlayerData data = new SavePlayerData(0,myUnits, relicIdsByType.Values
+                                    .SelectMany(hashSet => hashSet)
+                                    .ToList(),
+                                    currentGold,spentGold,playerMorale,currentStageX,currentStageY,currentStageType,sariStack);
         return data;
     }
     //내 유닛 전부 수정하기
@@ -219,8 +221,6 @@ public class RogueLikeData
             relicIdsByType[type].Clear();
         }
     }
-
-    /*
     //현재 스테이지 수정
     public void SetCurrentStage(int x, int y, StageType type)
     {
@@ -228,26 +228,30 @@ public class RogueLikeData
         currentStageY = y;
         currentStageType = type;
     }
-    */
-
     //현재 스테이지 가져오기
     public (int x, int y, StageType type) GetCurrentStage()
     {
         return (currentStageX, currentStageY, currentStageType);
     }
-    /*
+    //현재 스테이지 종류
+    public StageType GetCurrentStageType()
+    {
+        return currentStageType;
+    }
     //현재 골드 수정
     public void SetCurrentGold(int gold)
     {
         currentGold = gold;
     }
-
      //사용한 골드 가져오기
-    public int GetReduceGold()
+    public int GetSpentGold()
     {
         return spentGold;
     }
-    */
+    public void SetSpentGold(int gold)
+    {
+        spentGold = gold;
+    }
     //현재 골드 가져오기
     public int GetCurrentGold()
     {
@@ -298,6 +302,16 @@ public class RogueLikeData
     public float GetEnemyMultipleDamage()
     {
         return enemyFinalDamage;
+    }
+    //내 사리 스택 가져오기
+    public int GetSariStack()
+    {
+        return sariStack;
+    }
+    //사리 스택 변경
+    public void SetSariStack(int stack)
+    {
+        sariStack =stack;
     }
     /*
     public void Clear()

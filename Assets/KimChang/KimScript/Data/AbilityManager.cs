@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Rendering;
 using UnityEngine;
 using static RogueLikeData;
 using static UnityEngine.UIElements.UxmlAttributeDescription;
@@ -29,6 +30,7 @@ public class AbilityManager
     private float martyrdomValue = 1.2f;                          //순교 상승량
     private float mybindingAttackDamage = 5;                        //결속 추가 공격력
     private float enemybindingAttackDamage = 5;
+    private float moraleMultiplier = 0f;
 
     private AutoBattleUI autoBattleUI;
 
@@ -36,6 +38,52 @@ public class AbilityManager
     Dictionary<int, List<RogueUnitDataBase>> myHeroUnits = new();
     Dictionary<int, List<RogueUnitDataBase>> enemyHeroUnits = new();
 
+    //입장 시 채크
+    public void ProcessEnter()
+    {
+        StageType type = RogueLikeData.Instance.GetCurrentStageType();
+        int morale = RogueLikeData.Instance.GetMorale();
+        switch (type) 
+        {
+            case StageType.Battle:
+                ReduceUnitEngery();
+                break;
+            case StageType.Elite:
+                ReduceUnitEngery();
+                break;
+            case StageType.Boss:
+                ReduceUnitEngery();
+                if (RelicManager.CheckRelicById(39)) morale += 15;
+                break;
+            case StageType.Rest:
+                break;
+            case StageType.Unknown:
+                break;
+            case StageType.Chest:
+                break;
+            case StageType.Shop:
+                if (RelicManager.CheckRelicById(40))
+                {
+                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    foreach (var unit in myUnits)
+                    {
+                        unit.energy = Math.Min(unit.maxEnergy, unit.energy + 1);
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    //유닛 기력 감소
+    private void ReduceUnitEngery()
+    {
+        var myUnits= RogueLikeData.Instance.GetEnemyUnits();
+        foreach (var unit in myUnits)
+        {
+            unit.energy = Math.Max(0, unit.energy - 1);
+        }
+    }
     //전투 전 발동(패시브)
     public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage,AutoBattleUI _autoBattleUI)
     {
@@ -663,6 +711,7 @@ public class AbilityManager
     private float HealHealth(RogueUnitDataBase unit, float healValue)
     {
         if (unit.effectDictionary.ContainsKey(1)) return 0;
+        if (RelicManager.CheckRelicById(84)) return healValue * 1.3f;
         return healValue;
     }
 
@@ -961,8 +1010,9 @@ public class AbilityManager
     {
         if (!isTeam || units[0].idx != 54 || units[0].health <1) return;
         int morale = RogueLikeData.Instance.GetMorale();
-        RogueLikeData.Instance.SetMorale(morale+10);
+        RogueLikeData.Instance.SetMorale(morale + 10);
         CalculateFirstMorale(units, isTeam, true);
+
     }
 
     //유목민 족장
@@ -1327,40 +1377,46 @@ public class AbilityManager
             }
         }
     }
-    //사기 전투 전
-    private void CalculateFirstMorale(List<RogueUnitDataBase> units,bool isTeam,bool isBattle=false)
+    //사기 계산
+    private void CalculateFirstMorale(List<RogueUnitDataBase> units, bool isTeam, bool isBattle = false)
     {
-        if(!isTeam) return;
+        if (!isTeam) return;
         int morale = RogueLikeData.Instance.GetMorale();
         int reduceMorale = RelicManager.CheckRelicById(28) ? -10 : 0;
-        float multiplier =0f;
+        float newMultiplier = 0f;
 
         // 사기 수치에 따른 능력치 조정
-        if (morale >= (90+ reduceMorale))
-            multiplier = 0.2f;
-        else if (morale >= (70+ reduceMorale))
-            multiplier = 0.1f;
-        else if (morale <= (30+ reduceMorale))
-            multiplier = -0.1f;
+        if (morale >= (90 + reduceMorale)) newMultiplier = 0.2f;
+        else if (morale >= (70 + reduceMorale)) newMultiplier = 0.1f;
+        else if (morale <= (30 + reduceMorale)) newMultiplier = -0.1f;
+
+        if (newMultiplier == moraleMultiplier) return; // 변화 없으면 그대로 리턴
+
+        // 새로운 사기 배율 적용
+        float multiplierDifference = newMultiplier - moraleMultiplier;
+        moraleMultiplier = newMultiplier; // 현재 사기 배율 업데이트
 
         // 유닛 능력치 조정
         foreach (var unit in units)
         {
-            if (morale <= (30+ reduceMorale) && unit.bravery) continue; // '용맹' 특성을 가진 유닛은 디버프 적용 안 함
-            float health = Mathf.Round(unit.baseHealth * multiplier);
-            unit.maxHealth += health;
-            unit.health += health;
-            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * multiplier);
+            if (morale <= (30 + reduceMorale) && unit.bravery) continue; // '용맹' 특성을 가진 유닛은 디버프 적용 안 함
+
+            float healthChange = Mathf.Round(unit.baseHealth * multiplierDifference);
+            unit.maxHealth += healthChange;
+            unit.health += healthChange;
+
+            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * multiplierDifference);
         }
 
         // 사기 10 이하이면 탈주 로직 실행
-        if (morale <= (10+ reduceMorale) && !isBattle)
+        if (morale <= (10 + reduceMorale) && !isBattle)
         {
             RemoveLowMoraleUnits(units);
         }
 
         autoBattleUI.UpdateMorale();
     }
+
     //사기 탈주
     private void RemoveLowMoraleUnits(List<RogueUnitDataBase> units)
     {
@@ -1511,9 +1567,7 @@ public class AbilityManager
     {
         int morale = RogueLikeData.Instance.GetMorale();
         int addMorale = 0;
-        int stageX, stageY;
-        StageType stageType;
-        (stageX, stageY,stageType) = RogueLikeData.Instance.GetCurrentStage();
+        StageType stageType = RogueLikeData.Instance.GetCurrentStageType();
         foreach (var unit in deadUnits)
         {
             switch (unit.rarity)
@@ -1532,7 +1586,9 @@ public class AbilityManager
                     break;
             }
         }
-        if (addMorale == 0) addMorale += 10; 
+        //유산 33
+        if(RelicManager.CheckRelicById(33)) addMorale = (int)(addMorale * 1.2);
+        if (deadEnemyUnits.Count == 0) addMorale += 10; 
         if(stageType == StageType.Battle)
         {
             addMorale += 15;
@@ -1545,6 +1601,7 @@ public class AbilityManager
         {
             addMorale += 35;
         }
+        //유산 56
         if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
         morale += addMorale;
         RogueLikeData.Instance.SetMorale(morale);
