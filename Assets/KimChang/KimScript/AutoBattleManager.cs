@@ -366,8 +366,8 @@ public class AutoBattleManager : MonoBehaviour
         SetBaseData();
 
         //데이터 저장
-        SaveData saveData = new SaveData();
-        saveData.SaveDataFile();
+        //SaveData saveData = new SaveData();
+        //saveData.SaveDataFile();
 
         //유산 및 데이터 저장
         ProcessRelic();

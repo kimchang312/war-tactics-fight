@@ -11,6 +11,7 @@ public class SavePlayerData
     public int id;
     public List<RogueUnitDataBase> myUnits;
     public List<int> relicIds= new();
+    public List<int> eventIds= new();
     public int currentGold;
     public int spentGold = 0;
     public int playerMorale;
@@ -20,11 +21,12 @@ public class SavePlayerData
 
     public int sariStack;
     
-    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds, int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,StageType currentStageType,int sariStack)
+    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds, int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,StageType currentStageType,int sariStack)
     {
         this.id = id;
         this.myUnits = myUnits;
         this.relicIds = relicIds;
+        this.eventIds = eventIds;
         this.currentGold = currentGold;
         this.spentGold = spentGold;
         this.playerMorale = playerMorale;

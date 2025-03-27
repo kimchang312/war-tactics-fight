@@ -31,6 +31,7 @@ public class AbilityManager
     private float mybindingAttackDamage = 5;                        //결속 추가 공격력
     private float enemybindingAttackDamage = 5;
     private float moraleMultiplier = 0f;
+    private int plunderGold = 20;                    //약탈 골드
 
     private AutoBattleUI autoBattleUI;
 
@@ -88,6 +89,9 @@ public class AbilityManager
     public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage,AutoBattleUI _autoBattleUI)
     {
         autoBattleUI = _autoBattleUI;
+
+        //기타 유산
+        if (RelicManager.CheckRelicById(68)) plunderGold += 20;
 
         CheckHeroUnit(units, isTeam);
 
@@ -401,6 +405,7 @@ public class AbilityManager
     // 유닛 사망 시 실행되는 함수 (추가 기능 확장 가능)
     private void OnUnitDeath(List<RogueUnitDataBase> deadAttackers,List<RogueUnitDataBase> deadDefenders,ref List<RogueUnitDataBase> attackers,List<RogueUnitDataBase> defenders, bool isTeam, bool isFrontAttackerDead,bool isFrontDefendrDead)
     {
+        RogueUnitDataBase frontAttacker = attackers[0];
         //유닛들 하나씩 순회 하며 특정 능력 유닛 채크
         //봉인 풀린 자 채크
         CalculateTheUnsealedOne(deadDefenders.Count, isTeam);
@@ -418,29 +423,28 @@ public class AbilityManager
                 CallDamageText(0, "유격", isTeam, false);
             }
             //착취
-            if (attackers[0].drain)
+            if (frontAttacker.drain)
             {
                 //상흔 확인
-                float heal = HealHealth(attackers[0], drainHealValue);
+                float heal = HealHealth(frontAttacker, drainHealValue);
                 //착취 계산
-                attackers[0].health = MathF.Min(attackers[0].maxHealth, heal + attackers[0].health);
-                attackers[0].attackDamage += drainGainAttackValue;
+                frontAttacker.health = MathF.Min(frontAttacker.maxHealth, heal + frontAttacker.health);
+                frontAttacker.attackDamage += drainGainAttackValue;
             }
             //노인기사
-            CalculateOldKnight(attackers[0],isFrontDefendrDead);
+            CalculateOldKnight(frontAttacker, isFrontDefendrDead);
+            //
             if (isFrontDefendrDead)
             {
+                //약탈
+                CalculatePlunder(frontAttacker, isTeam);
                 //무한
-                if (attackers[0].endless)
-                {
-                    attackers[0].energy = Math.Min(attackers[0].maxEnergy, attackers[0].energy + 1);
-                }
+                CalculateEndLess(frontAttacker, isTeam);
                 //돌격대장
                 CalculateAssaultLeader(attackers,isTeam);
             }
         }
     }
-
     //선제 타격
     private bool CalculateFirstStrike(List<RogueUnitDataBase> attakers, List<RogueUnitDataBase> defenders,float finalDamage,bool isTeam)
     {
@@ -479,6 +483,19 @@ public class AbilityManager
         }
         attacker.fStriked = true;
         use = true;
+    }
+    //약탈
+    private void CalculatePlunder(RogueUnitDataBase unit,bool isTeam)
+    {
+        //적 or 약탈 없음
+        if (!isTeam || !unit.plunder) return;
+        RogueLikeData.Instance.SetCurrentGold(RogueLikeData.Instance.GetCurrentGold()+plunderGold);
+    }
+    //무한
+    private void CalculateEndLess(RogueUnitDataBase unit,bool isTeam)
+    {
+        if (!isTeam || !unit.endless) return;
+        unit.energy = Math.Min(unit.maxEnergy, unit.energy + 1);
     }
     //위압
     private void CalculateOverwhelm(RogueUnitDataBase attacker,RogueUnitDataBase defender,ref string text)
@@ -1014,7 +1031,6 @@ public class AbilityManager
         CalculateFirstMorale(units, isTeam, true);
 
     }
-
     //유목민 족장
     private void CalculateNomadicChief(List<RogueUnitDataBase> units, bool isTeam)
     {

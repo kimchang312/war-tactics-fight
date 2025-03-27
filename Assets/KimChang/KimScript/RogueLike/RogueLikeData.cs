@@ -33,7 +33,7 @@ public class RogueLikeData
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
-
+    private Dictionary<int, int> encounteredEvent = new();
     private int currentStageX = 0;
     private int currentStageY = 0;
     private StageType currentStageType = StageType.Battle;
@@ -62,7 +62,7 @@ public class RogueLikeData
     {
         SavePlayerData data = new SavePlayerData(0,myUnits, relicIdsByType.Values
                                     .SelectMany(hashSet => hashSet)
-                                    .ToList(),
+                                    .ToList(),encounteredEvent.Values.ToList(),
                                     currentGold,spentGold,playerMorale,currentStageX,currentStageY,currentStageType,sariStack);
         return data;
     }
@@ -237,6 +237,11 @@ public class RogueLikeData
     public StageType GetCurrentStageType()
     {
         return currentStageType;
+    }    
+    //현재 골드 가져오기
+    public int GetCurrentGold()
+    {
+        return currentGold;
     }
     //현재 골드 수정
     public void SetCurrentGold(int gold)
@@ -252,11 +257,7 @@ public class RogueLikeData
     {
         spentGold = gold;
     }
-    //현재 골드 가져오기
-    public int GetCurrentGold()
-    {
-        return currentGold;
-    }
+
     public int GetMorale()
     {
         return playerMorale;
@@ -271,7 +272,6 @@ public class RogueLikeData
         myFinalDamage = 1;
         enemyFinalDamage = 1;
     }
-    /*
     //내 데미지 배율 수정
     public void SetMyMultipleDamage(float multiple)
     {
@@ -282,7 +282,6 @@ public class RogueLikeData
     {
         enemyFinalDamage = multiple;
     }
-    */
     //내 데미지 배율 추가
     public void AddMyMultipleDamage(float multiple)
     {
@@ -321,5 +320,15 @@ public class RogueLikeData
         ResetOwnedRelics();
     }
     */
+    //만난 이벤트 반환
+    public Dictionary<int,int> GetEncounteredEvent()
+    {
+        return encounteredEvent;
+    }
+    //만난 이벤트 추가
+    public void SetEncounteredEvent(int id)
+    {
+        encounteredEvent.Add(id, id);
+    }
 
 }
