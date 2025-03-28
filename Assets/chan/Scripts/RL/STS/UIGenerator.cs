@@ -22,9 +22,10 @@ public class UIGenerator : MonoBehaviour
 
     void Start()
     {
+        // MapGenerator는 경로 생성만 담당하므로, UIGenerator는 MapGenerator의 NodeDictionary를 활용하여 UI만 생성합니다.
         if (mapGenerator != null)
         {
-            mapGenerator.GenerateMap();
+            // MapGenerator가 Start()에서 경로를 생성했다고 가정합니다.
             CreateUIMap();
             DrawAllConnectionLines();
         }
