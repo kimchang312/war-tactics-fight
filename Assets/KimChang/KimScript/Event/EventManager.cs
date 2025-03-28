@@ -7,7 +7,9 @@ using UnityEngine.UI;
 
 public class EventManager : MonoBehaviour
 {
-    [SerializeField] private Image background;
+    [SerializeField] private Image eventImage;
+    [SerializeField] private TextMeshProUGUI eventTitle;
+    [SerializeField] private TextMeshProUGUI eventDescription;
     [SerializeField] private GameObject choiceBtns;
 
     private const int MaxEventCount = 50; // 이벤트의 최대 개수
@@ -109,8 +111,8 @@ public class EventManager : MonoBehaviour
         int choices= 3;
         string[] choiceTexts = new string[]
     {
-        "한 병사를 침대에 눕힌다. (단일 기력 회복 - 대)",   // 선택지 1
-        "모두가 똑같이 바닥에서 쉰다. (사기 회복 - 소)",      // 선택지 2
+        "한 병사를 침대에 눕힌다. 병사 한명 기력 회복",   // 선택지 1
+        "모두가 똑같이 바닥에서 쉰다. 사기 회복 +10",      // 선택지 2
         "길을 서두른다."                                    // 선택지 3
     };
         for (int i = 0; i < choices; i++)
@@ -132,7 +134,7 @@ public class EventManager : MonoBehaviour
             button.onClick.AddListener(() => OnChoiceSelected(index)); // 버튼 클릭 시 호출할 함수 등록
         }
 
-        background.sprite = Resources.Load<Sprite>($"KImage/Event{eventId}");
+        eventImage.sprite = Resources.Load<Sprite>($"KImage/Event{eventId}");
     }
 
     //이벤트 12 샘의 정령
