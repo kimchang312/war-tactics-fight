@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor.PackageManager;
 using UnityEditor.Presets;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +15,6 @@ public class EventManager : MonoBehaviour
 
     private const int MaxEventCount = 50; // 이벤트의 최대 개수
     private Dictionary<int, System.Action<int>> eventDictionary;
-
     // 씬 로드 시 실행되는 함수
     void Start()
     {
@@ -108,13 +108,11 @@ public class EventManager : MonoBehaviour
     //이벤트 0 여행자의 쉼터
     private void TravelersShelter(int eventId)
     {
-        int choices= 3;
-        string[] choiceTexts = new string[]
-    {
-        "한 병사를 침대에 눕힌다. 병사 한명 기력 회복",   // 선택지 1
-        "모두가 똑같이 바닥에서 쉰다. 사기 회복 +10",      // 선택지 2
-        "길을 서두른다."                                    // 선택지 3
-    };
+        GameEvent gameEvent = EventDataBase.GetEventById(eventId);
+        string[] choiceTexts = gameEvent.choices;
+        int choices = choiceTexts.Length;
+        eventTitle.text = gameEvent.title;
+        eventDescription.text = gameEvent.description;
         for (int i = 0; i < choices; i++)
         {
             // 자식 오브젝트를 Button으로 가져오기
@@ -138,9 +136,33 @@ public class EventManager : MonoBehaviour
     }
 
     //이벤트 12 샘의 정령
-    private void SpringSpirit(int enventId)
+    private void SpringSpirit(int eventId)
     {
+        GameEvent gameEvent = EventDataBase.GetEventById(eventId);
+        string[] choiceTexts = gameEvent.choices;
+        int choices = choiceTexts.Length;
+        eventTitle.text = gameEvent.title;
+        eventDescription.text = gameEvent.description;
+        for (int i = 0; i < choices; i++)
+        {
+            // 자식 오브젝트를 Button으로 가져오기
+            Button button = choiceBtns.transform.GetChild(i).GetComponent<Button>();
 
+            // 버튼 활성화
+            button.gameObject.SetActive(true);
+
+            // 버튼의 텍스트 설정
+            TextMeshProUGUI buttonText = button.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+            buttonText.text = choiceTexts[i];
+
+            // 버튼 클릭 이벤트 등록
+            button.onClick.RemoveAllListeners(); // 기존에 등록된 이벤트 제거
+            int index = i; // 클로저 문제 방지를 위해 따로 변수 선언
+
+            button.onClick.AddListener(() => OnChoiceSelected(index)); // 버튼 클릭 시 호출할 함수 등록
+        }
+
+        eventImage.sprite = Resources.Load<Sprite>($"KImage/Event{eventId}");
     }
 
 
