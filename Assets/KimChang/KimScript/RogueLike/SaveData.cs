@@ -48,10 +48,19 @@ public class SaveData
 
         // 데이터를 JSON 문자열로 직렬화
         _jsonData = JsonUtility.ToJson(savePlayerData);
-        Debug.Log(savePlayerData.myUnits[0].unitName);
+       // Debug.Log(savePlayerData.myUnits[0].unitName);
         File.WriteAllText(_filePath, _jsonData);
     }
+    
+    public void SaveDataBattaleEnd(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
+    {
+        SavePlayerData savePlayerData = RogueLikeData.Instance.GetBattleEndRogueLikeData(units, deadUnits);
 
+        // 데이터를 JSON 문자열로 직렬화
+        _jsonData = JsonUtility.ToJson(savePlayerData);
+        // Debug.Log(savePlayerData.myUnits[0].unitName);
+        File.WriteAllText(_filePath, _jsonData);
+    }
     public void LoadData()
     {
         try

@@ -26,8 +26,6 @@ public class AutoBattleManager : MonoBehaviour
     RogueUnitDataBase myFrontUnit;
     RogueUnitDataBase enemyFrontUnit;
 
-    private Dictionary<int, bool> myStartIds = new();
-
     //유닛 전투 통계
     private Dictionary<int, UnitCombatStatics> unitStats = new();
 
@@ -135,12 +133,14 @@ public class AutoBattleManager : MonoBehaviour
             if (rowData != null)
             {
                 RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData);
+                RogueUnitDataBase savedUnit = RogueUnitDataBase.ConvertToUnitDataBase(rowData);
                 int uniqueId = GenerateUniqueUnitId(unit.branchIdx, true, unit.idx);
                 // 고유 ID 추가
                 unit.UniqueId = uniqueId;
-                myStartIds.Add(uniqueId,true);
-                // 강화 후 추가
-                myUnits.Add(UpgradeManager.Instance.UpgradeRogueLikeUnit(unit));
+                savedUnit.UniqueId= uniqueId;
+                myUnits.Add(unit);
+                //기본 유닛 데이터 따로 저장
+                RogueLikeData.Instance.SetSavedMyUnits(savedUnit);
             }
         }
 
@@ -274,6 +274,11 @@ public class AutoBattleManager : MonoBehaviour
 
         autoBattleUI.CreateUnitBox(myUnits, enemyUnits, abilityManager.CalculateDodge(myUnits[0],true,isFirstAttack), abilityManager.CalculateDodge(enemyUnits[0],false,isFirstAttack),myRangeUnits,enemyRangUnits);
     }
+    //전투 입장
+    private void ProcessEnter()
+    {
+        abilityManager.ProcessEnter();
+    }
 
     //전투 전 발동
     private void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage)
@@ -352,10 +357,10 @@ public class AutoBattleManager : MonoBehaviour
 
         //로딩창 시작
         autoBattleUI.ToggleLoadingWindow();
-        
+
         // 유닛 데이터 받아옴
         (myUnits, enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
-
+   
         myUnitMax = myUnits.Count;
         enemyUnitMax = enemyUnits.Count;
 
@@ -366,10 +371,10 @@ public class AutoBattleManager : MonoBehaviour
         SetBaseData();
 
         //데이터 저장
-        //SaveData saveData = new SaveData();
-        //saveData.SaveDataFile();
+        SaveData saveData = new SaveData();
+        saveData.SaveDataFile();
 
-        //유산 및 데이터 저장
+        //스탯 유산 실행
         ProcessRelic();
 
         // 통계 초기화
@@ -399,6 +404,7 @@ public class AutoBattleManager : MonoBehaviour
     //전투 스테이지 입장
     private void HandleEnter()
     {
+        ProcessEnter();
         currentState = BattleState.Check;
         isProcessing = false;
     }
@@ -412,7 +418,6 @@ public class AutoBattleManager : MonoBehaviour
         currentState = BattleState.Start;
         isProcessing = false; // 체크가 끝난 후 상태를 변경
     }
-
     // 시작 단계 처리 (전투 시작을 위한 초기화)
     private async Task HandleStart()
     {
@@ -423,7 +428,6 @@ public class AutoBattleManager : MonoBehaviour
         await Task.Yield();  // 변경 사항이 없으면 즉시 다음 단계로 이동
 
     }
-
     // 애니메이션 단계 처리 (전투 중 원하는 타이밍에 실행)
     private async Task HandleAnimation()
     {
@@ -517,6 +521,10 @@ public class AutoBattleManager : MonoBehaviour
             //유닛 체력 UI 최신화
             UpdateUnitHp();
 
+            //유닛 데이터 저장
+            SaveData saveData = new SaveData();
+            saveData.SaveDataBattaleEnd(myUnits,myDeathUnits);
+
             return true;
         }
         return false;
@@ -573,6 +581,8 @@ public class AutoBattleManager : MonoBehaviour
         // 아군, 적군 데이터를 RogueLikeData 싱글톤에 저장
         RogueLikeData.Instance.AllMyUnits(myUnits);
         RogueLikeData.Instance.AllEnemyUnits(enemyUnits);
+        //아군 초기 데이터 따로 저장
+
     }
 
     //유산 호출 및 초기화

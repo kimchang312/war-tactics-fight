@@ -35,6 +35,12 @@ public class EventManager : MonoBehaviour
             Debug.Log("모든 이벤트가 이미 진행되었습니다.");
         }
     }
+    //유닛 선택창 생성
+    private void CreateSelectUnitsWindow()
+    {
+        List<RogueUnitDataBase> myUnits= RogueLikeData.Instance.GetMyUnits();
+    }
+
     //UI초기화
     private void UIReset()
     {

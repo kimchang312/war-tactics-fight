@@ -28,6 +28,7 @@ public static class EventDataBase
         events.Add(new GameEvent(17, "늪지대", "병사의 발목을 붙잡는 늪지대가 펼쳐졌다.", EventType.Normal, new string[] { "늪지대를 가로지른다.", "우회로에서 한 병사가 부상을 당했다." }, new int[] { 0, 0 }));
         events.Add(new GameEvent(18, "부대 편성의 기회", "전열을 가다듬을 기회가 생겼다.", EventType.Special, new string[] { "신병을 모집한다.", "병사를 승급시킨다.", "보급품을 여유있게 확보한다." }, new int[] { 0, 0, 0 }));
         events.Add(new GameEvent(19, "바위에 박힌 검", "호숫가에 꽂힌 검을 본 병사들은 숨을 죽였다.", EventType.Special, new string[] { "독실한 병사가 검에 기도한다.", "힘 있는 병사가 검을 뽑으려 한다.", "검을 바라보다 조용히 자리를 뜬다." }, new int[] { 0, 0, 0 }));
+        
     }
         public static GameEvent GetEventById(int id)
     {

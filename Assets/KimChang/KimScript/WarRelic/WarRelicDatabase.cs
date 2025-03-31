@@ -256,13 +256,16 @@ public static class WarRelicDatabase
                 break;
             }
             unitIds.Add(unit.idx);
-            unit.maxHealth += MathF.Round(unit.baseHealth * 0.2f);
-            unit.health = unit.maxHealth;
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
         }
         if (!hasDuplicate)
         {
-            RogueLikeData.Instance.AllMyUnits(units);
+            foreach (var unit in units)
+            {
+                unitIds.Add(unit.idx);
+                unit.maxHealth += MathF.Round(unit.baseHealth * 0.2f);
+                unit.health = unit.maxHealth;
+                unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
+            }
         }
     }
 
@@ -287,7 +290,6 @@ public static class WarRelicDatabase
                 unit.thorns = true;
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //수호자의 훈장 15
@@ -301,7 +303,6 @@ public static class WarRelicDatabase
                 unit.armor+=4;
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //헤르메스 신발 16
@@ -317,8 +318,6 @@ public static class WarRelicDatabase
                 unit.mobility += 8;
             }
         }
-        
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
     
     //팔랑크스 전술서 17
@@ -333,36 +332,12 @@ public static class WarRelicDatabase
                 unit.antiCavalry += Mathf.Round(unit.baseAntiCavalry + 0.5f);
             }
         }
-
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
-    //정예 기병대 안장  절반 구현 18
+    //정예 기병대 안장 18 맹진 미구현
     private static void EliteCavalrySaddle()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
-        bool isAllSame=true;
-
-        foreach (var unit in units)
-        {
-            if (unit.branchIdx == 5 || unit.branchIdx==6)
-            {
-                unit.attackDamage += MathF.Round(unit.baseAttackDamage * 1.2f);
-            }
-            else
-            {
-                isAllSame = false;
-            }
-        }
-        if (isAllSame)
-        {
-            foreach(var unit in units)
-            {
-                unit.mobility += 3;
-            }
-        }
-
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
+       
     }
 
     //정예 궁병 부대 깃털모자 19
@@ -378,7 +353,6 @@ public static class WarRelicDatabase
                 unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //민병대 나팔 20
@@ -396,28 +370,23 @@ public static class WarRelicDatabase
                 unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.15f);
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //소름끼치는 구슬 21
     private static void CreepyOrb()
     {
         // RogueLikeData 싱글톤 사용
-        var curseRelic = RogueLikeData.Instance.GetRelicsByGrade(0);
-        int curseCount = curseRelic.Count;
-        if (curseCount > 0)
-        {
-            var units = RogueLikeData.Instance.GetMyUnits();
+        int curseCount = RogueLikeData.Instance.GetRelicsByGrade(0).Count;
+        if (curseCount == 0) return;
 
-            foreach (var unit in units)
-            {
-                unit.maxHealth +=  MathF.Round(unit.baseHealth * (curseCount * 0.1f));
-                unit.health = unit.maxHealth;
-                unit.attackDamage += MathF.Round(unit.baseAttackDamage * (curseCount * 0.1f));
-            }
-            RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
+        var units = RogueLikeData.Instance.GetMyUnits();
+
+        foreach (var unit in units)
+        {
+            unit.maxHealth += MathF.Round(unit.baseHealth * (curseCount * 0.1f));
+            unit.health = unit.maxHealth;
+            unit.attackDamage += MathF.Round(unit.baseAttackDamage * (curseCount * 0.1f));
         }
-        return;
     }
 
     //해주 부적 22
@@ -455,7 +424,6 @@ public static class WarRelicDatabase
             unit.maxHealth -= MathF.Round(unit.baseHealth * 0.5f);
             unit.health = unit.maxHealth;
         }
-        RogueLikeData.Instance.AllEnemyUnits(units); // 변경된 데이터 저장
     }
 
     //하트 보석 목걸이 27
@@ -480,8 +448,6 @@ public static class WarRelicDatabase
         {
             unit.attackDamage -= MathF.Round(unit.baseAttackDamage*0.15f);
         }
-
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //깨진 투구 30
@@ -500,8 +466,6 @@ public static class WarRelicDatabase
         {
             unit.mobility = UnityEngine.Mathf.Max(1, unit.mobility - 2);
         }
-
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //갈라진 방패 32
@@ -514,8 +478,6 @@ public static class WarRelicDatabase
         {
             unit.armor = UnityEngine.Mathf.Max(1, unit.armor - 2);
         }
-
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //황폐한 깃발 33
@@ -550,7 +512,6 @@ public static class WarRelicDatabase
                 unit.range++;
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //덧댐 장갑판 37
@@ -563,8 +524,6 @@ public static class WarRelicDatabase
         {
             unit.armor += 1;
         }
-
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //장식된 단검 38
@@ -577,8 +536,6 @@ public static class WarRelicDatabase
         {
             unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.1f);
         }
-
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //전쟁나팔 39
@@ -607,8 +564,6 @@ public static class WarRelicDatabase
                 unit.maxHealth -= MathF.Round(unit.baseHealth*0.1f);
                 unit.health = unit.maxHealth;
             }
-
-            RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
         }
     }
 
@@ -649,13 +604,13 @@ public static class WarRelicDatabase
                 break;
                 
             }
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.2f);
+        }
+        if (!allCorret) return;
+        foreach (var unit in units)
+        {
+            unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
             if (unit.lightArmor) unit.mobility += 5;
             else unit.armor += 5;
-        }
-        if (allCorret)
-        {
-            RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
         }
     }
 
@@ -729,9 +684,6 @@ public static class WarRelicDatabase
             unit.health = unit.maxHealth;
             unit.attackDamage += MathF.Round(unit.baseAttackDamage * (1-attackMultiplier)); // 원래 공격력의 60~200% 적용
         }
-
-        // 변경된 유닛 데이터를 저장
-        RogueLikeData.Instance.AllMyUnits(units);
     }
 
 
@@ -771,7 +723,6 @@ public static class WarRelicDatabase
             unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.2f);
             unit.armor += 2;
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
 
     //뜨거운 심장 모형 61
@@ -783,7 +734,6 @@ public static class WarRelicDatabase
             unit.maxHealth += MathF.Round(unit.baseHealth*0.1f);
             unit.health =unit.maxHealth;
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //약자낙인 인두 62
     private static void UnderDogStigma()
@@ -794,7 +744,6 @@ public static class WarRelicDatabase
             unit.maxHealth -= MathF.Round(unit.baseHealth*0.15f);
             unit.health = unit.maxHealth;
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //매우 진한 스프 63
     private static void VeryThickSoup()
@@ -808,7 +757,6 @@ public static class WarRelicDatabase
             unit.armor += 1;
             unit.mobility += 1;
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //전쟁 군주의 투구 64
     private static void WarlordHelm()
@@ -819,7 +767,6 @@ public static class WarRelicDatabase
             unit.maxHealth += MathF.Round(unit.baseHealth*0.25f);
             unit.health = unit.maxHealth;
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //전쟁 군주의 검 65
     private static void WarlordSword()
@@ -829,7 +776,6 @@ public static class WarRelicDatabase
         {
             unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.25f);
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //확장 진형도 66
     private static void ExpandedFormationDiagram()
@@ -858,21 +804,18 @@ public static class WarRelicDatabase
         {
             sUnit.plunder = true;
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //전위대의 갑옷 69
     private static void VanguardArmor()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
         units[0].armor += 3;
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //선봉대 군화 70
     private static void VanguardBoots()
     {
         var units = RogueLikeData.Instance.GetMyUnits();
         units[0].mobility += 3;
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //녹슨 쇠말뚝 71
     private static void RustyIronStake()
@@ -950,7 +893,6 @@ public static class WarRelicDatabase
             int id = 5, type = 0, rank = 1, duration = -1;
             unit.effectDictionary[id]=new(id, type, rank,duration);
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //경랑 갑옷 76
     private static void LightWeightArmor()
@@ -964,7 +906,6 @@ public static class WarRelicDatabase
                 unit.effectDictionary[id] = new(id, type, rank, duration);
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //뿔피리 77
     private static void Horn()
@@ -999,7 +940,6 @@ public static class WarRelicDatabase
             front.health =front.maxHealth;
             front.strongCharge =true;
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //벼려진 마창 81
     private static void ForgedStable()
@@ -1010,7 +950,6 @@ public static class WarRelicDatabase
         {
             unit.attackDamage += MathF.Floor((unit.baseMobility * (25 / 9)) - (25 / 9)); 
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //반응 갑옷 82
     private static void ReactiveArmor()
@@ -1020,7 +959,6 @@ public static class WarRelicDatabase
         {
             unit.attackDamage += MathF.Floor(unit.baseArmor*1.7f);
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //창술 교범 83
     private static void SpearManual()
@@ -1034,7 +972,6 @@ public static class WarRelicDatabase
                 unit.health = unit.maxHealth;
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units);
     }
     //치유석 84
     private static void HealingStone()

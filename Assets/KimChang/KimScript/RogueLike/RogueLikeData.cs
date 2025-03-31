@@ -30,6 +30,7 @@ public class RogueLikeData
 
     private List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>();
     private List<RogueUnitDataBase> enemyUnits = new List<RogueUnitDataBase>();
+    private List<RogueUnitDataBase> savedMyUnits = new List<RogueUnitDataBase>();
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
@@ -60,12 +61,51 @@ public class RogueLikeData
     //내 데이터 전부 반환
     public SavePlayerData GetRogueLikeData()
     {
-        SavePlayerData data = new SavePlayerData(0,myUnits, relicIdsByType.Values
+        SavePlayerData data = new SavePlayerData(0, savedMyUnits, relicIdsByType.Values
                                     .SelectMany(hashSet => hashSet)
                                     .ToList(),encounteredEvent.Values.ToList(),
                                     currentGold,spentGold,playerMorale,currentStageX,currentStageY,currentStageType,sariStack);
         return data;
     }
+    // 보유한 유닛 기력만 재설정 해서 반환
+    public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
+    {
+        // 저장용 복사 리스트 생성 (깊은 복사하지 않고 원본 savedMyUnits를 수정)
+        List<RogueUnitDataBase> savedCopy = new List<RogueUnitDataBase>(savedMyUnits);
+
+        // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
+        foreach (var unit in units.Concat(deadUnits))
+        {
+            var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
+            if (savedUnit == null) continue;
+
+            if (unit.energy < 1)
+            {
+                savedCopy.Remove(savedUnit); // 기력이 0이면 제거
+            }
+            else
+            {
+                savedUnit.energy = unit.energy; // 기력 갱신
+            }
+        }
+
+        SavePlayerData data = new SavePlayerData(
+            0,
+            savedCopy,
+            relicIdsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            encounteredEvent.Values.ToList(),
+            currentGold,
+            spentGold,
+            playerMorale,
+            currentStageX,
+            currentStageY,
+            currentStageType,
+            sariStack
+        );
+
+        return data;
+    }
+
     //내 유닛 전부 수정하기
     public void AllMyUnits(List<RogueUnitDataBase> units)
     {
@@ -329,6 +369,11 @@ public class RogueLikeData
     public void SetEncounteredEvent(int id)
     {
         encounteredEvent.Add(id, id);
+    }
+    //아군 초기 데이터 저장
+    public void SetSavedMyUnits(RogueUnitDataBase unit)
+    {
+        savedMyUnits.Add(unit);
     }
 
 }

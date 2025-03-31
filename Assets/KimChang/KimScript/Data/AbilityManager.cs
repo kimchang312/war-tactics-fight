@@ -118,6 +118,9 @@ public class AbilityManager
         CalculateSevenUnion(units);
 
         CalculataeSolidarity(units, isTeam);
+
+        //유닛 강화
+        CalculateUpgradeUnit(units, isTeam);
     }
     //전투당 한번(선재 타격 등)
     public bool ProcessStartBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders,float finalDamage,bool isTeam)
@@ -1634,6 +1637,15 @@ public class AbilityManager
             }
         }
         return null; // 모든 유닛이 죽어있다면 null 반환
+    }
+    //유닛 강화
+    private void CalculateUpgradeUnit(List<RogueUnitDataBase> units,bool isTeam)
+    {
+        if (!isTeam) return;
+        foreach(var unit in units)
+        {
+            UpgradeManager.Instance.UpgradeRogueLikeUnit(unit);
+        }
     }
 
     //데미지 ui 호출
