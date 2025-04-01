@@ -252,11 +252,14 @@ public class ObjectPool : MonoBehaviour
         instance.transform.SetParent(canvasTransform, false);
         return instance;
     }
-    //선택 가능한 유닛 회수
-    public void ReturnSelectUnit(GameObject gameObject)
+    // 선택 가능한 유닛 회수 (부모는 유지, 자식만 풀에 등록)
+    public void ReturnSelectUnit(GameObject parentObj)
     {
-        gameObject.SetActive(false);
-        selectUnitPool.Enqueue(gameObject);
+        foreach (Transform child in parentObj.transform)
+        {
+            GameObject childObj = child.gameObject;
+            childObj.SetActive(false);
+            selectUnitPool.Enqueue(childObj);
+        }
     }
-
 }

@@ -8,9 +8,9 @@ public static class EventDataBase
 
     static EventDataBase()
     {
-        events.Add(new GameEvent(0, "여행자의 쉼터", "숲 속에서 발견한 허름한 쉼터. 병사들은 한개의 침대를 두고 눈치를 보기 시작했다.", EventType.Normal, new string[] { "한 병사를 침대에 눕힌다.", "모두가 똑같이 바닥에서 쉰다.", "길을 서두른다." }, new int[] { 0, 0, 0 }));
+        events.Add(new GameEvent(0, "여행자의 쉼터", "숲 속에서 발견한 허름한 쉼터. 병사들은 한개의 침대를 두고 눈치를 보기 시작했다.", EventType.Normal, new string[] { "한 병사를 침대에 눕힌다.", "모두가 똑같이 바닥에서 쉰다.", "길을 서두른다." }, new int[] { 0, 0, 0 },"누구를 휴식 시키지?"));
         events.Add(new GameEvent(1, "기묘한 꿈", "깊은 잠에 빠진 밤, 기묘한 꿈을 꾸었다.", EventType.Special, new string[] { "꿈의 의미를 탐구한다.", "꿈을 무시한다." }, new int[] { 0, 0 }));
-        events.Add(new GameEvent(2, "지나가던 사범", "길을 걷다 우연히 검을 휘두르는 사내를 만났다. 한 병사가 가르침을 원하는 듯 하다.", EventType.Special, new string[] { "병사를 맡긴다.", "예의를 갖추고 지나친다." }, new int[] { 0, 0 }));
+        events.Add(new GameEvent(2, "지나가던 사범", "길을 걷다 우연히 검을 휘두르는 사내를 만났다. 한 병사가 가르침을 원하는 듯 하다.", EventType.Special, new string[] { "병사를 맡긴다.", "예의를 갖추고 지나친다." }, new int[] { 0, 0 },"어떤 병사를 맡길까?"));
         events.Add(new GameEvent(3, "성수의 축복", "신성한 성수가 가득한 작은 제단을 발견했다.", EventType.Special, new string[] { "성수를 사용한다.", "자리를 뜬다." }, new int[] { 0, 0 }));
         events.Add(new GameEvent(4, "보물이 가득한 방", "깊은 유적을 탐험하던 중, 금빛으로 빛나는 문을 발견했다.", EventType.Reward, new string[] { "작은 행운을 누린다.", "더 많은 것을 원한다!", "함정을 의심한다." }, new int[] { 0, 0, 0 }));
         events.Add(new GameEvent(5, "수상한 상인", "낡은 로브의 상인이 미소 지으며 거래를 제안했다.", EventType.Shop, new string[] { "금화로 거래한다.", "군량미로 거래한다.", "그를 무시한다." }, new int[] { 0, 0, 0 }));

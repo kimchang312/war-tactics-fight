@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -5,17 +6,28 @@ using UnityEditor.PackageManager;
 using UnityEditor.Presets;
 using UnityEngine;
 using UnityEngine.UI;
+using static EventManager;
 
 public class EventManager : MonoBehaviour
 {
     [SerializeField] private Image eventImage;
     [SerializeField] private TextMeshProUGUI eventTitle;
     [SerializeField] private TextMeshProUGUI eventDescription;
+    [SerializeField] private TextMeshProUGUI selectTitle;
+    [SerializeField] private Button arrowLine;
     [SerializeField] private GameObject choiceBtns;
     [SerializeField] private GameObject selectUnitWindow;
+    [SerializeField] private GameObject selectUnitParent;
     [SerializeField] private ObjectPool objectPool;
+
     private const int MaxEventCount = 50; // 이벤트의 최대 개수
-    private Dictionary<int, System.Action<int>> eventDictionary;
+
+    private Dictionary<int, IEventRewardHandler> rewardHandlers = new();
+
+    public interface IEventRewardHandler
+    {
+        string GetReward(int choice, RogueUnitDataBase unit);
+    }
     // 씬 로드 시 실행되는 함수
     void Start()
     {
@@ -23,92 +35,77 @@ public class EventManager : MonoBehaviour
         SaveData saveData = new SaveData();
         saveData.LoadData();
 
-        UIReset();
-        InitializeEvents();
+        ResetUI();
+        InitRewardHandlers();
 
         Dictionary<int, int> eventList = RogueLikeData.Instance.GetEncounteredEvent();
         int randomEventId = GenerateUniqueEventId(eventList);
 
-        CreateSelectUnitsWindow();
-        //ExecuteEvent(0);
+        ShowEvent(0);
         if (randomEventId != -1)
         {
             Debug.Log($"선택된 이벤트 ID: {randomEventId}");
-            // 여기에 선택된 이벤트 ID를 기반으로 이벤트를 실행하는 코드를 추가하세요.
         }
     }
-    //유닛 선택창 생성
-    private void CreateSelectUnitsWindow()
+    private void InitRewardHandlers()
     {
+        rewardHandlers.Add(0, new TravelersShelterReward());
+        // 추가 이벤트 보상 클래스 등록
+    }
+    //유닛 선택창 생성
+    private void CreateSelectUnitsWindow(GameEvent gameEvent)
+    {
+        List<GameObject> list = new List<GameObject>();
         List<RogueUnitDataBase> myUnits= RogueLikeData.Instance.GetMyUnits();
-        Vector3 startPos = new Vector3(-640, 40, 0);
-        int gridX = 5;
-        float interval = 320;
+
+        selectTitle.text = gameEvent.selectTitle;
         for (int i = 0; i < myUnits.Count; i++)
         {
             GameObject unitObj = objectPool.GetSelectUnit(); // 유닛 UI 오브젝트 가져오기
             if (unitObj == null) continue;
-
-            // 유닛 위치 계산
-            int row = i / gridX;
-            int col = i % gridX;
-            Vector3 position = startPos + new Vector3(col * interval, -row * interval, 0);
-
-            // UI 전용 위치 설정
-            RectTransform rect = unitObj.GetComponent<RectTransform>();
-            rect.anchoredPosition = position;
-
-            // 부모를 selectUnitWindow로 설정
-            unitObj.transform.SetParent(selectUnitWindow.transform, false);
+            list.Add(unitObj);
+            // 부모 설정
+            unitObj.transform.SetParent(selectUnitParent.transform, false);
 
             RogueUnitDataBase unitData = myUnits[i];
 
             // 텍스트 갱신
             TextMeshProUGUI energyText = unitObj.transform.Find("Text")?.GetComponent<TextMeshProUGUI>();
-            if (energyText != null)
-            {
-                energyText.text = $"{unitData.energy}/{unitData.maxEnergy}";
-            }
-
+            energyText.text = $"{unitData.energy}/{unitData.maxEnergy}";
             // 에너지 게이지 fillAmount 조절
             Image energyBar = unitObj.transform.Find("Energy")?.GetComponent<Image>();
-            if (energyBar != null && unitData.maxEnergy > 0)
-            {
-                energyBar.fillAmount = (float)unitData.energy / unitData.maxEnergy;
-            }
+            energyBar.fillAmount = (float)unitData.energy / unitData.maxEnergy;
 
+            // 버튼 클릭 시 유닛 기력 회복 + 창 닫기
+            Button button = unitObj.GetComponent<Button>();
+            RogueUnitDataBase capturedUnit = unitData; // 클로저 문제 방지용 캡처
+            button.onClick.RemoveAllListeners(); // 기존 리스너 제거
+            button.onClick.AddListener(() => OnSelectUnit(capturedUnit, gameEvent.id));
         }
+        selectUnitWindow.SetActive(true);
+    }
+    // 유닛을 선택했을 때 실행되는 함수
+    private void OnSelectUnit(RogueUnitDataBase unitData,int eventId)
+    {
+        string rewardText = GetReward(eventId, GetChoiceByEventId(eventId),unitData);
+        objectPool.ReturnSelectUnit(selectUnitParent);
+        eventDescription.text = rewardText;
+        selectUnitWindow.SetActive(false);
+    }
+    //전체 초기화
+    private void ResetUI()
+    {
+        ResetButtonUI();
+        arrowLine.gameObject.SetActive(false);
+        selectUnitWindow.SetActive(false);
     }
 
-
-    //UI초기화
-    private void UIReset()
+    //버튼UI초기화
+    private void ResetButtonUI()
     {
         foreach (Transform child in choiceBtns.transform)
         {
             child.gameObject.SetActive(false);
-        }
-    }
-    // 이벤트 딕셔너리 초기화
-    private void InitializeEvents()
-    {
-        eventDictionary = new Dictionary<int, System.Action<int>>()
-    {
-        { 0, TravelersShelter },
-        { 12, SpringSpirit }
-        // 여기서 다른 이벤트들을 추가
-    };
-    }
-    // 선택된 이벤트 실행
-    private void ExecuteEvent(int eventId)
-    {
-        if (eventDictionary.TryGetValue(eventId, out var eventAction))
-        {
-            eventAction(eventId);
-        }
-        else
-        {
-            Debug.Log($"이벤트 {eventId}는 아직 구현되지 않았습니다.");
         }
     }
     // EncounteredEvent에 없는 이벤트 ID를 랜덤으로 생성하는 함수
@@ -128,31 +125,45 @@ public class EventManager : MonoBehaviour
         if (availableEvents.Count == 0) return -1; // 모든 이벤트가 이미 EncounteredEvent에 있을 경우
 
         // 사용 가능한 이벤트 중에서 랜덤으로 하나 선택
-        int randomIndex = Random.Range(0, availableEvents.Count);
+        int randomIndex = UnityEngine.Random.Range(0, availableEvents.Count);
         return availableEvents[randomIndex];
     }
     // 선택지가 클릭되었을 때 호출되는 함수
-    private void OnChoiceSelected(int choiceIndex)
+    private void OnChoiceSelected(int eventId, int choiceIndex)
     {
+        string text = "";
         switch (choiceIndex)
         {
             case 0:
-                Debug.Log("선택지 1: 한 병사를 침대에 눕혔습니다. 단일 기력 회복(대)");
-                // 단일 기력 회복(대) 기능 구현 (예: 특정 유닛의 기력 회복)
+                if (eventId == 0) 
+                {
+                    CreateSelectUnitsWindow(EventDataBase.GetEventById(eventId));
+                }
+                else
+                {
+                    text = GetReward(eventId, choiceIndex);
+                }
+
                 break;
             case 1:
-                Debug.Log("선택지 2: 모두가 바닥에서 쉬었습니다. 사기 회복(소)");
-                RogueLikeData.Instance.SetMorale(RogueLikeData.Instance.GetMorale()+10);
-                // 사기 회복(소) 기능 구현 (예: RogueLikeData.Instance.SetMorale() 호출)
+                text = GetReward(eventId, choiceIndex);
                 break;
             case 2:
-                Debug.Log("선택지 3: 길을 서둘렀습니다.");
+                text = GetReward(eventId, choiceIndex);
                 // 아무 효과 없이 지나가기
                 break;
+            case 3:
+                text = GetReward(eventId, choiceIndex);
+                break;
+            default:
+                break;
         }
+        eventDescription.text = text;
+        ResetButtonUI();
+        arrowLine.gameObject.SetActive(true);
     }
     //이벤트 0 여행자의 쉼터
-    private void TravelersShelter(int eventId)
+    private void ShowEvent(int eventId)
     {
         GameEvent gameEvent = EventDataBase.GetEventById(eventId);
         string[] choiceTexts = gameEvent.choices;
@@ -175,40 +186,23 @@ public class EventManager : MonoBehaviour
             button.onClick.RemoveAllListeners(); // 기존에 등록된 이벤트 제거
             int index = i; // 클로저 문제 방지를 위해 따로 변수 선언
 
-            button.onClick.AddListener(() => OnChoiceSelected(index)); // 버튼 클릭 시 호출할 함수 등록
+            button.onClick.AddListener(() => OnChoiceSelected(eventId, index)); // 버튼 클릭 시 호출할 함수 등록
         }
 
         eventImage.sprite = Resources.Load<Sprite>($"KImage/Event{eventId}");
     }
-
-    //이벤트 12 샘의 정령
-    private void SpringSpirit(int eventId)
+    private string GetReward(int eventId, int choice, RogueUnitDataBase unit = null)
     {
-        GameEvent gameEvent = EventDataBase.GetEventById(eventId);
-        string[] choiceTexts = gameEvent.choices;
-        int choices = choiceTexts.Length;
-        eventTitle.text = gameEvent.title;
-        eventDescription.text = gameEvent.description;
-        for (int i = 0; i < choices; i++)
+        if (rewardHandlers.TryGetValue(eventId, out var handler))
         {
-            // 자식 오브젝트를 Button으로 가져오기
-            Button button = choiceBtns.transform.GetChild(i).GetComponent<Button>();
-
-            // 버튼 활성화
-            button.gameObject.SetActive(true);
-
-            // 버튼의 텍스트 설정
-            TextMeshProUGUI buttonText = button.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
-            buttonText.text = choiceTexts[i];
-
-            // 버튼 클릭 이벤트 등록
-            button.onClick.RemoveAllListeners(); // 기존에 등록된 이벤트 제거
-            int index = i; // 클로저 문제 방지를 위해 따로 변수 선언
-
-            button.onClick.AddListener(() => OnChoiceSelected(index)); // 버튼 클릭 시 호출할 함수 등록
+            return handler.GetReward(choice, unit);
         }
-
-        eventImage.sprite = Resources.Load<Sprite>($"KImage/Event{eventId}");
+        return "잘못된 접근입니다.";
     }
-
+    private int GetChoiceByEventId(int eventId)
+    {
+        int choice = 0;
+        if (eventId == 0) choice= 0;
+        return choice;
+    }
 }
