@@ -76,6 +76,7 @@ public class RogueLikeData
         // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
         foreach (var unit in units.Concat(deadUnits))
         {
+            //UnityEngine.Debug.Log(savedCopy[0].UniqueId+""+unit.UniqueId);
             var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
             if (savedUnit == null) continue;
 
@@ -85,6 +86,7 @@ public class RogueLikeData
             }
             else
             {
+                
                 savedUnit.energy = unit.energy; // 기력 갱신
             }
         }

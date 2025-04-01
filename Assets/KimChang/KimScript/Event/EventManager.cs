@@ -12,34 +12,74 @@ public class EventManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI eventTitle;
     [SerializeField] private TextMeshProUGUI eventDescription;
     [SerializeField] private GameObject choiceBtns;
-
+    [SerializeField] private GameObject selectUnitWindow;
+    [SerializeField] private ObjectPool objectPool;
     private const int MaxEventCount = 50; // 이벤트의 최대 개수
     private Dictionary<int, System.Action<int>> eventDictionary;
     // 씬 로드 시 실행되는 함수
     void Start()
     {
+        //임시 로드
+        SaveData saveData = new SaveData();
+        saveData.LoadData();
+
         UIReset();
         InitializeEvents();
 
         Dictionary<int, int> eventList = RogueLikeData.Instance.GetEncounteredEvent();
         int randomEventId = GenerateUniqueEventId(eventList);
 
-        ExecuteEvent(0);
+        CreateSelectUnitsWindow();
+        //ExecuteEvent(0);
         if (randomEventId != -1)
         {
             Debug.Log($"선택된 이벤트 ID: {randomEventId}");
             // 여기에 선택된 이벤트 ID를 기반으로 이벤트를 실행하는 코드를 추가하세요.
-        }
-        else
-        {
-            Debug.Log("모든 이벤트가 이미 진행되었습니다.");
         }
     }
     //유닛 선택창 생성
     private void CreateSelectUnitsWindow()
     {
         List<RogueUnitDataBase> myUnits= RogueLikeData.Instance.GetMyUnits();
+        Vector3 startPos = new Vector3(-640, 40, 0);
+        int gridX = 5;
+        float interval = 320;
+        for (int i = 0; i < myUnits.Count; i++)
+        {
+            GameObject unitObj = objectPool.GetSelectUnit(); // 유닛 UI 오브젝트 가져오기
+            if (unitObj == null) continue;
+
+            // 유닛 위치 계산
+            int row = i / gridX;
+            int col = i % gridX;
+            Vector3 position = startPos + new Vector3(col * interval, -row * interval, 0);
+
+            // UI 전용 위치 설정
+            RectTransform rect = unitObj.GetComponent<RectTransform>();
+            rect.anchoredPosition = position;
+
+            // 부모를 selectUnitWindow로 설정
+            unitObj.transform.SetParent(selectUnitWindow.transform, false);
+
+            RogueUnitDataBase unitData = myUnits[i];
+
+            // 텍스트 갱신
+            TextMeshProUGUI energyText = unitObj.transform.Find("Text")?.GetComponent<TextMeshProUGUI>();
+            if (energyText != null)
+            {
+                energyText.text = $"{unitData.energy}/{unitData.maxEnergy}";
+            }
+
+            // 에너지 게이지 fillAmount 조절
+            Image energyBar = unitObj.transform.Find("Energy")?.GetComponent<Image>();
+            if (energyBar != null && unitData.maxEnergy > 0)
+            {
+                energyBar.fillAmount = (float)unitData.energy / unitData.maxEnergy;
+            }
+
+        }
     }
+
 
     //UI초기화
     private void UIReset()
@@ -170,6 +210,5 @@ public class EventManager : MonoBehaviour
 
         eventImage.sprite = Resources.Load<Sprite>($"KImage/Event{eventId}");
     }
-
 
 }

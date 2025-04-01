@@ -79,7 +79,8 @@ public class AbilityManager
     //유닛 기력 감소
     private void ReduceUnitEngery()
     {
-        var myUnits= RogueLikeData.Instance.GetEnemyUnits();
+        var myUnits= RogueLikeData.Instance.GetMyUnits();
+        
         foreach (var unit in myUnits)
         {
             unit.energy = Math.Max(0, unit.energy - 1);
@@ -373,10 +374,8 @@ public class AbilityManager
         enemyDeathUnits.AddRange(tempEnemyDeathUnits);
 
         //둘중 한쪽의 유닛이 없을 때
-        if (myUnits.Count == 0 || enemyUnits.Count == 0)
-        {
-            return true;
-        }
+        if (myUnits.Count == 0 || enemyUnits.Count == 0) return true;
+
         //첫번쨰 유닛 사망 채크 || 변경 채크
         if (myFrontUnit != myUnits[0] || enemyFrontUnit != enemyUnits[0])
         {
@@ -408,6 +407,7 @@ public class AbilityManager
     // 유닛 사망 시 실행되는 함수 (추가 기능 확장 가능)
     private void OnUnitDeath(List<RogueUnitDataBase> deadAttackers,List<RogueUnitDataBase> deadDefenders,ref List<RogueUnitDataBase> attackers,List<RogueUnitDataBase> defenders, bool isTeam, bool isFrontAttackerDead,bool isFrontDefendrDead)
     {
+        if(attackers.Count == 0) return;
         RogueUnitDataBase frontAttacker = attackers[0];
         //유닛들 하나씩 순회 하며 특정 능력 유닛 채크
         //봉인 풀린 자 채크
