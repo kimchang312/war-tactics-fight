@@ -10,19 +10,24 @@ public class UIGenerator : MonoBehaviour
 
     [Header("Connection Line Settings")]
     public GameObject connectionLinePrefab;     // 연결 선 프리팹 (얇은 UI Image 오브젝트)
-    public RectTransform connectionParent;      // 연결 선들을 배치할 부모 (예: mapPanel 하위)
+    public RectTransform connectionParent;      // 연결 선들을 배치할 부모 (예: mapPanel 하위 오브젝트)
     public float lineThickness = 5f;            // 연결 선의 두께
 
     [Header("Spacing Settings")]
     public float horizontalSpacing = 150f;      // 스테이지 간 수평 간격
     public float verticalSpacing = 150f;        // 스테이지 간 수직 간격
 
+    [Header("Margin Settings")]
+    // 좌상단 기준으로 오프셋 (mapPanel의 Pivot이 좌상단(0,1)인 경우, 
+    // x 값은 오른쪽으로, y 값은 아래쪽으로 이동)
+    public Vector2 startMargin = new Vector2(100f, -50f);
+
     // 각 스테이지 UI 요소의 RectTransform을 "level_row" 키로 저장하는 Dictionary
     private Dictionary<string, RectTransform> stageUIPositions = new Dictionary<string, RectTransform>();
 
     void Start()
     {
-        // MapGenerator는 경로 생성만 담당하므로, UIGenerator는 MapGenerator의 NodeDictionary를 활용하여 UI만 생성합니다.
+        // MapGenerator는 경로 생성만 담당하므로, UIGenerator는 MapGenerator의 NodeDictionary를 이용해 UI만 생성합니다.
         if (mapGenerator != null)
         {
             // MapGenerator가 Start()에서 경로를 생성했다고 가정합니다.
@@ -32,29 +37,26 @@ public class UIGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// MapGenerator의 데이터를 기반으로 StageNodeUI 프리팹을 인스턴스화하고 배치합니다.
+    /// MapGenerator의 데이터를 기반으로 StageNodeUI 프리팹을 인스턴스화하고 mapPanel에 배치합니다.
     /// </summary>
     void CreateUIMap()
     {
         stageUIPositions.Clear();
 
-        // MapGenerator에서 생성한 모든 노드를 순회
         foreach (var kvp in mapGenerator.NodeDictionary)
         {
             StageNode nodeData = kvp.Value;
-            // StageNodeUI 프리팹 생성
             GameObject stageGO = Instantiate(stageNodePrefab, mapPanel);
             StageNodeUI stageUI = stageGO.GetComponent<StageNodeUI>();
-            // MapGenerator의 level, row, stageType 정보를 StageNodeUI에 전달
             stageUI.Setup(nodeData);
 
-            // 위치 계산: 레벨에 따라 수평, 행에 따라 수직 배치
+            // 위치 계산: 기존 계산에 startMargin 추가
             RectTransform rt = stageGO.GetComponent<RectTransform>();
-            float x = nodeData.level * horizontalSpacing;
-            float y = -(nodeData.row * verticalSpacing);
+            float x = startMargin.x + nodeData.level * horizontalSpacing;
+            float y = startMargin.y - nodeData.row * verticalSpacing;
             rt.anchoredPosition = new Vector2(x, y);
 
-            // Dictionary에 저장 (키 예: "3_2")
+            // "level_row" 형식의 키로 저장 (예: "3_2")
             string key = nodeData.level + "_" + nodeData.row;
             if (!stageUIPositions.ContainsKey(key))
                 stageUIPositions.Add(key, rt);
@@ -62,7 +64,7 @@ public class UIGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// MapGenerator의 NodeDictionary를 순회하며, 각 노드 간 연결 선을 그립니다.
+    /// MapGenerator의 NodeDictionary를 순회하여, 각 노드 간 연결 선을 그립니다.
     /// </summary>
     void DrawAllConnectionLines()
     {
@@ -82,33 +84,70 @@ public class UIGenerator : MonoBehaviour
                     continue;
 
                 RectTransform nextRect = stageUIPositions[nextKey];
-                DrawConnectionLine(currentRect.anchoredPosition, nextRect.anchoredPosition);
+                DrawEdgeConnectionLine(currentRect, nextRect);
             }
         }
     }
 
     /// <summary>
-    /// 두 UI 요소 사이에 선을 그립니다.
+    /// 두 UI 요소의 엣지를 연결하는 선을 그립니다.
+    /// 왼쪽에 있는 버튼은 오른쪽 끝, 오른쪽에 있는 버튼은 왼쪽 끝을 사용합니다.
     /// </summary>
-    /// <param name="startPos">시작 UI 요소의 anchoredPosition</param>
-    /// <param name="endPos">종료 UI 요소의 anchoredPosition</param>
+    /// <param name="fromRect">시작 UI 요소의 RectTransform</param>
+    /// <param name="toRect">종료 UI 요소의 RectTransform</param>
+    void DrawEdgeConnectionLine(RectTransform fromRect, RectTransform toRect)
+    {
+        // 계산할 때, 버튼의 엣지 좌표를 먼저 월드 좌표로 구합니다.
+        Vector3 fromCenter = fromRect.TransformPoint(fromRect.rect.center);
+        Vector3 toCenter = toRect.TransformPoint(toRect.rect.center);
+
+        Vector3 fromEdgeWorld, toEdgeWorld;
+
+        // 두 버튼의 x 좌표 비교해서, 왼쪽 버튼은 오른쪽 끝, 오른쪽 버튼은 왼쪽 끝을 사용
+        if (fromCenter.x < toCenter.x)
+        {
+            // fromRect: 오른쪽 끝 → fromCenter + (width/2, 0) (월드 좌표로 변환)
+            fromEdgeWorld = fromRect.TransformPoint(new Vector3(fromRect.rect.xMax, fromRect.rect.center.y, 0));
+            // toRect: 왼쪽 끝 → toCenter - (width/2, 0)
+            toEdgeWorld = toRect.TransformPoint(new Vector3(toRect.rect.xMin, toRect.rect.center.y, 0));
+        }
+        else
+        {
+            fromEdgeWorld = fromRect.TransformPoint(new Vector3(fromRect.rect.xMin, fromRect.rect.center.y, 0));
+            toEdgeWorld = toRect.TransformPoint(new Vector3(toRect.rect.xMax, toRect.rect.center.y, 0));
+        }
+
+        // 월드 좌표를 connectionParent의 로컬 좌표로 변환
+        Vector2 startPos = WorldToLocal(connectionParent, fromEdgeWorld);
+        Vector2 endPos = WorldToLocal(connectionParent, toEdgeWorld);
+
+        DrawConnectionLine(startPos, endPos);
+    }
+
+    Vector2 WorldToLocal(RectTransform parent, Vector3 worldPos)
+    {
+        Vector2 localPos;
+        // 카메라를 지정해 주거나 null이면 Screen Space - Overlay의 경우 동작
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, Camera.main.WorldToScreenPoint(worldPos), Camera.main, out localPos);
+        return localPos;
+    }
+
+
+    /// <summary>
+    /// 두 점 사이에 선을 그립니다.
+    /// </summary>
+    /// <param name="startPos">시작 점 (버튼의 엣지 위치)</param>
+    /// <param name="endPos">종료 점 (버튼의 엣지 위치)</param>
     void DrawConnectionLine(Vector2 startPos, Vector2 endPos)
     {
-        // 연결 선 프리팹 인스턴스화
         GameObject lineGO = Instantiate(connectionLinePrefab, connectionParent);
         RectTransform lineRect = lineGO.GetComponent<RectTransform>();
 
-        // 두 점 사이의 벡터 및 거리 계산
         Vector2 direction = endPos - startPos;
         float distance = direction.magnitude;
 
-        // 선의 크기 설정 (너비 = 두 점 사이 거리, 높이 = 선 두께)
         lineRect.sizeDelta = new Vector2(distance, lineThickness);
-
-        // 선의 중앙 위치 (두 점의 중간)
         lineRect.anchoredPosition = startPos + direction / 2f;
-
-        // 선의 회전 설정 (아크탄젠트를 이용하여 각도 계산)
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         lineRect.localRotation = Quaternion.Euler(0, 0, angle);
     }

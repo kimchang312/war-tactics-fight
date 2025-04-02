@@ -14,7 +14,7 @@ public enum StageType
 
 public class StageNode
 {
-    public int level;  // 0-indexed (0: 레벨1, 14: 레벨15)
+    public int level;  // 0-indexed (예: 0: 레벨1, 14: 레벨15)
     public int row;    // 0~6 (0:A, 1:B, ... 6:G)
     public StageType stageType;
     public List<StageNode> connectedNodes; // 다음 레벨과 연결된 노드 목록
@@ -36,29 +36,33 @@ public class StageNode
 
 public class MapGenerator : MonoBehaviour
 {
-    public int totalLevels = 15;   // 레벨 1 ~ 15 (인덱스 0~14)
+    // totalLevels는 보스 스테이지를 포함한 전체 레벨 수.
+    public int totalLevels = 15;   // 예: 15이면, 레벨1~14는 일반 스테이지, 레벨15는 보스 스테이지
     public int totalRows = 7;      // A ~ G (인덱스 0~6)
     public int totalPaths = 6;     // 생성할 경로 수
 
-    // 최종 경로 정보: 각 경로는 각 레벨의 행값(List<int>)로 표현
+    // 생성된 일반 스테이지 경로 정보: 각 경로는 각 레벨의 행값(List<int>)로 표현 (레벨 0 ~ totalLevels-2)
     private List<List<int>> paths = new List<List<int>>();
-    // 최종 맵의 노드를 (레벨_행 문자열)을 key로 저장
+    // 일반 스테이지 노드들을 (레벨_행 문자열)을 key로 저장 (레벨 0~totalLevels-2)
     private Dictionary<string, StageNode> nodeDict = new Dictionary<string, StageNode>();
     public Dictionary<string, StageNode> NodeDictionary { get { return nodeDict; } }
 
     void Start()
     {
-        // MapGenerator는 경로 생성만 담당합니다.
+        // 일반 스테이지(보스 제외) 경로 생성
         GeneratePathsNonCrossing();
     }
 
     /// <summary>
-    /// 모든 경로를 순차적으로 생성하며, 각 레벨마다 totalPaths개의 경로(행 값)를 
-    /// 비내림차순(정렬된)으로 결정합니다.
-    /// 마지막 레벨은 강제로 모든 경로가 D칸(인덱스 3)으로 설정됩니다.
+    /// 보스 스테이지 제외한 일반 스테이지(레벨 0~totalLevels-2)를 생성합니다.
+    /// 각 레벨마다 totalPaths개의 경로(행 값)를 비내림차순(정렬된)으로 결정하며,
+    /// 경로 생성 규칙은 기존과 동일합니다.
     /// </summary>
     public void GeneratePathsNonCrossing()
     {
+        // normalLevels: 보스 스테이지를 제외한 레벨 수.
+        int normalLevels = totalLevels - 1;
+
         List<int[]> matrix = new List<int[]>();
 
         // 1. 레벨 0: 시작 위치 생성 (랜덤하게 totalPaths개의 값을 생성 후 오름차순 정렬)
@@ -70,25 +74,19 @@ public class MapGenerator : MonoBehaviour
         }
         matrix.Add(level0);
 
-        // 2. 레벨 1부터 totalLevels-2까지 순차적으로 생성
-        if (!GenerateLevel(1, matrix))
+        // 2. 레벨 1부터 normalLevels-1까지 순차적으로 생성
+        if (!GenerateLevel(1, matrix, normalLevels))
         {
             Debug.LogError("비교차 경로 생성에 실패했습니다.");
             return;
         }
 
-        // 3. 마지막 레벨(레벨 totalLevels-1)은 모든 경로가 D(인덱스 3)로 강제 연결
-        int[] lastLevel = new int[totalPaths];
-        for (int i = 0; i < totalPaths; i++)
-            lastLevel[i] = 3;
-        matrix.Add(lastLevel);
-
-        // 4. 생성된 행렬(각 행: 레벨, 열: 경로)을 열 단위로 분리하여 paths에 저장
+        // 3. 생성된 행렬(각 행: 일반 스테이지 레벨, 열: 경로)을 열 단위로 분리하여 paths에 저장
         List<List<int>> newPaths = new List<List<int>>();
         for (int i = 0; i < totalPaths; i++)
         {
             List<int> path = new List<int>();
-            for (int lvl = 0; lvl < totalLevels; lvl++)
+            for (int lvl = 0; lvl < normalLevels; lvl++)
             {
                 path.Add(matrix[lvl][i]);
             }
@@ -108,13 +106,13 @@ public class MapGenerator : MonoBehaviour
             Debug.Log(pathStr);
         }
 
-        // 최종 맵 데이터 구성
-        BuildFinalMap();
+        // 일반 스테이지 노드를 구성한 후, 보스 스테이지를 하나 생성하여 연결합니다.
+        BuildFinalMap(newPaths, normalLevels);
     }
 
     /// <summary>
     /// 레벨 0의 시작 위치를 생성합니다.
-    /// totalPaths개의 랜덤 값을 생성하여 오름차순 정렬한 후, 
+    /// totalPaths개의 랜덤 값을 생성하여 오름차순 정렬한 후,
     /// 모두 동일하지 않은(최소 2개 이상의 값이 다른) 배열을 반환합니다.
     /// </summary>
     private int[] GenerateStartingPositions()
@@ -148,22 +146,22 @@ public class MapGenerator : MonoBehaviour
     /// 이전 레벨의 배열(matrix의 마지막 요소)을 기반으로, 각 경로별로 인접 이동(현재, 위, 아래) 후보 중에서
     /// 비내림차순(정렬된) 배열을 생성합니다.
     /// </summary>
-    /// <param name="level">현재 처리할 레벨 (1부터 totalLevels-2까지)</param>
+    /// <param name="level">현재 처리할 레벨 (1부터 normalLevels-1까지)</param>
     /// <param name="matrix">이전 레벨까지 채워진 행렬</param>
-    private bool GenerateLevel(int level, List<int[]> matrix)
+    /// <param name="normalLevels">보스 제외한 일반 스테이지 레벨 수</param>
+    private bool GenerateLevel(int level, List<int[]> matrix, int normalLevels)
     {
-        if (level >= totalLevels - 1)
-            return true; // 마지막 레벨은 따로 처리
+        if (level >= normalLevels)
+            return true; // 보스 스테이지 제외, 일반 레벨만 생성
 
         int[] prev = matrix[matrix.Count - 1];
         int[] current = new int[totalPaths];
 
-        // 재귀 함수를 사용해 current 배열을 채웁니다.
         if (!GenerateCurrentLevelRec(0, 0, prev, current, level))
             return false;
 
         matrix.Add((int[])current.Clone());
-        if (!GenerateLevel(level + 1, matrix))
+        if (!GenerateLevel(level + 1, matrix, normalLevels))
         {
             matrix.RemoveAt(matrix.Count - 1);
             return false;
@@ -173,36 +171,22 @@ public class MapGenerator : MonoBehaviour
 
     /// <summary>
     /// 현재 레벨의 경로 배열(current)을 재귀적으로 채웁니다.
-    /// 각 경로 i의 후보는 기본적으로 prev[i]의 인접 값({prev[i]-1, prev[i], prev[i]+1})을 사용하지만,
-    /// 만약 현재 레벨이 penultimate 레벨(즉, level == totalLevels-2)라면 전체 범위(0 ~ totalRows-1)를 허용하여
-    /// 보스 스테이지(마지막 레벨)로의 연결 제약을 제거합니다.
+    /// 각 경로 i의 후보는 기본적으로 prev[i]의 인접 값({prev[i]-1, prev[i], prev[i]+1})을 사용합니다.
     /// 단, 비내림차순 조건(후보는 이전 경로의 선택(last) 이상)은 항상 유지합니다.
+    /// (일반 레벨에서는 이 규칙을 적용하며, 별도 추가 제약은 없음)
     /// </summary>
-    /// <param name="index">현재 처리할 경로 인덱스</param>
-    /// <param name="last">이전 경로에서 선택한 값 (비내림차순 기준)</param>
-    /// <param name="prev">이전 레벨의 경로 배열</param>
-    /// <param name="current">현재 레벨의 경로 배열(채워나갈 대상)</param>
-    /// <param name="currentLevel">현재 생성 중인 레벨 (1 ~ totalLevels-2)</param>
     private bool GenerateCurrentLevelRec(int index, int last, int[] prev, int[] current, int currentLevel)
     {
         if (index == totalPaths)
             return true;
 
-        List<int> allowed;
-        if (currentLevel == totalLevels - 2) // penultimate 레벨: 전체 범위 허용
-        {
-            allowed = Enumerable.Range(0, totalRows).ToList();
-        }
-        else
-        {
-            allowed = new List<int>();
-            int baseVal = prev[index];
-            if (baseVal - 1 >= 0) allowed.Add(baseVal - 1);
-            allowed.Add(baseVal);
-            if (baseVal + 1 < totalRows) allowed.Add(baseVal + 1);
-            // **무작위로 섞어서 후보 순서를 다양하게 함**
-            allowed = allowed.Distinct().OrderBy(x => Random.value).ToList();
-        }
+        List<int> allowed = new List<int>();
+        int baseVal = prev[index];
+        if (baseVal - 1 >= 0) allowed.Add(baseVal - 1);
+        allowed.Add(baseVal);
+        if (baseVal + 1 < totalRows) allowed.Add(baseVal + 1);
+        // 후보 순서를 무작위로 섞기
+        allowed = allowed.Distinct().OrderBy(x => Random.value).ToList();
 
         foreach (int candidate in allowed)
         {
@@ -217,18 +201,20 @@ public class MapGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 생성된 paths 정보를 기반으로 최종 맵 데이터를 구성합니다.
-    /// 각 경로의 각 레벨에 해당하는 노드를 생성하며, 중복 없이 구성하고,
-    /// 경로 내 연속 노드들을 서로 연결합니다.
+    /// 생성된 일반 스테이지 경로(newPaths) 정보를 기반으로 최종 맵 데이터를 구성합니다.
+    /// 1) 일반 스테이지 노드들(레벨 0 ~ normalLevels-1)을 생성 및 연결하고,
+    /// 2) 별도로 보스 스테이지(단일 노드)를 생성하여, 각 경로의 마지막 노드(레벨 normalLevels-1)와 연결합니다.
     /// 스테이지 타입은 레벨별 규칙에 따라 부여합니다.
     /// </summary>
-    void BuildFinalMap()
+    /// <param name="newPaths">생성된 경로들</param>
+    /// <param name="normalLevels">보스 제외한 일반 스테이지 레벨 수</param>
+    void BuildFinalMap(List<List<int>> newPaths, int normalLevels)
     {
         nodeDict.Clear();
-        // 노드 생성
-        foreach (var path in paths)
+        // 1) 일반 스테이지 노드 생성 (레벨 0 ~ normalLevels-1)
+        foreach (var path in newPaths)
         {
-            for (int lvl = 0; lvl < path.Count; lvl++)
+            for (int lvl = 0; lvl < newPaths[0].Count; lvl++)
             {
                 int row = path[lvl];
                 string key = lvl + "_" + row;
@@ -241,8 +227,6 @@ public class MapGenerator : MonoBehaviour
                         type = StageType.Treasure;
                     else if (lvl == 13)
                         type = StageType.Rest;
-                    else if (lvl == totalLevels - 1)
-                        type = StageType.Boss;
                     else
                     {
                         int rnd = Random.Range(0, 3);
@@ -258,8 +242,9 @@ public class MapGenerator : MonoBehaviour
                 }
             }
         }
-        // 노드 연결
-        foreach (var path in paths)
+
+        // 2) 일반 스테이지 노드들 연결 (연속 레벨)
+        foreach (var path in newPaths)
         {
             for (int lvl = 0; lvl < path.Count - 1; lvl++)
             {
@@ -274,6 +259,25 @@ public class MapGenerator : MonoBehaviour
                     if (!currentNode.connectedNodes.Contains(nextNode))
                         currentNode.connectedNodes.Add(nextNode);
                 }
+            }
+        }
+
+        // 3) 보스 스테이지(단일 노드) 생성 및 연결
+        // 보스 노드는 레벨 = normalLevels (즉, totalLevels-1)에 생성됩니다.
+        StageNode bossNode = new StageNode(normalLevels, 3, StageType.Boss); // 보스는 원하는 셀(여기서는 3, 즉 D)
+        string bossKey = normalLevels + "_3";
+        nodeDict[bossKey] = bossNode;
+
+        // 각 경로의 마지막 노드(레벨 normalLevels-1)와 보스 노드를 연결합니다.
+        foreach (var path in newPaths)
+        {
+            int lastRow = path[newPaths[0].Count - 1];
+            string lastKey = (newPaths[0].Count - 1) + "_" + lastRow;
+            if (nodeDict.ContainsKey(lastKey))
+            {
+                StageNode lastNode = nodeDict[lastKey];
+                if (!lastNode.connectedNodes.Contains(bossNode))
+                    lastNode.connectedNodes.Add(bossNode);
             }
         }
     }
