@@ -30,6 +30,55 @@ public class RelicManager
         AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.BattleActive));
         AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.ActiveState));
     }
+    //랜덤 일반등급 획득 및 반환
+    public static WarRelic AcquireRandomNormalRelic()
+    {
+        var allNormal = WarRelicDatabase.relics.Where(r => r.grade == 1).ToList();
+        var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
+
+        var notOwned = allNormal.Where(r => !ownedIds.Contains(r.id)).ToList();
+        if (notOwned.Count == 0) return null;
+
+        var selected = notOwned[UnityEngine.Random.Range(0, notOwned.Count)];
+        RogueLikeData.Instance.AcquireRelic(selected.id);
+        return selected;
+    }
+    //랜덤 저주등급 획득 및 반환
+    public static WarRelic AcquireRandomCursedRelic()
+    {
+        var allCursed = WarRelicDatabase.relics.Where(r => r.grade == 0).ToList();
+        var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
+
+        var notOwned = allCursed.Where(r => !ownedIds.Contains(r.id)).ToList();
+        if (notOwned.Count == 0) return null;
+
+        var selected = notOwned[UnityEngine.Random.Range(0, notOwned.Count)];
+        RogueLikeData.Instance.AcquireRelic(selected.id);
+        return selected;
+    }
+    //랜덤 저주 유산 제거
+    public static string RemoveRandomCursedRelic()
+    {
+        // 현재 보유 중인 저주 등급 유산 목록
+        var cursedRelics = RogueLikeData.Instance
+            .GetAllOwnedRelics()
+            .Where(r => r.grade == 0)
+            .ToList();
+
+        if (cursedRelics.Count == 0)
+            return null;
+
+        // 무작위로 하나 선택
+        WarRelic toRemove = cursedRelics[UnityEngine.Random.Range(0, cursedRelics.Count)];
+
+        // 데이터에서 제거
+        RogueLikeData.Instance.RemoveRelicById(toRemove.id);
+
+        // RelicManager 내부 캐시에도 반영
+        ownedRelics.Remove(toRemove.id);
+
+        return toRemove.name;
+    }
 
     // 보유한 유물 중 ID 23, 24, 25을 모두 가지고 있는지 확인하고, 있으면 유물 26 추가
     public static void CheckFusion()

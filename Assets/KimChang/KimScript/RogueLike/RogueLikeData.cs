@@ -39,6 +39,7 @@ public class RogueLikeData
     private int currentStageY = 0;
     private StageType currentStageType = StageType.Battle;
 
+    private int chapter = 1;
     private int currentGold = 0;
     private int playerMorale = 50;
     private int spentGold = 0;
@@ -377,5 +378,26 @@ public class RogueLikeData
     {
         savedMyUnits.Add(unit);
     }
+    //챕터에 따른 이벤트 골드 획득
+    public int AddGoldByEventChapter(int gold)
+    {
+        float value = chapter == 1 ? 0 : (chapter == 2 ? 1.5f : 2);
+        int getGold = (gold + (int)(gold * value));
+        currentGold += getGold;
+        return getGold;
+    }
+    //랜덤유산 제거
+    public void RemoveRelicById(int relicId)
+    {
+        foreach (var kvp in relicsByType)
+        {
+            var list = kvp.Value;
+            list.RemoveAll(r => r.id == relicId);
+        }
 
+        foreach (var kvp in relicIdsByType)
+        {
+            kvp.Value.Remove(relicId);
+        }
+    }
 }

@@ -5,6 +5,7 @@ using TMPro;
 using UnityEditor.PackageManager;
 using UnityEditor.Presets;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static EventManager;
 
@@ -14,7 +15,7 @@ public class EventManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI eventTitle;
     [SerializeField] private TextMeshProUGUI eventDescription;
     [SerializeField] private TextMeshProUGUI selectTitle;
-    [SerializeField] private Button arrowLine;
+    [SerializeField] private Button arrowLineBtn;
     [SerializeField] private GameObject choiceBtns;
     [SerializeField] private GameObject selectUnitWindow;
     [SerializeField] private GameObject selectUnitParent;
@@ -37,11 +38,12 @@ public class EventManager : MonoBehaviour
 
         ResetUI();
         InitRewardHandlers();
+        arrowLineBtn.onClick.AddListener(ClickArrowLineBtn);
 
         Dictionary<int, int> eventList = RogueLikeData.Instance.GetEncounteredEvent();
         int randomEventId = GenerateUniqueEventId(eventList);
 
-        ShowEvent(0);
+        ShowEvent(randomEventId);
         if (randomEventId != -1)
         {
             Debug.Log($"선택된 이벤트 ID: {randomEventId}");
@@ -51,6 +53,9 @@ public class EventManager : MonoBehaviour
     {
         rewardHandlers.Add(0, new TravelersShelterReward());
         rewardHandlers.Add(1, new StrangeDream());
+        rewardHandlers.Add(2, new PassingOffender());
+        rewardHandlers.Add(3, new BlessingOfHolyWaterd());
+        rewardHandlers.Add(4, new FullTreasureRoom());
         // 추가 이벤트 보상 클래스 등록
     }
     //유닛 선택창 생성
@@ -58,7 +63,6 @@ public class EventManager : MonoBehaviour
     {
         List<GameObject> list = new List<GameObject>();
         List<RogueUnitDataBase> myUnits= RogueLikeData.Instance.GetMyUnits();
-
         for (int i = 0; i < myUnits.Count; i++)
         {
             GameObject unitObj = objectPool.GetSelectUnit(); // 유닛 UI 오브젝트 가져오기
@@ -96,7 +100,7 @@ public class EventManager : MonoBehaviour
     private void ResetUI()
     {
         ResetButtonUI();
-        arrowLine.gameObject.SetActive(false);
+        arrowLineBtn.gameObject.SetActive(false);
         selectUnitWindow.SetActive(false);
     }
 
@@ -135,7 +139,7 @@ public class EventManager : MonoBehaviour
         switch (choiceIndex)
         {
             case 0:
-                if (eventId == 0) 
+                if (eventId == 0 || eventId==2)
                 {
                     CreateSelectUnitsWindow(EventDataBase.GetEventById(eventId));
                 }
@@ -160,7 +164,7 @@ public class EventManager : MonoBehaviour
         }
         eventDescription.text = text;
         ResetButtonUI();
-        arrowLine.gameObject.SetActive(true);
+        arrowLineBtn.gameObject.SetActive(true);
     }
     //이벤트 작동시 이벤트 표시
     private void ShowEvent(int eventId)
@@ -204,5 +208,10 @@ public class EventManager : MonoBehaviour
         int choice = 0;
         if (eventId == 0) choice= 0;
         return choice;
+    }
+
+    private void ClickArrowLineBtn()
+    {
+        SceneManager.LoadScene("Upgrade");
     }
 }

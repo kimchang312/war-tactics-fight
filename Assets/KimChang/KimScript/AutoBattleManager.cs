@@ -378,6 +378,7 @@ public class AutoBattleManager : MonoBehaviour
         ProcessRelic();
 
         // 통계 초기화
+        /*
         foreach (var unit in myUnits)
         {
             if (!unitStats.ContainsKey(unit.UniqueId))
@@ -392,7 +393,7 @@ public class AutoBattleManager : MonoBehaviour
             {
                 unitStats[unit.UniqueId] = new UnitCombatStatics(unit.UniqueId, unit.unitName); // 적군
             }
-        }
+        }*/
 
         //로딩창 종료
         autoBattleUI.ToggleLoadingWindow();
@@ -512,7 +513,7 @@ public class AutoBattleManager : MonoBehaviour
             ManageScore(result);
 
             //통계 표시 
-            UnitCombatStatics.ProcessBattleStatics(unitStats,autoBattleUI);
+            //UnitCombatStatics.ProcessBattleStatics(unitStats,autoBattleUI);
 
             //ui마지막 업데이트
             //유닛 숫자 UI 최신화

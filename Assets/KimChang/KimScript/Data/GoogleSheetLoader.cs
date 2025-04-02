@@ -88,14 +88,6 @@ public class GoogleSheetLoader
         }
     }
 
-    // 특정 행의 데이터를 반환하는 메서드
-    public List<string> GetRowData(int rowIndex)
-    {
-        if (excel != null && rowIndex >= 0 && rowIndex < excel.Count)
-            return excel[rowIndex];
-        return null;
-    }
-
     public List<string> GetRowUnitData(int rowIndex)
     {
         if (unitExcel != null && rowIndex >= 0 && rowIndex < unitExcel.Count)
