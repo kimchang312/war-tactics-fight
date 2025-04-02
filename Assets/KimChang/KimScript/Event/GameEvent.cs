@@ -10,9 +10,8 @@ public class GameEvent
     public EventType type;
     public string[] choices;
     public int[] resultIds;
-    public string selectTitle;
 
-    public GameEvent(int id, string title, string description, EventType type, string[] choices, int[] resultIds, string selectTitle="")
+    public GameEvent(int id, string title, string description, EventType type, string[] choices, int[] resultIds)
     {
         this.id = id;
         this.title = title;
@@ -20,7 +19,6 @@ public class GameEvent
         this.type = type;
         this.choices = choices;
         this.resultIds = resultIds;
-        this.selectTitle = selectTitle;
     }
 }
 

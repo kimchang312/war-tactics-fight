@@ -50,6 +50,7 @@ public class EventManager : MonoBehaviour
     private void InitRewardHandlers()
     {
         rewardHandlers.Add(0, new TravelersShelterReward());
+        rewardHandlers.Add(1, new StrangeDream());
         // 추가 이벤트 보상 클래스 등록
     }
     //유닛 선택창 생성
@@ -58,7 +59,6 @@ public class EventManager : MonoBehaviour
         List<GameObject> list = new List<GameObject>();
         List<RogueUnitDataBase> myUnits= RogueLikeData.Instance.GetMyUnits();
 
-        selectTitle.text = gameEvent.selectTitle;
         for (int i = 0; i < myUnits.Count; i++)
         {
             GameObject unitObj = objectPool.GetSelectUnit(); // 유닛 UI 오브젝트 가져오기
@@ -162,7 +162,7 @@ public class EventManager : MonoBehaviour
         ResetButtonUI();
         arrowLine.gameObject.SetActive(true);
     }
-    //이벤트 0 여행자의 쉼터
+    //이벤트 작동시 이벤트 표시
     private void ShowEvent(int eventId)
     {
         GameEvent gameEvent = EventDataBase.GetEventById(eventId);
