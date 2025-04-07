@@ -56,6 +56,8 @@ public class EventManager : MonoBehaviour
         rewardHandlers.Add(2, new PassingOffender());
         rewardHandlers.Add(3, new BlessingOfHolyWaterd());
         rewardHandlers.Add(4, new FullTreasureRoom());
+        rewardHandlers.Add(5, new SuspiciousMerchant());
+        rewardHandlers.Add(6, new DeepNightTemptation());
         // 추가 이벤트 보상 클래스 등록
     }
     //유닛 선택창 생성

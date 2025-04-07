@@ -1,9 +1,8 @@
 using static EventManager;
+using static RelicManager;
 
 public class FullTreasureRoom : IEventRewardHandler
 {
-    private const int SmallMorale = 20;
-
     public string GetReward(int choice, RogueUnitDataBase unit)
     {
         switch (choice)
@@ -20,7 +19,7 @@ public class FullTreasureRoom : IEventRewardHandler
     private string BeGreedy()
     {
         int gold = RogueLikeData.Instance.AddGoldByEventChapter(150);
-        string name = RelicManager.RemoveRandomCursedRelic();
+        string name = RelicManager.HandleRandomRelic(0, action: RelicAction.Remove).name;
         return $"{gold}골드를 획득 했지만 {name}저주를 받았습니다.";
     }
 }

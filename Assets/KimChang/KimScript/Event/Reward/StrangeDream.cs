@@ -2,6 +2,7 @@ using static EventManager;
 using System;
 using System.Linq;
 using Unity.VisualScripting;
+using static RelicManager;
 
 public class StrangeDream : IEventRewardHandler
 {
@@ -17,10 +18,10 @@ public class StrangeDream : IEventRewardHandler
         switch (roll)
         {
             case 0: // 일반 등급 전쟁 유산
-                string nomalName = RelicManager.AcquireRandomNormalRelic().name;
+                string nomalName = RelicManager.HandleRandomRelic(1, action: RelicAction.Acquire).name;
                 return $"이상한 꿈 속에서 무언가를 손에 쥐고 깨어났다. 그것은 {nomalName}이었다.";
             case 1: // 저주 등급 전쟁 유산
-                string cursedName = RelicManager.AcquireRandomCursedRelic().name;
+                string cursedName = RelicManager.HandleRandomRelic(0, action: RelicAction.Acquire).name;
                 return $"당신은 뭔가 꺼림칙한 {cursedName}을 손에 넣었다.";
             case 2: // 무작위 유닛 전직
                 return "무작위 유닛 전직-미구현";

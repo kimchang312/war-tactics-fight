@@ -1,4 +1,5 @@
 using static EventManager;
+using static RelicManager;
 
 public class BlessingOfHolyWaterd : IEventRewardHandler
 {
@@ -15,7 +16,7 @@ public class BlessingOfHolyWaterd : IEventRewardHandler
 
     private string UseHolyWater()
     {
-        string name = RelicManager.RemoveRandomCursedRelic();
+        string name = RelicManager.HandleRandomRelic(0, action: RelicAction.Remove).name;
         return $"성수의 힘으로{name}이 제거되었습니다.";
     }
 }
