@@ -1,4 +1,3 @@
-
 using System;
 
 [Serializable]
@@ -10,8 +9,9 @@ public class GameEvent
     public EventType type;
     public string[] choices;
     public int[] resultIds;
+    public int[] chapters; // 등장 가능한 챕터 목록
 
-    public GameEvent(int id, string title, string description, EventType type, string[] choices, int[] resultIds)
+    public GameEvent(int id, string title, string description, EventType type, string[] choices, int[] resultIds, int[] chapters)
     {
         this.id = id;
         this.title = title;
@@ -19,6 +19,7 @@ public class GameEvent
         this.type = type;
         this.choices = choices;
         this.resultIds = resultIds;
+        this.chapters = chapters;
     }
 }
 

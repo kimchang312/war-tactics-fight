@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 
@@ -289,5 +290,49 @@ public class RogueUnitDataBase
             maxHealth,maxEnergy, true, false, -1, effectDictionary
         );
     }
+
+    //전직 확률
+    private static int RollPromotion(int rarity)
+    {
+        float rand = UnityEngine.Random.value;
+        return rarity switch
+        {
+            1 => rand < 0.5f ? 1 : (rand < 0.95f ? 2 : 3),
+            2 => rand < 0.75f ? 2 : (rand < 0.95f ? 3 : 10),
+            3 => rand < 0.9f ? 3 : 10,
+            _ => rarity
+        };
+    }
+    private static List<RogueUnitDataBase> GetUnitsByRarity(int rarity)
+    {
+        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        return allUnits.Where(u => u.rarity == rarity).ToList();
+    }
+    public static List<RogueUnitDataBase> RandomUnitReForm(List<RogueUnitDataBase> units)
+    {
+        var promotable = units.Where(u => u.rarity < 4).ToList();
+        if (promotable.Count == 0) return null;
+
+        // 전직 대상 무작위 선택
+        var target = promotable[UnityEngine.Random.Range(0, promotable.Count)];
+        int newRarity = RollPromotion(target.rarity);
+
+        // 희귀도 조건으로 풀링
+        var pool = GoogleSheetLoader.Instance.GetAllUnitsAsObject()
+                     .Where(u => u.rarity == newRarity)
+                     .ToList();
+
+        if (pool.Count == 0) return null;
+
+        // 후보 중 무작위 선택 → idx로 row 데이터 재생성
+        var picked = pool[UnityEngine.Random.Range(0, pool.Count)];
+        var row = GoogleSheetLoader.Instance.GetRowUnitData(picked.idx);
+
+        if (row == null) return null;
+
+        var recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스
+        return new List<RogueUnitDataBase> { recreated };
+    }
+
 
 }

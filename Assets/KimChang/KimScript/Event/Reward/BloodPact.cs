@@ -33,8 +33,6 @@ public class BloodPact : IEventRewardHandler
                     var target = candidates[random.Next(candidates.Count)];
                     target.energy = 1;
 
-                    RogueLikeData.Instance.AllMyUnits(myUnits); // 갱신
-
                     // 전쟁 유산 획득 (일반 등급, 중복 제거 포함)
                     int relicId = GetRandomRelicId(grade: 1);
                     RogueLikeData.Instance.AcquireRelic(relicId);

@@ -46,14 +46,11 @@ public class StrangeDream : IEventRewardHandler
     }
     private string AcquireRandomUnit()
     {
-        int newUnitId = UnityEngine.Random.Range(0, 52); // 0부터 51까지 포함
-        //RogueUnitDataBase newUnit = RogueUnitLoader.CreateUnitById(newUnitId);
-
-        //var myUnits = RogueLikeData.Instance.GetMyUnits();
-        //myUnits.Add(newUnit);
-        //RogueLikeData.Instance.AllMyUnits(myUnits);
-
-        return $"꿈에서 만난 낯선 자가 당신의 병력이 되었다. ({newUnitId})-반 구현";
+        RogueUnitDataBase unit = GoogleSheetLoader.Instance.GetRandomUnit();
+        var myUnits= RogueLikeData.Instance.GetMyUnits();
+        myUnits.Add(unit);
+        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+        return $"꿈에서 만난 낯선 자가 당신의 병력이 되었다. ({unit.unitName})";
     }
     private string DrainRandomUnitEnergy()
     {
@@ -62,5 +59,10 @@ public class StrangeDream : IEventRewardHandler
         var unit = units[random.Next(units.Count)];
         unit.energy = 1;
         return $"{unit.unitName}(은)는 악몽에 시달리며 기력을 거의 잃었다.";
+    }
+
+    public static bool CanAppear()
+    {
+        return RogueLikeData.Instance.GetMorale()>=26;
     }
 }

@@ -21,7 +21,6 @@ public class CollapsingTemple : IEventRewardHandler
                     {
                         var target = candidates[UnityEngine.Random.Range(0, candidates.Count)];
                         target.energy = 1;
-                        RogueLikeData.Instance.AllMyUnits(myUnits);
                         return $"병사의 희생으로 탐색에 성공했습니다. '{target.unitName}'의 기력이 1이 되었습니다.";
                     }
 

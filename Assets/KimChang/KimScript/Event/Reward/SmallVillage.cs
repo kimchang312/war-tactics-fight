@@ -25,7 +25,6 @@ public class SmallVillage : IEventRewardHandler
                     {
                         u.energy = Math.Min(u.maxEnergy, u.energy + 1);
                     }
-                    RogueLikeData.Instance.AllMyUnits(myUnits);
 
                     int morale = RogueLikeData.Instance.GetMorale();
                     RogueLikeData.Instance.SetMorale(Math.Max(0, morale - 20));

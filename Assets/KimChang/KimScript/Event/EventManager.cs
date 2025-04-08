@@ -7,6 +7,7 @@ using UnityEditor.Presets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Linq;
 using static EventManager;
 
 public class EventManager : MonoBehaviour
@@ -30,8 +31,9 @@ public class EventManager : MonoBehaviour
         string GetReward(int choice, RogueUnitDataBase unit);
     }
     // 씬 로드 시 실행되는 함수
-    void Start()
+    async void Start()
     {
+        await GoogleSheetLoader.Instance.LoadGoogleSheetData();
         //임시 로드
         SaveData saveData = new SaveData();
         saveData.LoadData();
@@ -58,6 +60,8 @@ public class EventManager : MonoBehaviour
         rewardHandlers.Add(4, new FullTreasureRoom());
         rewardHandlers.Add(5, new SuspiciousMerchant());
         rewardHandlers.Add(6, new DeepNightTemptation());
+        rewardHandlers.Add(7, new SmallVillage());
+        rewardHandlers.Add(8, new WanderingMerchant());
         // 추가 이벤트 보상 클래스 등록
     }
     //유닛 선택창 생성
@@ -114,26 +118,33 @@ public class EventManager : MonoBehaviour
             child.gameObject.SetActive(false);
         }
     }
-    // EncounteredEvent에 없는 이벤트 ID를 랜덤으로 생성하는 함수
-    private int GenerateUniqueEventId(Dictionary<int, int> encounteredEvents)
+    private int GenerateUniqueEventId(Dictionary<int, int> encounteredEvents, int maxRetry = 50)
     {
-        List<int> availableEvents = new List<int>();
-
-        // EncounteredEvent에 없는 이벤트 ID를 모두 리스트에 추가
-        for (int i = 0; i < MaxEventCount; i++)
+        int currentChapter = RogueLikeData.Instance.GetChapter();
+        for (int retry = 0; retry < maxRetry; retry++)
         {
-            if (!encounteredEvents.ContainsKey(i))
-            {
-                availableEvents.Add(i);
-            }
+            int candidateId = UnityEngine.Random.Range(0, EventDataBase.events.Count);
+
+            if (encounteredEvents.ContainsKey(candidateId))
+                continue;
+
+            GameEvent gameEvent = EventDataBase.GetEventById(candidateId);
+            if (gameEvent == null || !gameEvent.chapters.Contains(currentChapter))
+                continue;
+
+            if (!rewardHandlers.TryGetValue(candidateId, out var handler))
+                continue;
+
+            var method = handler.GetType().GetMethod("CanAppear", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (method != null && !(bool)method.Invoke(null, null))
+                continue;
+
+            return candidateId;
         }
 
-        if (availableEvents.Count == 0) return -1; // 모든 이벤트가 이미 EncounteredEvent에 있을 경우
-
-        // 사용 가능한 이벤트 중에서 랜덤으로 하나 선택
-        int randomIndex = UnityEngine.Random.Range(0, availableEvents.Count);
-        return availableEvents[randomIndex];
+        return -1; // 조건을 만족하는 이벤트를 찾지 못함
     }
+
     // 선택지가 클릭되었을 때 호출되는 함수
     private void OnChoiceSelected(int eventId, int choiceIndex)
     {

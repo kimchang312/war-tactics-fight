@@ -147,7 +147,6 @@ public static class WarRelicDatabase
                 break;
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //행운의 금화 주머니 5
@@ -181,7 +180,6 @@ public static class WarRelicDatabase
                 unit.attackDamage += MathF.Round(unit.baseAttackDamage*(gold/100));
             }
         }
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     //예리한 양날도끼 9
@@ -201,7 +199,6 @@ public static class WarRelicDatabase
         {
             unit.armor = UnityEngine.Mathf.Max(0, unit.armor - 1);
         }
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
     }
 
     // 혼돈의 깃발 11
@@ -236,7 +233,7 @@ public static class WarRelicDatabase
             }
         }
 
-        RogueLikeData.Instance.AllMyUnits(units); // 변경된 데이터 저장
+        RogueLikeData.Instance.SetAllMyUnits(units); // 변경된 데이터 저장
     }
 
 
@@ -864,13 +861,13 @@ public static class WarRelicDatabase
         if (UnityEngine.Random.value <= 0.1f)
         {
             enemyUnits.Insert(UnityEngine.Random.Range(0, enemyUnits.Count + 1), newUnit);
-            RogueLikeData.Instance.AllEnemyUnits(enemyUnits);
+            RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
         }
         else
         {
             //myUnits에 랜덤 위치로 삽입
             myUnits.Insert(UnityEngine.Random.Range(0, myUnits.Count + 1), newUnit);
-            RogueLikeData.Instance.AllMyUnits(myUnits);
+            RogueLikeData.Instance.SetAllMyUnits(myUnits);
         }
     }
 

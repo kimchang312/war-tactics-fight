@@ -110,13 +110,13 @@ public class RogueLikeData
     }
 
     //내 유닛 전부 수정하기
-    public void AllMyUnits(List<RogueUnitDataBase> units)
+    public void SetAllMyUnits(List<RogueUnitDataBase> units)
     {
         myUnits = new List<RogueUnitDataBase>(units);
     }
 
     //상대 유닛 전부 수정하기
-    public void AllEnemyUnits(List<RogueUnitDataBase> units)
+    public void SetAllEnemyUnits(List<RogueUnitDataBase> units)
     {
         enemyUnits = new List<RogueUnitDataBase>(units);
     }
@@ -377,6 +377,14 @@ public class RogueLikeData
     public void SetSavedMyUnits(RogueUnitDataBase unit)
     {
         savedMyUnits.Add(unit);
+    }
+    public int GetChapter()
+    {
+        return chapter;
+    }
+    public void SetChapter(int chapter)
+    {
+        this.chapter = chapter;
     }
     //챕터에 따른 이벤트 골드 획득
     public int AddGoldByEventChapter(int gold)

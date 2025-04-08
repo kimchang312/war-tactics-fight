@@ -26,8 +26,6 @@ public class SwampPath : IEventRewardHandler
                     var target = candidates[UnityEngine.Random.Range(0, candidates.Count)];
                     target.energy = 1;
 
-                    RogueLikeData.Instance.AllMyUnits(myUnits);
-
                     return $"[전투 설정] 다음 전투에서 '평원' 전장 효과가 적용됩니다.\n'{target.unitName}'이(가) 부상을 입어 기력이 1이 되었습니다.";
                 }
 

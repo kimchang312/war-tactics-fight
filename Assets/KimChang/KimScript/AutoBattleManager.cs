@@ -11,11 +11,8 @@ using UnityEditor.Experimental.GraphView;
 
 public class AutoBattleManager : MonoBehaviour
 {
-
     [SerializeField] private AutoBattleUI autoBattleUI;       //UI 관리 스크립트
     private AbilityManager abilityManager = new AbilityManager();
-
-    private readonly GoogleSheetLoader sheetLoader = new();
     
     private float waittingTime = 500;
 
@@ -118,9 +115,9 @@ public class AutoBattleManager : MonoBehaviour
     {
         // Google Sheet에서 전체 유닛 데이터를 로드
 
-        await sheetLoader.LoadUnitSheetData();
+        await GoogleSheetLoader.Instance.LoadUnitSheetData();
         // Spearman 데이터 로드
-        List<string> spearmanRow = sheetLoader.GetRowUnitData(0); // idx가 0인 창병 데이터
+        List<string> spearmanRow = GoogleSheetLoader.Instance.GetRowUnitData(0); // idx가 0인 창병 데이터
         if (spearmanRow != null)
         {
             RogueUnitDataBase.LoadSpearmanData(spearmanRow);
@@ -128,7 +125,7 @@ public class AutoBattleManager : MonoBehaviour
         // 내 유닛 ID들을 기반으로 유닛을 가져와서 myUnits에 저장
         foreach (int unitId in myUnitIds)
         {
-            List<string> rowData = sheetLoader.GetRowUnitData(unitId);
+            List<string> rowData = GoogleSheetLoader.Instance.GetRowUnitData(unitId);
 
             if (rowData != null)
             {
@@ -147,7 +144,7 @@ public class AutoBattleManager : MonoBehaviour
         // 적의 유닛 ID들을 기반으로 유닛을 가져와서 enemyUnits에 저장
         foreach (int unitId in enemyUnitIds)
         {
-            List<string> rowData = sheetLoader.GetRowUnitData(unitId);
+            List<string> rowData = GoogleSheetLoader.Instance.GetRowUnitData(unitId);
             if (rowData != null)
             {
                 RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData);
@@ -580,8 +577,8 @@ public class AutoBattleManager : MonoBehaviour
         RelicManager.GetRelicData();
 
         // 아군, 적군 데이터를 RogueLikeData 싱글톤에 저장
-        RogueLikeData.Instance.AllMyUnits(myUnits);
-        RogueLikeData.Instance.AllEnemyUnits(enemyUnits);
+        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+        RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
         //아군 초기 데이터 따로 저장
 
     }
