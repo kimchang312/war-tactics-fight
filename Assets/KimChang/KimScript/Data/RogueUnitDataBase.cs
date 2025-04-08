@@ -90,22 +90,6 @@ public class RogueUnitDataBase
 
     public Dictionary<int, BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
 
-
-    // Spearman 데이터 저장
-    private static RogueUnitDataBase spearmanData;
-
-    // Spearman 데이터 로드 함수
-    public static void LoadSpearmanData(List<string> rowData)
-    {
-        spearmanData = ConvertToUnitDataBase(rowData);
-    }
-
-    // Spearman 데이터 반환 함수
-    public static RogueUnitDataBase GetSpearmanData()
-    {
-        return spearmanData;
-    }
-
     // 생성자
     public RogueUnitDataBase(
     int idx, string unitName, string unitBranch, int branchIdx,string unitId,
@@ -195,7 +179,7 @@ public class RogueUnitDataBase
         this.UniqueId = uniqueId;
         this.effectDictionary = effectDictionary??new Dictionary<int, BuffDebuffData>();
     }
-    public static RogueUnitDataBase ConvertToUnitDataBase(List<string> rowData)
+    public static RogueUnitDataBase ConvertToUnitDataBase(List<string> rowData,bool isTeam=true)
     {
         if (rowData == null || rowData.Count == 0) return null;
 
@@ -278,6 +262,7 @@ public class RogueUnitDataBase
         bool challenge = rowData[54] == "TRUE";
         bool smokeScreen = rowData[55] == "TRUE";
 
+        int UniqueId = BuildUnitUniqueId(branchIdx, idx, isTeam);
         Dictionary<int,BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
 
         return new RogueUnitDataBase(
@@ -290,9 +275,15 @@ public class RogueUnitDataBase
             maxHealth,maxEnergy, true, false, -1, effectDictionary
         );
     }
+    public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam)
+    {
+        int serial = RogueLikeData.Instance.GetNextUnitUniqueId();
+        int teamBit = isTeam ? 0 : 1;
+        return (teamBit << 31) | (branchIdx << 24) | ((serial & 0x3FFF) << 10) | (unitIdx & 0x3FF);
+    }
 
     //전직 확률
-    private static int RollPromotion(int rarity)
+    public static int RollPromotion(int rarity)
     {
         float rand = UnityEngine.Random.value;
         return rarity switch
@@ -308,7 +299,7 @@ public class RogueUnitDataBase
         var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
         return allUnits.Where(u => u.rarity == rarity).ToList();
     }
-    public static List<RogueUnitDataBase> RandomUnitReForm(List<RogueUnitDataBase> units)
+    public static RogueUnitDataBase RandomUnitReForm(List<RogueUnitDataBase> units)
     {
         var promotable = units.Where(u => u.rarity < 4).ToList();
         if (promotable.Count == 0) return null;
@@ -330,8 +321,8 @@ public class RogueUnitDataBase
 
         if (row == null) return null;
 
-        var recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스
-        return new List<RogueUnitDataBase> { recreated };
+        RogueUnitDataBase recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스
+        return recreated ;
     }
 
 

@@ -19,8 +19,7 @@ public class CavalryRace : IEventRewardHandler
                 RogueLikeData.Instance.SetCurrentGold(gold - 100);
                 if (rand < 0.75f)
                 {
-                    int reward = UnityEngine.Random.Range(150, 301);
-                    RogueLikeData.Instance.AddGoldByEventChapter(reward);
+                    int reward = RogueLikeData.Instance.AddGoldByEventChapter(150);
                     return $"챔피언이 승리했습니다! 금화 {reward}를 획득했습니다.";
                 }
                 else
@@ -32,8 +31,7 @@ public class CavalryRace : IEventRewardHandler
                 RogueLikeData.Instance.SetCurrentGold(gold - 100);
                 if (rand < 0.25f)
                 {
-                    int reward = UnityEngine.Random.Range(250, 501);
-                    RogueLikeData.Instance.AddGoldByEventChapter(reward);
+                    int reward = RogueLikeData.Instance.AddGoldByEventChapter(250);
                     return $"유망주가 깜짝 우승했습니다! 금화 {reward}를 획득했습니다.";
                 }
                 else
@@ -45,17 +43,12 @@ public class CavalryRace : IEventRewardHandler
                 RogueLikeData.Instance.SetCurrentGold(gold - 100);
                 unit.energy = Math.Max(1, unit.energy - 1);
 
-                float mobilityChance = Mathf.Clamp01(unit.mobility / 20f); // 기동력 0~20 기준
-                if (UnityEngine.Random.value < mobilityChance)
+                float winChance = unit.mobility >= 12 ? 1f : unit.mobility * 0.09f;
+
+                if (UnityEngine.Random.value < winChance)
                 {
-                    int reward = UnityEngine.Random.Range(250, 501);
-                    RogueLikeData.Instance.AddGoldByEventChapter(reward);
-
-                    // 엘리트 보상: 80% 일반 / 20% 전설
-                    int grade = UnityEngine.Random.value < 0.8f ? 1 : 10;
-                    var relic = RelicManager.HandleRandomRelic(grade, RelicAction.Acquire);
-
-                    return $"'{unit.unitName}'이(가) 우승했습니다! 금화 {reward}와 엘리트 보상 유산 '{relic.name}'을 획득했습니다.";
+                    var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
+                    return $"'{unit.unitName}'이(가) 우승했습니다! 엘리트 보상 유산 '{relic.name}'을 획득했습니다.";
                 }
                 else
                 {
@@ -67,5 +60,10 @@ public class CavalryRace : IEventRewardHandler
                 RogueLikeData.Instance.SetMorale(Math.Min(100, morale + 20));
                 return "즐겁게 구경하며 긴장을 풀었습니다. (사기 +20)";
         }
+    }
+
+    public bool CanAppear()
+    {
+        return RogueLikeData.Instance.GetCurrentGold() >= 100;
     }
 }

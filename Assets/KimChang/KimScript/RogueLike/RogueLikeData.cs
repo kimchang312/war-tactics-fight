@@ -27,6 +27,7 @@ public class RogueLikeData
         Elite,
         Boss
     }
+    private int nextUnitUniqueId = 0;
 
     private List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>();
     private List<RogueUnitDataBase> enemyUnits = new List<RogueUnitDataBase>();
@@ -35,7 +36,7 @@ public class RogueLikeData
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
     private Dictionary<int, int> encounteredEvent = new();
-    private int currentStageX = 0;
+    private int currentStageX = 1;
     private int currentStageY = 0;
     private StageType currentStageType = StageType.Battle;
 
@@ -271,6 +272,10 @@ public class RogueLikeData
         currentStageY = y;
         currentStageType = type;
     }
+    public int GetCurrentStageX()
+    {
+        return currentStageX;
+    }
     //현재 스테이지 가져오기
     public (int x, int y, StageType type) GetCurrentStage()
     {
@@ -389,8 +394,8 @@ public class RogueLikeData
     //챕터에 따른 이벤트 골드 획득
     public int AddGoldByEventChapter(int gold)
     {
-        float value = chapter == 1 ? 0 : (chapter == 2 ? 1.5f : 2);
-        int getGold = (gold + (int)(gold * value));
+        float value = chapter == 1 ? 1 : (chapter == 2 ? 1.5f : 2);
+        int getGold = ((int)(gold * value));
         currentGold += getGold;
         return getGold;
     }
@@ -408,4 +413,9 @@ public class RogueLikeData
             kvp.Value.Remove(relicId);
         }
     }
+    public int GetNextUnitUniqueId()
+    {
+        return nextUnitUniqueId++;
+    }
+
 }

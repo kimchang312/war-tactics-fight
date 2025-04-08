@@ -14,8 +14,8 @@ public class EnemyAmbush : IEventRewardHandler
         }
     }
 
-    public bool CheckCondition()
+    public bool CanAppear()
     {
-        return true;
+        return RogueLikeData.Instance.GetCurrentStageX()>=9;
     }
 }

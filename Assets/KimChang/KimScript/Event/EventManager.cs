@@ -62,6 +62,19 @@ public class EventManager : MonoBehaviour
         rewardHandlers.Add(6, new DeepNightTemptation());
         rewardHandlers.Add(7, new SmallVillage());
         rewardHandlers.Add(8, new WanderingMerchant());
+        rewardHandlers.Add(10, new BanditAmbush());
+        rewardHandlers.Add(11, new ChancellorSupport());
+        rewardHandlers.Add(15, new CollapsingTemple());
+        rewardHandlers.Add(22, new AncientTomb());
+        rewardHandlers.Add(23, new HireMercenaries());
+        rewardHandlers.Add(26, new CavalryRace());
+        rewardHandlers.Add(27, new BlackKnightDuel());
+        rewardHandlers.Add(31, new EnemyAmbush());
+        rewardHandlers.Add(36, new EndlessPleasure());
+        rewardHandlers.Add(39, new FinalResolve());
+        rewardHandlers.Add(45, new CrazyKnight());
+        rewardHandlers.Add(48, new CursedMirror());
+        rewardHandlers.Add(49, new BoxOfFate());
         // 추가 이벤트 보상 클래스 등록
     }
     //유닛 선택창 생성
@@ -152,6 +165,7 @@ public class EventManager : MonoBehaviour
         switch (choiceIndex)
         {
             case 0:
+                //
                 if (eventId == 0 || eventId==2)
                 {
                     CreateSelectUnitsWindow(EventDataBase.GetEventById(eventId));
@@ -163,11 +177,18 @@ public class EventManager : MonoBehaviour
 
                 break;
             case 1:
+                //event7번 기력1 이상인 유닛만 생성
                 text = GetReward(eventId, choiceIndex);
                 break;
             case 2:
-                text = GetReward(eventId, choiceIndex);
-                // 아무 효과 없이 지나가기
+                if (eventId == 26)
+                {
+                    CreateSelectUnitsWindow(EventDataBase.GetEventById(eventId));
+                }
+                else
+                {
+                    text = GetReward(eventId, choiceIndex);
+                }
                 break;
             case 3:
                 text = GetReward(eventId, choiceIndex);

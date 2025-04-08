@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using static EventManager;
 
 public class CrazyKnight : IEventRewardHandler
@@ -10,13 +11,38 @@ public class CrazyKnight : IEventRewardHandler
 
         switch (choice)
         {
-            case 0: // 병사 전직
+            case 0: // 병사 전직 (무작위 유닛 1명)
                 if (gold < 100)
                     return "금화가 부족하여 훈련을 맡길 수 없습니다.";
 
                 RogueLikeData.Instance.SetCurrentGold(gold - 100);
-                int newRarity = RollPromotion(unit.rarity);
-                return $"[텍스트 처리] '{unit.unitName}'이(가) 훈련을 받고 희귀도 {unit.rarity} → {newRarity}로 전직했습니다.";
+
+                var myUnits = RogueLikeData.Instance.GetMyUnits();
+                var promotable = myUnits.Where(u => u.rarity < 4).ToList();
+                if (promotable.Count == 0)
+                    return "전직 가능한 유닛이 없습니다.";
+
+                var target = promotable[UnityEngine.Random.Range(0, promotable.Count)];
+                int newRarity = RogueUnitDataBase.RollPromotion(target.rarity);
+
+                var pool = GoogleSheetLoader.Instance.GetAllUnitsAsObject()
+                            .Where(u => u.rarity == newRarity).ToList();
+
+                if (pool.Count == 0)
+                    return "해당 희귀도에 해당하는 전직 유닛이 존재하지 않아 전직에 실패했습니다.";
+
+                var selected = pool[UnityEngine.Random.Range(0, pool.Count)];
+                var newUnit = RogueUnitDataBase.ConvertToUnitDataBase(
+                    GoogleSheetLoader.Instance.GetRowUnitData(selected.idx));
+
+                int idx = myUnits.IndexOf(target);
+                if (idx >= 0)
+                {
+                    myUnits[idx] = newUnit;
+                    RogueLikeData.Instance.SetAllMyUnits(myUnits);
+                }
+
+                return $"'{target.unitName}'이(가) 훈련을 통해 '{newUnit.unitName}'으로 전직했습니다. (희귀도 {target.rarity} → {newUnit.rarity})";
 
             case 1: // 병종 강화
                 if (gold < 100)
@@ -41,6 +67,13 @@ public class CrazyKnight : IEventRewardHandler
             3 => rand < 0.9f ? 3 : 10,
             _ => currentRarity
         };
+    }
+
+    public bool CanAppear()
+    {
+        int gold = RogueLikeData.Instance.GetCurrentGold();
+        int morale = RogueLikeData.Instance.GetMorale();
+        return gold>=100 || morale>=6;
     }
 
 

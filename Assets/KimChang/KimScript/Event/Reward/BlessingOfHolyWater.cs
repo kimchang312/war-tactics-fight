@@ -19,4 +19,9 @@ public class BlessingOfHolyWaterd : IEventRewardHandler
         string name = RelicManager.HandleRandomRelic(0, action: RelicAction.Remove).name;
         return $"성수의 힘으로{name}이 제거되었습니다.";
     }
+
+    public bool CanAppear()
+    {
+        return RogueLikeData.Instance.GetRelicsByGrade(0).Count > 0;
+    }
 }

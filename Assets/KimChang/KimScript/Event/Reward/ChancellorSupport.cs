@@ -30,4 +30,11 @@ public class ChancellorSupport : IEventRewardHandler
                 return "재상의 제안을 거절했습니다.";
         }
     }
+
+    public bool CanAppear()
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+        return morale >= 35 && morale <= 50;
+    }
+
 }

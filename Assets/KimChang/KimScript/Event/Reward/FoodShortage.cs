@@ -17,14 +17,14 @@ public class FoodShortage : IEventRewardHandler
 
                     var selected = myUnits[random.Next(myUnits.Count)];
                     RogueLikeData.Instance.SetMorale(100);
+                    myUnits.Remove(selected);
+                    RogueLikeData.Instance.SetAllMyUnits(myUnits);
                     return $"[텍스트 처리] '{selected.unitName}'에게 누명을 씌워 희생시켰습니다. 사기가 완전히 회복되었습니다.";
                 }
 
             case 1: // 배급 감소 → 사기 -40, 금화(대)
                 {
-                    RogueLikeData.Instance.SetMorale(Math.Max(0, RogueLikeData.Instance.GetMorale() - 40));
-                    int gainedGold = UnityEngine.Random.Range(250, 501);
-                    RogueLikeData.Instance.AddGoldByEventChapter(gainedGold);
+                    int gainedGold = RogueLikeData.Instance.AddGoldByEventChapter(250);
 
                     return $"식량을 줄이는 대신 예산을 확보했습니다. 금화 {gainedGold} 획득, 사기 -40.";
                 }

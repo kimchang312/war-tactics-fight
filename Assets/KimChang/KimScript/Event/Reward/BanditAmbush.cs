@@ -22,4 +22,9 @@ public class BanditAmbush : IEventRewardHandler
                 return "[전투 발생] 도적들과 싸웁니다! 승리 시 금화(중)를 획득합니다.";
         }
     }
+
+    public bool CanAppear()
+    {
+        return RogueLikeData.Instance.GetCurrentGold() >0;
+    }
 }

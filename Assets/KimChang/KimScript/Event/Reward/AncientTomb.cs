@@ -9,7 +9,9 @@ public class AncientTomb : IEventRewardHandler
         {
             case 0: // 봉인을 풀고 연다 → 엘리트 유산 + 50% 확률로 저주 유산
                 {
-                    var elite = RelicManager.HandleRandomRelic(grade: 2, action: RelicAction.Acquire);
+                    // 엘리트 유산 확률 처리 (80% 일반, 20% 전설)
+                    int eliteGrade = UnityEngine.Random.value < 0.8f ? 1 : 10;
+                    var elite = HandleRandomRelic(grade: eliteGrade, action: RelicAction.Acquire);
 
                     string result = $"봉인을 해제하고 석관을 열었습니다. 엘리트 유산 '{elite.name}'을 획득했습니다.";
 

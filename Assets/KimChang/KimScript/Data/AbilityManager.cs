@@ -1242,88 +1242,33 @@ public class AbilityManager
 
     }
     //반란군 지도자 유닛 생성 부분
-    private void CalculateRebelLeader(List<RogueUnitDataBase> units,bool isTeam)
+    private void CalculateRebelLeader(List<RogueUnitDataBase> units, bool isTeam)
     {
         int heroId = 64;
-        int heroCount = GetHeroUnitList(isTeam,heroId).Count*3;
+        int heroCount = GetHeroUnitList(isTeam, heroId).Count * 3;
         if (heroCount <= 0) return;
-        RogueUnitDataBase spearmanData = RogueUnitDataBase.GetSpearmanData();
-        if (spearmanData == null) Debug.Log("창병없음");
+
+        // 해당 유닛의 원본 row 가져오기
+        var row = GoogleSheetLoader.Instance.GetRowUnitData(0);
+        if (row == null)
+        {
+            Debug.Log($"유닛 idx {0} 의 Row 데이터를 찾을 수 없습니다.");
+            return;
+        }
+
         for (int i = 0; i < heroCount; i++)
         {
-            RogueUnitDataBase newUnit = new RogueUnitDataBase(
-                spearmanData.idx,
-                spearmanData.unitName,
-                spearmanData.unitBranch,
-                spearmanData.branchIdx,
-                spearmanData.unitId,
-                spearmanData.unitExplain,
-                spearmanData.unitImg,
-                spearmanData.unitFaction,
-                spearmanData.factionIdx,
-                spearmanData.tag,
-                spearmanData.tagIdx,
-                spearmanData.unitPrice,
-                spearmanData.rarity,
-                spearmanData.health,
-                spearmanData.armor,
-                spearmanData.attackDamage,
-                spearmanData.mobility,
-                spearmanData.range,
-                spearmanData.antiCavalry,
-                spearmanData.energy,
-                spearmanData.baseHealth,
-                spearmanData.baseArmor,
-                spearmanData.baseAttackDamage,
-                spearmanData.baseMobility,
-                spearmanData.baseRange,
-                spearmanData.baseAntiCavalry,
-                spearmanData.baseEnergy,
-                spearmanData.lightArmor,
-                spearmanData.heavyArmor,
-                spearmanData.rangedAttack,
-                spearmanData.bluntWeapon,
-                spearmanData.pierce,
-                spearmanData.agility,
-                spearmanData.strongCharge,
-                spearmanData.perfectAccuracy,
-                spearmanData.slaughter,
-                spearmanData.bindingForce,
-                spearmanData.bravery,
-                spearmanData.suppression,
-                spearmanData.plunder,
-                spearmanData.doubleShot,
-                spearmanData.scorching,
-                spearmanData.thorns,
-                spearmanData.endless,
-                spearmanData.impact,
-                spearmanData.healing,
-                spearmanData.lifeDrain,
-                spearmanData.charge,
-                spearmanData.defense,
-                spearmanData.throwSpear,
-                spearmanData.guerrilla,
-                spearmanData.guard,
-                spearmanData.assassination,
-                spearmanData.drain,
-                spearmanData.overwhelm,
-                spearmanData.martyrdom,
-                spearmanData.wounding,
-                spearmanData.vengeance,
-                spearmanData.counter,
-                spearmanData.firstStrike,
-                spearmanData.challenge,
-                spearmanData.smokeScreen,
-                spearmanData.maxHealth,
-                spearmanData.maxEnergy,
-                true,
-                false,
-                AutoBattleManager.GenerateUniqueUnitId(spearmanData.branchIdx, isTeam, spearmanData.idx)
-            );
+            // row로부터 유닛 생성, UniqueId는 내부에서 자동 설정됨
+            var newUnit = RogueUnitDataBase.ConvertToUnitDataBase(row);
+
+            // UniqueId 생성
+            newUnit.UniqueId = RogueUnitDataBase.BuildUnitUniqueId(newUnit.branchIdx, newUnit.idx, isTeam);
+
             // 리스트 앞에 삽입
             units.Insert(0, newUnit);
         }
     }
+
     //불굴의 방패 전투 참여 시
     private void CalculateIndomitableShield(List<RogueUnitDataBase> units,bool isTeam)
     {

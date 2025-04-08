@@ -116,12 +116,7 @@ public class AutoBattleManager : MonoBehaviour
         // Google Sheet에서 전체 유닛 데이터를 로드
 
         await GoogleSheetLoader.Instance.LoadUnitSheetData();
-        // Spearman 데이터 로드
-        List<string> spearmanRow = GoogleSheetLoader.Instance.GetRowUnitData(0); // idx가 0인 창병 데이터
-        if (spearmanRow != null)
-        {
-            RogueUnitDataBase.LoadSpearmanData(spearmanRow);
-        }
+       
         // 내 유닛 ID들을 기반으로 유닛을 가져와서 myUnits에 저장
         foreach (int unitId in myUnitIds)
         {
@@ -129,12 +124,8 @@ public class AutoBattleManager : MonoBehaviour
 
             if (rowData != null)
             {
-                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData);
-                RogueUnitDataBase savedUnit = RogueUnitDataBase.ConvertToUnitDataBase(rowData);
-                int uniqueId = GenerateUniqueUnitId(unit.branchIdx, true, unit.idx);
-                // 고유 ID 추가
-                unit.UniqueId = uniqueId;
-                savedUnit.UniqueId= uniqueId;
+                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,true);
+                RogueUnitDataBase savedUnit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,true);
                 myUnits.Add(unit);
                 //기본 유닛 데이터 따로 저장
                 RogueLikeData.Instance.SetSavedMyUnits(savedUnit);
@@ -147,9 +138,7 @@ public class AutoBattleManager : MonoBehaviour
             List<string> rowData = GoogleSheetLoader.Instance.GetRowUnitData(unitId);
             if (rowData != null)
             {
-                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData);
-                // 고유 ID 추가
-                unit.UniqueId = GenerateUniqueUnitId(unit.branchIdx, false, unit.idx);
+                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,false);
                 enemyUnits.Add(unit);
             }
             
