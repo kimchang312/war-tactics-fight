@@ -378,7 +378,7 @@ public class RogueLikeData
     {
         encounteredEvent.Add(id, id);
     }
-    //아군 초기 데이터 저장
+    //아군 데이터 저장
     public void SetSavedMyUnits(RogueUnitDataBase unit)
     {
         savedMyUnits.Add(unit);

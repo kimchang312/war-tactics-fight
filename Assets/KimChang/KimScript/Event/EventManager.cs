@@ -165,8 +165,8 @@ public class EventManager : MonoBehaviour
         switch (choiceIndex)
         {
             case 0:
-                //
-                if (eventId == 0 || eventId==2)
+                //35번 희귀도 3이하 생성,
+                if (eventId == 0 || eventId == 2)
                 {
                     CreateSelectUnitsWindow(EventDataBase.GetEventById(eventId));
                 }
@@ -181,7 +181,7 @@ public class EventManager : MonoBehaviour
                 text = GetReward(eventId, choiceIndex);
                 break;
             case 2:
-                if (eventId == 26)
+                if (eventId == 26 || eventId==35)
                 {
                     CreateSelectUnitsWindow(EventDataBase.GetEventById(eventId));
                 }
