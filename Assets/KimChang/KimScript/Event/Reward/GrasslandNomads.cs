@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using static EventManager;
 
 public class GrasslandNomads : IEventRewardHandler
@@ -13,6 +14,17 @@ public class GrasslandNomads : IEventRewardHandler
                     return "금화가 부족하여 궁기병을 고용할 수 없습니다.";
 
                 RogueLikeData.Instance.SetCurrentGold(gold - 200);
+                // 궁기병 유닛 데이터 생성
+                List<string> archerCavalryRow = GoogleSheetLoader.Instance.GetRowUnitData(9); // idx == 9: 궁기병
+                if (archerCavalryRow == null)
+                    return "궁기병 데이터를 불러올 수 없습니다.";
+
+                for (int i = 0; i < 2; i++)
+                {
+                    RogueUnitDataBase bowUnit = RogueUnitDataBase.ConvertToUnitDataBase(archerCavalryRow);
+                    // 아군 유닛 리스트에 추가
+                    RogueLikeData.Instance.SetAddMyUnis(bowUnit);
+                }
                 return "[텍스트 처리] 궁기병 2명이 부대에 합류했습니다.";
 
             case 1: // 전술 습득 → 궁병/경기병 병종 중 강화 1회 (텍스트 처리)

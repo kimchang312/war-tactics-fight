@@ -21,11 +21,7 @@ public class FoggyCrossroad : IEventRewardHandler
                     if (index < 0)
                         return "전직하려는 유닛을 부대에서 찾을 수 없습니다.";
 
-                    var promoted = RogueUnitDataBase.RandomUnitReForm(new List<RogueUnitDataBase> { unit });
-                    if (promoted == null)
-                        return $"'{unit.unitName}'은(는) 전직할 수 없습니다. (사기 -5)\n[이벤트 반복] 다시 갈림길이 나타납니다...";
-
-                    var newUnit = promoted;
+                    var newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
 
                     // 부대 유닛 교체
                     myUnits[index] = newUnit;
@@ -35,8 +31,7 @@ public class FoggyCrossroad : IEventRewardHandler
                 }
 
             case 1: // 재물의 길 → 금화(소), 사기 -5 + 반복
-                int gold = UnityEngine.Random.Range(50, 101);
-                RogueLikeData.Instance.AddGoldByEventChapter(gold);
+                int gold = RogueLikeData.Instance.AddGoldByEventChapter(50);
                 RogueLikeData.Instance.SetMorale(morale - 5);
                 return $"금화 {gold}를 얻었지만 마음이 무거워졌습니다. (사기 -5)\n[이벤트 반복] 안개는 아직 걷히지 않았습니다...";
 

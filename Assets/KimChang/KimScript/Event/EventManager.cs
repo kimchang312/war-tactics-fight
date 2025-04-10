@@ -65,14 +65,25 @@ public class EventManager : MonoBehaviour
         rewardHandlers.Add(10, new BanditAmbush());
         rewardHandlers.Add(11, new ChancellorSupport());
         rewardHandlers.Add(15, new CollapsingTemple());
+        rewardHandlers.Add(17, new SwampPath());
+        rewardHandlers.Add(18, new ReorganizeForces());
         rewardHandlers.Add(22, new AncientTomb());
         rewardHandlers.Add(23, new HireMercenaries());
+        rewardHandlers.Add(24, new ForgottenCommander());
         rewardHandlers.Add(26, new CavalryRace());
         rewardHandlers.Add(27, new BlackKnightDuel());
+        rewardHandlers.Add(28, new GrasslandNomads());
+        rewardHandlers.Add(29, new StormyNight());
         rewardHandlers.Add(31, new EnemyAmbush());
+        rewardHandlers.Add(32, new HeroOrArmy());
         rewardHandlers.Add(36, new EndlessPleasure());
         rewardHandlers.Add(39, new FinalResolve());
+        rewardHandlers.Add(40, new KindInnkeeper());
+        rewardHandlers.Add(41, new StrangeStatue());
+        rewardHandlers.Add(43, new ForestOrSwamp());
+        rewardHandlers.Add(44, new SwampOrMountain());
         rewardHandlers.Add(45, new CrazyKnight());
+        rewardHandlers.Add(46, new PitchBlackCave());
         rewardHandlers.Add(48, new CursedMirror());
         rewardHandlers.Add(49, new BoxOfFate());
         // 추가 이벤트 보상 클래스 등록
@@ -165,8 +176,8 @@ public class EventManager : MonoBehaviour
         switch (choiceIndex)
         {
             case 0:
-                //35번 희귀도 3이하 생성,
-                if (eventId == 0 || eventId == 2)
+                //35번,2번, 21이벤트 희귀도 3이하
+                if (eventId == 0 || eventId == 41)
                 {
                     CreateSelectUnitsWindow(EventDataBase.GetEventById(eventId));
                 }
@@ -177,7 +188,7 @@ public class EventManager : MonoBehaviour
 
                 break;
             case 1:
-                //event7번 기력1 이상인 유닛만 생성
+                //event7번 기력1 이상인 유닛만 생성,21이벤트 반복
                 text = GetReward(eventId, choiceIndex);
                 break;
             case 2:

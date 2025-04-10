@@ -115,6 +115,11 @@ public class RogueLikeData
     {
         myUnits = new List<RogueUnitDataBase>(units);
     }
+    //내 유닛 하나 추가
+    public void SetAddMyUnis(RogueUnitDataBase unit)
+    {
+        myUnits.Add(unit);
+    }
 
     //상대 유닛 전부 수정하기
     public void SetAllEnemyUnits(List<RogueUnitDataBase> units)
@@ -174,8 +179,6 @@ public class RogueLikeData
 
         return result;
     }
-
-
     // 특정 등급의 유물 가져오기
     public List<WarRelic> GetRelicsByGrade(int grade)
     {

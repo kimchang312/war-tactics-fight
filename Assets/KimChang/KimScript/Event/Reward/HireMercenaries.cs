@@ -8,16 +8,8 @@ public class HireMercenaries : IEventRewardHandler
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
 
-        if (gold < 100)
-        {
-            return "금화가 부족하여 어떤 용병도 고용할 수 없습니다.";
-        }
-
         var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
         var candidates = allUnits.Where(u => u.rarity == 2 || u.rarity == 3).ToList();
-
-        if (candidates.Count == 0)
-            return "희귀도 2~3의 용병이 존재하지 않습니다.";
 
         switch (choice)
         {
@@ -33,8 +25,8 @@ public class HireMercenaries : IEventRewardHandler
                     var pick = candidates[UnityEngine.Random.Range(0, candidates.Count)];
                     var row = GoogleSheetLoader.Instance.GetRowUnitData(pick.idx);
                     var hired = RogueUnitDataBase.ConvertToUnitDataBase(row);
-                    if (hired != null)
-                        hired3.Add(hired.unitName);
+                    RogueLikeData.Instance.SetAddMyUnis(hired);
+                    hired3.Add(hired.unitName);
                 }
 
                 return $"용병단 전체를 고용했습니다.\n합류한 병사: {string.Join(", ", hired3)}";
@@ -45,11 +37,16 @@ public class HireMercenaries : IEventRewardHandler
                 var onePick = candidates[UnityEngine.Random.Range(0, candidates.Count)];
                 var oneRow = GoogleSheetLoader.Instance.GetRowUnitData(onePick.idx);
                 var oneUnit = RogueUnitDataBase.ConvertToUnitDataBase(oneRow);
-
+                RogueLikeData.Instance.SetAddMyUnis(oneUnit);
                 return $"용병 1명을 고용했습니다: {oneUnit.unitName}";
 
             default: // 거절
                 return "용병들의 제안을 거절하고 야영지를 떠났습니다.";
         }
+    }
+
+    public bool CanAppear()
+    {
+        return RogueLikeData.Instance.GetCurrentGold() >= 100;
     }
 }

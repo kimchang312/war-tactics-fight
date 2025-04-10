@@ -272,7 +272,7 @@ public class RogueUnitDataBase
             bindingForce, bravery, suppression, plunder, doubleShot, scorching, thorns, endless, impact, healing, lifeDrain,
             charge, defense, throwSpear, guerrilla, guard, assassination, drain, overwhelm,
             martyrdom, wounding, vengeance, counter, firstStrike, challenge, smokeScreen,
-            maxHealth,maxEnergy, true, false, -1, effectDictionary
+            maxHealth,maxEnergy, true, false, UniqueId, effectDictionary
         );
     }
     public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam)
@@ -294,36 +294,29 @@ public class RogueUnitDataBase
             _ => rarity
         };
     }
-    private static List<RogueUnitDataBase> GetUnitsByRarity(int rarity)
+    public static RogueUnitDataBase RandomUnitReForm(RogueUnitDataBase unit)
     {
-        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
-        return allUnits.Where(u => u.rarity == rarity).ToList();
-    }
-    public static RogueUnitDataBase RandomUnitReForm(List<RogueUnitDataBase> units)
-    {
-        var promotable = units.Where(u => u.rarity < 4).ToList();
-        if (promotable.Count == 0) return null;
+        // 희귀도 4 이상은 전직 불가
+        if (unit.rarity >= 4) return null;
 
-        // 전직 대상 무작위 선택
-        var target = promotable[UnityEngine.Random.Range(0, promotable.Count)];
-        int newRarity = RollPromotion(target.rarity);
+        // 전직 희귀도 결정
+        int newRarity = RollPromotion(unit.rarity);
 
-        // 희귀도 조건으로 풀링
+        // 새로운 희귀도의 유닛 중 랜덤 선택
         var pool = GoogleSheetLoader.Instance.GetAllUnitsAsObject()
                      .Where(u => u.rarity == newRarity)
                      .ToList();
 
         if (pool.Count == 0) return null;
 
-        // 후보 중 무작위 선택 → idx로 row 데이터 재생성
         var picked = pool[UnityEngine.Random.Range(0, pool.Count)];
         var row = GoogleSheetLoader.Instance.GetRowUnitData(picked.idx);
-
         if (row == null) return null;
 
-        RogueUnitDataBase recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스
-        return recreated ;
+        RogueUnitDataBase recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스 생성
+        return recreated;
     }
+
 
 
 }

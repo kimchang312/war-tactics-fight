@@ -10,12 +10,14 @@ public class SmallVillage : IEventRewardHandler
         {
             case 0: // 주민을 징병한다 → 민병대 창병 3명 획득
                 {
-                    /*
-                    var newUnits = GenerateMilitiaSpearmen(3);
-                    var myUnits = RogueLikeData.Instance.GetMyUnits();
-                    myUnits.AddRange(newUnits);
-                    RogueLikeData.Instance.AllMyUnits(myUnits);*/
-                    return "마을에서 민병대 창병 3명을 징병했습니다. 미구현";
+                    
+                    var row = GoogleSheetLoader.Instance.GetRowUnitData(0);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var newUnit = RogueUnitDataBase.ConvertToUnitDataBase(row);
+                        RogueLikeData.Instance.SetAddMyUnis(newUnit);
+                    }
+                    return "마을에서 민병대 창병 3명을 징병했습니다.";
                 }
 
             case 1: // 마을을 약탈한다 → 전체 기력 회복(소), 사기 -20
@@ -43,26 +45,9 @@ public class SmallVillage : IEventRewardHandler
                     return "마을에서 대접을 받고 사기가 회복되었습니다.";
                 }
 
-            case 3: // 무시
+            default: // 무시
                 return "마을을 지나쳤습니다. 아무 일도 일어나지 않았습니다.";
-
-            default:
-                return "잘못된 선택입니다.";
         }
     }
-    /*
-    // 민병대 창병 3명을 생성하는 함수
-    private List<RogueUnitDataBase> GenerateMilitiaSpearmen(int count)
-    {
-        List<RogueUnitDataBase> result = new();
-        for (int i = 0; i < count; i++)
-        {
-            // 저장된 민병대 창병 데이터 불러오기 (사전 등록 필수)
-            var unit = RogueUnitDataBase.GetSpearmanData();
-            var copy = UnityEngine.Object.Instantiate(unit);
-            copy.UniqueId = Guid.NewGuid().GetHashCode(); // 유닛 고유 ID 지정
-            result.Add(copy);
-        }
-        return result;
-    }*/
+ 
 }

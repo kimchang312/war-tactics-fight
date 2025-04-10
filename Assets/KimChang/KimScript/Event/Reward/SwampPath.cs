@@ -33,4 +33,9 @@ public class SwampPath : IEventRewardHandler
                 return "우리는 늪지대 인근을 조용히 지나쳤습니다.";
         }
     }
+
+    public bool CanAppear()
+    {
+        return RogueLikeData.Instance.GetMyUnits().Any(unit => unit.energy >= 2);
+    }
 }

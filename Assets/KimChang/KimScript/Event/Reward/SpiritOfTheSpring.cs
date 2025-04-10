@@ -34,16 +34,9 @@ public class SpiritOfTheSpring : IEventRewardHandler
         }
     }
 
-    private int GetRandomRelicId(int grade)
+    public bool CanAppear()
     {
-        var allRelics = WarRelicDatabase.relics;
-        var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds();
-
-        var candidates = allRelics.FindAll(r => r.grade == grade && !ownedIds.Contains(r.id));
-        if (candidates.Count == 0)
-            candidates = allRelics.FindAll(r => r.grade == grade); // 중복 허용
-
-        var random = new System.Random();
-        return candidates[random.Next(candidates.Count)].id;
+        return RogueLikeData.Instance.GetRelicsByGrade(1).Count > 0;
     }
+
 }

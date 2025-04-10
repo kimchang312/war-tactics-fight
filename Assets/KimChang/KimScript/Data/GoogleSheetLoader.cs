@@ -39,7 +39,7 @@ public class GoogleSheetLoader
             }
         }
     }
-
+    //구 버전
     private void ProcessData(string sheetData)
     {
         excel = new List<List<string>>();
@@ -75,7 +75,7 @@ public class GoogleSheetLoader
             }
         }
     }
-
+    //신버전
     private void ProcessUnitData(string sheetData)
     {
         unitExcel = new List<List<string>>();
