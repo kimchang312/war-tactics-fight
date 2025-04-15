@@ -27,9 +27,9 @@ public class EventChoiceData
     public RequireThing requireThing;
     public RequireForm requireForm;
     public string requireValue;
-    public ResultType resultType;
-    public ResultForm resultForm;
-    public string resultValue;
+    public List<ResultType> resultType;
+    public List<ResultForm> resultForm;
+    public List<string> resultValue;
 }
 
 public enum RequireThing
@@ -44,6 +44,6 @@ public enum RequireThing
     Special   // 복합조건, 특수조건
 }
 
-public enum RequireForm { None, Count, Select, Special }
-public enum ResultType { None, Gold, Morale, Energy, Unit, Relic, RemoveRelic, Curse, Enhance, Special }
-public enum ResultForm { None, Random, Select }
+public enum RequireForm { None, Count, Select, Special,Random }
+public enum ResultType { None, Gold, Morale, Energy, Unit, Relic, Curse, Enhance, Special,Change,Battle }
+public enum ResultForm { None, Random, Select,Remove,Special }

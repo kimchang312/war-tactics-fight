@@ -70,7 +70,7 @@
         "requireCondition": "저주 등급 전쟁 유산 1개 이상 보유",
         "requireThing": "Relic",
         "requireForm": "Count",
-        "requireValue": "1"
+        "requireValue": "0"
     },
     {
         "eventId": 4,
@@ -108,7 +108,7 @@
         "requireCondition": "금화 100 이상 or 사기 31 이상",
         "requireThing": "Special",
         "requireForm": "Special",
-        "requireValue": "금화100이상or사기31이상"
+        "requireValue": "100,31"
     },
     {
         "eventId": 6,
@@ -145,8 +145,8 @@
         ],
         "requireCondition": "기력 1인 유닛 2명 이상 보유",
         "requireThing": "Energy",
-        "requireForm": "None",
-        "requireValue": "12"
+        "requireForm": "Count",
+        "requireValue": "1,2"
     },
     {
         "eventId": 8,
@@ -217,7 +217,7 @@
         "requireCondition": "사기 35 ~ 50",
         "requireThing": "Morale",
         "requireForm": "Special",
-        "requireValue": "사기35~50"
+        "requireValue": "35,-50"
     },
     {
         "eventId": 12,
@@ -367,7 +367,7 @@
         "requireCondition": "희귀도 1~2 유닛 5명 이상 보유",
         "requireThing": "Unit",
         "requireForm": "Special",
-        "requireValue": "희귀도1~2유닛5명이상보유"
+        "requireValue": "1~2,5"
     },
     {
         "eventId": 21,
@@ -535,7 +535,7 @@
         "requireCondition": "비어있는 보석 건틀렛, 작은 보석 더미, 커다란 보석 중 2개 보유",
         "requireThing": "Special",
         "requireForm": "Special",
-        "requireValue": "비어있는보석건틀렛,작은보석더미,커다란보석중2개보유"
+        "requireValue": NaN
     },
     {
         "eventId": 31,
@@ -721,8 +721,8 @@
         ],
         "requireCondition": "기이한 조각' 전쟁 유산 미보유",
         "requireThing": "Relic",
-        "requireForm": "Count",
-        "requireValue": "1"
+        "requireForm": "Special",
+        "requireValue": "71"
     },
     {
         "eventId": 42,
@@ -791,7 +791,7 @@
         "requireCondition": "금화 100 이상 or 사기 6 이상",
         "requireThing": "Special",
         "requireForm": "Special",
-        "requireValue": "금화100이상or사기6이상"
+        "requireValue": "100,6"
     },
     {
         "eventId": 46,

@@ -1063,9 +1063,9 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 403897380}
   - {fileID: 64821689}
   - {fileID: 970772186}
-  - {fileID: 403897380}
   - {fileID: 1732150719}
   m_Father: {fileID: 1137352535}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1121,6 +1121,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 484472493}
+  - component: {fileID: 484472494}
   m_Layer: 0
   m_Name: EventManager
   m_TagString: Untagged
@@ -1143,6 +1144,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &484472494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484472492}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3eddc1e0ca159f4796af3cf4072f854, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventImage: {fileID: 403897381}
+  eventNameText: {fileID: 64821690}
+  eventDescriptionText: {fileID: 1732150720}
+  choiceBtns: {fileID: 1457516614}
+  selectUnitWindow: {fileID: 197870903}
+  selectUnitParent: {fileID: 418296303}
+  selectTitle: {fileID: 975418891}
+  objectPool: {fileID: 1973233011}
 --- !u!1 &541661626
 GameObject:
   m_ObjectHideFlags: 0
