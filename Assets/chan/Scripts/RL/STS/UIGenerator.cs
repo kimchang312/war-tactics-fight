@@ -60,6 +60,9 @@ public class UIGenerator : MonoBehaviour
             string key = nodeData.level + "_" + nodeData.row;
             if (!stageUIPositions.ContainsKey(key))
                 stageUIPositions.Add(key, rt);
+
+            StageNodeUI stageNodeUI = stageGO.GetComponent<StageNodeUI>();
+            stageNodeUI.StageColor();
         }
     }
 

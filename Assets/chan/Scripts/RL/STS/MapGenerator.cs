@@ -49,17 +49,7 @@ public class MapGenerator : MonoBehaviour
     private Dictionary<string, StageNode> nodeDict = new Dictionary<string, StageNode>();
     public Dictionary<string, StageNode> NodeDictionary { get { return nodeDict; } }
 
-    // 스테이지 종류별 색상 매핑
-    public static Dictionary<StageType, Color> StageColors = new Dictionary<StageType, Color>
-    {
-        { StageType.Shop, new Color(0.59f, 0.29f, 0f) },    // 갈색
-        { StageType.Event, Color.white },                    // 하얀색
-        { StageType.Rest, new Color(1f, 0.5f, 0f) },           // 주황색
-        { StageType.Elite, new Color(0f, 0.39f, 0f) },         // 짙은 녹색
-        { StageType.Combat, new Color(0.5f, 1f, 0.5f) },       // 연두색
-        { StageType.Boss, Color.red },                       // 빨간색
-        { StageType.Treasure, new Color(1f, 1f, 0f) }          // 노란색 (예: 보물)
-    };
+    
 
     void Start()
     {
@@ -284,10 +274,8 @@ public class MapGenerator : MonoBehaviour
                         type = selected;
                     }
 
-                    StageNode node = new StageNode(lvl, row, type);
-                    // 색상 할당: StageColors 사전에서 해당 타입에 맞는 색을 설정
-                    node.stageColor = StageColors[type];
-                    nodeDict[key] = node;
+                    
+                    
                 }
             }
         }
