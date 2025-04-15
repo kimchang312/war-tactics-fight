@@ -37,6 +37,7 @@ public class EventUIManager : MonoBehaviour
         Sprite sprite = Resources.Load<Sprite>($"EventImages/Event{eventData.eventId}");
         eventImage.sprite = sprite;
         eventNameText.text = eventData.eventName;
+        eventDescriptionText.text = eventData.description;
 
         // 버튼 초기화
         for (int i = 0; i < choiceBtns.childCount; i++)
@@ -50,6 +51,8 @@ public class EventUIManager : MonoBehaviour
                 child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText; 
                 Button btn = child.GetComponent<Button>();
                 btn.onClick.RemoveAllListeners();
+                if (EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i])) btn.interactable = true;
+                else btn.interactable = false;
                 btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[i]));
             }
             else

@@ -24,12 +24,14 @@ public class EventChoiceData
     public int eventId;
     public string choiceText;
     public string resultDescription;
-    public RequireThing requireThing;
-    public RequireForm requireForm;
-    public string requireValue;
+    public List<RequireThing> requireThing;
+    public List<RequireForm> requireForm;
+    public List<string> requireValue;
+    public List<string> requireCondition;
     public List<ResultType> resultType;
     public List<ResultForm> resultForm;
     public List<string> resultValue;
+    public List<string> resultCount;
 }
 
 public enum RequireThing
@@ -41,9 +43,10 @@ public enum RequireThing
     Relic,
     Energy,   // 기력 조건용
     Stage,    // 지역 조건용
-    Special   // 복합조건, 특수조건
+    Special,   // 복합조건, 특수조건
+    AttackDamage
 }
 
 public enum RequireForm { None, Count, Select, Special,Random }
-public enum ResultType { None, Gold, Morale, Energy, Unit, Relic, Curse, Enhance, Special,Change,Battle }
-public enum ResultForm { None, Random, Select,Remove,Special }
+public enum ResultType { None, Gold, Morale, Energy, Unit, Relic,Training, Special,Change,Battle,Field }
+public enum ResultForm { None, Random, Select,Special,All }
