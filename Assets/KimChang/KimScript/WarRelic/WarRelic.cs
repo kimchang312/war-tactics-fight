@@ -9,6 +9,7 @@ public enum RelicType
     ActiveState         //BattleActive,StateBoost의 효과가 둘다 있는경우
 
 }
+[System.Serializable]
 public class WarRelic
 {
     public int id;

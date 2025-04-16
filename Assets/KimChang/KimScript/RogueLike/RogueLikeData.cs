@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class RogueLikeData
 {
@@ -26,28 +27,27 @@ public class RogueLikeData
         Elite,
         Boss
     }
+    private int nextUnitUniqueId = 0;
 
     private List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>();
     private List<RogueUnitDataBase> enemyUnits = new List<RogueUnitDataBase>();
+    private List<RogueUnitDataBase> savedMyUnits = new List<RogueUnitDataBase>();
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
-
-    private int currentStageX = 0;
+    private Dictionary<int, int> encounteredEvent = new();
+    private int currentStageX = 1;
     private int currentStageY = 0;
     private StageType currentStageType = StageType.Battle;
 
+    private int chapter = 1;
     private int currentGold = 0;
     private int playerMorale = 50;
-    /*
-    private int maxGold=0;
-    private int earnedGold = 0;
     private int spentGold = 0;
-    */
     private float myFinalDamage = 1;
     private float enemyFinalDamage = 1;
 
-
+    private int sariStack = 0;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -60,15 +60,69 @@ public class RogueLikeData
             relicIdsByType[type] = new HashSet<int>(); // 중복 검사용 HashSet 초기화
         }
     }
+    //내 데이터 전부 반환
+    public SavePlayerData GetRogueLikeData()
+    {
+        SavePlayerData data = new SavePlayerData(0, savedMyUnits, relicIdsByType.Values
+                                    .SelectMany(hashSet => hashSet)
+                                    .ToList(),encounteredEvent.Values.ToList(),
+                                    currentGold,spentGold,playerMorale,currentStageX,currentStageY,currentStageType,sariStack);
+        return data;
+    }
+    // 보유한 유닛 기력만 재설정 해서 반환
+    public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
+    {
+        // 저장용 복사 리스트 생성 (깊은 복사하지 않고 원본 savedMyUnits를 수정)
+        List<RogueUnitDataBase> savedCopy = new List<RogueUnitDataBase>(savedMyUnits);
+
+        // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
+        foreach (var unit in units.Concat(deadUnits))
+        {
+            //UnityEngine.Debug.Log(savedCopy[0].UniqueId+""+unit.UniqueId);
+            var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
+            if (savedUnit == null) continue;
+
+            if (unit.energy < 1)
+            {
+                savedCopy.Remove(savedUnit); // 기력이 0이면 제거
+            }
+            else
+            {
+                
+                savedUnit.energy = unit.energy; // 기력 갱신
+            }
+        }
+
+        SavePlayerData data = new SavePlayerData(
+            0,
+            savedCopy,
+            relicIdsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            encounteredEvent.Values.ToList(),
+            currentGold,
+            spentGold,
+            playerMorale,
+            currentStageX,
+            currentStageY,
+            currentStageType,
+            sariStack
+        );
+
+        return data;
+    }
 
     //내 유닛 전부 수정하기
-    public void AllMyUnits(List<RogueUnitDataBase> units)
+    public void SetAllMyUnits(List<RogueUnitDataBase> units)
     {
         myUnits = new List<RogueUnitDataBase>(units);
     }
+    //내 유닛 하나 추가
+    public void SetAddMyUnis(RogueUnitDataBase unit)
+    {
+        myUnits.Add(unit);
+    }
 
     //상대 유닛 전부 수정하기
-    public void AllEnemyUnits(List<RogueUnitDataBase> units)
+    public void SetAllEnemyUnits(List<RogueUnitDataBase> units)
     {
         enemyUnits = new List<RogueUnitDataBase>(units);
     }
@@ -125,8 +179,6 @@ public class RogueLikeData
 
         return result;
     }
-
-
     // 특정 등급의 유물 가져오기
     public List<WarRelic> GetRelicsByGrade(int grade)
     {
@@ -216,8 +268,6 @@ public class RogueLikeData
             relicIdsByType[type].Clear();
         }
     }
-
-    /*
     //현재 스테이지 수정
     public void SetCurrentStage(int x, int y, StageType type)
     {
@@ -225,31 +275,40 @@ public class RogueLikeData
         currentStageY = y;
         currentStageType = type;
     }
-    */
-
+    public int GetCurrentStageX()
+    {
+        return currentStageX;
+    }
     //현재 스테이지 가져오기
     public (int x, int y, StageType type) GetCurrentStage()
     {
         return (currentStageX, currentStageY, currentStageType);
     }
-    /*
-    //현재 골드 수정
-    public void SetCurrentGold(int gold)
+    //현재 스테이지 종류
+    public StageType GetCurrentStageType()
     {
-        currentGold = gold;
-    }
-
-     //사용한 골드 가져오기
-    public int GetReduceGold()
-    {
-        return spentGold;
-    }
-    */
+        return currentStageType;
+    }    
     //현재 골드 가져오기
     public int GetCurrentGold()
     {
         return currentGold;
     }
+    //현재 골드 수정
+    public void SetCurrentGold(int gold)
+    {
+        currentGold = gold;
+    }
+     //사용한 골드 가져오기
+    public int GetSpentGold()
+    {
+        return spentGold;
+    }
+    public void SetSpentGold(int gold)
+    {
+        spentGold = gold;
+    }
+
     public int GetMorale()
     {
         return playerMorale;
@@ -264,7 +323,6 @@ public class RogueLikeData
         myFinalDamage = 1;
         enemyFinalDamage = 1;
     }
-    /*
     //내 데미지 배율 수정
     public void SetMyMultipleDamage(float multiple)
     {
@@ -275,7 +333,6 @@ public class RogueLikeData
     {
         enemyFinalDamage = multiple;
     }
-    */
     //내 데미지 배율 추가
     public void AddMyMultipleDamage(float multiple)
     {
@@ -296,6 +353,16 @@ public class RogueLikeData
     {
         return enemyFinalDamage;
     }
+    //내 사리 스택 가져오기
+    public int GetSariStack()
+    {
+        return sariStack;
+    }
+    //사리 스택 변경
+    public void SetSariStack(int stack)
+    {
+        sariStack =stack;
+    }
     /*
     public void Clear()
     {
@@ -304,5 +371,54 @@ public class RogueLikeData
         ResetOwnedRelics();
     }
     */
+    //만난 이벤트 반환
+    public Dictionary<int,int> GetEncounteredEvent()
+    {
+        return encounteredEvent;
+    }
+    //만난 이벤트 추가
+    public void SetEncounteredEvent(int id)
+    {
+        encounteredEvent.Add(id, id);
+    }
+    //아군 데이터 저장
+    public void SetSavedMyUnits(RogueUnitDataBase unit)
+    {
+        savedMyUnits.Add(unit);
+    }
+    public int GetChapter()
+    {
+        return chapter;
+    }
+    public void SetChapter(int chapter)
+    {
+        this.chapter = chapter;
+    }
+    //챕터에 따른 이벤트 골드 획득
+    public int AddGoldByEventChapter(int gold)
+    {
+        float value = chapter == 1 ? 1 : (chapter == 2 ? 1.5f : 2);
+        int getGold = ((int)(gold * value));
+        currentGold += getGold;
+        return getGold;
+    }
+    //랜덤유산 제거
+    public void RemoveRelicById(int relicId)
+    {
+        foreach (var kvp in relicsByType)
+        {
+            var list = kvp.Value;
+            list.RemoveAll(r => r.id == relicId);
+        }
+
+        foreach (var kvp in relicIdsByType)
+        {
+            kvp.Value.Remove(relicId);
+        }
+    }
+    public int GetNextUnitUniqueId()
+    {
+        return nextUnitUniqueId++;
+    }
 
 }

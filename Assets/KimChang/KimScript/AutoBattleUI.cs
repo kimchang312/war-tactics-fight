@@ -514,14 +514,6 @@ public class AutoBattleUI : MonoBehaviour
         });
     }
 
-    //유닛 등장 효과
-    private void FadeInUnit(GameObject unit)
-    {
-        unit.SetActive(true);
-        Image unitImage = unit.GetComponent<Image>();
-        unitImage.DOFade(1f, waittingTime / 1000f);
-    }
-
     //대기 시간 변경
     public void ChangeWaittingTime(float multiple)
     {
@@ -652,11 +644,13 @@ public class AutoBattleUI : MonoBehaviour
     //보상 창 열기+ 통계,점수,승패 창 닫기 
     private void OpenRewardWindow()
     {
+        SceneManager.LoadScene("Event");
+        /*
         staticsWindow.SetActive(false);
         endWindow.SetActive(false);
         staticsToggleBtn.gameObject.SetActive(false);
 
-        rewardWindow.SetActive(true);
+        rewardWindow.SetActive(true);*/
     }
     //보상 창 닫기
     private void CloseRewardWindow()
@@ -669,10 +663,10 @@ public class AutoBattleUI : MonoBehaviour
     {
         fightResult.CloseThis();
         endWindow.SetActive(true);
-        staticsToggleBtn.gameObject.SetActive(true);
         GoTestBtn.gameObject.SetActive(true);
         rewardArrowBtn.gameObject.SetActive(true);
         rewardWindow.SetActive(false);
+        //staticsToggleBtn.gameObject.SetActive(true);
     }
 
     //사기 값 수정

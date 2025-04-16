@@ -706,7 +706,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.000015259, y: 0.000022888}
+  m_AnchoredPosition: {x: 0.000015258789, y: 0.000022888184}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &91702776
@@ -6727,11 +6727,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6230038f80be7f44921de780a8f65f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageTextPrefab: {fileID: 0}
-  battleUnitPrefab: {fileID: 0}
+  damageTextPrefab: {fileID: 3328436606899078469, guid: 2390f0bde2423f447aa5a26aba684c89, type: 3}
+  battleUnitPrefab: {fileID: 6319876841313589093, guid: 60ffdbfb469b6624fb3143be6b391a6e, type: 3}
   canvasTransform: {fileID: 1783295498}
-  abilityPrefab: {fileID: 0}
-  warRelicPrefab: {fileID: 0}
+  abilityPrefab: {fileID: 7355244959479386498, guid: 0f2747f20dce40642abde34d83689a3e, type: 3}
+  warRelicPrefab: {fileID: 3343579240121916961, guid: 0da25f3544f241c4f9253b903c39e352, type: 3}
   onlyUnitPrefab: {fileID: 1529669389965315071, guid: a96b954ef98c8c44290f09f0bc7ec06f, type: 3}
 --- !u!4 &926331834
 Transform:

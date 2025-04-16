@@ -32,11 +32,10 @@ public class UnitDataManager : MonoBehaviour
 
     public async Task LoadUnitDataAsync()
     {
-        GoogleSheetLoader googleSheetLoader = new GoogleSheetLoader();
-        await googleSheetLoader.LoadGoogleSheetData(); // Google Sheet 데이터를 비동기적으로 로드
+        await GoogleSheetLoader.Instance.LoadUnitSheetData();
 
         // GetExcelData()로 데이터를 가져와서 처리
-        List<List<string>> excelData = googleSheetLoader.GetExcelData();
+        List<List<string>> excelData = GoogleSheetLoader.Instance.GetExcelData();
         int rowCount = excelData.Count;  // Excel 데이터의 행 수
 
         for (int i = 0; i < rowCount; i++)

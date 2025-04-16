@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 
+[System.Serializable]
 public class RogueUnitDataBase 
 {
     // 기본 정보
@@ -87,22 +89,6 @@ public class RogueUnitDataBase
     public int UniqueId { get; set; } // 유닛 고유 ID, 기본값 -1로 설정
 
     public Dictionary<int, BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
-
-
-    // Spearman 데이터 저장
-    private static RogueUnitDataBase spearmanData;
-
-    // Spearman 데이터 로드 함수
-    public static void LoadSpearmanData(List<string> rowData)
-    {
-        spearmanData = ConvertToUnitDataBase(rowData);
-    }
-
-    // Spearman 데이터 반환 함수
-    public static RogueUnitDataBase GetSpearmanData()
-    {
-        return spearmanData;
-    }
 
     // 생성자
     public RogueUnitDataBase(
@@ -193,7 +179,7 @@ public class RogueUnitDataBase
         this.UniqueId = uniqueId;
         this.effectDictionary = effectDictionary??new Dictionary<int, BuffDebuffData>();
     }
-    public static RogueUnitDataBase ConvertToUnitDataBase(List<string> rowData)
+    public static RogueUnitDataBase ConvertToUnitDataBase(List<string> rowData,bool isTeam=true)
     {
         if (rowData == null || rowData.Count == 0) return null;
 
@@ -276,6 +262,7 @@ public class RogueUnitDataBase
         bool challenge = rowData[54] == "TRUE";
         bool smokeScreen = rowData[55] == "TRUE";
 
+        int UniqueId = BuildUnitUniqueId(branchIdx, idx, isTeam);
         Dictionary<int,BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
 
         return new RogueUnitDataBase(
@@ -285,8 +272,51 @@ public class RogueUnitDataBase
             bindingForce, bravery, suppression, plunder, doubleShot, scorching, thorns, endless, impact, healing, lifeDrain,
             charge, defense, throwSpear, guerrilla, guard, assassination, drain, overwhelm,
             martyrdom, wounding, vengeance, counter, firstStrike, challenge, smokeScreen,
-            maxHealth,maxEnergy, true, false, -1, effectDictionary
+            maxHealth,maxEnergy, true, false, UniqueId, effectDictionary
         );
     }
+    public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam)
+    {
+        int serial = RogueLikeData.Instance.GetNextUnitUniqueId();
+        int teamBit = isTeam ? 0 : 1;
+        return (teamBit << 31) | (branchIdx << 24) | ((serial & 0x3FFF) << 10) | (unitIdx & 0x3FF);
+    }
+
+    //전직 확률
+    public static int RollPromotion(int rarity)
+    {
+        float rand = UnityEngine.Random.value;
+        return rarity switch
+        {
+            1 => rand < 0.5f ? 1 : (rand < 0.95f ? 2 : 3),
+            2 => rand < 0.75f ? 2 : (rand < 0.95f ? 3 : 10),
+            3 => rand < 0.9f ? 3 : 10,
+            _ => rarity
+        };
+    }
+    public static RogueUnitDataBase RandomUnitReForm(RogueUnitDataBase unit)
+    {
+        // 희귀도 4 이상은 전직 불가
+        if (unit.rarity >= 4) return null;
+
+        // 전직 희귀도 결정
+        int newRarity = RollPromotion(unit.rarity);
+
+        // 새로운 희귀도의 유닛 중 랜덤 선택
+        var pool = GoogleSheetLoader.Instance.GetAllUnitsAsObject()
+                     .Where(u => u.rarity == newRarity)
+                     .ToList();
+
+        if (pool.Count == 0) return null;
+
+        var picked = pool[UnityEngine.Random.Range(0, pool.Count)];
+        var row = GoogleSheetLoader.Instance.GetRowUnitData(picked.idx);
+        if (row == null) return null;
+
+        RogueUnitDataBase recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스 생성
+        return recreated;
+    }
+
+
 
 }
