@@ -273,9 +273,8 @@ public class MapGenerator : MonoBehaviour
                         }
                         type = selected;
                     }
-
-                    
-                    
+                    StageNode node = new StageNode(lvl, row, type);
+                    nodeDict[key] = node;
                 }
             }
         }
