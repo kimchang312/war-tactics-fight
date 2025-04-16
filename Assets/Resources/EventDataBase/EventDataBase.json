@@ -5,10 +5,10 @@
     "eventChapter": [1, 2, 3],
     "description": "숲 속에서 발견한 허름한 쉼터. 병사들은 한개의 침대를 두고 눈치를 보기 시작했다.",
     "choiceIds": [0, 1, 2],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 1,
@@ -27,10 +27,10 @@
     "eventChapter": [1, 2, 3],
     "description": "길을 걷다 우연히 검을 휘두르는 사내를 만났다. 한 병사가 가르침을 원하는 듯 하다.",
     "choiceIds": [5, 6],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 3,
@@ -49,10 +49,10 @@
     "eventChapter": [1, 2, 3],
     "description": "깊은 유적을 탐험하던 중, 금빛으로 빛나는 문을 발견했다. 문을 열자 내부에는 수많은 보물과 황금이 가득했다.",
     "choiceIds": [9, 10, 11],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 5,
@@ -71,10 +71,10 @@
     "eventChapter": [1, 2, 3],
     "description": "야영지엔 깊은 정적이 감돌고, 당신도 점점 눈꺼풀이 무거워진다.",
     "choiceIds": [15, 16, 17],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 7,
@@ -93,10 +93,10 @@
     "eventChapter": [1, 2, 3],
     "description": "여정을 이어가던 중, 조용한 작은 마을을 발견했다.",
     "choiceIds": [21, 22, 23, 24],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 9,
@@ -148,10 +148,10 @@
     "eventChapter": [1],
     "description": "훈련소의 병사들이 땀을 흘리며 움직이고 있다. 우리 부대에게도 좋은 자극이 될 것 같다.",
     "choiceIds": [34, 35, 36],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 14,
@@ -170,10 +170,10 @@
     "eventChapter": [1],
     "description": "사원의 천장이 무너져 내리고 있다. 안쪽에 반쯤 드러난 성물이 은은히 빛나고 있었다.",
     "choiceIds": [39, 40, 41, 42],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 16,
@@ -203,10 +203,10 @@
     "eventChapter": [1],
     "description": "전열을 가다듬을 기회가 생겼다. 앞으로의 전투를 대비해, 병력을 다시 구성할 필요가 있다.",
     "choiceIds": [48, 49, 50],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 19,
@@ -214,10 +214,10 @@
     "eventChapter": [1],
     "description": "호숫가에 꽂힌 검을 본 병사들은 숨을 죽였다. 검은 미약하게 빛나고 있었고, 누구 하나 쉽게 다가서지 못했다.",
     "choiceIds": [51, 52, 53],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 20,
@@ -247,10 +247,10 @@
     "eventChapter": [2],
     "description": "무너진 흙더미 속에서 봉인된 듯한 무덤이 드러났다. 검게 빛나는 석관 위에 낯선 언어로 새겨진 글귀가 있었다.",
     "choiceIds": [59, 60],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 23,
@@ -269,10 +269,10 @@
     "eventChapter": [2],
     "description": "바위 언덕은 마치 오래전 누군가의 마지막 진지 같았다. 낡은 지도에는 전투의 흐름이 새겨져 있었다.",
     "choiceIds": [64, 65, 66],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 25,
@@ -302,10 +302,10 @@
     "eventChapter": [2],
     "description": "전장 근처 폐허에 나타난 검은 기사는 말없이 검을 뽑아 들고 결투를 청해왔다.",
     "choiceIds": [75, 76],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 28,
@@ -313,10 +313,10 @@
     "eventChapter": [2],
     "description": "광활한 초원을 지나던 중, 작은 유목 부족을 발견했다.",
     "choiceIds": [77, 78, 79],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 29,
@@ -324,10 +324,10 @@
     "eventChapter": [2],
     "description": "물자가 부족한 채 작은 오두막에 피신했지만, 폭풍은 쉽게 그칠 기세가 아니다.",
     "choiceIds": [80, 81],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 30,
@@ -338,7 +338,7 @@
     "requireCondition": "비어있는 보석 건틀렛, 작은 보석 더미, 커다란 보석 중 2개 보유",
     "requireThing": "Special",
     "requireForm": "Special",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 31,
@@ -357,10 +357,10 @@
     "eventChapter": [3],
     "description": "전쟁에서 승리를 결정짓는 것은 한 명의 영웅인가, 아니면 철저히 훈련된 군대인가",
     "choiceIds": [86, 87, 88],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 33,
@@ -368,10 +368,10 @@
     "eventChapter": [3],
     "description": "풍족했던 저장고는 이제 바닥을 드러냈다. 더는 미룰 수 없는 결정이 눈앞에 와 있다.",
     "choiceIds": [89, 90, 91, 92],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 34,
@@ -390,10 +390,10 @@
     "eventChapter": [3],
     "description": "검은 안개가 서린 폐허 속, 이상한 문양이 새겨진 제단이 눈에 띄었다.",
     "choiceIds": [95, 96],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 36,
@@ -401,10 +401,10 @@
     "eventChapter": [3],
     "description": "정신을 차려보니, 눈앞에는 금빛 술잔이 놓여 있었고, 그 안에서 포도주가 끝없이 솟구치고 있었다.",
     "choiceIds": [97, 98, 99],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 37,
@@ -434,10 +434,10 @@
     "eventChapter": [3],
     "description": "부대는 지쳐가고 있지만, 전장에서 승리를 거둘 수 있는 강한 결의를 다질 기회가 왔다.",
     "choiceIds": [108, 109],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 40,
@@ -467,10 +467,10 @@
     "eventChapter": [1, 2],
     "description": "앞을 가로 막는 것은 산과 숲. 길을 돌아갈 수는 없다. 어느 쪽으로 진군해야 할까?",
     "choiceIds": [115, 116],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 43,
@@ -478,10 +478,10 @@
     "eventChapter": [1, 2],
     "description": "앞을 가로 막는 것은 숲과 늪지. 길을 돌아갈 수는 없다. 어느 쪽으로 진군해야 할까?",
     "choiceIds": [117, 118],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 44,
@@ -489,10 +489,10 @@
     "eventChapter": [1, 2],
     "description": "앞을 가로 막는 것은 늪지와 산. 길을 돌아갈 수는 없다. 어느 쪽으로 진군해야 할까?",
     "choiceIds": [119, 120],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 45,
@@ -522,10 +522,10 @@
     "eventChapter": [2, 3],
     "description": "작은 마을 근처에서 한 무리가 주민들에게 시비를 걸고 있었다. 분명 군대는 아니지만, 싸움에는 익숙한 듯했다.",
     "choiceIds": [126, 127, 128],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 48,
@@ -533,10 +533,10 @@
     "eventChapter": [2, 3],
     "description": "오래된 유적의 중심에서 이질적인 마법 기운이 흘러나오는 고대 거울을 발견했다.",
     "choiceIds": [129, 130, 131],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 49,
@@ -544,559 +544,559 @@
     "eventChapter": [2, 3],
     "description": "제단 위에 상자가 놓여 있다. 상자에는 '축복과 저주, 그 중 하나가 이 안에 있다.' 라는 글귀가 적혀있다.",
     "choiceIds": [132, 133],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 50,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 51,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
     "description": "보상 컨텐츠.docx",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 52,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 53,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 54,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 55,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 56,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 57,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 58,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 59,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 60,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 61,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 62,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 63,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 64,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 65,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 66,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 67,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 68,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 69,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 70,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 71,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 72,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 73,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 74,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 75,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 76,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 77,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 78,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 79,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 80,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 81,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 82,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 83,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 84,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 85,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 86,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 87,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 88,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 89,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 90,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 91,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 92,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 93,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 94,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 95,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 96,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 97,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 98,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   },
   {
     "eventId": 99,
-    "eventName": NaN,
+    "eventName": "",
     "eventChapter": [],
-    "description": NaN,
+    "description": "",
     "choiceIds": [],
-    "requireCondition": NaN,
+    "requireCondition": "",
     "requireThing": "None",
     "requireForm": "None",
-    "requireValue": NaN
+    "requireValue": ""
   }
 ]

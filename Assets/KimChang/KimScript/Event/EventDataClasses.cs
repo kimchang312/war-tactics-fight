@@ -1,6 +1,7 @@
-
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 [Serializable]
 public class EventData
@@ -10,10 +11,14 @@ public class EventData
     public List<int> eventChapter;
     public string description;
     public List<int> choiceIds;
+    public string requireCondition;
 
-    public string requireCondition; // 조건 설명
+    [JsonConverter(typeof(StringEnumConverter))]
     public RequireThing requireThing;
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public RequireForm requireForm;
+
     public string requireValue;
 }
 
@@ -24,16 +29,25 @@ public class EventChoiceData
     public int eventId;
     public string choiceText;
     public string resultDescription;
+
     public List<RequireThing> requireThing;
+
     public List<RequireForm> requireForm;
+
     public List<string> requireValue;
     public List<string> requireCount;
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public List<ResultType> resultType;
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public List<ResultForm> resultForm;
+
     public List<string> resultValue;
     public List<string> resultCount;
 }
 
+[JsonConverter(typeof(StringEnumConverter))]
 public enum RequireThing
 {
     None,
@@ -41,12 +55,17 @@ public enum RequireThing
     Morale,
     Unit,
     Relic,
-    Energy,   // 기력 조건용
-    Stage,    // 지역 조건용
-    Special,   // 복합조건, 특수조건
+    Energy,
+    Stage,
+    Special,
     AttackDamage
 }
 
-public enum RequireForm { None, Count, Select, Special,Random }
-public enum ResultType { None, Gold, Morale, Energy, Unit, Relic,Training, Special,Change,Battle,Field }
-public enum ResultForm { None, Random, Select,Special,All }
+[JsonConverter(typeof(StringEnumConverter))]
+public enum RequireForm { None, Count, Select, Special, Random }
+
+[JsonConverter(typeof(StringEnumConverter))]
+public enum ResultType { None, Gold, Morale, Energy, Unit, Relic, Training, Special, Change, Battle, Field }
+
+[JsonConverter(typeof(StringEnumConverter))]
+public enum ResultForm { None, Random, Select, Special, All }

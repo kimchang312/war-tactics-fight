@@ -1281,12 +1281,11 @@ MonoBehaviour:
   eventNameText: {fileID: 64821690}
   eventDescriptionText: {fileID: 1732150720}
   choiceBtns: {fileID: 1457516614}
-  leaveBtn: {fileID: 0}
+  leaveBtn: {fileID: 343675062}
   selectUnitWindow: {fileID: 197870903}
   selectUnitParent: {fileID: 418296303}
   selectTitle: {fileID: 975418891}
   objectPool: {fileID: 1973233011}
-  selectedUnits: []
 --- !u!1 &541661626
 GameObject:
   m_ObjectHideFlags: 0

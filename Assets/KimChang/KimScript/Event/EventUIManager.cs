@@ -17,7 +17,7 @@ public class EventUIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI selectTitle;       //선택창 글자
     [SerializeField] private ObjectPool objectPool;
 
-    [SerializeField] private List<RogueUnitDataBase> selectedUnits;
+    private List<RogueUnitDataBase> selectedUnits=new();
 
     private void Awake()
     {
@@ -54,9 +54,10 @@ public class EventUIManager : MonoBehaviour
                 child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText; 
                 Button btn = child.GetComponent<Button>();
                 btn.onClick.RemoveAllListeners();
-                if (EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i])){
-                    Debug.Log("활성화");
-                    btn.interactable = true; }
+                if (EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i]))
+                {
+                    btn.interactable = true; 
+                }
                 else btn.interactable = false;
                 btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[i]));
             }
