@@ -27,7 +27,7 @@ public class EventChoiceData
     public List<RequireThing> requireThing;
     public List<RequireForm> requireForm;
     public List<string> requireValue;
-    public List<string> requireCondition;
+    public List<string> requireCount;
     public List<ResultType> resultType;
     public List<ResultForm> resultForm;
     public List<string> resultValue;

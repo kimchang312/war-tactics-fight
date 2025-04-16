@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static RelicManager;
 
 public class EventManager
 {
@@ -29,9 +30,11 @@ public class EventManager
             Debug.Log("모든 이벤트를 만났거나 등장조건 불일치");
             return null;
         }
-
+        var test = EventDataLoader.EventDataDict[40];
+        Debug.Log(test.eventName + "" + test.requireThing);
         int randomIdx = Random.Range(0, availableEventIds.Count);
         int eventId = availableEventIds[randomIdx];
+        //추후 수정
         return EventDataLoader.EventDataDict[eventId];
     }
     private static bool CanAppear(EventData eventData)
@@ -43,8 +46,10 @@ public class EventManager
             return false;
 
         // 등장 조건 없으면 무조건 등장
-        if (eventData.requireThing == RequireThing.None)
+        if (eventData.requireThing ==RequireThing.None)
+        {
             return true;
+        }
 
         // Special 조건 처리
         if (eventData.requireThing == RequireThing.Special)
@@ -61,7 +66,11 @@ public class EventManager
         {
             case RequireThing.Gold:
                 if (form == RequireForm.None)
+                {
+                    int gold = RogueLikeData.Instance.GetCurrentGold();
+                    Debug.Log(gold+""+count);
                     return RogueLikeData.Instance.GetCurrentGold() >= int.Parse(count);
+                }
                 break;
             case RequireThing.Morale:
                 if (form == RequireForm.None)
@@ -316,7 +325,6 @@ public class EventManager
         {
             return true;
         }
-
         // 조건 전부 순회하며 검사 (모든 조건을 만족해야 true)
         for (int i = 0; i < eventChoiceData.requireThing.Count; i++)
         {
@@ -350,5 +358,146 @@ public class EventManager
         }
         return false;
     }
+    public static void ReduceRequire(EventChoiceData choiceData,ref List<RogueUnitDataBase> selectedUnits)
+    {
+        string requireLog = "";
+        for(int i = 0;i < choiceData.requireThing.Count;i++)
+        {
+            RequireThing thig = choiceData.requireThing[i];
+            RequireForm form = choiceData.requireForm[i];
+            string value = choiceData.requireValue[i];
+            string count = choiceData.requireCount[i];
+            switch (thig)
+            {
+                case RequireThing.None:
+                    break;
+                case RequireThing.Energy:
+                    if(form == RequireForm.Select)
+                    {
+                        foreach(var unit  in selectedUnits)
+                        {
+                            if (value == "") 
+                            { 
+                                requireLog += $"{unit.unitName}이(가) 선택 되었습니다."; 
+                            }
+                            else
+                            {
+                                int energy = int.Parse(value);
+                                unit.energy = energy;
+                                requireLog += $"{unit.unitName}의 기력이 {energy}가 되었습니다.";
+                            }
+                        }
+                    }
+                    else if(form == RequireForm.Random)
+                    {
+                        var myUnits = RogueLikeData.Instance.GetMyUnits(); 
+                        int energy = int.Parse(value);
+                        int unitCount = int.Parse(value);
+                        foreach(var unit in myUnits)
+                        {
+                            
+                        }
+                    }
+
+                    break;
+                case RequireThing.Unit:
+                    break;
+                case RequireThing.Relic:
+                    break;
+                case RequireThing.Gold:
+                    break;
+                case RequireThing.Morale:
+                    break;
+            }
+
+        }
+    }
+
+    public static string ApplyChoiceResult(EventChoiceData choiceData,List<RogueUnitDataBase> selectedUnits)
+    {
+        string resultLog = "";
+        bool isBattle= false;
+
+        for (int i = 0; i < choiceData.resultType.Count; i++)
+        {
+            ResultType type = choiceData.resultType[i];
+            ResultForm form = choiceData.resultForm[i];
+            string value = choiceData.resultValue[i];
+            string count = choiceData.resultCount[i];
+
+            switch (type)
+            {
+                case ResultType.Gold:
+                    int gold = int.Parse(value);
+                    gold= RogueLikeData.Instance.AddGoldByEventChapter(gold);
+                    resultLog += $"- 금화 {gold} 획득\n";
+                    break;
+
+                case ResultType.Morale:
+                    int morale = int.Parse(value);
+                    RogueLikeData.Instance.SetMorale(
+                        Mathf.Min(100, RogueLikeData.Instance.GetMorale() + morale));
+                    resultLog += $"- 사기 {morale} 회복\n";
+                    break;
+
+                case ResultType.Energy:
+                    int energy = int.Parse(value);
+                    if (choiceData.resultForm.Contains(ResultForm.Select))
+                    {
+
+                    }
+                    else if(choiceData.resultForm.Contains(ResultForm.All))
+                    {
+
+                    }
+                    // 적용 방식 지정 필요 (현재 예시로 1명만 회복 가정)
+                    if (RogueLikeData.Instance.GetMyUnits().Count > 0)
+                    {
+                        RogueLikeData.Instance.GetMyUnits()[0].energy += energy;
+                        resultLog += $"- 유닛 기력 {energy} 회복\n";
+                    }
+                    break;
+
+                case ResultType.Relic:
+                    int grade = int.Parse(value);
+                    var relic = RelicManager.HandleRandomRelic(grade, RelicAction.Acquire);
+                    resultLog += $"- 전쟁 유산 획득: {relic.name}\n";
+                    break;
+
+                case ResultType.Unit:
+                    if (form == ResultForm.Random)
+                    {
+                       
+                    }
+                    else if (form == ResultForm.Special)
+                    {
+                       
+                    }
+                    break;
+
+                case ResultType.Special:
+                    resultLog += $"- 특별한 결과 처리 필요 (choiceId: {choiceData.choiceId})\n";
+                    break;
+
+                case ResultType.None:
+                    resultLog += "- 아무 일도 일어나지 않았다\n";
+                    break;
+                case ResultType.Battle:
+                    isBattle = true;
+                    break;
+                case ResultType.Training:
+                    resultLog += "병종강화 미구현";
+                    break;
+                default:
+                    resultLog += "- 알 수 없는 보상\n";
+                    break;
+            }
+
+            if(isBattle) break;
+        }
+        if(isBattle) return "전투다! 미구현";
+        return resultLog;
+    }
+
 
 }
