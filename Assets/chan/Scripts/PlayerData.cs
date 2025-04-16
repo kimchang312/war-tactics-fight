@@ -129,7 +129,9 @@ public class PlayerData : MonoBehaviour
     {
         // 유닛 목록 초기화
         purchasedUnits.Clear();
+
         placedUnits.Clear();    //25/01/16한줄 추가
+
         // 자금 초기화
         currency = 3000;
 
@@ -153,16 +155,32 @@ public class PlayerData : MonoBehaviour
     // 배치된 유닛 목록을 확인
     public List<int> ShowPlacedUnitList()
     {
-        List<int> result = new List<int>();
-        
+       
+        List<int> placedUnitList= new List<int>();
+
+        // ✅ `placedUnits`를 `result`에 복사 (전투 종료 후에도 새로운 데이터 유지)
         foreach (var unit in placedUnits)
         {
-            result.Add(unit.idx);
-            
+            placedUnitList.Add(unit.idx);
         }
-        Debug.Log($"리스트에 포함된 요소 수: {purchasedUnits.Count}");
-        return result;
+        
+        Debug.Log($"✅ 배치된 유닛 리스트 갱신 완료! 총 유닛 수: {placedUnitList.Count}");
+
+        return placedUnitList;
     }
+    // ShowPlacedUnitList() 개선
+    /*public List<UnitData> ShowPlacedUnitList()
+    {
+        // Validate and avoid unnecessary logging for frequently called methods
+        if (placedUnits == null || placedUnits.Count == 0)
+        {
+            return new List<UnitData>(); // Return an empty list instead of logging
+        }
+
+        // Return a copy of placedUnits
+        return new List<UnitData>(placedUnits);
+    }*/
+
     public void RemovePlacedUnit(UnitDataBase unit)
     {
         if (placedUnits.Contains(unit))
