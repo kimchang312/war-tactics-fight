@@ -1281,6 +1281,7 @@ MonoBehaviour:
   eventNameText: {fileID: 64821690}
   eventDescriptionText: {fileID: 1732150720}
   choiceBtns: {fileID: 1457516614}
+  leaveBtn: {fileID: 0}
   selectUnitWindow: {fileID: 197870903}
   selectUnitParent: {fileID: 418296303}
   selectTitle: {fileID: 975418891}
@@ -2629,8 +2630,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: e786bc59d894eca4e91add2f223a8610, type: 2}
-  m_sharedMaterial: {fileID: 8700417354294060088, guid: e786bc59d894eca4e91add2f223a8610, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9ec4b9453b8c73e4f8d68a13b54cfdbe, type: 2}
+  m_sharedMaterial: {fileID: 7296648134193590559, guid: 9ec4b9453b8c73e4f8d68a13b54cfdbe, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
