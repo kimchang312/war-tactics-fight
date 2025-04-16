@@ -4,6 +4,7 @@ using System.Linq;
 
 public enum StageType
 {
+    Unknown,
     Combat,   // 전투
     Elite,    // 엘리트 (하층부에서는 배치 안 됨)
     Event,    // 이벤트
