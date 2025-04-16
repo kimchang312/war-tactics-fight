@@ -7,10 +7,16 @@ public class ObjectPool : MonoBehaviour
     [SerializeField] private GameObject battleUnitPrefab;    //전투화면 유닛
     [SerializeField] private Transform canvasTransform;         //캔버스
     [SerializeField] private GameObject abilityPrefab;      //특성+기술 아이콘
+    [SerializeField] private GameObject warRelicPrefab;     //전쟁유산
+    [SerializeField] private GameObject onlyUnitPrefab;     //배경 없는 유닛
+    [SerializeField] private GameObject selectUnitPrefab;   //선택 가능한 유닛
 
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();
     private readonly Queue<GameObject> abilityPool = new();
+    private readonly Queue<GameObject> warRelicPool = new();
+    private readonly Queue<GameObject> onlyUnitPool = new();
+    private readonly Queue<GameObject> selectUnitPool = new();
 
     private readonly List<GameObject> activeBattleUnits = new(); // 활성화된 유닛을 추적
     private readonly List<GameObject> activeAbilitys= new();      //활성화된 능력 아이콘 추적
@@ -24,14 +30,28 @@ public class ObjectPool : MonoBehaviour
             GameObject damageInstance = Instantiate(damageTextPrefab, transform);
             GameObject unitInstance = Instantiate(battleUnitPrefab, transform);
             GameObject abilityInstance= Instantiate(abilityPrefab, transform);
+            GameObject warRelicInstance = Instantiate(warRelicPrefab, transform);
+            GameObject selectUnitInstance = Instantiate(selectUnitPrefab, transform);
 
             damageInstance.SetActive(false);
             unitInstance.SetActive(false);
             abilityInstance.SetActive(false);
+            warRelicInstance.SetActive(false);
+            selectUnitInstance.SetActive(false);
 
             damageTextPool.Enqueue(damageInstance);
             battleUnitPool.Enqueue(unitInstance);
             abilityPool.Enqueue(abilityInstance);
+            warRelicPool.Enqueue(warRelicInstance);
+            selectUnitPool.Enqueue(selectUnitInstance);
+
+            if (onlyUnitPrefab != null)
+            {
+                GameObject onlyUnitInstance = Instantiate(onlyUnitPrefab, transform);
+                onlyUnitInstance.SetActive(false);
+                onlyUnitPool.Enqueue(onlyUnitInstance);
+            }
+
         }
     }
 
@@ -53,7 +73,6 @@ public class ObjectPool : MonoBehaviour
         instance.transform.SetParent(canvasTransform,transform);
         activeAbilitys.Add(instance);
         return instance;
-
     }
 
     // 활성화된 아이콘 리스트 반환
@@ -162,5 +181,85 @@ public class ObjectPool : MonoBehaviour
         damageTextPool.Enqueue(damageText);
     }
 
+    //유산 가져오기
+    public GameObject GetWarRelic()
+    {
+        GameObject instance;
 
+        if(warRelicPool.Count > 0)
+        {
+            instance=warRelicPool.Dequeue();
+        }
+        else
+        {
+            instance = Instantiate(warRelicPrefab,transform);
+        }
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, transform);
+
+        return instance;
+    }
+
+    //유산 반환
+    public void ReturnWarRelic(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+        gameObject.transform.SetParent(canvasTransform, transform);
+        warRelicPool.Enqueue(gameObject);
+    }
+
+    //배경 없는 유닛 가져오기
+    public GameObject GetOnlyUnit()
+    {
+        GameObject instance;
+
+        if (onlyUnitPool.Count > 0)
+        {
+            instance = onlyUnitPool.Dequeue();
+        }
+        else
+        {
+            instance = Instantiate(onlyUnitPrefab, transform);
+        }
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, transform);
+
+        return instance;
+    }
+
+    //배경 없는 유닛 반환
+    public void ReturnOnlyUnit(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+        onlyUnitPool.Enqueue(gameObject);
+    }
+
+    //선택가능한 유닛 가져오기
+    public GameObject GetSelectUnit()
+    {
+        GameObject instance;
+
+        if (selectUnitPool.Count > 0)
+        {
+            instance = selectUnitPool.Dequeue();
+        }
+        else
+        {
+            instance = Instantiate(selectUnitPrefab, transform);
+        }
+
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, false);
+        return instance;
+    }
+    // 선택 가능한 유닛 회수 (부모는 유지, 자식만 풀에 등록)
+    public void ReturnSelectUnit(GameObject parentObj)
+    {
+        foreach (Transform child in parentObj.transform)
+        {
+            GameObject childObj = child.gameObject;
+            childObj.SetActive(false);
+            selectUnitPool.Enqueue(childObj);
+        }
+    }
 }

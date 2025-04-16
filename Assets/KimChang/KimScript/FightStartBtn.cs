@@ -10,8 +10,8 @@ public class FightStartBtn : MonoBehaviour
     [SerializeField] private Button fightButton;               //ArranageUnitsScene에 있는 Fight 버튼과 연결
 
     // ���� ����, ���� ����
-    private List<int> myUnitIds = new List<int> {0,0,0,0 };
-    private List<int> enemyUnitIds = new List<int> { 3,3,3,3,3,3 };
+    private List<int> myUnitIds = new List<int> {0};
+    private List<int> enemyUnitIds = new List<int> {1,1,1,1};
 
     void Start()
     {
@@ -39,6 +39,16 @@ public class FightStartBtn : MonoBehaviour
             // Inspector에서 연결된 battleManager 사용
             if (battleManager != null)
             {
+                if (myUnitIds.Count <= 0)
+                {
+                    myUnitIds.Add(0);
+                    Debug.Log("내 유닛에 아무것도 없음");
+                }
+                if(enemyUnitIds.Count <= 0)
+                {
+                    enemyUnitIds.Add(0);
+                    Debug.Log("상대 유닛에 아무것도 없음");
+                }
                 await battleManager.StartBattle(myUnitIds,enemyUnitIds); //자동전투 실행
             }
 
@@ -46,5 +56,23 @@ public class FightStartBtn : MonoBehaviour
         }
     }
 
+    //유닛 정보 수정
+    public void SetMyFightUnits(List<int> unitIds)
+    {
+        myUnitIds = unitIds;
+    }
+    public void SetEnemyFightUnits(List<int> unitIds)
+    {
+        enemyUnitIds = unitIds;
+    }
+    //유닛 정보 호출
+    public List<int> GetMyFightUnits()
+    {
+        return myUnitIds;
+    }
+    public List<int> GetEnemyFightUnits()
+    {
+        return enemyUnitIds; 
+    }
 
 }

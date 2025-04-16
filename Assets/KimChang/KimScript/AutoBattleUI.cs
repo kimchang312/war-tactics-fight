@@ -5,6 +5,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using System.Text.RegularExpressions;
+using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor.Playables;
 #endif
@@ -17,38 +20,72 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject canvas;
 
     [SerializeField] private FightResult fightResult;           //전투 종료 시 보여주는 화면
+    [SerializeField] private RewardUI rewardUI;
 
     [SerializeField] private TextMeshProUGUI _myUnitCountUI;
     [SerializeField] private TextMeshProUGUI _enemyUnitCountUI;
     [SerializeField] private TextMeshProUGUI _myUnitHPUI;
     [SerializeField] private TextMeshProUGUI _emyUnitHPUI;
+    [SerializeField] private Image myMostDamImg;               
+    [SerializeField] private TextMeshProUGUI myMostDamageText;   //가장 높은 피해 내 유닛
+    [SerializeField] private Image myMostTakenImg;
+    [SerializeField] private TextMeshProUGUI myMostTakenText;   //가장 많은 피해 받은 내 유닛
+    [SerializeField] private Image enemyMostDamImg;
+    [SerializeField] private TextMeshProUGUI enemyMostDamageText;   //가장 높은 피해 적 유닛
+    [SerializeField] private Image enemyMostTakenImg;  
+    [SerializeField] private TextMeshProUGUI enemyMostTakenText;    //가장 많은 피해 받은 적 유닛
 
+    [SerializeField] private TextMeshProUGUI moraleText;        //사기 수치
     [SerializeField] private ObjectPool objectPool;            //  obj풀링
     [SerializeField] private GameObject abilityPool;              //기술+특성 풀
 
     [SerializeField] private GameObject battleUnit;           // 전투 화면 유닛
     [SerializeField] private TextMeshProUGUI _myDodge;        // 내 회피율
     [SerializeField] private TextMeshProUGUI _enemyDodge;        // 상대 회피율
-    [SerializeField] private TextMeshProUGUI myAbility;         // 내 특성+기술
-    [SerializeField] private TextMeshProUGUI enemyAbility;      // 상대 특성+기술
     [SerializeField] private Slider myHpBar;                    // 내 체력 바
     [SerializeField] private Slider enemyHpBar;                 // 상대 체력 바
     [SerializeField] private GameObject myRangeCount;                    //내 원거리 유닛 수
     [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
+    [SerializeField] private GameObject staticsWindow;
+    [SerializeField] private Button staticsToggleBtn;
+    [SerializeField] private Button GoTestBtn;
+    [SerializeField] private Button rewardArrowBtn;
 
+    [SerializeField] private GameObject loadingWindow;        //로딩창
+
+    [SerializeField] private GameObject endWindow;
+
+    [SerializeField] private GameObject rewardWindow;          //보상 창
+
+    [SerializeField] private GameObject relicBox;           
+
+    [SerializeField] private ExplainAbility explainAbility;     //능력 설명 툴팁
+    [SerializeField] private ExplainRelic explainRelic;         //유산 툴팁
+
+    [SerializeField] private TMP_InputField relicInput;             //유물 id 받을 창
 
     private Vector3 myTeam = new(270, 280, 0);                 // 아군 데미지 뜨는 위치
     private Vector3 enemyTeam = new(-270, 280, 0);           // 상대 데미지지 뜨는 위치
 
     private float waittingTime = 500f;        //애니메이션 대기 시간
 
+    private Dictionary<int, GameObject> myUnitCache = new();
+    private Dictionary<int, GameObject> enemyUnitCache = new();
+
     private void Start()
     {
+        ResetUIActive();
+
         myHpBar.interactable = false;
         enemyHpBar.interactable = false;
+        staticsToggleBtn.onClick.AddListener(ToggleStaticsWindow);
+        GoTestBtn.onClick.AddListener(ClickGoTestBtn);
+        rewardArrowBtn.onClick.AddListener(OpenRewardWindow);
+        // 입력 완료 시 처리하는 이벤트 등록
+        relicInput.onEndEdit.AddListener(OnEndEdit);
+
+        UpdateMorale();
     }
-
-
     //유닛 갯수 
     public void UpdateUnitCountUI(int myUnitCount, int enemyUnitCount)
     {
@@ -56,8 +93,6 @@ public class AutoBattleUI : MonoBehaviour
         _enemyUnitCountUI.text = $"{enemyUnitCount}";
 
     }
-
-
     //유닛 체력
     public void UpateUnitHPUI(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
     {
@@ -68,12 +103,6 @@ public class AutoBattleUI : MonoBehaviour
         }
 
         //체력바 업데이트
-        UpdateHpBar(myUnitHP, enemyUnitHP, myMaxHp, enemyMaxHp);
-    }
-
-    //유닛 체력 바
-    private void UpdateHpBar(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
-    {
         myHpBar.maxValue = myMaxHp;
         myHpBar.value = myUnitHP;
 
@@ -81,55 +110,106 @@ public class AutoBattleUI : MonoBehaviour
         enemyHpBar.value = enemyUnitHP;
     }
 
-
-    //데미지 표시
-    public void ShowDamage(float damage, string text, bool team)
+    // 데미지 표시
+    public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
     {
-        GameObject damageObj = objectPool.GetDamageText();
+        float offsetX = 50f;
+        float damage = -_damage;
+
+        // 전투 애니메이션 실행
+        BattleAnimation(damage, text, team, isAttack);
+
+        // 0.25초 뒤에 데미지 텍스트를 표시하도록 코루틴 실행
+        StartCoroutine(DelayedDamageDisplay(damage, text, team, unitIndex, offsetX));
+    }
+    private IEnumerator DelayedDamageDisplay(float damage, string text, bool team, int unitIndex, float offsetX)
+    {
+        yield return new WaitForSeconds(waittingTime*0.0005f);  // 0.25초 대기
+
+        GameObject damageObj = objectPool.GetDamageText();  // 오브젝트 풀에서 가져오기
+        damageObj.SetActive(true);  // 이제 오브젝트를 활성화
+
         TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
+        damagetext.color = damage >= 0 ? Color.green : Color.red;
+        damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
 
-        damagetext.text = $"-{damage} {text}";
+        RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
 
-        //team = true== 나 false == 상대
+        // team = true(내 머리위), false(상대 머리위)
         if (team)
         {
-            RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition = myTeam;
+            if (unitIndex == 0)
+            {
+                rectTransform.anchoredPosition = myTeam;
+            }
+            else
+            {
+                GameObject unit = FindUnit(unitIndex, !team);
+                RectTransform unitRect = unit.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+            }
         }
         else
         {
-            RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition = enemyTeam;
+            if (unitIndex == 0)
+            {
+                rectTransform.anchoredPosition = enemyTeam;
+            }
+            else
+            {
+                GameObject unit = FindUnit(unitIndex, !team);
+                RectTransform unitRect = unit.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+            }
         }
 
-        //
+        // 능력 효과 표시
         CreateAbility(text, team);
 
         // 데미지 제거
         StartCoroutine(HideAfterDelay(damageObj));
     }
 
+    private void BattleAnimation(float damage, string text, bool team,bool isAttack)
+    {
+        // team = true -> 상대 공격, false -> 나의 공격
+        if (!isAttack) return;
+
+        GameObject unit = FindUnit(0, team);
+        RectTransform rectTransform = unit.GetComponent<RectTransform>();
+
+        Vector2 originPos = rectTransform.anchoredPosition; // 원래 UI 위치
+        float direction = team ? 1f : -1f; // team이 true면 반대 방향
+
+        Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f); // 뒤로 이동할 위치
+        Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f); // 앞으로 이동할 위치
+
+        // DOTween 애니메이션 시퀀스
+        DG.Tweening.Sequence attackSequence = DOTween.Sequence();
+        attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f)) // 뒤로 0.05초 이동
+                      .AppendInterval(0.2f) // 0.2초 대기
+                      .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f)) // 앞으로 0.2초 이동
+                      .Append(rectTransform.DOAnchorPos(originPos, 0.05f)); // 원래 위치로 0.05초 이동
+
+        rectTransform.DOKill();
+    }
     private IEnumerator HideAfterDelay(GameObject damageObj)
     {
         yield return new WaitForSeconds(waittingTime/1000f);
         objectPool.ReturnDamageText(damageObj);
     }
 
-
     //유닛 갯수 만큼 유닛 이미지 생성
-    public void CreateUnitBox(List<UnitDataBase> myUnits, List<UnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<UnitDataBase> myRangeUnits, List<UnitDataBase> enemyRangeUnits)
+    public void CreateUnitBox(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<RogueUnitDataBase> myRangeUnits, List<RogueUnitDataBase> enemyRangeUnits)
     {
         Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0), new Vector3(-397, -385, 0) };
         Vector3[] enemyPositions = { new Vector3(200, 94, 0), new Vector3(152, -385, 0), new Vector3(430, -385, 0) };
         Vector3 myRangeUnitPos = new Vector3(-833, -143, 0);
         Vector3 enemyRangeUnitPos = new Vector3(837, -143, 0);
-        //Vector3 myRangeTextPos = new Vector3(-837, -59, 0);
-        //Vector3 enemyRangeTextPos = new Vector3(837, -59, 0);
 
         float firstSize = 250;
         float secondSize = 200;
         float unitInterval = 210;
-
 
         //유닛 초기화
         ClearExistingUnitImages();
@@ -137,8 +217,11 @@ public class AutoBattleUI : MonoBehaviour
         //능력 아이콘 초기화
         ClearExistingAbilityIcons();
 
-        //능력 아이콘 생성
-        CreateAbilityIcons(myUnits[0], enemyUnits[0]);
+        // 내 능력 아이콘 생성
+        CreateAbilityIcons(myUnits[0], true);
+
+        // 상대 능력 아이콘 생성
+        CreateAbilityIcons(enemyUnits[0], false);
 
         // 나의 유닛 생성
         CreateUnitImages(myUnits, myPositions, firstSize, secondSize, unitInterval, true, myDodge);
@@ -157,7 +240,6 @@ public class AutoBattleUI : MonoBehaviour
     // 기존 유닛 이미지 반환 및 비활성화
     private void ClearExistingUnitImages()
     {
-
         foreach (var unit in objectPool.GetActiveBattleUnits())
         {
             objectPool.ReturnBattleUnit(unit); // 유닛 비활성화 및 반환
@@ -184,7 +266,7 @@ public class AutoBattleUI : MonoBehaviour
         rectTransform.anchoredPosition = position;
 
         // 이미지 설정 & 투명도 정상화
-        Sprite sprite = Resources.Load<Sprite>($"KIcon/rangedAttack");
+        Sprite sprite = Resources.Load<Sprite>($"KIcon/AbilityIcon/rangedAttack");
         Image img = unit.GetComponent<Image>();
         Color originalColor = img.color;
         img.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f);
@@ -212,15 +294,12 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //유닛 이미지 생성
-    private void CreateUnitImages(List<UnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
+    private void CreateUnitImages(List<RogueUnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
     {
-        string ability = "";
-        int unitIndex = 0;
-
-        for (int i = 0; (i < units.Count || unitIndex < units.Count); i++, unitIndex++)
+        for (int i = 0; i < units.Count ; i++)
         {
             string unitTeam = isMyUnit ? "My" : "Enemy";
-            if (units[unitIndex].health > 0)
+            if (units[i].health > 0)
             {
                 GameObject unitImage = objectPool.GetBattleUnit();
                 Transform childUnit = unitImage.transform.GetChild(0);
@@ -258,7 +337,7 @@ public class AutoBattleUI : MonoBehaviour
                 childRectTrasform.sizeDelta = i == 0 ? new Vector2(firstSize, firstSize) : new Vector2(secondSize, secondSize);
 
                 // 이미지 설정 & 투명도 정상화
-                Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[unitIndex].unitImg}");
+                Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[i].unitImg}");
                 Image img = unitImage.GetComponent<Image>();
                 Color originalColor = img.color;
                 img.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f); 
@@ -270,12 +349,9 @@ public class AutoBattleUI : MonoBehaviour
                 unitFrame.sprite = frameSprite;
 
                 //유닛 이름 설정
-                unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{unitIndex}";
+                unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
             }
-            else
-            {
-                i--;
-            }
+            
 
         }
 
@@ -283,89 +359,73 @@ public class AutoBattleUI : MonoBehaviour
         if (isMyUnit)
         {
             _myDodge.text = $"회피율: {dodge}%";
-            myAbility.text = ability;
+            //myAbility.text = ability;
         }
         else
         {
             _enemyDodge.text = $"회피율: {dodge}%";
-            enemyAbility.text = ability;
+            //enemyAbility.text = ability;
         }
     }
 
-    //능력치 아이콘 생성
-    private void CreateAbilityIcons(UnitDataBase myUnit, UnitDataBase enemyUnit)
+    // 능력치 아이콘 생성
+    private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
         float posY = -103;
         float myTeamPosX = -280;
         float enemyTeamPosX = 88;
         float interval = 62;
 
-        // 내 능력 아이콘 업데이트
-        var myBoolAttributes = myUnit.GetType().GetFields()
+        // 팀에 따라 포지션 설정
+        float teamPosX = isTeam ? myTeamPosX : enemyTeamPosX;
+
+        // 유닛의 불리언 속성 가져오기
+        var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool))
-            .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(myUnit) });
+            .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
 
         int i = 0;
 
-        foreach (var attr in myBoolAttributes)
+        foreach (var attr in boolAttributes)
         {
             if (attr.Value)
             {
-                //원거리 특성 제외
-                if (attr.Name != "rangedAttack")
+                // 원거리 특성 제외
+                if (attr.Name != "rangedAttack" && attr.Name !="alive")
                 {
                     GameObject iconImage = objectPool.GetAbility();
+                    
                     RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
 
-                    rectTransform.anchoredPosition = new Vector2(myTeamPosX + (i * interval), posY);
+                    // 팀에 따라 위치 설정
+                    rectTransform.anchoredPosition = new Vector2(teamPosX + (i * interval), posY);
 
-                    //크기 초기화
+                    // 크기 초기화
                     rectTransform.localScale = Vector3.one;
 
                     // 이미지 설정
-                    Sprite sprite = Resources.Load<Sprite>($"KIcon/{attr.Name}");
+                    Sprite sprite = Resources.Load<Sprite>($"KIcon/AbilityIcon/{attr.Name}");
                     Image img = iconImage.GetComponent<Image>();
                     img.sprite = sprite;
+
+                    // 이름 설정
+                    if (attr.Name== "defense")
+                    {
+                        iconImage.name = "126";
+                    }
+                    else
+                    {
+                        int? idx = GameTextData.GetIdxFromString(attr.Name);
+                        iconImage.name = idx.HasValue ? $"{idx}" : attr.Name;
+                    }
+                    
+                    //코드 추가
+                    explainAbility = iconImage.AddComponent<ExplainAbility>();
 
                     i++;
                 }
             }
         }
-
-
-        //상대 능력 아이콘 업데이트
-        var enemyBoolAttributes = enemyUnit.GetType().GetFields()
-            .Where(f => f.FieldType == typeof(bool))
-            .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(enemyUnit) });
-
-        i = 0;
-
-        foreach (var attr in enemyBoolAttributes)
-        {
-            if (attr.Value)
-            {
-                //원거리 특성 제외
-                if (attr.Name != "rangedAttack")
-                {
-                    GameObject iconImage = objectPool.GetAbility();
-                    RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
-
-                    rectTransform.anchoredPosition = new Vector2(enemyTeamPosX + (i * interval), posY);
-
-                    //크기 초기화
-                    rectTransform.localScale = Vector3.one;
-
-                    // 이미지 설정
-                    Sprite sprite = Resources.Load<Sprite>($"KIcon/{attr.Name}");
-                    Image img = iconImage.GetComponent<Image>();
-                    img.sprite = sprite;
-
-                    i++;
-                }
-
-            }
-        }
-
     }
 
     //능력치 아이콘 제거
@@ -381,8 +441,15 @@ public class AutoBattleUI : MonoBehaviour
     public void FightEnd(int result)
     {
         fightResult.EndGame(result);
+
+        rewardUI.CreateRelics();
     }
 
+    //점수 보여주기
+    public void UpdateScore(int result)
+    {
+        fightResult.ViewScore(result);
+    }
 
     //능력 창 띄위기
     public void CreateAbility(string ability, bool myTeam)
@@ -421,35 +488,30 @@ public class AutoBattleUI : MonoBehaviour
         }
         FadeOutUnit(unit);
     }
-
-    // 유닛 검색 (활성화된 유닛만 찾음)
+    // 생성된 유닛 검색 (캐싱 없이 항상 새로 검색)
     private GameObject FindUnit(int unitIndex, bool isMyUnit)
     {
-        // 유닛 이름 설정 (MyUnit0, MyUnit1, EnemyUnit0, EnemyUnit1 등)
         string unitName = $"{(isMyUnit ? "MyUnit" : "EnemyUnit")}{unitIndex}";
 
-        // Canvas의 자식들 중 활성화된 유닛만 검색
         foreach (Transform child in canvasTransform)
         {
             if (child.name == unitName && child.gameObject.activeSelf)
             {
-                return child.gameObject; // 활성화된 유닛 발견 시 반환
+                return child.gameObject; // 정확한 유닛을 찾아 반환
             }
         }
 
-        // 유닛이 없거나 비활성화된 경우 null 반환
-        return null;
+        return null; // 유닛을 찾지 못하면 null 반환
     }
-
 
     //유닛 투명
     private void FadeOutUnit(GameObject unit)
     {
         Image unitImage = unit.GetComponent<Image>();
-            unitImage.DOFade(0f, waittingTime/1000f).OnComplete(() =>
-            {
-                unit.SetActive(false); // 투명화 후 유닛을 비활성화
-            });
+        unitImage.DOFade(0f, waittingTime / 1000f).OnComplete(() =>
+        {
+            unit.SetActive(false); // 투명화 후 유닛을 비활성화
+        });
     }
 
     //대기 시간 변경
@@ -458,5 +520,162 @@ public class AutoBattleUI : MonoBehaviour
         waittingTime *= multiple;
 
     }
+
+    //종료 시 통계 보여주기
+    public void ViewStatics(string max, string text, int num,int unitIdx)
+    {
+        switch (num)
+        {
+            //내 최뎀유닛
+            case 0:
+                ChangeStaticImage(myMostDamImg, myMostDamageText,max, text, unitIdx);
+                break;
+            // 내 최받유닛
+            case 1:
+                ChangeStaticImage(myMostTakenImg, myMostTakenText, max, text, unitIdx);
+                break;
+            //상대 최뎀유닛
+            case 2:
+                ChangeStaticImage(enemyMostDamImg, enemyMostDamageText, max, text, unitIdx);
+                break;
+            //상대 최받유닛
+            case 3:
+                ChangeStaticImage(enemyMostTakenImg, enemyMostTakenText, max, text, unitIdx);
+                break;
+            default:
+                Debug.Log("숫자가 0~3이 아님");
+                break;
+        }
+
+    }
+
+    //이미지 변경
+    private void ChangeStaticImage(Image img,TextMeshProUGUI textUI,string max,string text,int idx)
+    {
+        Sprite sprite = Resources.Load<Sprite>($"UnitImages/Unit_Img_{idx}");
+        img.sprite = sprite;
+        textUI.text = $"{max}\n{text}";
+    }
+
+    //통계창 온오프
+    private void ToggleStaticsWindow()
+    {
+        // 활성화 상태를 반대로 설정
+        if (staticsWindow != null)
+        {
+            staticsWindow.SetActive(!staticsWindow.activeSelf);
+        }
+    }
+
+    //유산 생성
+    public void CreateWarRelic()
+    {
+        var warRelics = RogueLikeData.Instance.GetAllOwnedRelics();
+
+        if (warRelics == null || warRelics.Count == 0)
+            return;
+        float startX = -900f;
+        float startY = 350f;
+        float spacingX = 100f;
+
+        for (int i = 0; i < warRelics.Count; i++)
+        {
+            GameObject relicObject = objectPool.GetWarRelic(); // ObjectPool에서 유물 오브젝트 가져오기
+
+            Sprite sprite = Resources.Load<Sprite>($"KIcon/WarRelic/{warRelics[i].id}");
+            Image relicImg= relicObject.GetComponent<Image>();
+            relicImg.sprite = sprite;
+
+            RectTransform relicTransform = relicObject.GetComponent<RectTransform>();
+            
+            relicTransform.anchoredPosition = new Vector2(startX+(spacingX*i), startY);
+
+            relicObject.name = $"{warRelics[i].id}";
+
+            // 부모 설정
+            relicObject.transform.SetParent(relicBox.transform, false);
+
+            explainRelic = relicObject.AddComponent<ExplainRelic>();
+        }
+    }
+
+    // 입력 완료 시 처리
+    private void OnEndEdit(string input)
+    {
+        // 숫자만 필터링
+        string filteredInput = Regex.Replace(input, "[^0-9]", "");
+
+        // 정수로 변환
+        if (int.TryParse(filteredInput, out int relicId))
+        {
+            // 1~61 범위 내에 있을 경우에만 처리
+            if (relicId >= 1 && relicId <= 61)
+            {
+                RogueLikeData.Instance.AcquireRelic(relicId);
+                Debug.Log($"유산 획득: ID {relicId}");
+            }
+            else
+            {
+                Debug.Log("입력값이 1~61 범위를 벗어남");
+            }
+        }
+        else
+        {
+            Debug.Log("숫자 변환 실패");
+        }
+
+        // 입력 필드 초기화 및 다시 입력 가능하도록 포커스 유지
+        relicInput.text = "";
+        relicInput.ActivateInputField();
+    }
+
+    //로딩창 간단하게 구현
+    public void ToggleLoadingWindow()
+    {
+        loadingWindow.SetActive(!loadingWindow.activeSelf);
+    }
+
+    //테스트 화면으로
+    private void ClickGoTestBtn()
+    {
+        SceneManager.LoadScene("Upgrade");
+    }
+
+    //보상 창 열기+ 통계,점수,승패 창 닫기 
+    private void OpenRewardWindow()
+    {
+        SceneManager.LoadScene("Event");
+        /*
+        staticsWindow.SetActive(false);
+        endWindow.SetActive(false);
+        staticsToggleBtn.gameObject.SetActive(false);
+
+        rewardWindow.SetActive(true);*/
+    }
+    //보상 창 닫기
+    private void CloseRewardWindow()
+    {
+        rewardWindow.SetActive(false);
+    }
+
+    //ui 활성화 비활성화 초기화
+    private void ResetUIActive()
+    {
+        fightResult.CloseThis();
+        endWindow.SetActive(true);
+        GoTestBtn.gameObject.SetActive(true);
+        rewardArrowBtn.gameObject.SetActive(true);
+        rewardWindow.SetActive(false);
+        //staticsToggleBtn.gameObject.SetActive(true);
+    }
+
+    //사기 값 수정
+    public void UpdateMorale()
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+        moraleText.text = $"{morale}";
+    }
+
+   
 }
 
