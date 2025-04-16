@@ -551,7 +551,7 @@ public static class WarRelicDatabase
     private static void CannonForSabotage()
     {
         StageType stage = RogueLikeData.Instance.GetCurrentStageType();
-        if(stage == StageType.Battle || stage == StageType.Elite)
+        if(stage == StageType.Combat || stage == StageType.Elite)
         {
             // RogueLikeData 싱글톤 사용
             var units = RogueLikeData.Instance.GetEnemyUnits();

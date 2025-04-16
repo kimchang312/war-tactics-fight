@@ -17,16 +17,7 @@ public class RogueLikeData
             return instance;
         }
     }
-    public enum StageType
-    {
-        Battle,
-        Chest,
-        Shop,
-        Unknown,
-        Rest,
-        Elite,
-        Boss
-    }
+    
     private int nextUnitUniqueId = 0;
 
     private List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>();
@@ -38,7 +29,7 @@ public class RogueLikeData
     private Dictionary<int, int> encounteredEvent = new();
     private int currentStageX = 1;
     private int currentStageY = 0;
-    private StageType currentStageType = StageType.Battle;
+    private StageType currentStageType = StageType.Combat;
 
     private int chapter = 1;
     private int currentGold = 0;

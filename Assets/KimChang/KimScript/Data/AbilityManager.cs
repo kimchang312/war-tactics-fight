@@ -46,7 +46,7 @@ public class AbilityManager
         int morale = RogueLikeData.Instance.GetMorale();
         switch (type) 
         {
-            case StageType.Battle:
+            case StageType.Combat:
                 ReduceUnitEngery();
                 break;
             case StageType.Elite:
@@ -60,7 +60,7 @@ public class AbilityManager
                 break;
             case StageType.Unknown:
                 break;
-            case StageType.Chest:
+            case StageType.Treasure:
                 break;
             case StageType.Shop:
                 if (RelicManager.CheckRelicById(40))
@@ -1553,7 +1553,7 @@ public class AbilityManager
         //유산 33
         if(RelicManager.CheckRelicById(33)) addMorale = (int)(addMorale * 1.2);
         if (deadEnemyUnits.Count == 0) addMorale += 10; 
-        if(stageType == StageType.Battle)
+        if(stageType == StageType.Combat)
         {
             addMorale += 15;
         }
