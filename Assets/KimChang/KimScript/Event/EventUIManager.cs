@@ -12,12 +12,10 @@ public class EventUIManager : MonoBehaviour
     [SerializeField] private Transform choiceBtns;             //선택지 버튼 부모
     [SerializeField] private Button leaveBtn;                   //떠나기
 
-    [SerializeField] private GameObject selectUnitWindow;       //유닛 선택 창
-    [SerializeField] private GameObject selectUnitParent;       //유닛이 배치되는 곳
+    [SerializeField] private UnitSelectUI unitSelectUI;       //유닛 선택 창
+
     [SerializeField] private TextMeshProUGUI selectTitle;       //선택창 글자
     [SerializeField] private ObjectPool objectPool;
-
-    private List<RogueUnitDataBase> selectedUnits=new();
 
     private void Awake()
     {
@@ -27,7 +25,7 @@ public class EventUIManager : MonoBehaviour
     private void OnEnable()
     {
         ResetUI();
-        selectedUnits.Clear();
+        RogueLikeData.Instance.SetSelectedUnits(null);
         EventData eventData = EventManager.GetRandomEvent();
         List<EventChoiceData> eventChoiceDatas = new List<EventChoiceData>();
         foreach(int choiceId in eventData.choiceIds)
@@ -71,25 +69,27 @@ public class EventUIManager : MonoBehaviour
     //선택지 버튼 눌렀을때 실행
     private void HandleChoice(EventChoiceData choiceData)
     {
+        List<RogueUnitDataBase> selectedUnits = new();
         //만약 유닛 선택이 있다면 유닛 선택 창 띄우기
         if (choiceData.requireForm.Contains(RequireForm.Select))
         {
             int index = choiceData.requireForm.IndexOf(RequireForm.Select);
             int count = int.TryParse(choiceData.requireCount[index], out var parsed) ? parsed : 0;
-            if (selectedUnits.Count < count) 
+            selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+            if (selectedUnits.Count < count)
             {
                 OpenSelectdUnit(choiceData);
                 return;
             }
-        }
-        string resultText = EventManager.ApplyChoiceResult(choiceData,selectedUnits);
 
+        }
+        string resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
+        eventDescriptionText.text = resultText;
         ResetButtonUI();
         leaveBtn.gameObject.SetActive(true);
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)
     {
-        selectUnitWindow.SetActive(true);
         List<RogueUnitDataBase> myUnits =RogueLikeData.Instance.GetMyUnits();
         List<RogueUnitDataBase> selectUnits = new();
         for(int i =0; i< choiceData.requireForm.Count; i++)
@@ -120,34 +120,14 @@ public class EventUIManager : MonoBehaviour
             }
         }
 
-        foreach(var unit in selectUnits)
-        {
-            GameObject selectedUnit = objectPool.GetSelectUnit();
-            Image img = selectedUnit.GetComponent<Image>();
-            Sprite sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");
-            img.sprite = sprite;
-            Image energy = selectedUnit.GetComponentInChildren<Image>();
-            energy.fillAmount = unit.energy/unit.maxEnergy;
-            TextMeshProUGUI textMeshProUGUI = selectedUnit.GetComponentInChildren<TextMeshProUGUI>();
-            textMeshProUGUI.text = $"{unit.energy}/{unit.maxEnergy}";
-            selectedUnit.transform.SetParent(selectUnitParent.transform, false);
-            Button btn  = selectedUnit.GetComponent<Button>();
-            btn.onClick.AddListener(()=>AddSelectedUnits(unit,choiceData));
-        }
-    }
-
-    private void AddSelectedUnits(RogueUnitDataBase unit,EventChoiceData choiceData)
-    {
-        selectedUnits.Add(unit);
-        selectUnitWindow.SetActive(false);
-        HandleChoice(choiceData);
+        unitSelectUI.OpenSelectUnitWindow(()=>HandleChoice(choiceData),selectUnits);
     }
 
     //전체 초기화
     private void ResetUI()
     {
         ResetButtonUI();
-        selectUnitWindow.SetActive(false);
+        unitSelectUI.gameObject.SetActive(false);
         leaveBtn.onClick.AddListener(ClickLeaveBtn);
         leaveBtn.gameObject.SetActive(false);
     }

@@ -23,6 +23,7 @@ public class RogueLikeData
     private List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>();
     private List<RogueUnitDataBase> enemyUnits = new List<RogueUnitDataBase>();
     private List<RogueUnitDataBase> savedMyUnits = new List<RogueUnitDataBase>();
+    private List<RogueUnitDataBase> selectedUnits = new List<RogueUnitDataBase>(); //유닛 선택 화면에서 선택된 유닛들
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
@@ -410,6 +411,19 @@ public class RogueLikeData
     public int GetNextUnitUniqueId()
     {
         return nextUnitUniqueId++;
+    }
+
+    public List<RogueUnitDataBase> GetSelectedUnits()
+    {
+        return selectedUnits;
+    }
+    public void AddSelectedUnits(RogueUnitDataBase unit)
+    {
+        selectedUnits.Add(unit);
+    }
+    public void SetSelectedUnits(List<RogueUnitDataBase> units)
+    {
+        selectedUnits = units;
     }
 
 }

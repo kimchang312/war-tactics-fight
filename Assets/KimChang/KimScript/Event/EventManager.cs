@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using static RelicManager;
+using static UnityEngine.UI.CanvasScaler;
 
 public class EventManager
 {
@@ -30,11 +32,9 @@ public class EventManager
             Debug.Log("모든 이벤트를 만났거나 등장조건 불일치");
             return null;
         }
-        var test = EventDataLoader.EventDataDict[40];
-        Debug.Log(test.eventName + "" + test.requireThing);
+
         int randomIdx = Random.Range(0, availableEventIds.Count);
         int eventId = availableEventIds[randomIdx];
-        //추후 수정
         return EventDataLoader.EventDataDict[eventId];
     }
     private static bool CanAppear(EventData eventData)
@@ -68,7 +68,6 @@ public class EventManager
                 if (form == RequireForm.None)
                 {
                     int gold = RogueLikeData.Instance.GetCurrentGold();
-                    Debug.Log(gold+""+count);
                     return RogueLikeData.Instance.GetCurrentGold() >= int.Parse(count);
                 }
                 break;
@@ -358,7 +357,7 @@ public class EventManager
         }
         return false;
     }
-    public static void ReduceRequire(EventChoiceData choiceData,ref List<RogueUnitDataBase> selectedUnits)
+    public static void ReduceRequire(EventChoiceData choiceData)
     {
         string requireLog = "";
         for(int i = 0;i < choiceData.requireThing.Count;i++)
@@ -374,6 +373,7 @@ public class EventManager
                 case RequireThing.Energy:
                     if(form == RequireForm.Select)
                     {
+                        var selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
                         foreach(var unit  in selectedUnits)
                         {
                             if (value == "") 
@@ -384,29 +384,125 @@ public class EventManager
                             {
                                 int energy = int.Parse(value);
                                 unit.energy = energy;
-                                requireLog += $"{unit.unitName}의 기력이 {energy}가 되었습니다.";
+                                requireLog += $"{unit.unitName}이(가) 선택 되었습니다.";
                             }
                         }
                     }
-                    else if(form == RequireForm.Random)
+                    else if (form == RequireForm.Random)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyUnits(); 
+                        var myUnits = RogueLikeData.Instance.GetMyUnits();
                         int energy = int.Parse(value);
                         int unitCount = int.Parse(value);
-                        foreach(var unit in myUnits)
+
+                        // energy 보다 높은 에너지를 가진 유닛 필터링
+                        List<RogueUnitDataBase> filteredUnits = myUnits.FindAll(unit => unit.energy > energy);
+
+                        // 랜덤 셔플을 위해 리스트 섞기
+                        System.Random random = new System.Random();
+                        for (int k = filteredUnits.Count - 1; k > 0; k--)
                         {
-                            
+                            int j = random.Next(k + 1);
+                            (filteredUnits[k], filteredUnits[j]) = (filteredUnits[j], filteredUnits[k]);
+                        }
+
+                        // 최대 unitCount 개수만큼 선택
+                        int countToSelect = Mathf.Min(unitCount, filteredUnits.Count);
+                        List<RogueUnitDataBase> selectUnits = filteredUnits.GetRange(0, countToSelect);
+
+                        foreach (var unit in selectUnits)
+                        {
+                            unit.energy = energy;
+                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
                         }
                     }
 
                     break;
                 case RequireThing.Unit:
+                    if(form == RequireForm.Select)
+                    {
+                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+                        myUnits.RemoveAll(selectedUnits.Contains);
+                        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+                        foreach(var unit in selectedUnits)
+                        {
+                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
+                        }
+                    }
+                    else if (form == RequireForm.Random)
+                    {
+                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        int maxRarity = int.Parse(value);
+                        int unitCount = int.Parse(count);
+
+                        // 조건에 맞는 유닛 필터링 후 랜덤 정렬, 원하는 수만큼 선택
+                        var candidates = myUnits
+                            .Where(unit => unit.rarity <= maxRarity)
+                            .OrderBy(_ => UnityEngine.Random.value)
+                            .Take(unitCount)
+                            .ToList();
+
+                        // 선택된 유닛 제거
+                        var currentUnits = RogueLikeData.Instance.GetMyUnits(); // 새로 가져오기
+                        currentUnits.RemoveAll(unit => candidates.Contains(unit));
+                        RogueLikeData.Instance.SetAllMyUnits(currentUnits);
+                        foreach (var unit in candidates)
+                        {
+                            RogueLikeData.Instance.AddSelectedUnits(unit);
+                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
+                        }
+                    }
+                    else if(form == RequireForm.Special)
+                    {
+                        //82번
+                        if (choiceData.choiceId == 82)
+                        {
+
+                        }
+                    }
+                    else if(form == RequireForm.None)
+                    {
+                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        int rarity = int.Parse(value);
+                        var candidates = myUnits.Where(unit=>unit.rarity==rarity);
+                        myUnits.RemoveAll(candidates.Contains);
+                        foreach(var unit in candidates)
+                        {
+                            RogueLikeData.Instance.AddSelectedUnits(unit);
+                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
+                        }
+                    }
+
                     break;
                 case RequireThing.Relic:
+                    if(form == RequireForm.None)
+                    {
+
+                    }
+
                     break;
                 case RequireThing.Gold:
+                    if(choiceData.choiceId == 27)
+                    {
+                        RogueLikeData.Instance.SetCurrentGold(0);
+                        requireLog = "모든 금화를 잃었습니다.";
+                    }
+                    else if(form == RequireForm.None)
+                    {
+                        int goldCount = int.Parse(count);
+                        int gold = RogueLikeData.Instance.GetCurrentGold();
+                        RogueLikeData.Instance.SetCurrentGold(gold-goldCount);
+                        requireLog += $"{goldCount}금화를 지불하였습니다.\n";
+                    }
                     break;
                 case RequireThing.Morale:
+                    if(form == RequireForm.None)
+                    {
+                        int moraleCount = int.Parse(count);
+                        int morale =RogueLikeData.Instance.GetMorale();
+                        RogueLikeData.Instance.SetMorale(morale-moraleCount);
+                        requireLog += $"사기가 {moraleCount}만큼 감소했습니다.\n";
+                    }
                     break;
             }
 

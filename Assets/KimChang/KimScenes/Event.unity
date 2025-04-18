@@ -268,6 +268,7 @@ GameObject:
   - component: {fileID: 197870904}
   - component: {fileID: 197870906}
   - component: {fileID: 197870905}
+  - component: {fileID: 197870907}
   m_Layer: 5
   m_Name: SelectUnitWindow
   m_TagString: Untagged
@@ -334,6 +335,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 197870903}
   m_CullTransparentMesh: 1
+--- !u!114 &197870907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 197870903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5bdfcf74caa650498e872b625141c76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectUnitParent: {fileID: 975418889}
+  objectPool: {fileID: 1973233011}
 --- !u!1 &332071074
 GameObject:
   m_ObjectHideFlags: 0
@@ -1282,8 +1297,7 @@ MonoBehaviour:
   eventDescriptionText: {fileID: 1732150720}
   choiceBtns: {fileID: 1457516614}
   leaveBtn: {fileID: 343675062}
-  selectUnitWindow: {fileID: 197870903}
-  selectUnitParent: {fileID: 418296303}
+  unitSelectUI: {fileID: 197870907}
   selectTitle: {fileID: 975418891}
   objectPool: {fileID: 1973233011}
 --- !u!1 &541661626
