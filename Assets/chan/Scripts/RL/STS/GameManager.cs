@@ -109,9 +109,18 @@ public class GameManager : MonoBehaviour
             connectstage.UnlockStage();
 
         // 5) 스테이지 입장 후, 타입별 이벤트 처리
+        // Rest 이벤트 처리
         if (newStage.stageType == StageType.Rest)
         {
-            restUI.Show();
+            Debug.Log($"[GameManager] RestStage 진입: level={newStage.level}, row={newStage.row}");
+            if (restUI != null)
+            {
+                restUI.Show();
+            }
+            else
+            {
+                Debug.LogError("[GameManager] restUI 레퍼런스가 없습니다!");
+            }
         }
     }
 

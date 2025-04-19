@@ -10,6 +10,16 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public int row;
     public StageType stageType;
 
+    [Header("Sprites (assign in Inspector)")]
+    public Sprite combatSprite;
+    public Sprite eliteSprite;
+    public Sprite eventSprite;
+    public Sprite shopSprite;
+    public Sprite restSprite;
+    public Sprite treasureSprite;
+    public Sprite bossSprite;
+
+
     [Header("Connections")]
     // 이 스테이지와 연결된 다음 스테이지 UI 객체들
     public List<StageNodeUI> connectedStages = new List<StageNodeUI>();
@@ -21,11 +31,13 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     // 클릭 가능/불가능 제어
     private CanvasGroup canvasGroup;
     private Button button;
+    private Image image;
 
     private void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
         button = GetComponent<Button>();
+        image = GetComponent<Image>();
     }
 
     /// <summary>
@@ -36,8 +48,18 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         level = node.level;
         row = node.row;
         stageType = node.stageType;
+        // 1) StageType별로 스프라이트 교체
+        switch (stageType)
+        {
+            case StageType.Combat: image.sprite = combatSprite; break;
+            case StageType.Elite: image.sprite = eliteSprite; break;
+            case StageType.Event: image.sprite = eventSprite; break;
+            case StageType.Shop: image.sprite = shopSprite; break;
+            case StageType.Rest: image.sprite = restSprite; break;
+            case StageType.Treasure: image.sprite = treasureSprite; break;
+            case StageType.Boss: image.sprite = bossSprite; break;
+        }
 
-        
     }
 
     /// <summary>
