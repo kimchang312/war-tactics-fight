@@ -9,6 +9,9 @@ public class GameManager : MonoBehaviour
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
     public RectTransform playerMarker;
 
+    [Header("Rest Event")]
+    public RestUI restUI;   // 에디터에서 할당
+
     [Header("Lock Settings")]
     // 잠긴 스테이지에 적용할 색상
     public Color lockedColor = Color.white;
@@ -104,6 +107,12 @@ public class GameManager : MonoBehaviour
         // 4) 새 스테이지와 연결된 스테이지들만 잠금 해제
         foreach (var connectstage in newStage.connectedStages)
             connectstage.UnlockStage();
+
+        // 5) 스테이지 입장 후, 타입별 이벤트 처리
+        if (newStage.stageType == StageType.Rest)
+        {
+            restUI.Show();
+        }
     }
 
     /// <summary>
@@ -115,5 +124,18 @@ public class GameManager : MonoBehaviour
             return;
         RectTransform rt = target.GetComponent<RectTransform>();
         playerMarker.anchoredPosition = rt.anchoredPosition;
+    }
+
+    public void InitializeStageLocks()
+    {
+        allStages.Clear();
+        allStages.AddRange(FindObjectsOfType<StageNodeUI>());
+
+        foreach (var s in allStages)
+            s.LockStage();
+
+        foreach (var s in allStages)
+            if (s.level == 0)
+                s.UnlockStage();
     }
 }

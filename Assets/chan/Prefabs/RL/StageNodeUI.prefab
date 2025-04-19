@@ -147,6 +147,7 @@ GameObject:
   - component: {fileID: 7137415386272452317}
   - component: {fileID: 7222266196478289899}
   - component: {fileID: 7965168571043657101}
+  - component: {fileID: 5094000065825651096}
   m_Layer: 5
   m_Name: StageNodeUI
   m_TagString: Untagged
@@ -271,5 +272,16 @@ MonoBehaviour:
   level: 0
   row: 0
   stageType: 0
-  stageLabel: {fileID: 0}
-  mapTooltip: {fileID: 0}
+  connectedStages: []
+--- !u!225 &5094000065825651096
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2433633343516762061}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

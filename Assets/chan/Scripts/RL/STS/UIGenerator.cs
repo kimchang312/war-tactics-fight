@@ -30,6 +30,10 @@ public class UIGenerator : MonoBehaviour
         CreateUIMap();
         LinkUIConnections();
         DrawAllConnectionLines();
+
+        // ← UI 생성 직후, 반드시 초기 잠금/언락을 수행
+        if (GameManager.Instance != null)
+            GameManager.Instance.InitializeStageLocks();
     }
 
     /// <summary>

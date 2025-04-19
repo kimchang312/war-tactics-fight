@@ -9,7 +9,6 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public int level;
     public int row;
     public StageType stageType;
-    public Color stageColor;
 
     [Header("Connections")]
     // 이 스테이지와 연결된 다음 스테이지 UI 객체들
@@ -19,14 +18,14 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     private bool isLocked = false;
     public bool IsLocked => isLocked;
 
-    private Image stageImage;
+    // 클릭 가능/불가능 제어
+    private CanvasGroup canvasGroup;
+    private Button button;
 
     private void Awake()
     {
-        // Image 컴포넌트를 찾아두고
-        stageImage = GetComponent<Image>();
-        if (stageImage == null)
-            Debug.LogWarning("StageNodeUI: Image 컴포넌트가 없습니다.");
+        canvasGroup = GetComponent<CanvasGroup>();
+        button = GetComponent<Button>();
     }
 
     /// <summary>
@@ -37,10 +36,8 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         level = node.level;
         row = node.row;
         stageType = node.stageType;
-        stageColor = node.stageColor;
 
-        if (stageImage != null)
-            stageImage.color = stageColor;
+        
     }
 
     /// <summary>
@@ -62,8 +59,14 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public void LockStage()
     {
         isLocked = true;
-        if (stageImage != null)
-            stageImage.color = GameManager.Instance.lockedColor;
+        // 클릭 이벤트 차단
+        canvasGroup.blocksRaycasts = false;
+        // 하이라이트, 포커스 등 UI 인터랙션 모두 차단
+        canvasGroup.interactable = false;
+
+        // Button 인터랙션도 차단
+        if (button != null)
+            button.interactable = false;
     }
 
     /// <summary>
@@ -72,8 +75,10 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public void UnlockStage()
     {
         isLocked = false;
-        if (stageImage != null)
-            stageImage.color = stageColor;
+        canvasGroup.blocksRaycasts = true;
+        canvasGroup.interactable = true;
+        if (button != null)
+            button.interactable = true;
     }
 
     /// <summary>
