@@ -28,6 +28,7 @@ public class EventUIManager : MonoBehaviour
         RogueLikeData.Instance.SetSelectedUnits(null);
         EventData eventData = EventManager.GetRandomEvent();
         List<EventChoiceData> eventChoiceDatas = new List<EventChoiceData>();
+
         foreach(int choiceId in eventData.choiceIds)
         {
             if (EventDataLoader.EventChoiceDataDict.TryGetValue(choiceId, out var choiceData))
@@ -83,6 +84,7 @@ public class EventUIManager : MonoBehaviour
             }
 
         }
+        EventManager.ReduceRequire(choiceData);
         string resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
         eventDescriptionText.text = resultText;
         ResetButtonUI();

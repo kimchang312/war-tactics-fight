@@ -13,13 +13,12 @@ public class EventData
     public List<int> choiceIds;
     public string requireCondition;
 
-    [JsonConverter(typeof(StringEnumConverter))]
-    public RequireThing requireThing;
+    public List<RequireThing> requireThing;
 
-    [JsonConverter(typeof(StringEnumConverter))]
-    public RequireForm requireForm;
+    public List<RequireForm> requireForm;
 
-    public string requireValue;
+    public List<string> requireValue;
+    public List<string> requireCount;
 }
 
 [Serializable]
@@ -62,7 +61,7 @@ public enum RequireThing
 }
 
 [JsonConverter(typeof(StringEnumConverter))]
-public enum RequireForm { None, Count, Select, Special, Random }
+public enum RequireForm { None, Select, Special, Random }
 
 [JsonConverter(typeof(StringEnumConverter))]
 public enum ResultType { None, Gold, Morale, Energy, Unit, Relic, Training, Special, Change, Battle, Field }

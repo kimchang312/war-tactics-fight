@@ -108,7 +108,7 @@ public class RogueLikeData
         myUnits = new List<RogueUnitDataBase>(units);
     }
     //내 유닛 하나 추가
-    public void SetAddMyUnis(RogueUnitDataBase unit)
+    public void AddMyUnis(RogueUnitDataBase unit)
     {
         myUnits.Add(unit);
     }

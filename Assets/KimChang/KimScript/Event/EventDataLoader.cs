@@ -66,25 +66,33 @@ public static class EventDataLoader
 
     private static List<T> ParseEnumList<T>(JToken token) where T : struct
     {
-        if (token == null || string.IsNullOrWhiteSpace(token.ToString()))
-            return new List<T>();
-
-        string raw = token.ToString();
-        string[] parts = raw.Split(',');
         var list = new List<T>();
-        foreach (var part in parts)
+
+        if (token is JArray array)
         {
-            if (Enum.TryParse(part.Trim(), out T value))
-                list.Add(value);
+            foreach (var item in array)
+            {
+                if (Enum.TryParse(item.ToString(), out T value))
+                {
+                    list.Add(value);
+                }
+            }
         }
+
         return list;
     }
 
     private static List<string> ParseStringList(JToken token)
     {
-        if (token == null) return new List<string>();
-        string raw = token.ToString();
-        if (string.IsNullOrWhiteSpace(raw)) return new List<string>();
-        return new List<string>(raw.Split(','));
+        var list = new List<string>();
+        if (token is JArray array)
+        {
+            foreach (var item in array)
+            {
+                list.Add(item.ToString().Trim());
+            }
+        }
+        return list;
     }
+
 }

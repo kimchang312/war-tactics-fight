@@ -38,6 +38,10 @@ public class RelicManager
     //무작위 유산 추가 || 제거
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
     {
+        if (grade == 5)
+        {
+            grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
+        }
         // 후보 유산 리스트
         var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
         var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
