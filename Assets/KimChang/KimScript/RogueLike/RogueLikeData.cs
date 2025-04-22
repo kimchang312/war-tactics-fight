@@ -23,7 +23,7 @@ public class RogueLikeData
     private List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>();
     private List<RogueUnitDataBase> enemyUnits = new List<RogueUnitDataBase>();
     private List<RogueUnitDataBase> savedMyUnits = new List<RogueUnitDataBase>();
-    private List<RogueUnitDataBase> selectedUnits = new List<RogueUnitDataBase>(); //유닛 선택 화면에서 선택된 유닛들
+    private List<RogueUnitDataBase> selectedUnits = new(); //유닛 선택 화면에서 선택된 유닛들
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
@@ -40,6 +40,13 @@ public class RogueLikeData
     private float enemyFinalDamage = 1;
 
     private int sariStack = 0;
+
+    //현재 필드 id 전투 종료 후 0으로 1~5
+    private int fieldId = 0;
+
+    //다음 전투 추가 보상
+    private BattleRewardData battleReward = new();
+
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -369,7 +376,7 @@ public class RogueLikeData
         return encounteredEvent;
     }
     //만난 이벤트 추가
-    public void SetEncounteredEvent(int id)
+    public void AddEncounteredEvent(int id)
     {
         encounteredEvent.Add(id, id);
     }
@@ -424,6 +431,49 @@ public class RogueLikeData
     public void SetSelectedUnits(List<RogueUnitDataBase> units)
     {
         selectedUnits = units;
+    }
+    
+    public int GetFieldId()
+    {
+        return fieldId;
+    }
+    public void SetFieldId(int Id)
+    {
+        fieldId = Id;
+    }
+    public BattleRewardData GetBattleReward()
+    {
+        return battleReward;
+    }
+
+    public void SetGoldReward(int setGold)
+    {
+        battleReward.gold = setGold;
+    }
+    public void SetMoraleReward(int setMoraleReward)
+    {
+        battleReward.morale = setMoraleReward;
+    }
+    public void SetRelicReward(int setRelicId)
+    {
+        battleReward.relicIds.Add(setRelicId);
+    }
+    public void SetUnitReward(RogueUnitDataBase setUnits)
+    {
+        battleReward.newUnits.Add(setUnits);
+    }
+    public void SetChangeReward(RogueUnitDataBase setChanges)
+    {
+        battleReward.changedUnits.Add(setChanges);
+    }
+
+    //버프 디버프 초기화
+    public void ClearBuffDeBuff()
+    {
+        foreach(var unit in myUnits)
+        {
+            unit.effectDictionary.Clear();
+        }
     }
 
 }

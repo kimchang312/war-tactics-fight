@@ -21,6 +21,7 @@ public class EventUIManager : MonoBehaviour
     {
         ResetUI();
         EventManager.LoadEventData();
+        gameObject.SetActive(false);
     }
     private void OnEnable()
     {
@@ -58,7 +59,8 @@ public class EventUIManager : MonoBehaviour
                     btn.interactable = true; 
                 }
                 else btn.interactable = false;
-                btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[i]));
+                int index = i; // 캡처용 안전한 복사
+                btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[index]));
             }
             else
             {
@@ -77,7 +79,7 @@ public class EventUIManager : MonoBehaviour
             int index = choiceData.requireForm.IndexOf(RequireForm.Select);
             int count = int.TryParse(choiceData.requireCount[index], out var parsed) ? parsed : 0;
             selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
-            if (selectedUnits.Count < count)
+            if (selectedUnits==null || selectedUnits.Count < count)
             {
                 OpenSelectdUnit(choiceData);
                 return;
@@ -88,6 +90,8 @@ public class EventUIManager : MonoBehaviour
         string resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
         eventDescriptionText.text = resultText;
         ResetButtonUI();
+        //이벤트 추가
+        RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);
         leaveBtn.gameObject.SetActive(true);
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)
@@ -121,7 +125,7 @@ public class EventUIManager : MonoBehaviour
                     break;
             }
         }
-
+        unitSelectUI.gameObject.SetActive(true);
         unitSelectUI.OpenSelectUnitWindow(()=>HandleChoice(choiceData),selectUnits);
     }
 

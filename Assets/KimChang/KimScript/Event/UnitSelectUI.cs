@@ -19,7 +19,7 @@ public class UnitSelectUI : MonoBehaviour
     {
         gameObject.SetActive(true);
         selectUnits ??= RogueLikeData.Instance.GetMyUnits();
-
+        Debug.Log(selectUnits.Count);
         foreach (var unit in selectUnits)
         {
             GameObject selectedUnit = objectPool.GetSelectUnit();

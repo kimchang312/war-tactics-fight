@@ -35,6 +35,44 @@ public class RelicManager
         AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.BattleActive));
         AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.ActiveState));
     }
+    // 특정 등급에서 중복 여부를 고려하여 랜덤 유산 ID 1개를 선택
+    public static int GetRandomRelicId(int grade, RelicAction action)
+    {
+        if (grade == 5)
+        {
+            grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
+        }
+
+        var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
+        var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
+
+        var available = (action == RelicAction.Acquire)
+            ? relics.Where(r => !ownedIds.Contains(r.id)).ToList()
+            : relics.Where(r => ownedIds.Contains(r.id)).ToList();
+
+        if (available.Count == 0) return -1;
+
+        return available[UnityEngine.Random.Range(0, available.Count)].id;
+    }
+    // 유산 ID 기반으로 획득 또는 제거 처리
+    public static void ApplyRelicAction(int relicId, RelicAction action)
+    {
+        if (relicId < 0) return;
+
+        if (action == RelicAction.Acquire)
+        {
+            RogueLikeData.Instance.AcquireRelic(relicId);
+            var relic = WarRelicDatabase.GetRelicById(relicId);
+            if (relic != null)
+                ownedRelics.TryAdd(relicId, relic);
+        }
+        else if (action == RelicAction.Remove)
+        {
+            RogueLikeData.Instance.RemoveRelicById(relicId);
+            ownedRelics.Remove(relicId);
+        }
+    }
+
     //무작위 유산 추가 || 제거
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
     {

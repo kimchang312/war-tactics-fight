@@ -14,12 +14,12 @@ public static class EventDataLoader
         EventDataDict.Clear();
         EventChoiceDataDict.Clear();
 
-        TextAsset eventDataJson = Resources.Load<TextAsset>("EventDataBase/EventDataBase");
-        TextAsset eventChoiceDataJson = Resources.Load<TextAsset>("EventDataBase/EventChoiceDataBase");
+        TextAsset eventDataJson = Resources.Load<TextAsset>("JsonData/EventDataBase");
+        TextAsset eventChoiceDataJson = Resources.Load<TextAsset>("JsonData/EventChoiceDataBase");
 
         if (eventDataJson == null || eventChoiceDataJson == null)
         {
-            Debug.LogError("EventDataLoader: Resources/EventDataBase/ 경로에 Json 파일이 없습니다.");
+            Debug.LogError("EventDataLoader: Resources/JsonData/ 경로에 Json 파일이 없습니다.");
             return;
         }
 
