@@ -10,6 +10,7 @@ public class StoreManager
         StoreItemDataLoader.Load();
     }
 
+    //기력 사기 아이템 3개 반환
     public static List<StoreItemData> GetRandomEnergyMoraleItems()
     {
         var candidates = storeItems.FindAll(item =>
@@ -66,7 +67,6 @@ public class StoreManager
     //등장 확률
     private static List<StoreItemData> GetWeightedRandomItemsByRarity(List<StoreItemData> candidates, int count)
     {
-        // 등장 가능한 희귀도 종류 추출
         var groupedByRarity = new Dictionary<int, List<StoreItemData>>();
         foreach (var item in candidates)
         {
@@ -76,38 +76,37 @@ public class StoreManager
             groupedByRarity[item.rarity].Add(item);
         }
 
-        // 희귀도 확률 정의
         Dictionary<int, float> baseRates = new()
     {
         {5, 5f}, {4, 10f}, {3, 15f}, {2, 20f}
     };
 
-        // 등장 희귀도 기준으로 확률 재조정
-        float totalRate = 0;
-        Dictionary<int, float> finalRates = new();
-        foreach (var rarity in groupedByRarity.Keys)
-        {
-            if (baseRates.ContainsKey(rarity))
-            {
-                finalRates[rarity] = baseRates[rarity];
-                totalRate += baseRates[rarity];
-            }
-        }
-
-        // 나머지 확률은 rarity 1에 부여
-        if (groupedByRarity.ContainsKey(1))
-        {
-            finalRates[1] = 100f - totalRate;
-        }
-
-        // 무작위 추출
         List<StoreItemData> result = new();
+
         for (int i = 0; i < count; i++)
         {
+            float totalRate = 0f;
+            Dictionary<int, float> currentRates = new();
+
+            // 현재 남아있는 rarity 기준으로 확률 계산
+            foreach (var kv in groupedByRarity)
+            {
+                if (kv.Value.Count > 0 && baseRates.ContainsKey(kv.Key))
+                {
+                    currentRates[kv.Key] = baseRates[kv.Key];
+                    totalRate += baseRates[kv.Key];
+                }
+            }
+
+            if (groupedByRarity.ContainsKey(1) && groupedByRarity[1].Count > 0)
+            {
+                currentRates[1] = 100f - totalRate;
+            }
+
             float rand = Random.Range(0f, 100f);
             float acc = 0f;
 
-            foreach (var kv in finalRates)
+            foreach (var kv in currentRates)
             {
                 acc += kv.Value;
                 if (rand <= acc)
@@ -117,13 +116,20 @@ public class StoreManager
 
                     int idx = Random.Range(0, pool.Count);
                     result.Add(pool[idx]);
-                    pool.RemoveAt(idx);
-                    break;
+                    break; // 중요: 선택 후 루프 탈출
                 }
             }
         }
 
         return result;
     }
+
+
+    // 두 값 사이 무작위 값 반환
+    public static float GetRandomBetweenValue(float min, float max)
+    {
+        return UnityEngine.Random.Range(min, max);
+    }
+
 
 }

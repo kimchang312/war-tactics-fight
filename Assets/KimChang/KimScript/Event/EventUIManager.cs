@@ -19,6 +19,9 @@ public class EventUIManager : MonoBehaviour
 
     private void Awake()
     {
+        SaveData save = new();
+        save.LoadData();
+
         ResetUI();
         EventManager.LoadEventData();
         gameObject.SetActive(false);
@@ -27,22 +30,24 @@ public class EventUIManager : MonoBehaviour
     {
         ResetUI();
         RogueLikeData.Instance.SetSelectedUnits(null);
+
         EventData eventData = EventManager.GetRandomEvent();
         List<EventChoiceData> eventChoiceDatas = new List<EventChoiceData>();
 
-        foreach(int choiceId in eventData.choiceIds)
+        foreach (int choiceId in eventData.choiceIds)
         {
             if (EventDataLoader.EventChoiceDataDict.TryGetValue(choiceId, out var choiceData))
             {
                 eventChoiceDatas.Add(choiceData);
             }
         }
-        Sprite sprite = Resources.Load<Sprite>($"EventImages/Event{eventData.eventId}");
-        eventImage.sprite = sprite;
+
+        // 이벤트 이미지 캐싱 로드
+        eventImage.sprite = SpriteCacheManager.GetSprite($"EventImages/Event{eventData.eventId}");
+
         eventNameText.text = eventData.eventName;
         eventDescriptionText.text = eventData.description;
 
-        // 버튼 초기화
         for (int i = 0; i < choiceBtns.childCount; i++)
         {
             GameObject child = choiceBtns.transform.GetChild(i).gameObject;
@@ -50,16 +55,14 @@ public class EventUIManager : MonoBehaviour
             if (i < eventChoiceDatas.Count)
             {
                 child.SetActive(true);
-                // 버튼에 선택지 내용 연결
-                child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText; 
+                child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText;
+
                 Button btn = child.GetComponent<Button>();
                 btn.onClick.RemoveAllListeners();
-                if (EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i]))
-                {
-                    btn.interactable = true; 
-                }
-                else btn.interactable = false;
-                int index = i; // 캡처용 안전한 복사
+
+                btn.interactable = EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i]);
+
+                int index = i;
                 btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[index]));
             }
             else
@@ -67,8 +70,8 @@ public class EventUIManager : MonoBehaviour
                 child.SetActive(false);
             }
         }
-
     }
+
     //선택지 버튼 눌렀을때 실행
     private void HandleChoice(EventChoiceData choiceData)
     {

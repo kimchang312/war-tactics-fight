@@ -986,7 +986,7 @@ public class EventManager
 
         return UnityEngine.Random.value < winChance;
     }
-    private static (int min, int max) ParseRange(string countStr)
+    public static (int min, int max) ParseRange(string countStr)
     {
         if (string.IsNullOrEmpty(countStr))
             return (int.MinValue, int.MaxValue);
