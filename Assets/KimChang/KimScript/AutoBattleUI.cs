@@ -249,16 +249,17 @@ public class AutoBattleUI : MonoBehaviour
     //원거리 유닛 생성
     private void CreateRangeUnit(int rangeUnitCount, Vector3 position, GameObject number, bool isMyTeam)
     {
-        float size = 200;
+        float size = 200f;
         string myTeam = isMyTeam ? "My" : "Enemy";
+
         Image numberImg = number.GetComponent<Image>();
 
         if (rangeUnitCount == 0)
         {
-            numberImg.color = new Color(255, 255, 255, 0);
+            numberImg.color = new Color(1, 1, 1, 0); // 0~1 범위로 수정
             return;
         }
-        numberImg.color = new Color(255, 255, 255, 255);
+        numberImg.color = new Color(1, 1, 1, 1);
 
         GameObject unit = objectPool.GetBattleUnit();
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
@@ -266,120 +267,103 @@ public class AutoBattleUI : MonoBehaviour
         rectTransform.anchoredPosition = position;
 
         // 이미지 설정 & 투명도 정상화
-        Sprite sprite = Resources.Load<Sprite>($"KIcon/AbilityIcon/rangedAttack");
         Image img = unit.GetComponent<Image>();
-        Color originalColor = img.color;
-        img.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f);
-        img.sprite = sprite;
+        img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
+        img.sprite = SpriteCacheManager.GetSprite("KIcon/AbilityIcon/rangedAttack");
 
-        //자식 관리
+        // 자식 유닛 이미지 설정
         Transform childUnit = unit.transform.GetChild(0);
-        RectTransform childReckTransform = childUnit.GetComponent<RectTransform>();
+        RectTransform childRectTransform = childUnit.GetComponent<RectTransform>();
         Image childImg = childUnit.GetComponent<Image>();
+        childRectTransform.sizeDelta = new Vector2(size, size);
+        childImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}SecondUnit");
 
-        childReckTransform.sizeDelta = new Vector2(size, size);
-        Sprite childSprite = Resources.Load<Sprite>($"KIcon/UI_{myTeam}SecondUnit");
-        childImg.sprite = childSprite;
+        // 숫자 이미지 설정
+        numberImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}X{rangeUnitCount}");
 
-        //숫자 관리
-        Sprite numberSprite = Resources.Load<Sprite>($"KIcon/UI_{myTeam}X{rangeUnitCount}");
-        numberImg.sprite = numberSprite;
+        // 숫자 이미지를 가장 뒤로
+        number.transform.SetSiblingIndex(number.transform.parent.childCount - 1);
 
-        //숫자 이미지 뒤로
-        int siblingCount = number.transform.parent.childCount;
-        number.transform.SetSiblingIndex(siblingCount - 1);
-
-        //유닛 이름 변경
+        // 유닛 이름 설정
         unit.name = $"{myTeam}RangeUnit";
     }
 
     //유닛 이미지 생성
     private void CreateUnitImages(List<RogueUnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
     {
-        for (int i = 0; i < units.Count ; i++)
+        for (int i = 0; i < units.Count; i++)
         {
+            if (units[i].health <= 0)
+                continue;
+
             string unitTeam = isMyUnit ? "My" : "Enemy";
-            if (units[i].health > 0)
+
+            GameObject unitImage = objectPool.GetBattleUnit();
+            Transform childUnit = unitImage.transform.GetChild(0);
+            RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
+            RectTransform childRectTransform = childUnit.GetComponent<RectTransform>();
+            Image unitFrame = childUnit.GetComponent<Image>();
+
+            // 위치 설정
+            if (i < positions.Length)
             {
-                GameObject unitImage = objectPool.GetBattleUnit();
-                Transform childUnit = unitImage.transform.GetChild(0);
-                RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
-                RectTransform childRectTrasform = childUnit.GetComponent<RectTransform>();
-                Image unitFrame = childUnit.GetComponent<Image>();
-
-                // 위치와 크기 설정
-                if (i < positions.Length)
+                rectTransform.anchoredPosition = positions[i];
+                unitTeam += i switch
                 {
-                    rectTransform.anchoredPosition = positions[i];
-                    switch (i)
-                    {
-                        case 0:
-                            unitTeam += "FirstUnit";
-                            break;
-                        case 1:
-                            unitTeam += "SecondUnit";
-                            break;
-                        case 2:
-                            unitTeam += "BackUnit";
-                            break;
-                    }
-
-                }
-                else
-                {
-                    float offsetX = isMyUnit ? -unitInterval : unitInterval;
-                    rectTransform.anchoredPosition = new Vector3(positions[2].x + offsetX * (i - positions.Length + 1), positions[2].y);
-
-                    unitTeam += "BackUnit";
-                }
-                //크기 설정
-                rectTransform.sizeDelta = i == 0 ? new Vector2(firstSize - 10, firstSize - 10) : new Vector2(secondSize - 10, secondSize - 10);
-                childRectTrasform.sizeDelta = i == 0 ? new Vector2(firstSize, firstSize) : new Vector2(secondSize, secondSize);
-
-                // 이미지 설정 & 투명도 정상화
-                Sprite sprite = Resources.Load<Sprite>($"UnitImages/{units[i].unitImg}");
-                Image img = unitImage.GetComponent<Image>();
-                Color originalColor = img.color;
-                img.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f); 
-                img.sprite = sprite;
-
-                //유닛 테두리 설정
-                Sprite frameSprite = Resources.Load<Sprite>($"KIcon/UI_{unitTeam}");
-                //활성화
-                unitFrame.sprite = frameSprite;
-
-                //유닛 이름 설정
-                unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
+                    0 => "FirstUnit",
+                    1 => "SecondUnit",
+                    _ => "BackUnit"
+                };
             }
-            
+            else
+            {
+                float offsetX = isMyUnit ? -unitInterval : unitInterval;
+                rectTransform.anchoredPosition = new Vector3(
+                    positions[2].x + offsetX * (i - positions.Length + 1),
+                    positions[2].y
+                );
+                unitTeam += "BackUnit";
+            }
 
+            // 크기 설정
+            Vector2 outerSize = i == 0 ? new Vector2(firstSize - 10, firstSize - 10) : new Vector2(secondSize - 10, secondSize - 10);
+            Vector2 innerSize = i == 0 ? new Vector2(firstSize, firstSize) : new Vector2(secondSize, secondSize);
+            rectTransform.sizeDelta = outerSize;
+            childRectTransform.sizeDelta = innerSize;
+
+            // 유닛 본체 이미지 설정
+            Image img = unitImage.GetComponent<Image>();
+            img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
+            img.sprite = SpriteCacheManager.GetSprite($"UnitImages/{units[i].unitImg}");
+
+            // 유닛 테두리 프레임 이미지 설정
+            unitFrame.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{unitTeam}");
+
+            // 유닛 이름 설정
+            unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
         }
 
-        // 회피율 UI 업데이트
+        // 회피율 UI 설정
         if (isMyUnit)
         {
             _myDodge.text = $"회피율: {dodge}%";
-            //myAbility.text = ability;
         }
         else
         {
             _enemyDodge.text = $"회피율: {dodge}%";
-            //enemyAbility.text = ability;
         }
     }
 
     // 능력치 아이콘 생성
     private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
-        float posY = -103;
-        float myTeamPosX = -280;
-        float enemyTeamPosX = 88;
-        float interval = 62;
+        float posY = -103f;
+        float myTeamPosX = -280f;
+        float enemyTeamPosX = 88f;
+        float interval = 62f;
 
-        // 팀에 따라 포지션 설정
         float teamPosX = isTeam ? myTeamPosX : enemyTeamPosX;
 
-        // 유닛의 불리언 속성 가져오기
         var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool))
             .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
@@ -388,45 +372,34 @@ public class AutoBattleUI : MonoBehaviour
 
         foreach (var attr in boolAttributes)
         {
-            if (attr.Value)
+            if (!attr.Value || attr.Name == "rangedAttack" || attr.Name == "alive")
+                continue;
+
+            GameObject iconImage = objectPool.GetAbility();
+            RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
+
+            rectTransform.anchoredPosition = new Vector2(teamPosX + (i * interval), posY);
+            rectTransform.localScale = Vector3.one;
+
+            // 캐싱된 스프라이트 적용
+            Image img = iconImage.GetComponent<Image>();
+            img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
+
+            // 이름 설정
+            iconImage.name = attr.Name == "defense"
+                ? "126"
+                : GameTextData.GetIdxFromString(attr.Name)?.ToString() ?? attr.Name;
+
+            // 설명 컴포넌트가 없다면 추가
+            if (iconImage.GetComponent<ExplainAbility>() == null)
             {
-                // 원거리 특성 제외
-                if (attr.Name != "rangedAttack" && attr.Name !="alive")
-                {
-                    GameObject iconImage = objectPool.GetAbility();
-                    
-                    RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
-
-                    // 팀에 따라 위치 설정
-                    rectTransform.anchoredPosition = new Vector2(teamPosX + (i * interval), posY);
-
-                    // 크기 초기화
-                    rectTransform.localScale = Vector3.one;
-
-                    // 이미지 설정
-                    Sprite sprite = Resources.Load<Sprite>($"KIcon/AbilityIcon/{attr.Name}");
-                    Image img = iconImage.GetComponent<Image>();
-                    img.sprite = sprite;
-
-                    // 이름 설정
-                    if (attr.Name== "defense")
-                    {
-                        iconImage.name = "126";
-                    }
-                    else
-                    {
-                        int? idx = GameTextData.GetIdxFromString(attr.Name);
-                        iconImage.name = idx.HasValue ? $"{idx}" : attr.Name;
-                    }
-                    
-                    //코드 추가
-                    explainAbility = iconImage.AddComponent<ExplainAbility>();
-
-                    i++;
-                }
+                iconImage.AddComponent<ExplainAbility>();
             }
+
+            i++;
         }
     }
+
 
     //능력치 아이콘 제거
     private void ClearExistingAbilityIcons()
@@ -550,12 +523,15 @@ public class AutoBattleUI : MonoBehaviour
     }
 
     //이미지 변경
-    private void ChangeStaticImage(Image img,TextMeshProUGUI textUI,string max,string text,int idx)
+    private void ChangeStaticImage(Image img, TextMeshProUGUI textUI, string max, string text, int idx)
     {
-        Sprite sprite = Resources.Load<Sprite>($"UnitImages/Unit_Img_{idx}");
-        img.sprite = sprite;
+        // 캐싱된 스프라이트 사용
+        img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{idx}");
+
+        // 텍스트 변경
         textUI.text = $"{max}\n{text}";
     }
+
 
     //통계창 온오프
     private void ToggleStaticsWindow()
@@ -574,30 +550,37 @@ public class AutoBattleUI : MonoBehaviour
 
         if (warRelics == null || warRelics.Count == 0)
             return;
+
         float startX = -900f;
         float startY = 350f;
         float spacingX = 100f;
 
         for (int i = 0; i < warRelics.Count; i++)
         {
-            GameObject relicObject = objectPool.GetWarRelic(); // ObjectPool에서 유물 오브젝트 가져오기
+            GameObject relicObject = objectPool.GetWarRelic(); // 풀링된 유물 오브젝트
 
-            Sprite sprite = Resources.Load<Sprite>($"KIcon/WarRelic/{warRelics[i].id}");
-            Image relicImg= relicObject.GetComponent<Image>();
-            relicImg.sprite = sprite;
+            // 캐싱된 스프라이트 설정
+            Image relicImg = relicObject.GetComponent<Image>();
+            relicImg.sprite = SpriteCacheManager.GetSprite($"KIcon/WarRelic/{warRelics[i].id}");
 
+            // 위치 설정
             RectTransform relicTransform = relicObject.GetComponent<RectTransform>();
-            
-            relicTransform.anchoredPosition = new Vector2(startX+(spacingX*i), startY);
+            relicTransform.anchoredPosition = new Vector2(startX + (spacingX * i), startY);
 
+            // 이름 설정
             relicObject.name = $"{warRelics[i].id}";
 
             // 부모 설정
             relicObject.transform.SetParent(relicBox.transform, false);
 
-            explainRelic = relicObject.AddComponent<ExplainRelic>();
+            // 설명 컴포넌트 중복 방지
+            if (relicObject.GetComponent<ExplainRelic>() == null)
+            {
+                relicObject.AddComponent<ExplainRelic>();
+            }
         }
     }
+
 
     // 입력 완료 시 처리
     private void OnEndEdit(string input)

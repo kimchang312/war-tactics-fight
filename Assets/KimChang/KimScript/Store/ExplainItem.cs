@@ -1,41 +1,47 @@
 using TMPro;
-using UnityEngine.EventSystems;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections;
 
-public class ExplainRelic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private GameObject RelicToolTip;
+    [SerializeField] private GameObject ItemToolTip;
     private Coroutine hideCoroutine;
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // 비활성화 예약된 코루틴이 있다면 중지
+        // 비활성화 예약된 코루틴 중지
         if (hideCoroutine != null)
         {
             StopCoroutine(hideCoroutine);
             hideCoroutine = null;
         }
 
-        if (RelicToolTip == null)
+        if (ItemToolTip == null)
         {
-            RelicToolTip = FindInactiveObject("RelicToolTip");
-            if (RelicToolTip == null)
+            ItemToolTip = FindInactiveObject("ItemToolTip");
+            if (ItemToolTip == null)
             {
-                Debug.LogError("RelicToolTip object not found in the scene.");
+                Debug.LogError("ItemToolTip object not found in the scene.");
                 return;
             }
         }
 
         if (int.TryParse(gameObject.name, out int id))
         {
-            var relic = WarRelicDatabase.GetRelicById(id);
-            (string name, string description) = (relic.name, relic.tooltip);
+            var itemList = StoreItemDataLoader.Load();
+            if (id < 0 || id >= itemList.Count)
+            {
+                Debug.LogWarning($"Item ID {id} is out of range.");
+                return;
+            }
 
-            if (!RelicToolTip.activeSelf)
-                RelicToolTip.SetActive(true);
+            string name = itemList[id].itemName;
 
-            RectTransform tooltipRect = RelicToolTip.GetComponent<RectTransform>();
+            if (!ItemToolTip.activeSelf)
+                ItemToolTip.SetActive(true);
+
+            RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
             Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 canvas.transform as RectTransform,
@@ -47,11 +53,11 @@ public class ExplainRelic : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             Vector2 offset = new Vector2(110, -110);
             tooltipRect.anchoredPosition = mousePosition + offset;
 
-            TextMeshProUGUI textComponent = RelicToolTip.transform.GetChild(RelicToolTip.transform.childCount - 1)
+            TextMeshProUGUI textComponent = ItemToolTip.transform.GetChild(ItemToolTip.transform.childCount - 1)
                 .GetComponent<TextMeshProUGUI>();
-            textComponent.text = $"{name}\n{description}";
+            textComponent.text = name;
 
-            RelicToolTip.transform.SetAsLastSibling();
+            ItemToolTip.transform.SetAsLastSibling();
         }
         else
         {
@@ -61,9 +67,8 @@ public class ExplainRelic : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (RelicToolTip != null && RelicToolTip.activeSelf)
+        if (ItemToolTip != null && ItemToolTip.activeSelf)
         {
-            // 0.5초 후 비활성화하는 코루틴 시작
             hideCoroutine = StartCoroutine(DelayedHide());
         }
     }
@@ -71,9 +76,9 @@ public class ExplainRelic : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     private IEnumerator DelayedHide()
     {
         yield return new WaitForSeconds(0.5f);
-        if (RelicToolTip != null)
+        if (ItemToolTip != null)
         {
-            RelicToolTip.SetActive(false);
+            ItemToolTip.SetActive(false);
         }
         hideCoroutine = null;
     }

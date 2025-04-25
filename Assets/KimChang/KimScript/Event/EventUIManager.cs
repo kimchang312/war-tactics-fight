@@ -12,37 +12,42 @@ public class EventUIManager : MonoBehaviour
     [SerializeField] private Transform choiceBtns;             //선택지 버튼 부모
     [SerializeField] private Button leaveBtn;                   //떠나기
 
-    [SerializeField] private GameObject selectUnitWindow;       //유닛 선택 창
-    [SerializeField] private GameObject selectUnitParent;       //유닛이 배치되는 곳
+    [SerializeField] private UnitSelectUI unitSelectUI;       //유닛 선택 창
+
     [SerializeField] private TextMeshProUGUI selectTitle;       //선택창 글자
     [SerializeField] private ObjectPool objectPool;
 
-    [SerializeField] private List<RogueUnitDataBase> selectedUnits;
-
     private void Awake()
     {
+        SaveData save = new();
+        save.LoadData();
+
         ResetUI();
         EventManager.LoadEventData();
+        gameObject.SetActive(false);
     }
     private void OnEnable()
     {
         ResetUI();
-        selectedUnits.Clear();
+        RogueLikeData.Instance.SetSelectedUnits(null);
+
         EventData eventData = EventManager.GetRandomEvent();
         List<EventChoiceData> eventChoiceDatas = new List<EventChoiceData>();
-        foreach(int choiceId in eventData.choiceIds)
+
+        foreach (int choiceId in eventData.choiceIds)
         {
             if (EventDataLoader.EventChoiceDataDict.TryGetValue(choiceId, out var choiceData))
             {
                 eventChoiceDatas.Add(choiceData);
             }
         }
-        Sprite sprite = Resources.Load<Sprite>($"EventImages/Event{eventData.eventId}");
-        eventImage.sprite = sprite;
+
+        // 이벤트 이미지 캐싱 로드
+        eventImage.sprite = SpriteCacheManager.GetSprite($"EventImages/Event{eventData.eventId}");
+
         eventNameText.text = eventData.eventName;
         eventDescriptionText.text = eventData.description;
 
-        // 버튼 초기화
         for (int i = 0; i < choiceBtns.childCount; i++)
         {
             GameObject child = choiceBtns.transform.GetChild(i).gameObject;
@@ -50,45 +55,50 @@ public class EventUIManager : MonoBehaviour
             if (i < eventChoiceDatas.Count)
             {
                 child.SetActive(true);
-                // 버튼에 선택지 내용 연결
-                child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText; 
+                child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText;
+
                 Button btn = child.GetComponent<Button>();
                 btn.onClick.RemoveAllListeners();
-                if (EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i])){
-                    Debug.Log("활성화");
-                    btn.interactable = true; }
-                else btn.interactable = false;
-                btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[i]));
+
+                btn.interactable = EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i]);
+
+                int index = i;
+                btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[index]));
             }
             else
             {
                 child.SetActive(false);
             }
         }
-
     }
+
     //선택지 버튼 눌렀을때 실행
     private void HandleChoice(EventChoiceData choiceData)
     {
+        List<RogueUnitDataBase> selectedUnits = new();
         //만약 유닛 선택이 있다면 유닛 선택 창 띄우기
         if (choiceData.requireForm.Contains(RequireForm.Select))
         {
             int index = choiceData.requireForm.IndexOf(RequireForm.Select);
             int count = int.TryParse(choiceData.requireCount[index], out var parsed) ? parsed : 0;
-            if (selectedUnits.Count < count) 
+            selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+            if (selectedUnits==null || selectedUnits.Count < count)
             {
                 OpenSelectdUnit(choiceData);
                 return;
             }
-        }
-        string resultText = EventManager.ApplyChoiceResult(choiceData,selectedUnits);
 
+        }
+        EventManager.ReduceRequire(choiceData);
+        string resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
+        eventDescriptionText.text = resultText;
         ResetButtonUI();
+        //이벤트 추가
+        RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);
         leaveBtn.gameObject.SetActive(true);
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)
     {
-        selectUnitWindow.SetActive(true);
         List<RogueUnitDataBase> myUnits =RogueLikeData.Instance.GetMyUnits();
         List<RogueUnitDataBase> selectUnits = new();
         for(int i =0; i< choiceData.requireForm.Count; i++)
@@ -118,35 +128,15 @@ public class EventUIManager : MonoBehaviour
                     break;
             }
         }
-
-        foreach(var unit in selectUnits)
-        {
-            GameObject selectedUnit = objectPool.GetSelectUnit();
-            Image img = selectedUnit.GetComponent<Image>();
-            Sprite sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");
-            img.sprite = sprite;
-            Image energy = selectedUnit.GetComponentInChildren<Image>();
-            energy.fillAmount = unit.energy/unit.maxEnergy;
-            TextMeshProUGUI textMeshProUGUI = selectedUnit.GetComponentInChildren<TextMeshProUGUI>();
-            textMeshProUGUI.text = $"{unit.energy}/{unit.maxEnergy}";
-            selectedUnit.transform.SetParent(selectUnitParent.transform, false);
-            Button btn  = selectedUnit.GetComponent<Button>();
-            btn.onClick.AddListener(()=>AddSelectedUnits(unit,choiceData));
-        }
-    }
-
-    private void AddSelectedUnits(RogueUnitDataBase unit,EventChoiceData choiceData)
-    {
-        selectedUnits.Add(unit);
-        selectUnitWindow.SetActive(false);
-        HandleChoice(choiceData);
+        unitSelectUI.gameObject.SetActive(true);
+        unitSelectUI.OpenSelectUnitWindow(()=>HandleChoice(choiceData),selectUnits);
     }
 
     //전체 초기화
     private void ResetUI()
     {
         ResetButtonUI();
-        selectUnitWindow.SetActive(false);
+        unitSelectUI.gameObject.SetActive(false);
         leaveBtn.onClick.AddListener(ClickLeaveBtn);
         leaveBtn.gameObject.SetActive(false);
     }

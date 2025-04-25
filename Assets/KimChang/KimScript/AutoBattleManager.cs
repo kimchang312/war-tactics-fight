@@ -498,9 +498,6 @@ public class AutoBattleManager : MonoBehaviour
             //점수 표기
             ManageScore(result);
 
-            //통계 표시 
-            //UnitCombatStatics.ProcessBattleStatics(unitStats,autoBattleUI);
-
             //ui마지막 업데이트
             //유닛 숫자 UI 최신화
             UpdateUnitCount();
@@ -511,6 +508,11 @@ public class AutoBattleManager : MonoBehaviour
             //유닛 데이터 저장
             SaveData saveData = new SaveData();
             saveData.SaveDataBattaleEnd(myUnits,myDeathUnits);
+
+            //필드 초기화
+            RogueLikeData.Instance.SetFieldId(0);
+            //버프 디버프 초기화
+            RogueLikeData.Instance.ClearBuffDeBuff();
 
             return true;
         }
