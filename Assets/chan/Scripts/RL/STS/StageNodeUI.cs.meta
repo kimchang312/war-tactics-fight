@@ -3,7 +3,14 @@ guid: 54a2f21274f600548ada75c95e5ebecf
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - combatSprite: {fileID: 21300000, guid: 96d945bda8ec28847afd35adcb43155f, type: 3}
+  - eliteSprite: {fileID: 21300000, guid: d84a732c274ae7545a7e4ef9522fee15, type: 3}
+  - eventSprite: {fileID: 21300000, guid: 305d2e68307c9be488f55a386a790ef2, type: 3}
+  - shopSprite: {fileID: 21300000, guid: 7a4ce002793baf642ad9e17553b5afb7, type: 3}
+  - restSprite: {fileID: 21300000, guid: 6fb202f58e4699d4a934634fd685d8c9, type: 3}
+  - treasureSprite: {fileID: 21300000, guid: 61513b3cb2b831e4396809055f9c0258, type: 3}
+  - bossSprite: {fileID: 21300000, guid: 2139a6f952b6bfd40b7117a7697b0afb, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
