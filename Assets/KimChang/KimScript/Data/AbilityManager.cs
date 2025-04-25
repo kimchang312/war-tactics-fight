@@ -1,13 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.Rendering;
 using UnityEngine;
-using static RogueLikeData;
-using static UnityEngine.UIElements.UxmlAttributeDescription;
 using Random = UnityEngine.Random;
 
 public class AbilityManager
@@ -46,7 +41,7 @@ public class AbilityManager
         int morale = RogueLikeData.Instance.GetMorale();
         switch (type) 
         {
-            case StageType.Battle:
+            case StageType.Combat:
                 ReduceUnitEngery();
                 break;
             case StageType.Elite:
@@ -60,7 +55,7 @@ public class AbilityManager
                 break;
             case StageType.Unknown:
                 break;
-            case StageType.Chest:
+            case StageType.Treasure:
                 break;
             case StageType.Shop:
                 if (RelicManager.CheckRelicById(40))
@@ -76,6 +71,65 @@ public class AbilityManager
                 break;
         }
     }
+    //현재 맵에 따른 효과
+    private void CalculateFieldEffect()
+    {
+        int fieldId = RogueLikeData.Instance.GetFieldId();
+        switch (fieldId) 
+        {
+            case 0:
+                Debug.Log("필드 버그");
+                break;
+            case 2:
+                {
+                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+                    foreach (var unit in myUnits)
+                    {
+                        unit.armor++;
+                    }
+                    foreach (var unit in enemyUnits)
+                    {
+                        unit.armor++;
+                    }
+                    break;
+                }
+                
+            case 3:
+                {
+                    int id = 9, type = 1, rank = 1, duration = -1;
+                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+                    foreach(var unit in myUnits)
+                    {
+                        unit.mobility = Math.Max(1,unit.mobility-2);
+                        unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
+                    }
+                    foreach(var unit in enemyUnits)
+                    {
+                        unit.mobility = Math.Max(1, unit.mobility - 2);
+                        unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
+                    }
+                    break;
+                }
+            case 4:
+                {
+                    int id = 10, type = 0, rank = 1, duration = -1;
+                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+                    foreach (var unit in myUnits)
+                    {
+                        if (unit.lightArmor) unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
+                        if (unit.rangedAttack) unit.attackDamage -= 0.1f * unit.baseAttackDamage; 
+                    }
+                    break;
+                }
+                
+        }
+
+
+    }
+
     //유닛 기력 감소
     private void ReduceUnitEngery()
     {
@@ -689,7 +743,9 @@ public class AbilityManager
             { 2, () => addDodge += 15 },
             { 4, () => addDodge += 5 },
             { 5, () => mulityDodge *= 2 },
-            { 6, () => addDodge += 5 }
+            { 6, () => addDodge += 5 },
+            { 9, () => addDodge -=5 },
+            { 10,() => addDodge +=5 },
         };
         //폭풍의 창
         CalculateSpearOfStormDodge(unit, isTeam,isFirstAttack);
@@ -1553,7 +1609,7 @@ public class AbilityManager
         //유산 33
         if(RelicManager.CheckRelicById(33)) addMorale = (int)(addMorale * 1.2);
         if (deadEnemyUnits.Count == 0) addMorale += 10; 
-        if(stageType == StageType.Battle)
+        if(stageType == StageType.Combat)
         {
             addMorale += 15;
         }
@@ -1570,6 +1626,7 @@ public class AbilityManager
         morale += addMorale;
         RogueLikeData.Instance.SetMorale(morale);
     }
+
     //후열 타격
     private RogueUnitDataBase CalculateBackAttack(List<RogueUnitDataBase> defenders)
     {

@@ -1,17 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine;
+using System.Collections;
 
 public class ExplainRelic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    // 연결된 RelicToolTip 오브젝트
     [SerializeField] private GameObject RelicToolTip;
+    private Coroutine hideCoroutine;
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // RelicToolTip 연결되어 있는지 확인
+        // 비활성화 예약된 코루틴이 있다면 중지
+        if (hideCoroutine != null)
+        {
+            StopCoroutine(hideCoroutine);
+            hideCoroutine = null;
+        }
+
         if (RelicToolTip == null)
         {
             RelicToolTip = FindInactiveObject("RelicToolTip");
@@ -21,40 +26,31 @@ public class ExplainRelic : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
                 return;
             }
         }
-        
-        // 오브젝트 이름을 숫자로 파싱
+
         if (int.TryParse(gameObject.name, out int id))
         {
-            // GameTextData에서 유물 가져오기
-            var relic = WarRelicDatabase.GetRelicById(id); // 기본 언어 (예: 한국어)
-            (string name,string description) = (relic.name, relic.tooltip);
+            var relic = WarRelicDatabase.GetRelicById(id);
+            (string name, string description) = (relic.name, relic.tooltip);
 
-            // RelicToolTip 활성화 및 위치 업데이트
             if (!RelicToolTip.activeSelf)
-            {
                 RelicToolTip.SetActive(true);
-            }
 
-            // 마우스 위치로 RelicToolTip 이동
             RectTransform tooltipRect = RelicToolTip.GetComponent<RectTransform>();
             Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
-            Vector2 mousePosition;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 canvas.transform as RectTransform,
                 Input.mousePosition,
                 canvas.worldCamera,
-                out mousePosition
+                out var mousePosition
             );
-            // 마우스 기준 오프셋 적용
-            Vector2 offset = new Vector2(110, -60); // 오른쪽으로 10px, 아래로 10px 이동
+
+            Vector2 offset = new Vector2(110, -110);
             tooltipRect.anchoredPosition = mousePosition + offset;
 
-            // RelicToolTip 마지막 자식의 텍스트 설정
             TextMeshProUGUI textComponent = RelicToolTip.transform.GetChild(RelicToolTip.transform.childCount - 1)
                 .GetComponent<TextMeshProUGUI>();
             textComponent.text = $"{name}\n{description}";
 
-            // RelicToolTip Canvas의 가장 앞으로 이동
             RelicToolTip.transform.SetAsLastSibling();
         }
         else
@@ -65,11 +61,21 @@ public class ExplainRelic : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        // RelicToolTip 비활성화
         if (RelicToolTip != null && RelicToolTip.activeSelf)
+        {
+            // 0.5초 후 비활성화하는 코루틴 시작
+            hideCoroutine = StartCoroutine(DelayedHide());
+        }
+    }
+
+    private IEnumerator DelayedHide()
+    {
+        yield return new WaitForSeconds(0.5f);
+        if (RelicToolTip != null)
         {
             RelicToolTip.SetActive(false);
         }
+        hideCoroutine = null;
     }
 
     private GameObject FindInactiveObject(string name)
@@ -78,10 +84,8 @@ public class ExplainRelic : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         foreach (var t in allTransforms)
         {
             if (t.name == name && t.gameObject.hideFlags == HideFlags.None)
-            {
                 return t.gameObject;
-            }
         }
-        return null; // 찾지 못한 경우
+        return null;
     }
 }
