@@ -33,10 +33,12 @@ public class StoreUI : MonoBehaviour
     private void ShowUnitUI()
     {
         var items = StoreManager.GetRandomUnitItems();
+        int price = 0;
         for (int i = 0; i < items.Count; i++)
         {
             List<RogueUnitDataBase> units = new();
             List<int> rows = new();
+            Transform child = unitParent.GetChild(i);
             if (items[i].form == "Rarity")
             {
                 var (min, max) = EventManager.ParseRange(items[i].value);
@@ -84,10 +86,18 @@ public class StoreUI : MonoBehaviour
 
             foreach (int row in rows)
             {
-                units.Add(RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(row)));
+                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(row));
+                unit.energy = (int)((unit.energy * items[i].price) * 0.01f);
+                price += unit.unitPrice;
+
+                units.Add(unit);
 
             }
-
+            price = (int)(price*StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
+            Button btn = child.GetComponent<Button>();
+            BtnIteractable(btn, price);
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() => PurchaseUnitPackage(units, price));
 
         }
     }
@@ -126,19 +136,20 @@ public class StoreUI : MonoBehaviour
 
             // 가격 표시
             TextMeshProUGUI costText = child.GetChild(0).GetComponent<TextMeshProUGUI>();
-            float cost =(int)(items[i].price * StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
+            int cost =(int)(items[i].price * StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
             costText.text = $"{cost}";
 
             Button btn = child.GetComponent<Button>();
-            int gold = RogueLikeData.Instance.GetCurrentGold();
-            if(gold < cost) btn.interactable = false;
-            else btn.interactable = true;
+            BtnIteractable(btn, cost);
 
             child.name = $"{relicId}";
             //눌렀을때 유산id값을 바탕으로 구매 & 내 골드 감소
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(()=>PurchaseRelic(relicId,cost));
 
         }
     }
+
 
 
     private void ShowItemUI()
@@ -177,12 +188,34 @@ public class StoreUI : MonoBehaviour
         costText.text = $"{cost}";
 
         Button btn = child.GetComponent<Button>();
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        if (gold < cost) btn.interactable = false;
-        else btn.interactable = true;
+        BtnIteractable(btn, cost);
 
         child.name = $"{item.itemId}";
         //눌렀을때 유산id값을 바탕으로 구매 & 내 골드 감소
+        btn.onClick.AddListener(()=>PurChaseItem(item,cost));
+
     }
 
+    private void BtnIteractable(Button btn,int price)
+    {
+        int gold = RogueLikeData.Instance.GetCurrentGold();
+        if(gold < price) btn.interactable = false;
+        else btn.interactable = true;
+    }
+    private void PurchaseUnitPackage(List<RogueUnitDataBase> units, int price)
+    {
+
+    }
+
+    private void PurchaseRelic(int relicId, int price)
+    {
+
+    }
+
+    private void PurChaseItem(StoreItemData item, int price)
+    {
+
+
+
+    }
 }
