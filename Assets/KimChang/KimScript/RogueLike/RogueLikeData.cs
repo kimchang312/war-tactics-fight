@@ -47,6 +47,7 @@ public class RogueLikeData
     //다음 전투 추가 보상
     private BattleRewardData battleReward = new();
 
+    private int rerollChance = 0;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -474,6 +475,15 @@ public class RogueLikeData
         {
             unit.effectDictionary.Clear();
         }
+    }
+
+    public int GetRerollChance()
+    {
+        return rerollChance;
+    }
+    public void SetRerollChance(int reroll)
+    {
+        rerollChance = reroll;
     }
 
 }
