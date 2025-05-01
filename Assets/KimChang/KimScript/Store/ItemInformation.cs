@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ItemInformation : MonoBehaviour
 {
-    public int itemId=-1;
+    public StoreItemData item;
     public int price;
     public List<RogueUnitDataBase> units = null;
     public int relicId =-1;

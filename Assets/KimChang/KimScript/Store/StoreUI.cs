@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Progress;
 
 public class StoreUI : MonoBehaviour
 {
@@ -14,13 +12,8 @@ public class StoreUI : MonoBehaviour
     [SerializeField] private Transform relicParent;
     [SerializeField] private Transform itemParent;
     [SerializeField] private Transform rerollObject;
-
     [SerializeField] private UnitSelectUI unitSelectUI;
 
-    private void Awake()
-    {
-        StoreManager.LoadStoreData();
-    }
 
     private void OnEnable()
     {
@@ -28,171 +21,138 @@ public class StoreUI : MonoBehaviour
         ShowUnitUI();
         ShowRelicUI();
         ShowItemUI();
-        
-
+        ShowRerollUI();
     }
 
     private void ShowUnitUI()
     {
         var items = StoreManager.GetRandomUnitItems();
-        int price = 0;
         for (int i = 0; i < items.Count; i++)
         {
-            List<RogueUnitDataBase> units = new();
-            List<int> rows = new();
-            Transform child = unitParent.GetChild(i);
-            if (items[i].form == "Rarity")
-            {
-                var (min, max) = EventManager.ParseRange(items[i].value);
-                var sellUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
-
-                // 조건에 맞는 유닛 필터링
-                List<RogueUnitDataBase> filtered = sellUnits
-                    .Where(u => u.rarity >= min && u.rarity <= max)
-                    .ToList();
-    
-                int count = items[i].count;
-                for (int j = 0; j < count; j++)
-                {
-                    int idx = UnityEngine.Random.Range(0, filtered.Count);
-                    rows.Add(idx); // 중복 허용
-                }
-
-            }
-            else if (items[i].form == "Branch")
-            {
-                if (!int.TryParse(items[i].value, out int branch)) return;
-
-                var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
-                var filtered = allUnits.Where(u => u.branchIdx == branch).ToList();
-
-                for (int j = 0; j < items[i].count; j++)
-                {
-                    int idx = UnityEngine.Random.Range(0, filtered.Count);
-                    rows.Add(idx);
-                }
-            }
-            else if (items[i].form == "Tag")
-            {
-                var tag = int.Parse(items[i].value);
-
-                var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
-                var filtered = allUnits.Where(u => u.tagIdx == tag).ToList();
-
-                for (int j = 0; j < items[i].count; j++)
-                {
-                    int idx = UnityEngine.Random.Range(0, filtered.Count);
-                    rows.Add(idx);
-                }
-            }
-
-            foreach (int row in rows)
-            {
-                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(row));
-                unit.energy = (int)((unit.energy * items[i].price) * 0.01f);
-                price += unit.unitPrice;
-
-                units.Add(unit);
-
-            }
-            price = (int)(price*StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
-            SetItemInformation(child, items[i], price, units);
-
-            Button btn = child.GetComponent<Button>();
-            if (!BtnIteractable(btn, price)) return;
-            
-            btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(() => PurchaseUnitPackage(btn,units, price));
-
+            var child = unitParent.GetChild(i);
+            var units = FilterAndSelectUnits(items[i]);
+            var price = CalculateUnitPackagePrice(units, items[i]);
+            SetUnitPackageUI(child, items[i], units, price);
         }
     }
 
     private void ShowRelicUI()
     {
         var items = StoreManager.GetRandomRelicItems();
-        List<int> relicIds = new List<int>();
-
+        HashSet<int> usedIds = new();
+        Debug.Log(items.Count);
         for (int i = 0; i < items.Count; i++)
         {
-            int relicId;
+            int grade = int.Parse(items[i].value);
+            var candidates = RelicManager.GetAvailableRelicIds(grade, RelicManager.RelicAction.Acquire)
+                                         .Where(id => !usedIds.Contains(id)).ToList();
 
-            // 중복되지 않는 relicId가 나올 때까지 반복
-            int safetyCount = 0;
-            do
-            {
-                // 등급 0 = 저주 유산 등급 (itemId 80, 81은 등급이 정해진 것이라면 그에 맞게 수정 필요)
-                relicId = RelicManager.GetRandomRelicId(0, RelicManager.RelicAction.Acquire);
-                safetyCount++;
+            if (candidates.Count == 0) continue;
 
-                if (safetyCount > 100)
-                {
-                    relicId = -1;
-                    break;
-                }
-            } while (relicIds.Contains(relicId));
-
-            relicIds.Add(relicId);
-
-            // UI에 이미지 표시
-            Transform child = relicParent.GetChild(i);
-            Image img = child.GetComponent<Image>();
-            img.sprite = SpriteCacheManager.GetSprite($"KIcon/WarRelic/{relicId}");
-
-            // 가격 표시
-            TextMeshProUGUI costText = child.GetChild(0).GetComponent<TextMeshProUGUI>();
-            int cost =(int)(items[i].price * StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
-            costText.text = $"{cost}";
-
-            SetItemInformation(child, items[i],cost,null,-1,relicId);
-            Button btn = child.GetComponent<Button>();
-            if (!BtnIteractable(btn, cost)) return;
-
-            child.name = $"{relicId}";
-            //눌렀을때 유산id값을 바탕으로 구매 & 내 골드 감소
-            btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(()=>PurchaseRelic(btn,relicId,cost));
-
+            int relicId = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+            usedIds.Add(relicId);
+            int cost = (int)(items[i].price * StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
+            SetRelicUI(relicParent.GetChild(i), items[i], relicId, cost);
         }
     }
-
-
 
     private void ShowItemUI()
     {
         var items = StoreManager.GetRandomEnergyMoraleItems();
         for (int i = 0; i < items.Count; i++)
         {
-            // 아이템 오브젝트 가져오기
-            Transform child = itemParent.GetChild(i);
-            ShowStoreImagePrice(items[i], child, 3);
-            //눌렀을때 아이템id값을 바탕으로 구매 & 내 골드 감소
-
+            int cost = (int)(items[i].price * StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
+            string path = $"ItemImages/Item{items[i].itemId}";
+            SetStoreSlotUI(itemParent.GetChild(i), items[i], cost, path, () => PurChaseItem(itemParent.GetChild(i).GetComponent<Button>(), items[i], cost));
         }
     }
+
     private void ShowRerollUI()
     {
-        var item = StoreManager.GetRandomDiceItem();
-        int price = (int)(StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax) * item.price);
+        var item = StoreManager.GetRandomDiceItem()[0];
+        int cost = (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
+        string path = "ItemImages/Item60";
+        SetStoreSlotUI(rerollObject, item, cost, path, null, int.Parse(item.value));
+    }
 
-        TextMeshProUGUI priceText = rerollObject.GetComponent<TextMeshProUGUI>();
-        priceText.text = $"{price}";
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        Button btn = rerollObject.GetComponent<Button>();
+    private void SetUnitPackageUI(Transform child, StoreItemData item, List<RogueUnitDataBase> units, int price)
+    {
+        string imgChannel = $"UnitImages/{units[0].unitImg}";
+        SetImageAndPrice(child, imgChannel, price);
+        SetItemInformation(child, item, price, units);
+
+        var packageCost = child.GetChild(0);
+        var packageCount = packageCost.GetChild(0);
+        var packageName = packageCount.GetChild(0);
+        packageCount.GetComponent<TextMeshProUGUI>().text = $" X{item.count}";
+        packageName.GetComponent<TextMeshProUGUI>().text = item.itemName;
+
+        var btn = child.GetComponent<Button>();
+        if (!SetButtonState(btn, price)) return;
+
         btn.onClick.RemoveAllListeners();
-        if (gold < price) btn.interactable = false;
-        else
+        btn.onClick.AddListener(() => PurchaseUnitPackage(btn, units, price));
+    }
+
+    private void SetRelicUI(Transform child, StoreItemData item, int relicId, int price)
+    {
+        string imgChannel = $"KIcon/WarRelic/{relicId}";
+        SetImageAndPrice(child, imgChannel, price);
+        SetItemInformation(child, item, price, null, relicId);
+
+        var btn = child.GetComponent<Button>();
+        if (!SetButtonState(btn, price)) return;
+
+        child.name = relicId.ToString();
+        btn.onClick.RemoveAllListeners();
+        btn.onClick.AddListener(() => PurchaseRelic(btn, relicId, price));
+    }
+
+    private void SetStoreSlotUI(Transform child, StoreItemData item, int cost, string spritePath, Action onClick, int rerollCount = 0)
+    {
+        SetImageAndPrice(child, spritePath, cost);
+        SetItemInformation(child, item, cost, null, -1, rerollCount);
+
+        var btn = child.GetComponent<Button>();
+        if (!SetButtonState(btn, cost)) return;
+
+        child.name = item.itemId.ToString();
+        btn.onClick.RemoveAllListeners();
+        if (onClick != null) btn.onClick.AddListener(() => onClick());
+    }
+
+    private List<RogueUnitDataBase> FilterAndSelectUnits(StoreItemData item)
+    {
+        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        List<RogueUnitDataBase> filtered = item.form switch
         {
-            btn.interactable = true;
+            "Rarity" => EventManager.ParseRange(item.value) is var (min, max) ? allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList() : new(),
+            "Branch" => int.TryParse(item.value, out var b) ? allUnits.Where(u => u.branchIdx == b).ToList() : new(),
+            "Tag" => int.TryParse(item.value, out var t) ? allUnits.Where(u => u.tagIdx == t).ToList() : new(),
+            _ => new()
+        };
 
-
+        List<RogueUnitDataBase> result = new();
+        for (int i = 0; i < item.count; i++)
+        {
+            int idx = UnityEngine.Random.Range(0, filtered.Count);
+            var unit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(idx));
+            unit.energy = Math.Max(1, (int)((unit.energy * item.price) * 0.01f));
+            result.Add(unit);
         }
+        return result;
+    }
 
+    private int CalculateUnitPackagePrice(List<RogueUnitDataBase> units, StoreItemData item)
+    {
+        int total = units.Sum(u => u.unitPrice);
+        return (int)(total * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
     }
 
     private void RestUI()
     {
         leaveBtn.onClick.AddListener(CloseStore);
-        RogueLikeData.Instance.SetSelectedUnits(null);
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
         unitSelectUI.gameObject.SetActive(false);
     }
 
@@ -201,112 +161,104 @@ public class StoreUI : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    private void ShowStoreImagePrice(StoreItemData item,Transform child,int number)
-    {
-        string imgChannel = number == 1 ? $"UnitImages/Unit_Img_{item.itemId}" : (number == 2 ? $"KIcon/WarRelic/{item.itemId}" : $"ItemImages/Item{item.itemId}");
-
-        // 아이템 오브젝트 가져오기
-        Image img = child.GetComponent<Image>();
-
-        img.sprite = SpriteCacheManager.GetSprite(imgChannel);
-        TextMeshProUGUI costText = child.GetChild(0).GetComponent<TextMeshProUGUI>();
-        int cost = (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
-        costText.text = $"{cost}";
-        SetItemInformation(child,item,cost);
-        Button btn = child.GetComponent<Button>();
-        if (!BtnIteractable(btn, cost)) return;
-
-        child.name = $"{item.itemId}";
-        //눌렀을때 유산id값을 바탕으로 구매 & 내 골드 감소
-        btn.onClick.AddListener(()=>PurChaseItem(btn,item,cost));
-
-    }
-
-    private bool BtnIteractable(Button btn, int price)
+    private bool SetButtonState(Button btn, int price)
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
-        if (gold < price)
-        {
-            btn.interactable = false;
-            return false;
-        }
-        else
-        {
-            btn.interactable = true;
-            return true;
-        }
+        btn.interactable = gold >= price;
+        return btn.interactable;
     }
+
+    private bool SpendGold(int cost)
+    {
+        int gold = RogueLikeData.Instance.GetCurrentGold();
+        if (gold < cost) return false;
+        RogueLikeData.Instance.SetCurrentGold(gold - cost);
+        return true;
+    }
+
+    private void SetImageAndPrice(Transform child, string spritePath, int price)
+    {
+        child.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite(spritePath);
+        child.GetChild(0).GetComponent<TextMeshProUGUI>().text = price.ToString();
+    }
+
+    private void SetItemInformation(Transform child, StoreItemData storeItemData, int price, List<RogueUnitDataBase> units = null, int relicId = -1, int rerollCount = 0)
+    {
+        ItemInformation itemInformation = child.GetComponent<ItemInformation>();
+        itemInformation.item = storeItemData;
+        itemInformation.price = price;
+        if (units != null) itemInformation.units = units;
+        else if (relicId != -1) itemInformation.relicId = relicId;
+        else if (rerollCount != 0) itemInformation.rerollCount = rerollCount;
+    }
+
     private void PurchaseUnitPackage(Button btn, List<RogueUnitDataBase> units, int price)
     {
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        if (gold >= price)
-        {
-            gold -= price;
-            var myUnits = RogueLikeData.Instance.GetMyUnits();
-            myUnits.AddRange(units);
-            RogueLikeData.Instance.SetAllMyUnits(myUnits);
-            RogueLikeData.Instance.SetCurrentGold(gold);
-        }
+        if (!SpendGold(price)) return;
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        myUnits.AddRange(units);
+        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+        btn.transform.GetChild(2).gameObject.SetActive(true);
         btn.interactable = false;
     }
 
     private void PurchaseRelic(Button btn, int relicId, int price)
     {
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        if(gold >= price)
-        {
-            gold -= price;
-            RogueLikeData.Instance.AcquireRelic(relicId);
-
-        }
-        btn.interactable =false;
-
+        if (!SpendGold(price)) return;
+        RogueLikeData.Instance.AcquireRelic(relicId);
+        btn.transform.GetChild(2).gameObject.SetActive(true);
+        btn.interactable = false;
     }
 
     private void PurChaseItem(Button btn, StoreItemData item, int price)
     {
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        if (gold >= price)
+        if (!SpendGold(price)) return;
+
+        switch (item.type)
         {
-            gold -= price;
-            if(item.type == "Energy")
-            {
-                if(item.form == "Select")
-                {
-                    List<RogueUnitDataBase> selectedUnits= RogueLikeData.Instance.GetSelectedUnits();
-                    if(selectedUnits ==null || selectedUnits.Count == 0)
-                    {
-
-                    }
-
-
-                }
-                else if(item.form == "Random")
-                {
-
-                }
-
-            }
-            else if(item.type == "Morale")
-            {
+            case "Energy":
+                ApplyEnergyItem(item, btn);
+                break;
+            case "Morale":
                 int morale = RogueLikeData.Instance.GetMorale();
-                RogueLikeData.Instance.SetMorale(Math.Min(100,(morale + int.Parse(item.value))));
+                RogueLikeData.Instance.SetMorale(Math.Min(100, morale + int.Parse(item.value)));
+                break;
+        }
+
+        btn.transform.GetChild(2).gameObject.SetActive(true);
+        btn.interactable = false;
+    }
+
+    private void ApplyEnergyItem(StoreItemData item, Button btn)
+    {
+        if (item.form == "Select")
+        {
+            var selected = RogueLikeData.Instance.GetSelectedUnits();
+            if (selected == null || selected.Count < item.count)
+            {
+                unitSelectUI.gameObject.SetActive(true);
+                unitSelectUI.OpenSelectUnitWindow(() => PurChaseItem(btn, item, int.Parse(item.price.ToString())));
+                return;
+            }
+            foreach (var unit in selected)
+                unit.energy = Math.Min(unit.maxEnergy, unit.energy + int.Parse(item.value));
+        }
+        else if (item.form == "Random")
+        {
+            int amount = int.Parse(item.value);
+            var units = RogueLikeData.Instance.GetMyUnits().Where(u => u.energy < u.maxEnergy).ToList();
+            if (units.Count == 0) return;
+
+            for (int i = 0; i < units.Count; i++)
+            {
+                int r = UnityEngine.Random.Range(i, units.Count);
+                (units[i], units[r]) = (units[r], units[i]);
             }
 
+            for (int i = 0; i < Mathf.Min(item.count, units.Count); i++)
+            {
+                units[i].energy = Math.Min(units[i].maxEnergy, units[i].energy + amount);
+            }
         }
-        btn.interactable = false;
-
-
     }
-
-    private void SetItemInformation(Transform child, StoreItemData storeItemData,int price, List<RogueUnitDataBase> units=null, int relicId =-1, int rerollCount = 0)
-    {
-        ItemInformation itemInformation = child.GetComponent<ItemInformation>();
-        itemInformation.itemId = storeItemData.itemId;
-        itemInformation.price = price;
-        if(units !=null) itemInformation.units = units;
-        else if(relicId != -1) itemInformation.relicId = relicId;
-        else if(rerollCount != 0) itemInformation.rerollCount = rerollCount;
-    }
-
 }

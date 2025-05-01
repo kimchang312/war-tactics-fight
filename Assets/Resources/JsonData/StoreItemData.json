@@ -10,7 +10,8 @@
     "form": "Select",
     "value": 1,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": "선택한 유닛의 기력을 1만큼 회복시킵니다."
   },
   {
     "itemId": 1,
@@ -23,7 +24,8 @@
     "form": "Random",
     "value": 3,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": "선택한 유닛의 기력을 3만큼 회복시킵니다."
   },
   {
     "itemId": 2,
@@ -36,7 +38,8 @@
     "form": "Select",
     "value": 10,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": "선택한 유닛의 기력을 최대치까지 회복시킵니다."
   },
   {
     "itemId": 3,
@@ -49,7 +52,8 @@
     "form": "Select",
     "value": 10,
     "count": 1,
-    "condition": 1
+    "condition": 1,
+    "description": "기력이 1인 유닛의 기력을 최대치까지 회복시킵니다."
   },
   {
     "itemId": 4,
@@ -62,7 +66,8 @@
     "form": "Select",
     "value": 1,
     "count": 2,
-    "condition": null
+    "condition": null,
+    "description": "선택한 유닛 2명의 기력을 각각 1만큼 회복시킵니다."
   },
   {
     "itemId": 5,
@@ -75,7 +80,8 @@
     "form": "Random",
     "value": 3,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": "무작위로 선택된 유닛 3명의 기력을 3만큼 회복시킵니다."
   },
   {
     "itemId": 6,
@@ -88,7 +94,8 @@
     "form": "None",
     "value": 1,
     "count": 100,
-    "condition": null
+    "condition": null,
+    "description": "부대 전체 유닛의 기력을 1만큼 회복시킵니다."
   },
   {
     "itemId": 7,
@@ -101,7 +108,8 @@
     "form": "None",
     "value": 2,
     "count": 100,
-    "condition": null
+    "condition": null,
+    "description": "부대 전체 유닛의 기력을 2만큼 회복시킵니다."
   },
   {
     "itemId": 8,
@@ -114,7 +122,8 @@
     "form": "None",
     "value": 10,
     "count": 100,
-    "condition": null
+    "condition": null,
+    "description": "부대 전체 유닛의 기력을 최대치까지 회복시킵니다."
   },
   {
     "itemId": 9,
@@ -127,7 +136,8 @@
     "form": "None",
     "value": "0~3",
     "count": 100,
-    "condition": null
+    "condition": null,
+    "description": "부대 전체 유닛의 기력을 0~3만큼 회복시킵니다."
   },
   {
     "itemId": 10,
@@ -140,7 +150,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 11,
@@ -153,7 +164,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 12,
@@ -166,7 +178,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 13,
@@ -179,7 +192,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 14,
@@ -192,7 +206,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 15,
@@ -205,7 +220,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 16,
@@ -218,7 +234,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 17,
@@ -231,7 +248,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 18,
@@ -244,7 +262,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 19,
@@ -257,7 +276,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 20,
@@ -270,7 +290,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 21,
@@ -283,7 +304,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 22,
@@ -296,7 +318,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 23,
@@ -309,7 +332,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 24,
@@ -322,7 +346,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 25,
@@ -335,7 +360,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 26,
@@ -348,7 +374,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 27,
@@ -361,7 +388,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 28,
@@ -374,7 +402,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 29,
@@ -387,7 +416,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 30,
@@ -400,7 +430,8 @@
     "form": "None",
     "value": 20,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": "부대 전체의 사기를 20만큼 증가시킵니다."
   },
   {
     "itemId": 31,
@@ -413,7 +444,8 @@
     "form": "None",
     "value": 40,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": "부대 전체의 사기를 40만큼 증가시킵니다."
   },
   {
     "itemId": 32,
@@ -426,7 +458,8 @@
     "form": "None",
     "value": 60,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": "부대 전체의 사기를 60만큼 증가시킵니다."
   },
   {
     "itemId": 33,
@@ -439,7 +472,8 @@
     "form": "None",
     "value": 100,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": "부대 전체의 사기를 최대치까지 증가시킵니다."
   },
   {
     "itemId": 34,
@@ -452,7 +486,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 35,
@@ -465,7 +500,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 36,
@@ -478,7 +514,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 37,
@@ -491,7 +528,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 38,
@@ -504,7 +542,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 39,
@@ -517,7 +556,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 40,
@@ -530,7 +570,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 41,
@@ -543,7 +584,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 42,
@@ -556,7 +598,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 43,
@@ -569,7 +612,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 44,
@@ -582,7 +626,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 45,
@@ -595,7 +640,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 46,
@@ -608,7 +654,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 47,
@@ -621,7 +668,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 48,
@@ -634,7 +682,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 49,
@@ -647,7 +696,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 50,
@@ -660,7 +710,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 51,
@@ -673,7 +724,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 52,
@@ -686,7 +738,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 53,
@@ -699,7 +752,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 54,
@@ -712,7 +766,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 55,
@@ -725,7 +780,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 56,
@@ -738,7 +794,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 57,
@@ -751,7 +808,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 58,
@@ -764,7 +822,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 59,
@@ -777,7 +836,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 60,
@@ -790,7 +850,8 @@
     "form": "None",
     "value": 1,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 61,
@@ -803,7 +864,8 @@
     "form": "None",
     "value": 3,
     "count": 1,
-    "condition": 1
+    "condition": 1,
+    "description": null
   },
   {
     "itemId": 62,
@@ -816,7 +878,8 @@
     "form": "None",
     "value": 5,
     "count": 1,
-    "condition": 1
+    "condition": 1,
+    "description": null
   },
   {
     "itemId": 63,
@@ -829,7 +892,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 64,
@@ -842,7 +906,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 65,
@@ -855,7 +920,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 66,
@@ -868,7 +934,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 67,
@@ -881,7 +948,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 68,
@@ -894,7 +962,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 69,
@@ -907,7 +976,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 70,
@@ -920,7 +990,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 71,
@@ -933,7 +1004,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 72,
@@ -946,7 +1018,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 73,
@@ -959,7 +1032,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 74,
@@ -972,7 +1046,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 75,
@@ -985,7 +1060,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 76,
@@ -998,7 +1074,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 77,
@@ -1011,7 +1088,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 78,
@@ -1024,7 +1102,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 79,
@@ -1037,7 +1116,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 80,
@@ -1050,7 +1130,8 @@
     "form": "Random",
     "value": 1,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 81,
@@ -1063,7 +1144,8 @@
     "form": "Random",
     "value": 10,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 82,
@@ -1076,7 +1158,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 83,
@@ -1089,7 +1172,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 84,
@@ -1102,7 +1186,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 85,
@@ -1115,7 +1200,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 86,
@@ -1128,7 +1214,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 87,
@@ -1141,7 +1228,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 88,
@@ -1154,7 +1242,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 89,
@@ -1167,7 +1256,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 90,
@@ -1180,7 +1270,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 91,
@@ -1193,7 +1284,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 92,
@@ -1206,7 +1298,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 93,
@@ -1219,7 +1312,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 94,
@@ -1232,7 +1326,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 95,
@@ -1245,7 +1340,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 96,
@@ -1258,7 +1354,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 97,
@@ -1271,7 +1368,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 98,
@@ -1284,7 +1382,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 99,
@@ -1297,7 +1396,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 100,
@@ -1310,7 +1410,8 @@
     "form": "Rarity",
     "value": "1~3",
     "count": 3,
-    "condition": "ExcludeBranch(Hero)"
+    "condition": "ExcludeBranch(Hero)",
+    "description": null
   },
   {
     "itemId": 101,
@@ -1323,7 +1424,8 @@
     "form": "Rarity",
     "value": "1~3",
     "count": 5,
-    "condition": "ExcludeBranch(Hero)"
+    "condition": "ExcludeBranch(Hero)",
+    "description": null
   },
   {
     "itemId": 102,
@@ -1336,7 +1438,8 @@
     "form": "Branch",
     "value": 0,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 103,
@@ -1349,7 +1452,8 @@
     "form": "Branch",
     "value": 0,
     "count": 5,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 104,
@@ -1362,7 +1466,8 @@
     "form": "Branch",
     "value": 1,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 105,
@@ -1375,7 +1480,8 @@
     "form": "Branch",
     "value": 1,
     "count": 5,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 106,
@@ -1388,7 +1494,8 @@
     "form": "Branch",
     "value": 2,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 107,
@@ -1401,7 +1508,8 @@
     "form": "Branch",
     "value": 2,
     "count": 5,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 108,
@@ -1414,7 +1522,8 @@
     "form": "Branch",
     "value": 3,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 109,
@@ -1427,7 +1536,8 @@
     "form": "Branch",
     "value": 3,
     "count": 5,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 110,
@@ -1440,7 +1550,8 @@
     "form": "Branch",
     "value": 4,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 111,
@@ -1453,7 +1564,8 @@
     "form": "Branch",
     "value": 4,
     "count": 5,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 112,
@@ -1466,7 +1578,8 @@
     "form": "Branch",
     "value": 5,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 113,
@@ -1479,7 +1592,8 @@
     "form": "Branch",
     "value": 5,
     "count": 5,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 114,
@@ -1492,7 +1606,8 @@
     "form": "Branch",
     "value": 6,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 115,
@@ -1505,7 +1620,8 @@
     "form": "Branch",
     "value": 6,
     "count": 5,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 116,
@@ -1518,7 +1634,8 @@
     "form": "Branch",
     "value": 7,
     "count": 3,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 117,
@@ -1531,7 +1648,8 @@
     "form": "Tag",
     "value": 2,
     "count": 5,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 118,
@@ -1544,7 +1662,8 @@
     "form": "Rarity",
     "value": 3,
     "count": 2,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 119,
@@ -1557,7 +1676,8 @@
     "form": "Branch",
     "value": 8,
     "count": 1,
-    "condition": 1
+    "condition": 1,
+    "description": null
   },
   {
     "itemId": 120,
@@ -1570,7 +1690,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 121,
@@ -1583,7 +1704,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 122,
@@ -1596,7 +1718,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 123,
@@ -1609,7 +1732,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 124,
@@ -1622,7 +1746,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 125,
@@ -1635,7 +1760,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 126,
@@ -1648,7 +1774,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 127,
@@ -1661,7 +1788,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 128,
@@ -1674,7 +1802,8 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   },
   {
     "itemId": 129,
@@ -1687,6 +1816,7 @@
     "form": "Random",
     "value": null,
     "count": 1,
-    "condition": null
+    "condition": null,
+    "description": null
   }
 ]

@@ -19,21 +19,20 @@ public class EventUIManager : MonoBehaviour
 
     private void Awake()
     {
-        SaveData save = new();
-        save.LoadData();
-
         ResetUI();
-        EventManager.LoadEventData();
-        gameObject.SetActive(false);
+        
+        //gameObject.SetActive(false);
     }
     private void OnEnable()
     {
         ResetUI();
-        RogueLikeData.Instance.SetSelectedUnits(null);
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
 
         EventData eventData = EventManager.GetRandomEvent();
-        List<EventChoiceData> eventChoiceDatas = new List<EventChoiceData>();
-
+        //테스트
+        eventData = EventManager.GetEventById(21);
+        List<EventChoiceData> eventChoiceDatas = new();
+        
         foreach (int choiceId in eventData.choiceIds)
         {
             if (EventDataLoader.EventChoiceDataDict.TryGetValue(choiceId, out var choiceData))
@@ -82,7 +81,7 @@ public class EventUIManager : MonoBehaviour
             int index = choiceData.requireForm.IndexOf(RequireForm.Select);
             int count = int.TryParse(choiceData.requireCount[index], out var parsed) ? parsed : 0;
             selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
-            if (selectedUnits==null || selectedUnits.Count < count)
+            if (selectedUnits == null || selectedUnits.Count < count)
             {
                 OpenSelectdUnit(choiceData);
                 return;
@@ -92,6 +91,19 @@ public class EventUIManager : MonoBehaviour
         EventManager.ReduceRequire(choiceData);
         string resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
         eventDescriptionText.text = resultText;
+        //만약 56~57 이라면
+        if ((choiceData.choiceId >= 56 && choiceData.choiceId <= 57))
+        {
+            int morale = RogueLikeData.Instance.GetMorale();
+            if(morale <10)
+            {
+                choiceBtns.GetChild(0).gameObject.GetComponent<Button>().interactable = false;
+                choiceBtns.GetChild(1).gameObject.GetComponent<Button>().interactable = false;
+            }
+            RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
+            return;
+        } 
+
         ResetButtonUI();
         //이벤트 추가
         RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);

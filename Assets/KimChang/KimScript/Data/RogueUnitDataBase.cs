@@ -297,7 +297,7 @@ public class RogueUnitDataBase
     public static RogueUnitDataBase RandomUnitReForm(RogueUnitDataBase unit)
     {
         // 희귀도 4 이상은 전직 불가
-        if (unit.rarity >= 4) return null;
+        if (unit.rarity >= 4) return unit;
 
         // 전직 희귀도 결정
         int newRarity = RollPromotion(unit.rarity);
