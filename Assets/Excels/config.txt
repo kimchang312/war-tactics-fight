@@ -1,0 +1,17 @@
+# excel_logs directory is root directory of the project
+
+# 기본 디렉토리 설정
+defaultExcelDirectoryPath=Excels/excel_files # 엑셀 파일 디렉토리 기본 경로
+defaultLoaderOutputDirectory=Excels/loader_output # 로더 클래스 출력 디렉토리 기본 경로
+defaultJsonOutputDirectory=Excels/json_output # JSON 파일 출력 디렉토리 기본 경로
+
+# 사용자 지정 디렉토리 설정
+excelDirectoryPath=Excels/excel_files # 엑셀 파일 디렉토리 경로
+loaderOutputDirectory=Excels/loader_output # 로더 클래스 출력 디렉토리 경로
+jsonOutputDirectory=Excels/json_output # JSON 파일 출력 디렉토리 경로
+
+# 다중 시트 설정
+allowMultipleSheets=false # 다중 시트를 허용할지 여부 (true/false)
+
+# Assets 사용 설정 (Root 폴더가 Assets인 경우 true)
+useAssets=true # Assets 폴더 사용 여부 (true/false)

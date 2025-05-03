@@ -1,0 +1,6 @@
+2025-05-03 오후 9:06:24: Error processing sheet 프리셋 in file Assets/Excels/excel_files\스테이지 프리셋.xlsx: The first column must be 'key'.
+  at ExcelToJson.GenerateClassAndJsonFromExcel (System.String excelPath, System.String loaderDir, System.String jsonDir, System.String logFilePath, System.Boolean allowMultipleSheets, System.String& className) [0x00140] in C:\Users\agech\Documents\GitHub\war-tactics-fight\Assets\Excels\Editor\ExcelToJson.cs:529 
+2025-05-03 오후 9:06:31: Error processing sheet 프리셋 in file Assets/Excels/excel_files\스테이지 프리셋.xlsx: The first column must be 'key'.
+  at ExcelToJson.GenerateClassAndJsonFromExcel (System.String excelPath, System.String loaderDir, System.String jsonDir, System.String logFilePath, System.Boolean allowMultipleSheets, System.String& className) [0x00140] in C:\Users\agech\Documents\GitHub\war-tactics-fight\Assets\Excels\Editor\ExcelToJson.cs:529 
+2025-05-03 오후 9:06:34: Error processing sheet 프리셋 in file Assets/Excels/excel_files\스테이지 프리셋.xlsx: The first column must be 'key'.
+  at ExcelToJson.GenerateClassAndJsonFromExcel (System.String excelPath, System.String loaderDir, System.String jsonDir, System.String logFilePath, System.Boolean allowMultipleSheets, System.String& className) [0x00140] in C:\Users\agech\Documents\GitHub\war-tactics-fight\Assets\Excels\Editor\ExcelToJson.cs:529 
