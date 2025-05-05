@@ -15,26 +15,25 @@ public class UnitSelectUI : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    public void OpenSelectUnitWindow(Action func,List<RogueUnitDataBase> selectUnits=null)
+    public void OpenSelectUnitWindow(Action func, List<RogueUnitDataBase> selectUnits = null)
     {
-        gameObject.SetActive(true);
+        // 1. 기존 오브젝트 정리
+        objectPool.ReturnSelectUnit(selectUnitParent);
+
+        // 2. 유닛 리스트 가져오기
         selectUnits ??= RogueLikeData.Instance.GetMyUnits();
-        Debug.Log(selectUnits.Count);
+
+        // 3. 유닛 UI 생성
         foreach (var unit in selectUnits)
         {
             GameObject selectedUnit = objectPool.GetSelectUnit();
-            Image img = selectedUnit.GetComponent<Image>();
-            Sprite sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");
-            img.sprite = sprite;
-            Image energy = selectedUnit.GetComponentInChildren<Image>();
-            energy.fillAmount = unit.energy / unit.maxEnergy;
-            TextMeshProUGUI textMeshProUGUI = selectedUnit.GetComponentInChildren<TextMeshProUGUI>();
-            textMeshProUGUI.text = $"{unit.energy}/{unit.maxEnergy}";
+            UIMaker.CreateSelectUnitEnergy(unit, selectedUnit);
             selectedUnit.transform.SetParent(selectUnitParent.transform, false);
             Button btn = selectedUnit.GetComponent<Button>();
-            btn.onClick.AddListener(() => AddSelectedUnits(func,unit));
+            btn.onClick.AddListener(() => AddSelectedUnits(func, unit));
         }
     }
+
 
     private void AddSelectedUnits(Action func,RogueUnitDataBase unit)
     {

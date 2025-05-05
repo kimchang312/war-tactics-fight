@@ -68,7 +68,7 @@
     "requireCondition": "금화 100 이상 or 사기 31 이상",
     "requireThing": ["Gold", "Morale"],
     "requireForm": ["None", "None"],
-    "requireValue": [""],
+    "requireValue": ["", ""],
     "requireCount": ["100", "31"]
   },
   {
@@ -546,10 +546,10 @@
     "description": "허름한 갑옷을 입은 노인이 큰 칼을 끌며 길을 가로막는다. \"돈을 내라. 전투란 게 뭔지, 제대로 가르쳐주지.\"",
     "choiceIds": [121, 122, 123],
     "requireCondition": "금화 100 이상 or 사기 6 이상",
-    "requireThing": ["Special"],
-    "requireForm": ["Special"],
-    "requireValue": ["100", "5"],
-    "requireCount": [""]
+    "requireThing": ["Gold", "Morale"],
+    "requireForm": ["None", "None"],
+    "requireValue": ["", ""],
+    "requireCount": ["100", "6"]
   },
   {
     "eventId": 46,
@@ -560,8 +560,8 @@
     "requireCondition": "사기 51 이상",
     "requireThing": ["Morale"],
     "requireForm": ["None"],
-    "requireValue": ["50"],
-    "requireCount": [""]
+    "requireValue": [""],
+    "requireCount": ["50"]
   },
   {
     "eventId": 47,

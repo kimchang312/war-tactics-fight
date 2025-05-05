@@ -175,4 +175,15 @@ public class RelicManager
             units[unitIndex].mobility += 4;
         }
     }
+    public static List<int> GetAvailableRelicIds(int grade, RelicAction action)
+    {
+        var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).Select(r => r.id).ToList();
+        var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
+
+        if (action == RelicAction.Acquire)
+            return relics.Where(id => !ownedIds.Contains(id)).ToList();
+        else
+            return relics.Where(id => ownedIds.Contains(id)).ToList();
+    }
+
 }

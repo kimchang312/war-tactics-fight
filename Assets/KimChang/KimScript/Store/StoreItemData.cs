@@ -17,7 +17,7 @@ public class StoreItemData
     public string value;    // 수치, 범위, ID 등
     public int count;       // 효과 적용 횟수
     public string condition; // 조건 설명 (ex: "LowEnergyOnly")
-
+    public string description;
     public StoreItemData Clone()
     {
         return new StoreItemData
@@ -32,7 +32,8 @@ public class StoreItemData
             form = this.form,
             value = this.value,
             count = this.count,
-            condition = this.condition
+            condition = this.condition,
+            description = this.description
         };
     }
 
