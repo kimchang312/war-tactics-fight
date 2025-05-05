@@ -2130,7 +2130,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &254667482
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6733,6 +6733,7 @@ MonoBehaviour:
   abilityPrefab: {fileID: 7355244959479386498, guid: 0f2747f20dce40642abde34d83689a3e, type: 3}
   warRelicPrefab: {fileID: 3343579240121916961, guid: 0da25f3544f241c4f9253b903c39e352, type: 3}
   onlyUnitPrefab: {fileID: 1529669389965315071, guid: a96b954ef98c8c44290f09f0bc7ec06f, type: 3}
+  selectUnitPrefab: {fileID: 0}
 --- !u!4 &926331834
 Transform:
   m_ObjectHideFlags: 0
@@ -8743,7 +8744,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1265670777
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13158,7 +13159,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1876149477
 RectTransform:
   m_ObjectHideFlags: 0

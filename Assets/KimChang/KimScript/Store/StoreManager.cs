@@ -1,135 +1,89 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class StoreManager
+public static class StoreManager
 {
     private static List<StoreItemData> storeItems => StoreItemDataLoader.Load();
+
+    private static readonly Dictionary<int, int> defaultWeights = new()
+    {
+        { 1, 60 },
+        { 2, 25 },
+        { 3, 10 },
+        { 4, 4 },
+        { 5, 1 },
+    };
 
     public static void LoadStoreData()
     {
         StoreItemDataLoader.Load();
     }
 
-    //기력 사기 아이템 3개 반환
+    public static int CalculatePrice(StoreItemData item)
+    {
+        float rate = UnityEngine.Random.Range(item.priceRateMin, item.priceRateMax);
+        return Mathf.RoundToInt(item.price * rate);
+    }
+
+    public static List<StoreItemData> GetFilteredItems(Func<StoreItemData, bool> predicate, int count, bool allowDuplicate = false, Dictionary<int, int> rarityWeights = null)
+    {
+        var candidates = storeItems.Where(predicate).ToList();
+        int uniqueCount = candidates.Distinct().Count();
+        return GetWeightedRandomItemsByRarity(candidates, count, allowDuplicate, rarityWeights);
+    }
+
+
+    private static List<StoreItemData> GetWeightedRandomItemsByRarity(List<StoreItemData> items, int count, bool allowDuplicate = false, Dictionary<int, int> rarityWeights = null)
+    {
+        var result = new List<StoreItemData>();
+        rarityWeights ??= defaultWeights;
+
+        var weightedItems = new List<StoreItemData>();
+        foreach (var item in items)
+        {
+            if (!rarityWeights.TryGetValue(item.rarity, out int weight)) continue;
+            for (int i = 0; i < weight; i++)
+                weightedItems.Add(item);
+        }
+
+        int safeGuard = 1000; // 무한 루프 방지
+        while (result.Count < count && weightedItems.Count > 0 && safeGuard-- > 0)
+        {
+            var selected = weightedItems[UnityEngine.Random.Range(0, weightedItems.Count)];
+            if (allowDuplicate || !result.Contains(selected))
+                result.Add(selected);
+        }
+
+        return result;
+    }
+
+
+    // 예시용 함수들: 외부에서 사용할 수 있도록 필터 조건을 넘겨 간결하게 호출 가능
+
     public static List<StoreItemData> GetRandomEnergyMoraleItems()
     {
-        var candidates = storeItems.FindAll(item =>
-            (item.itemId >= 0 && item.itemId <= 9) || (item.itemId >= 30 && item.itemId <= 33)
-        );
-
-        return GetWeightedRandomItemsByRarity(candidates, 3);
+        return GetFilteredItems(item => item.itemId >= 30 && item.itemId <= 33, 3);
     }
 
-    // 유산 (80~81) 3개
+    public static List<StoreItemData> GetRandomDiceItem()
+    {
+        return GetFilteredItems(item => item.itemId >= 60 && item.itemId <= 62, 1);
+    }
     public static List<StoreItemData> GetRandomRelicItems()
     {
-        var candidates = storeItems.FindAll(item => item.itemId >= 80 && item.itemId <= 81);
-        return GetWeightedRandomItemsByRarity(candidates, 3);
+        return GetFilteredItems(item => item.itemId >= 80 && item.itemId <= 81, 3,true);
     }
 
-    // 유닛 (100~119) 중 5개 반환, 단 119번은 condition == "1"일 경우만 등장
     public static List<StoreItemData> GetRandomUnitItems()
     {
-        var candidates = storeItems.FindAll(item =>
-            (item.itemId >= 100 && item.itemId < 119) ||
-            (item.itemId == 119 && item.condition != null && item.condition == "1")
-        );
-
-        return GetWeightedRandomItemsByRarity(candidates, 5);
+        return GetFilteredItems(item => item.itemId >= 100 && item.itemId <= 119, 5);
     }
-    // 주사위 (60~62) 중 1개, 조건 검사 포함
-    public static StoreItemData GetRandomDiceItem()
-    {
-        var candidates = storeItems.FindAll(item =>
-            (item.itemId == 60) ||
-            ((item.itemId == 61 || item.itemId == 62) && item.condition != null && item.condition == "1")
-        );
-
-        var list = GetWeightedRandomItemsByRarity(candidates, 1);
-        return list.Count > 0 ? list[0] : null;
-    }
-
-    // 내부 유틸: 중복 없이 랜덤 선택
-    private static List<StoreItemData> GetRandomItems(List<StoreItemData> source, int count)
-    {
-        List<StoreItemData> result = new List<StoreItemData>();
-        List<StoreItemData> pool = new List<StoreItemData>(source);
-
-        for (int i = 0; i < count && pool.Count > 0; i++)
-        {
-            int index = Random.Range(0, pool.Count);
-            result.Add(pool[index]);
-            pool.RemoveAt(index);
-        }
-
-        return result;
-    }
-    //등장 확률
-    private static List<StoreItemData> GetWeightedRandomItemsByRarity(List<StoreItemData> candidates, int count)
-    {
-        var groupedByRarity = new Dictionary<int, List<StoreItemData>>();
-        foreach (var item in candidates)
-        {
-            if (!groupedByRarity.ContainsKey(item.rarity))
-                groupedByRarity[item.rarity] = new List<StoreItemData>();
-
-            groupedByRarity[item.rarity].Add(item);
-        }
-
-        Dictionary<int, float> baseRates = new()
-    {
-        {5, 5f}, {4, 10f}, {3, 15f}, {2, 20f}
-    };
-
-        List<StoreItemData> result = new();
-
-        for (int i = 0; i < count; i++)
-        {
-            float totalRate = 0f;
-            Dictionary<int, float> currentRates = new();
-
-            // 현재 남아있는 rarity 기준으로 확률 계산
-            foreach (var kv in groupedByRarity)
-            {
-                if (kv.Value.Count > 0 && baseRates.ContainsKey(kv.Key))
-                {
-                    currentRates[kv.Key] = baseRates[kv.Key];
-                    totalRate += baseRates[kv.Key];
-                }
-            }
-
-            if (groupedByRarity.ContainsKey(1) && groupedByRarity[1].Count > 0)
-            {
-                currentRates[1] = 100f - totalRate;
-            }
-
-            float rand = Random.Range(0f, 100f);
-            float acc = 0f;
-
-            foreach (var kv in currentRates)
-            {
-                acc += kv.Value;
-                if (rand <= acc)
-                {
-                    var pool = groupedByRarity[kv.Key];
-                    if (pool.Count == 0) break;
-
-                    int idx = Random.Range(0, pool.Count);
-                    result.Add(pool[idx]);
-                    break; // 중요: 선택 후 루프 탈출
-                }
-            }
-        }
-
-        return result;
-    }
-
 
     // 두 값 사이 무작위 값 반환
     public static float GetRandomBetweenValue(float min, float max)
     {
         return UnityEngine.Random.Range(min, max);
     }
-
-
 }

@@ -17,11 +17,12 @@ public class SavePlayerData
     public int playerMorale;
     public int currentStageX;
     public int currentStageY;
+    public int chapter;
     public StageType currentStageType;
-
+    
     public int sariStack;
     
-    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds, int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,StageType currentStageType,int sariStack)
+    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds, int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,StageType currentStageType,int sariStack)
     {
         this.id = id;
         this.myUnits = myUnits;
@@ -32,6 +33,7 @@ public class SavePlayerData
         this.playerMorale = playerMorale;
         this.currentStageX = currentStageX;
         this.currentStageY = currentStageY;
+        this.chapter = chapter;
         this.currentStageType = currentStageType;
         this.sariStack = sariStack;
     }
@@ -70,7 +72,7 @@ public class SaveData
             SavePlayerData savePlayerData = JsonUtility.FromJson<SavePlayerData>(jsonData);
 
             // 1. 내 유닛 전부 수정하기
-            List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>(savePlayerData.myUnits);
+            List<RogueUnitDataBase> myUnits = new(savePlayerData.myUnits);
             RogueLikeData.Instance.SetAllMyUnits(myUnits);
 
             // 2. 유물 정보 업데이트하기 (relicIds를 Dictionary로 변환)
@@ -79,21 +81,9 @@ public class SaveData
                 RogueLikeData.Instance.AcquireRelic(id);
             }
 
-            // 3. 현재 스테이지 설정
-            RogueLikeData.Instance.SetCurrentStage(
-                savePlayerData.currentStageX,
-                savePlayerData.currentStageY,
-                savePlayerData.currentStageType
-            );
-
-            // 4. 사리 스택 설정
-            RogueLikeData.Instance.SetSariStack(savePlayerData.sariStack);
-
-            // 5. 사기 설정
-            RogueLikeData.Instance.SetMorale(savePlayerData.playerMorale);
-
-            // 6. 골드 업데이트
-            RogueLikeData.Instance.SetCurrentGold(savePlayerData.currentGold);
+            RogueLikeData.Instance.SetLoadData(savePlayerData.eventIds,savePlayerData.currentGold, savePlayerData.spentGold,
+                savePlayerData.playerMorale, savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,
+                savePlayerData.currentStageType, savePlayerData.sariStack);
 
             Debug.Log("데이터 로드 성공!");
         }

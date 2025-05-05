@@ -10,19 +10,17 @@ public class RogueLikeData
     {
         get
         {
-            if (instance == null)
-            {
-                instance = new RogueLikeData();
-            }
+            instance ??= new RogueLikeData();
+
             return instance;
         }
     }
     
     private int nextUnitUniqueId = 0;
 
-    private List<RogueUnitDataBase> myUnits = new List<RogueUnitDataBase>();
-    private List<RogueUnitDataBase> enemyUnits = new List<RogueUnitDataBase>();
-    private List<RogueUnitDataBase> savedMyUnits = new List<RogueUnitDataBase>();
+    private List<RogueUnitDataBase> myUnits = new();
+    private List<RogueUnitDataBase> enemyUnits = new();
+    private List<RogueUnitDataBase> savedMyUnits = new();
     private List<RogueUnitDataBase> selectedUnits = new(); //유닛 선택 화면에서 선택된 유닛들
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
@@ -30,9 +28,9 @@ public class RogueLikeData
     private Dictionary<int, int> encounteredEvent = new();
     private int currentStageX = 1;
     private int currentStageY = 0;
+    private int chapter = 1;
     private StageType currentStageType = StageType.Combat;
 
-    private int chapter = 1;
     private int currentGold = 0;
     private int playerMorale = 50;
     private int spentGold = 0;
@@ -47,6 +45,7 @@ public class RogueLikeData
     //다음 전투 추가 보상
     private BattleRewardData battleReward = new();
 
+    private int rerollChance = 0;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -62,22 +61,22 @@ public class RogueLikeData
     //내 데이터 전부 반환
     public SavePlayerData GetRogueLikeData()
     {
-        SavePlayerData data = new SavePlayerData(0, savedMyUnits, relicIdsByType.Values
+        SavePlayerData data = new(0, savedMyUnits, relicIdsByType.Values
                                     .SelectMany(hashSet => hashSet)
                                     .ToList(),encounteredEvent.Values.ToList(),
-                                    currentGold,spentGold,playerMorale,currentStageX,currentStageY,currentStageType,sariStack);
+                                    currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,sariStack);
         return data;
     }
     // 보유한 유닛 기력만 재설정 해서 반환
     public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
         // 저장용 복사 리스트 생성 (깊은 복사하지 않고 원본 savedMyUnits를 수정)
-        List<RogueUnitDataBase> savedCopy = new List<RogueUnitDataBase>(savedMyUnits);
+        List<RogueUnitDataBase> savedCopy = new(savedMyUnits);
 
         // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
         foreach (var unit in units.Concat(deadUnits))
         {
-            //UnityEngine.Debug.Log(savedCopy[0].UniqueId+""+unit.UniqueId);
+
             var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
             if (savedUnit == null) continue;
 
@@ -92,7 +91,7 @@ public class RogueLikeData
             }
         }
 
-        SavePlayerData data = new SavePlayerData(
+        SavePlayerData data = new(
             0,
             savedCopy,
             relicIdsByType.Values.SelectMany(hashSet => hashSet).ToList(),
@@ -102,6 +101,7 @@ public class RogueLikeData
             playerMorale,
             currentStageX,
             currentStageY,
+            chapter,
             currentStageType,
             sariStack
         );
@@ -154,8 +154,8 @@ public class RogueLikeData
     //특정 타입 유물만 가져오기
     public List<WarRelic> GetRelicsByType(RelicType type)
     {
-        HashSet<int> uniqueIds = new HashSet<int>();
-        List<WarRelic> result = new List<WarRelic>();
+        HashSet<int> uniqueIds = new();
+        List<WarRelic> result = new();
 
         void AddUniqueRelics(RelicType relicType)
         {
@@ -181,7 +181,7 @@ public class RogueLikeData
     // 특정 등급의 유물 가져오기
     public List<WarRelic> GetRelicsByGrade(int grade)
     {
-        List<WarRelic> result = new List<WarRelic>();
+        List<WarRelic> result = new();
 
         foreach (var relicList in relicsByType.Values)
         {
@@ -226,7 +226,7 @@ public class RogueLikeData
     // 보유한 모든 유물을 반환하는 함수
     public List<WarRelic> GetAllOwnedRelics()
     {
-        List<WarRelic> allRelics = new List<WarRelic>();
+        List<WarRelic> allRelics = new();
 
         foreach (var relicList in relicsByType.Values)
         {
@@ -239,7 +239,7 @@ public class RogueLikeData
     // 보유한 모든 유물의 ID만 반환하는 함수
     public List<int> GetAllOwnedRelicIds()
     {
-        List<int> relicIds = new List<int>();
+        List<int> relicIds = new();
 
         foreach (var relicList in relicsByType.Values)
         {
@@ -476,4 +476,29 @@ public class RogueLikeData
         }
     }
 
+    public int GetRerollChance()
+    {
+        return rerollChance;
+    }
+    public void SetRerollChance(int reroll)
+    {
+        rerollChance = reroll;
+    }
+
+    public void SetLoadData(List<int> eventId,int gold,int sentGold,int morale,
+        int stageX,int stageY,int chapter, StageType stageType,int sariSatck)
+    {
+        foreach(int id in eventId)
+        {
+            encounteredEvent[id] = id;
+        }
+        this.currentGold = gold;
+        this.spentGold = sentGold;
+        this.playerMorale = morale;
+        this.currentStageX = stageX;
+        this.currentStageY = stageY;
+        this.chapter = chapter;
+        this.currentStageType = stageType;
+        this.sariStack = sariSatck;
+    }
 }

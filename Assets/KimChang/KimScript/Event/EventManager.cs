@@ -377,7 +377,7 @@ public class EventManager
                         List<RogueUnitDataBase> filteredUnits = myUnits.FindAll(unit => unit.energy > energy);
 
                         // 랜덤 셔플을 위해 리스트 섞기
-                        System.Random random = new System.Random();
+                        System.Random random = new();
                         for (int k = filteredUnits.Count - 1; k > 0; k--)
                         {
                             int j = random.Next(k + 1);
@@ -1014,5 +1014,22 @@ public class EventManager
         int v = int.Parse(countStr);
         return useMinBound ? actual >= v : actual <= v;
     }
+    public static EventData GetEventById(int eventId)
+{
+    if (EventDataLoader.EventDataDict.TryGetValue(eventId, out var eventData))
+    {
+        if (CanAppear(eventData))
+        {
+            return eventData;
+        }
+        else
+        {
+            Debug.LogWarning($"이벤트 {eventId}는 현재 등장 조건을 만족하지 않음.");
+            return null;
+        }
+    }
+    Debug.LogError($"이벤트 ID {eventId}를 찾을 수 없음.");
+    return null;
+}
 
 }

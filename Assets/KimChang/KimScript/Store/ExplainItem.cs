@@ -1,86 +1,110 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using System.Collections;
 
 public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private GameObject ItemToolTip;
-    private Coroutine hideCoroutine;
+    [SerializeField] private GameObject unitPackageToolTip;
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // 비활성화 예약된 코루틴 중지
-        if (hideCoroutine != null)
-        {
-            StopCoroutine(hideCoroutine);
-            hideCoroutine = null;
-        }
-
         if (ItemToolTip == null)
         {
             ItemToolTip = FindInactiveObject("ItemToolTip");
-            if (ItemToolTip == null)
-            {
-                Debug.LogError("ItemToolTip object not found in the scene.");
-                return;
-            }
+        }
+        if (unitPackageToolTip == null)
+        {
+            unitPackageToolTip = FindInactiveObject("UnitPackageToolTip");
+        }
+            ItemInformation info = GetComponent<ItemInformation>();
+        if (info == null)
+        {
+            Debug.LogWarning("ItemInformation 컴포넌트를 찾을 수 없습니다.");
+            return;
         }
 
-        if (int.TryParse(gameObject.name, out int id))
+        StoreItemData item = info.item;
+
+        if (info.units.Count != 0)
         {
-            var itemList = StoreItemDataLoader.Load();
-            if (id < 0 || id >= itemList.Count)
+            unitPackageToolTip.SetActive(true);
+            ItemToolTip.SetActive(false);
+
+            Transform unitPackage = unitPackageToolTip.transform.GetChild(0);
+            int totalChildren = unitPackage.childCount;
+            int activeCount = info.units.Count;
+
+            for (int i = 0; i < totalChildren; i++)
             {
-                Debug.LogWarning($"Item ID {id} is out of range.");
-                return;
+                GameObject child = unitPackage.GetChild(i).gameObject;
+
+                if (i < activeCount)
+                {
+                    RogueUnitDataBase unit = info.units[i];
+                    child.SetActive(true);
+                    UIMaker.CreateSelectUnitEnergy(unit, child);
+                }
+                else
+                {
+                    child.SetActive(false);
+                }
             }
 
-            string name = itemList[id].itemName;
+            unitPackageToolTip.transform.SetAsLastSibling();
+            return;
 
-            if (!ItemToolTip.activeSelf)
-                ItemToolTip.SetActive(true);
+        }
 
-            RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
-            Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvas.transform as RectTransform,
-                Input.mousePosition,
-                canvas.worldCamera,
-                out var mousePosition
-            );
+        ItemToolTip.SetActive(true);
+        unitPackageToolTip.SetActive(false);
 
-            Vector2 offset = new Vector2(110, -110);
-            tooltipRect.anchoredPosition = mousePosition + offset;
+        RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
+        Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvas.transform as RectTransform,
+            Input.mousePosition,
+            canvas.worldCamera,
+            out var mousePosition
+        );
 
-            TextMeshProUGUI textComponent = ItemToolTip.transform.GetChild(ItemToolTip.transform.childCount - 1)
-                .GetComponent<TextMeshProUGUI>();
-            textComponent.text = name;
+        Vector2 offset = new Vector2(110, -110);
+        tooltipRect.anchoredPosition = mousePosition + offset;
 
-            ItemToolTip.transform.SetAsLastSibling();
+        TextMeshProUGUI textComponent = ItemToolTip.transform.GetChild(ItemToolTip.transform.childCount - 1)
+            .GetComponent<TextMeshProUGUI>();
+
+        if (item == null)
+        {
+            textComponent.text = "아이템 정보 없음";
+        }
+        else if (item.itemId >= 0 && item.itemId < 34)
+        {
+            textComponent.text = $"{item.itemName}\n{item.description}";
+        }
+        else if (info.relicId != -1)
+        {
+            var relic = WarRelicDatabase.GetRelicById(info.relicId);
+            if (relic != null)
+                textComponent.text = $"{relic.name}\n{relic.tooltip}";
+            else
+                textComponent.text = "유물 정보를 찾을 수 없습니다.";
+        }
+        else if (item.itemId > 59 && item.itemId < 63)
+        {
+            textComponent.text = $"주사위\n리롤을 {int.Parse(item.value)}회 추가한다";
         }
         else
         {
-            Debug.LogWarning("Object name is not a valid number.");
+            textComponent.text = "설정되지 않은 아이템";
         }
+        ItemToolTip.transform.SetAsLastSibling();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (ItemToolTip != null && ItemToolTip.activeSelf)
-        {
-            hideCoroutine = StartCoroutine(DelayedHide());
-        }
-    }
-
-    private IEnumerator DelayedHide()
-    {
-        yield return new WaitForSeconds(0.5f);
-        if (ItemToolTip != null)
-        {
-            ItemToolTip.SetActive(false);
-        }
-        hideCoroutine = null;
+        ItemToolTip.SetActive(false);
+        unitPackageToolTip.SetActive(false);
     }
 
     private GameObject FindInactiveObject(string name)
