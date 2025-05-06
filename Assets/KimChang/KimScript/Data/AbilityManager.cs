@@ -26,7 +26,7 @@ public class AbilityManager
     private float mybindingAttackDamage = 5;                        //결속 추가 공격력
     private float enemybindingAttackDamage = 5;
     private float moraleMultiplier = 0f;
-    private int plunderGold = 20;                    //약탈 골드
+    private int plunderGold = 20;                           //약탈 골드
 
     private AutoBattleUI autoBattleUI;
 
@@ -72,14 +72,11 @@ public class AbilityManager
         }
     }
     //현재 맵에 따른 효과
-    private void CalculateFieldEffect()
+    public void CalculateFieldEffect()
     {
         int fieldId = RogueLikeData.Instance.GetFieldId();
         switch (fieldId) 
         {
-            case 0:
-                Debug.Log("필드 버그");
-                break;
             case 2:
                 {
                     var myUnits = RogueLikeData.Instance.GetMyUnits();
@@ -127,7 +124,36 @@ public class AbilityManager
                 
         }
 
+    }
+    
+    public bool ProcessOneTurn()
+    {
+        bool isTurnEffect =false;
+        //맵 효과
+        isTurnEffect = CalculateStromMap();
 
+        return isTurnEffect;
+    }
+
+    // 폭풍우 맵 효과: 아군/적군 무작위 유닛 각각 체력 30 감소
+    private bool CalculateStromMap()
+    {
+        int fieldId= RogueLikeData.Instance.GetFieldId();
+        if(fieldId !=5) return false;
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+
+        int randomIndex = UnityEngine.Random.Range(0, myUnits.Count);
+        myUnits[randomIndex].health -= 30;
+        myUnits[randomIndex].health = Mathf.Max(myUnits[randomIndex].health, 0); // 체력 0 밑으로 방지
+        CallDamageText(30, "번개 ", true, false, randomIndex);
+
+        int randomI = UnityEngine.Random.Range(0, enemyUnits.Count);
+        enemyUnits[randomI].health -= 30;
+        enemyUnits[randomI].health = Mathf.Max(enemyUnits[randomI].health, 0); // 체력 0 밑으로 방지
+        CallDamageText(30, "번개 ", false, false, randomI);
+
+        return true;
     }
 
     //유닛 기력 감소
@@ -184,7 +210,7 @@ public class AbilityManager
     }
 
     //준비 페이즈 시 발동
-    public void ProcessPreparationAbility(List<RogueUnitDataBase> attackers,List<RogueUnitDataBase> defenders,bool isFirstAttack,bool isTeam,float _finalDamage)
+    public bool ProcessPreparationAbility(List<RogueUnitDataBase> attackers,List<RogueUnitDataBase> defenders,bool isFirstAttack,bool isTeam,float _finalDamage)
     {
         if (isFirstAttack)
         {
@@ -206,9 +232,11 @@ public class AbilityManager
 
             foreach (var action in abilityActions) action();
 
-
             if (damage > 0) CallDamageText(damage, text, !isTeam,true);
+
+            return true;
         }
+        return false;
     }
 
     //충돌 페이즈 시 발동

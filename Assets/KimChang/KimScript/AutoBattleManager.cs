@@ -89,6 +89,7 @@ public class AutoBattleManager : MonoBehaviour
                 await HandlePhase(HandleStart);
                 break;
             case BattleState.Preparation:
+                await HandleOneTurn();
                 if (!HandleEnd())
                     await HandlePhase(HandlePreparation);
                 else
@@ -153,13 +154,23 @@ public class AutoBattleManager : MonoBehaviour
         await InitializeBattle(_myUnitIds, _enemyUnitIds);
     }
 
-    //페이즈 관리
-    private async Task HandlePhase(Func<Task> phaseHandler)
+    private async Task HandleOneTurn()
     {
-        await phaseHandler();
+        bool isTrun =abilityManager.ProcessOneTurn();
+
+        if (isTrun)
+            await Task.Delay(500); // 0.5초 대기
+
+        await Task.Yield();
+    }
+
+    //페이즈 관리
+    private async Task HandlePhase(Func<Task<bool>> phaseHandler)
+    {
+        bool phaseHadEffect = await phaseHandler(); // 준비 페이즈 결과
+
         UpdateUnitHp();
 
-        //유닛이 죽지 않았고 끝나지 않음
         if (!ManageUnitDeath() && !(myUnits.Count == 0 || enemyUnits.Count == 0))
         {
             switch (currentState)
@@ -184,7 +195,9 @@ public class AutoBattleManager : MonoBehaviour
             HandleEnd();
         }
 
-        await Task.Delay((int)waittingTime); // 대기 시간
+        bool skipWait = (currentState == BattleState.Crash && !phaseHadEffect);
+        await Task.Delay(skipWait ? 0 : (int)waittingTime);
+
         isProcessing = false;
     }
 
@@ -282,16 +295,18 @@ public class AutoBattleManager : MonoBehaviour
             || abilityManager.ProcessStartBattle(enemyUnits, myUnits, enemyFinalDamage, false);
     }
     //준비 페이즈
-    private void PreparationPhase()
+    private bool PreparationPhase()
     {
         //전열 유닛
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
 
-        abilityManager.ProcessPreparationAbility(myUnits, enemyUnits, isFirstAttack, true, myFinalDamage);
-        abilityManager.ProcessPreparationAbility(enemyUnits,myUnits,isFirstAttack, false, enemyFinalDamage);
+        bool isPreparation =
+            (abilityManager.ProcessPreparationAbility(myUnits, enemyUnits, isFirstAttack, true, myFinalDamage) ||
+             abilityManager.ProcessPreparationAbility(enemyUnits, myUnits, isFirstAttack, false, enemyFinalDamage));
+        return isPreparation;
     }
-    
+
     //충돌 페이즈
     private void ChrashPhase()
     {
@@ -363,24 +378,6 @@ public class AutoBattleManager : MonoBehaviour
         //스탯 유산 실행
         ProcessRelic();
 
-        // 통계 초기화
-        /*
-        foreach (var unit in myUnits)
-        {
-            if (!unitStats.ContainsKey(unit.UniqueId))
-            {
-                unitStats[unit.UniqueId] = new UnitCombatStatics(unit.UniqueId, unit.unitName); // 아군
-            }
-        }
-
-        foreach (var unit in enemyUnits)
-        {
-            if (!unitStats.ContainsKey(unit.UniqueId))
-            {
-                unitStats[unit.UniqueId] = new UnitCombatStatics(unit.UniqueId, unit.unitName); // 적군
-            }
-        }*/
-
         //로딩창 종료
         autoBattleUI.ToggleLoadingWindow();
         //유닛 생성
@@ -398,6 +395,9 @@ public class AutoBattleManager : MonoBehaviour
     // 확인 단계 처리 (전투 시작 전에 필요한 확인 작업 수행)
     private async Task HandleCheck()
     {
+        //맵 효과
+        abilityManager.CalculateFieldEffect();
+
         ProcessBeforeBattle(myUnits, enemyUnits, true, myFinalDamage);
         ProcessBeforeBattle(enemyUnits, myUnits, false, enemyFinalDamage);
 
@@ -406,13 +406,14 @@ public class AutoBattleManager : MonoBehaviour
         isProcessing = false; // 체크가 끝난 후 상태를 변경
     }
     // 시작 단계 처리 (전투 시작을 위한 초기화)
-    private async Task HandleStart()
+    private async Task<bool> HandleStart()
     {
         Debug.Log("전투 시작");
 
         bool result = StartBattlePhase();
 
-        await Task.Yield();  // 변경 사항이 없으면 즉시 다음 단계로 이동
+        await Task.Yield();
+        return result;
 
     }
     // 애니메이션 단계 처리 (전투 중 원하는 타이밍에 실행)
@@ -422,29 +423,31 @@ public class AutoBattleManager : MonoBehaviour
         await Task.Yield(); // 입력된 시간만큼 대기
         currentState = BattleState.Preparation;
     }
-    //준비 페이즈 관리
-    private async Task HandlePreparation()
+    // 준비 페이즈 관리
+    private async Task<bool> HandlePreparation()
     {
         UpdateUnitUI();
-
-        PreparationPhase();
+        bool result = PreparationPhase(); // 이미 전투 처리됨
         await Task.Yield();
+        return result;
     }
 
     //충돌 페이즈 관리
-    private async Task HandleCrash()
+    private async Task<bool> HandleCrash()
     {
         ChrashPhase();
 
         await Task.Yield();
+        return true;
     }
 
     //지원 페이즈 관리
-    private async Task HandleSupport()
+    private async Task<bool> HandleSupport()
     {
         SupportPhase();
 
         await Task.Yield();
+        return true;
     }
     //종료 확인
     private int CheckEnd()

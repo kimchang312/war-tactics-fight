@@ -125,4 +125,77 @@ public class UpgradeManager
         return unit;
     }
 
+
+
+
+    private void ProcessUpgrade()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+
+        foreach (var unit in myUnits)
+        {
+            int idx = unit.branchIdx;
+            int atkLv = RogueLikeData.Instance.GetUpgrade(idx, true);
+            int defLv = RogueLikeData.Instance.GetUpgrade(idx, false);
+
+            // 기본 강화 적용
+            if (atkLv > 0)
+                unit.attackDamage += Mathf.Floor(unit.baseAttackDamage * atkLv * 0.1f);
+
+            if (defLv > 0)
+                unit.health += Mathf.Floor(unit.baseHealth * defLv * 0.1f);
+
+            // 병종별 특수 강화
+            switch (idx)
+            {
+                case 0:
+                    if (atkLv == 5)
+                        unit.antiCavalry += Mathf.Floor(unit.baseAntiCavalry * 0.3f);
+                    break;
+
+                case 1:
+                    if (atkLv == 5)
+                        unit.attackDamage += Mathf.Floor(unit.baseAttackDamage * 0.15f);
+                    break;
+
+                case 2:
+                    if (atkLv == 5)
+                        unit.range += 1;
+                    if (defLv == 5)
+                        unit.mobility += 5;
+                    break;
+
+                case 3:
+                    if (atkLv == 5)
+                        unit.attackDamage += Mathf.Floor(unit.baseAttackDamage * 0.15f);
+                    break;
+
+                case 4:
+                    if (atkLv == 5)
+                        unit.attackDamage += Mathf.Floor(unit.baseAttackDamage * 0.15f);
+                    if (defLv == 5)
+                        unit.mobility += 5;
+                    break;
+
+                case 5:
+                case 6:
+                    if (atkLv == 5)
+                        unit.mobility += 5;
+                    break;
+
+                case 7:
+                    if (atkLv == 5)
+                        unit.range += 1;
+                    break;
+            }
+        }
+    }
+
+}
+
+[System.Serializable]
+public class UnitUpgrade
+{
+    public int attackLevel = 0;
+    public int defenseLevel = 0;
 }

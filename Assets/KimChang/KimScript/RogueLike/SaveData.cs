@@ -19,10 +19,12 @@ public class SavePlayerData
     public int currentStageY;
     public int chapter;
     public StageType currentStageType;
-    
+    public UnitUpgrade[] unitUpgrades; 
     public int sariStack;
     
-    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds, int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,StageType currentStageType,int sariStack)
+    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds,
+        int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
+        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack)
     {
         this.id = id;
         this.myUnits = myUnits;
@@ -35,6 +37,7 @@ public class SavePlayerData
         this.currentStageY = currentStageY;
         this.chapter = chapter;
         this.currentStageType = currentStageType;
+        this.unitUpgrades = unitUpgrades;
         this.sariStack = sariStack;
     }
 }
