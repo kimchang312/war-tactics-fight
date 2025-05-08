@@ -50,6 +50,8 @@ public class RogueLikeData
     private BattleRewardData battleReward = new();
 
     private int rerollChance = 0;
+
+    private bool isFreeUpgrade =false;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -299,6 +301,21 @@ public class RogueLikeData
     {
         return currentGold;
     }
+    //골드 획득
+    public void EarnGold(int gold)
+    {
+        float addGold = GetOwnedRelicById(5) == null ? 0 : 0.15f;
+        gold = (int)((addGold+1)*gold);
+        currentGold += gold;
+    }
+    //골드 감소
+    public void ReduceGold(int gold)
+    {
+        int rentalGold = RogueLikeData.instance.GetOwnedRelicById(49) == null ? 0 : -500;
+        spentGold += gold;
+        currentGold =Math.Max(rentalGold, currentGold-gold);
+    }
+
     //현재 골드 수정
     public void SetCurrentGold(int gold)
     {
@@ -313,11 +330,22 @@ public class RogueLikeData
     {
         spentGold = gold;
     }
-
     public int GetMorale()
     {
         return playerMorale;
     }
+    public void AddMorale(int add)
+    {
+        playerMorale = Math.Min(100, playerMorale+add);
+    }
+
+    public void ReduceMorale(int reduce)
+    {
+        float addReduce = GetOwnedRelicById(33) == null ? 0 : 0.2f;
+        reduce = (int)(reduce * (1 - addReduce));
+        playerMorale = Math.Max(0,playerMorale-reduce);
+    }
+
     public void SetMorale(int value)
     {
         playerMorale = value;
@@ -404,7 +432,7 @@ public class RogueLikeData
     {
         float value = chapter == 1 ? 1 : (chapter == 2 ? 1.5f : 2);
         int getGold = ((int)(gold * value));
-        currentGold += getGold;
+        EarnGold(getGold);
         return getGold;
     }
     //랜덤유산 제거
@@ -452,23 +480,27 @@ public class RogueLikeData
         return battleReward;
     }
 
-    public void SetGoldReward(int setGold)
+    public void AddGoldReward(int setGold)
     {
-        battleReward.gold = setGold;
+        battleReward.gold += setGold;
     }
-    public void SetMoraleReward(int setMoraleReward)
+    public void AddMoraleReward(int setMoraleReward)
     {
-        battleReward.morale = setMoraleReward;
+        battleReward.morale += setMoraleReward;
     }
-    public void SetRelicReward(int setRelicId)
+    public void AddRerollChange(int addReroll)
+    {
+        battleReward.rerollChance += addReroll;
+    }
+    public void AddRelicReward(int setRelicId)
     {
         battleReward.relicIds.Add(setRelicId);
     }
-    public void SetUnitReward(RogueUnitDataBase setUnits)
+    public void AddUnitReward(RogueUnitDataBase setUnits)
     {
         battleReward.newUnits.Add(setUnits);
     }
-    public void SetChangeReward(RogueUnitDataBase setChanges)
+    public void AddChangeReward(RogueUnitDataBase setChanges)
     {
         battleReward.changedUnits.Add(setChanges);
     }
@@ -519,7 +551,7 @@ public class RogueLikeData
     }
 
     // 강화 수치 증가 (강화 비용 차감 포함)
-    public void IncreaseUpgrade(int unitTypeIndex, bool isAttack, ref int currentGold)
+    public void IncreaseUpgrade(int unitTypeIndex, bool isAttack,bool isPurchase=true)
     {
         if (unitTypeIndex < 0 || unitTypeIndex >= upgradeValues.Length)
             return;
@@ -531,15 +563,22 @@ public class RogueLikeData
         if (currentLevel >= 5)
             return;
 
-        // 단계별 비용 테이블
+        if (isPurchase)
+        {
+            if (!isFreeUpgrade)
+            {
+                // 단계별 비용 테이블
+                float isSale = GetOwnedRelicById(1) == null ? 0 : 0.2f;
+                int cost = costTable[currentLevel];
 
-        int cost = costTable[currentLevel];
+                if (currentGold < cost)
+                    return; // 금화 부족
 
-        if (currentGold < cost)
-            return; // 금화 부족
-
-        // 금화 차감
-        currentGold -= cost;
+                // 금화 차감
+                currentGold -= cost;
+            }
+            isFreeUpgrade = false;
+        }
 
         // 강화 수치 증가
         if (isAttack)
@@ -559,6 +598,17 @@ public class RogueLikeData
         return (unitType, isAttack);
     }
 
+    // 랜덤 병종 강화 (기존 함수 재사용)
+    public void IncreaseRandomUpgrade(bool isPurchase = true)
+    {
+        var (unitType, isAttack) = GetRandomUpgradeTarget();
+        IncreaseUpgrade(unitType, isAttack, isPurchase);
+    }
+
+    public void SetIsFreeUpgrade(bool isFree = true)
+    {
+        isFreeUpgrade = isFree;
+    }
 
 
 }

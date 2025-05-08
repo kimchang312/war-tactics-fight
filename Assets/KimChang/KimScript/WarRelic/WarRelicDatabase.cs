@@ -60,12 +60,12 @@ public static class WarRelicDatabase
         
         relics.Add(new WarRelic(40, "누군가의 무료 배식권", 1, "상단에 진입할 때 모든 아군 유닛의 기력이 1 회복한다.", RelicType.SpecialEffect, () => FreeMealTicket()));
         relics.Add(new WarRelic(41, "파괴공작용 대포", 1, "일반, 엘리트 전투 시작 전에 적의 체력을 10% 감소시킨다.", RelicType.StateBoost, () => CannonForSabotage()));
-        relics.Add(new WarRelic(42, "자율 개발 명령서", 1, "획득 시 무작위의 병종 강화 3종을 1단계 강화시킨다. (많이 보유한 병종을 우선함)", RelicType.SpecialEffect, () => AutonomousDevelopmentOrder()));
+        relics.Add(new WarRelic(42, "자율 개발 명령서", 1, "획득 시 무작위의 병종 강화 3종을 1단계 강화시킨다.", RelicType.GetEffect, () => AutonomousDevelopmentOrder()));
         relics.Add(new WarRelic(43, "해진 정찰 보고서", 1, "엘리트, 보스 전투에서 아군이 주는 피해가 15% 증가한다.", RelicType.StateBoost, () => EnemyGeneralScoutReport()));
         relics.Add(new WarRelic(44, "추가 징병 계획서", 1, "용병단의 판매 유닛 슬롯 수가 4 증가한다.", RelicType.SpecialEffect, () => MistakenOrderReceipt()));
         relics.Add(new WarRelic(45, "전술적 단일화 교본", 10, "배치한 유닛의 병종이 한 종류일 경우 유닛의 체력과 공격력이 10% 증가하고, 경갑 유닛의 기동력이 5, 중갑 유닛의 장갑이 5 증가한다.", RelicType.StateBoost, () => TacticalUnificationManual()));
         relics.Add(new WarRelic(46, "기술 비급서", 1, "아군 유닛이 기술로 주는 피해가 20% 증가한다.", RelicType.BattleActive, () => TechnicalManual()));
-        relics.Add(new WarRelic(47, "보물지도", 1, "획득 시 다음에 진입한 이벤트 지역이 보물 지역으로 변경된다.", RelicType.SpecialEffect, () => TreasureMap()));
+        relics.Add(new WarRelic(47, "보물지도", 1, "획득 시 다음에 진입한 이벤트 지역이 보물 지역으로 변경된다.", RelicType.GetEffect, () => TreasureMap()));
         relics.Add(new WarRelic(48, "무지개 열쇠", 1, "한 챕터에 두번, 길이 이어지지 않은 지역으로 이동할 수 있다.", RelicType.SpecialEffect, () => RainbowKey()));
         relics.Add(new WarRelic(49, "재상의 보증서", 1, "금화를 소모할 때, 500금화까지 빌려서 사용할 수 있게된다.", RelicType.SpecialEffect, () => CreditAuthorization()));
         
@@ -564,10 +564,30 @@ public static class WarRelicDatabase
         }
     }
 
-    //자율 개발 명령서 42
+    // 자율 개발 명령서 42
     private static void AutonomousDevelopmentOrder()
     {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var unitTypes = myUnits.Select(u => u.branchIdx)
+                               .Distinct()
+                               .Where(t => t >= 0 && t < 8)
+                               .ToList();
 
+        if (unitTypes.Count == 0) return;
+
+        for (int i = 0; i < unitTypes.Count; i++)
+        {
+            int r = UnityEngine.Random.Range(i, unitTypes.Count);
+            (unitTypes[i], unitTypes[r]) = (unitTypes[r], unitTypes[i]);
+        }
+
+        int count = Mathf.Min(3, unitTypes.Count);
+        for (int i = 0; i < count; i++)
+        {
+            int type = unitTypes[i];
+            bool isAttack = UnityEngine.Random.value < 0.5f;
+            RogueLikeData.Instance.IncreaseUpgrade(type, isAttack, false);
+        }
     }
 
     //해진 정찰 보고서 43

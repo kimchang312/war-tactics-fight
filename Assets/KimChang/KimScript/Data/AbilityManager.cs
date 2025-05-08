@@ -128,7 +128,7 @@ public class AbilityManager
     
     public bool ProcessOneTurn()
     {
-        bool isTurnEffect =false;
+        bool isTurnEffect;
         //맵 효과
         isTurnEffect = CalculateStromMap();
 
@@ -156,16 +156,21 @@ public class AbilityManager
         return true;
     }
 
-    //유닛 기력 감소
+    // 유닛 기력 감소
     private void ReduceUnitEngery()
     {
-        var myUnits= RogueLikeData.Instance.GetMyUnits();
-        
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        bool hasRelic = RogueLikeData.Instance.GetOwnedRelicById(2) != null;
+
         foreach (var unit in myUnits)
         {
+            if (hasRelic && UnityEngine.Random.value < 0.25f)
+                continue;
+
             unit.energy = Math.Max(0, unit.energy - 1);
         }
     }
+
     //전투 전 발동(패시브)
     public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage,AutoBattleUI _autoBattleUI)
     {
@@ -574,7 +579,7 @@ public class AbilityManager
     {
         //적 or 약탈 없음
         if (!isTeam || !unit.plunder) return;
-        RogueLikeData.Instance.SetCurrentGold(RogueLikeData.Instance.GetCurrentGold()+plunderGold);
+        RogueLikeData.Instance.EarnGold(plunderGold);
     }
     //무한
     private void CalculateEndLess(RogueUnitDataBase unit,bool isTeam)
@@ -1114,7 +1119,7 @@ public class AbilityManager
     {
         if (!isTeam || units[0].idx != 54 || units[0].health <1) return;
         int morale = RogueLikeData.Instance.GetMorale();
-        RogueLikeData.Instance.SetMorale(morale + 10);
+        RogueLikeData.Instance.AddMorale(10);
         CalculateFirstMorale(units, isTeam, true);
 
     }
