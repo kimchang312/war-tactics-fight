@@ -23,6 +23,8 @@ public class StagePreset
 
 public class StagePresetLoader : MonoBehaviour
 {
+    public static StagePresetLoader I { get; private set; }
+
     [Header("Resources/StagePresets.json 파일명 (확장자 제외)")]
     public string resourceJsonName = "StagePresets";
 
@@ -31,6 +33,16 @@ public class StagePresetLoader : MonoBehaviour
 
     void Awake()
     {
+        if (I == null)
+        {
+            I = this;
+            DontDestroyOnLoad(this);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
         LoadAllPresets();
     }
 
@@ -58,7 +70,7 @@ public class StagePresetLoader : MonoBehaviour
         }
     }
 
-    public StagePreset GetPresetByID(int id)
+    /*public StagePreset GetPresetByID(int id)
     {
         
         return presets.FirstOrDefault(p => p.PresetID == id);
@@ -69,5 +81,16 @@ public class StagePresetLoader : MonoBehaviour
     {
         var p = GetPresetByID(presetID);
         return p != null ? p.UnitList : new List<int>();
-    }
+    }*/
+    // chapter, level, stageType 으로 후보 목록 필터링
+    public List<StagePreset> GetPresets(int chapter, int level, string stageType)
+        => presets.Where(p =>
+                p.Chapter == chapter &&
+                p.Level == level &&
+                p.StageType == stageType
+           ).ToList();
+
+    // ID 로 딱 하나 꺼내는 용
+    public StagePreset GetByID(int id)
+        => presets.FirstOrDefault(p => p.PresetID == id);
 }

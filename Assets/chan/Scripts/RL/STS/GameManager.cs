@@ -49,6 +49,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int CurrentGold
+    {
+        get => RogueLikeData.Instance.GetCurrentGold();
+        set => RogueLikeData.Instance.SetCurrentGold(value);
+    }
+
+    public int SpentGold
+    {
+        get => RogueLikeData.Instance.GetSpentGold();
+        set => RogueLikeData.Instance.SetSpentGold(value);
+    }
+    public int PlayerMorale
+    {
+        get => RogueLikeData.Instance.GetMorale();
+        set => RogueLikeData.Instance.SetMorale(value);
+    }
+
+    /*public int RerollCount
+    {
+    물어보고 추가 - 내용은 보유 리롤 횟수 접근
+    }*/
     /// <summary>
     /// StageNodeUI가 클릭되었을 때 호출됩니다.
     /// </summary>
@@ -86,6 +107,9 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log(" → 해당 스테이지로 이동할 수 없습니다.");
         }
+
+        currentPresetID = clickedStage.presetID;
+        OnPresetChanged?.Invoke(currentPresetID);
     }
 
     /// <summary>
