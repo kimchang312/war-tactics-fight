@@ -6,8 +6,8 @@ public enum RelicType
     SpecialEffect,
     StateBoost,
     BattleActive,
-    ActiveState         //BattleActive,StateBoost의 효과가 둘다 있는경우
-
+    ActiveState,         //BattleActive,StateBoost의 효과가 둘다 있는경우
+    GetEffect
 }
 [System.Serializable]
 public class WarRelic

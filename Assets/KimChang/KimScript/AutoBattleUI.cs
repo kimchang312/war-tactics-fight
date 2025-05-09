@@ -116,18 +116,27 @@ public class AutoBattleUI : MonoBehaviour
         float offsetX = 50f;
         float damage = -_damage;
 
-        // 전투 애니메이션 실행
         BattleAnimation(damage, text, team, isAttack);
 
-        // 0.25초 뒤에 데미지 텍스트를 표시하도록 코루틴 실행
-        StartCoroutine(DelayedDamageDisplay(damage, text, team, unitIndex, offsetX));
+        if (isAttack)
+            StartCoroutine(DelayedDamageDisplay(damage, text, team, unitIndex, offsetX));
+        else
+            ShowDamageImmediately(damage, text, team, unitIndex, offsetX);
     }
+
     private IEnumerator DelayedDamageDisplay(float damage, string text, bool team, int unitIndex, float offsetX)
     {
-        yield return new WaitForSeconds(waittingTime*0.0005f);  // 0.25초 대기
-
-        GameObject damageObj = objectPool.GetDamageText();  // 오브젝트 풀에서 가져오기
-        damageObj.SetActive(true);  // 이제 오브젝트를 활성화
+        yield return new WaitForSeconds(waittingTime * 0.0005f);
+        ShowDamageInternal(damage, text, team, unitIndex, offsetX);
+    }
+    private void ShowDamageImmediately(float damage, string text, bool team, int unitIndex, float offsetX)
+    {
+        ShowDamageInternal(damage, text, team, unitIndex, offsetX);
+    }
+    private void ShowDamageInternal(float damage, string text, bool team, int unitIndex, float offsetX)
+    {
+        GameObject damageObj = objectPool.GetDamageText();
+        damageObj.SetActive(true);
 
         TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
         damagetext.color = damage >= 0 ? Color.green : Color.red;
@@ -135,13 +144,10 @@ public class AutoBattleUI : MonoBehaviour
 
         RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
 
-        // team = true(내 머리위), false(상대 머리위)
         if (team)
         {
             if (unitIndex == 0)
-            {
                 rectTransform.anchoredPosition = myTeam;
-            }
             else
             {
                 GameObject unit = FindUnit(unitIndex, !team);
@@ -152,9 +158,7 @@ public class AutoBattleUI : MonoBehaviour
         else
         {
             if (unitIndex == 0)
-            {
                 rectTransform.anchoredPosition = enemyTeam;
-            }
             else
             {
                 GameObject unit = FindUnit(unitIndex, !team);
@@ -163,12 +167,10 @@ public class AutoBattleUI : MonoBehaviour
             }
         }
 
-        // 능력 효과 표시
         CreateAbility(text, team);
-
-        // 데미지 제거
         StartCoroutine(HideAfterDelay(damageObj));
     }
+
 
     private void BattleAnimation(float damage, string text, bool team,bool isAttack)
     {

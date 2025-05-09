@@ -21,7 +21,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(4, "도금 망원경", 1, "아군 궁병 중 가장 앞에 있는 궁병에 한해서 사거리가 1 증가한다.", RelicType.StateBoost, () => GoldPlatedTelescope()));
         relics.Add(new WarRelic(5, "행운의 금화 주머니", 1, "얻는 금화량이 15% 증가한다.", RelicType.SpecialEffect, () => LuckyCoinPouch()));
         relics.Add(new WarRelic(6, "전설의 도굴꾼의 삽", 1, "다음에 전쟁 유산 보상을 얻을때 전설 전쟁 유산이 확정으로 등장한다. 보스에선 적용되지 않는다. 전설 전쟁 유산을 얻은 이후 이 유산은 소멸한다.", RelicType.SpecialEffect, () => LegendaryDiggerShovel()));
-        relics.Add(new WarRelic(7, "기이한 돋보기", 20, "엘리트 전투에서 승리할때 리롤을 1회 얻고, 보물을 열때 리롤을 3회 얻는다.", RelicType.SpecialEffect, () => ArchaeologyKit()));
+        relics.Add(new WarRelic(7, "기이한 돋보기", 20, "엘리트 전투에서 승리할때 리롤을 1회 얻고, 보물을 열때 리롤을 3회 얻는다.", RelicType.SpecialEffect, () => StrangeMagnifyingGlass()));
         relics.Add(new WarRelic(8, "순금 검", 1, "소유 중인 금화 100당 아군 유닛의 공격력이 1% 증가한다.", RelicType.StateBoost, () => GoldenSword()));
         relics.Add(new WarRelic(9, "예리한 양날도끼", 10, "적과 아군이 받는 피해가 각 30% / 10% 증가한다.", RelicType.StateBoost, () => SharpDoubleAxe()));
        
@@ -39,9 +39,9 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(20, "민병대 나팔", 10, "희귀도 1 유닛의 체력과 공격력이 15% 증가한다.", RelicType.StateBoost, () => MilitiaHorn()));
         relics.Add(new WarRelic(21, "소름끼치는 구슬", 10, "소유 중인 저주등급 유산 한개마다 아군 유닛의 체력과 공격력이 10% 증가한다.", RelicType.StateBoost, () => CreepyOrb()));
         relics.Add(new WarRelic(22, "해주 부적", 20, "저주등급 유산의 해로운 효과를 받지 않게 된다.", RelicType.AllEffect, () => HaejuAmulet()));
-        relics.Add(new WarRelic(23, "비어있는 보석 건틀렛", 10, "당장에는 아무런 효과도 없다. 작은 구멍 여러개와 커다란 구멍 하나가 있는 건틀렛이다.", RelicType.AllEffect, () => EmptyGemGauntlet()));
-        relics.Add(new WarRelic(24, "작은 보석 더미", 10, "당장에는 아무런 효과도 없다. 작은 보석 여러개의 더미로, 색상이 다양하다.", RelicType.AllEffect, () => SmallGemPile()));
-        relics.Add(new WarRelic(25, "커다란 보석", 10, "당장에는 아무런 효과도 없다. 커다랗고 하얀 보석이다.", RelicType.AllEffect, () => LargeGem()));
+        relics.Add(new WarRelic(23, "비어있는 보석 건틀렛", 10, "당장에는 아무런 효과도 없다. 작은 구멍 여러개와 커다란 구멍 하나가 있는 건틀렛이다.", RelicType.GetEffect, () => EmptyGemGauntlet()));
+        relics.Add(new WarRelic(24, "작은 보석 더미", 10, "당장에는 아무런 효과도 없다. 작은 보석 여러개의 더미로, 색상이 다양하다.", RelicType.GetEffect, () => SmallGemPile()));
+        relics.Add(new WarRelic(25, "커다란 보석", 10, "당장에는 아무런 효과도 없다. 커다랗고 하얀 보석이다.", RelicType.GetEffect, () => LargeGem()));
         relics.Add(new WarRelic(26, "완성된 보석 건틀렛", 50, "마침내 완성시킨 보석 건틀렛이다. 적의 체력이 절반으로 감소한다.", RelicType.StateBoost, () => CompletedGemGauntlet()));
         relics.Add(new WarRelic(27, "하트 보석 목걸이", 20, "아군 전열 유닛의 체력이 0이 되는 공격을 받을 때 체력의 최대치까지 회복한다. 전투에 한번만 발동한다.", RelicType.BattleActive, () => HeartGemNecklace()));
         relics.Add(new WarRelic(28, "용기의 깃발", 20, "사기로 인한 모든 효과의 적용 기준치가 10 낮아진다.", RelicType.StateBoost, () => FlagOfCourage()));
@@ -60,12 +60,12 @@ public static class WarRelicDatabase
         
         relics.Add(new WarRelic(40, "누군가의 무료 배식권", 1, "상단에 진입할 때 모든 아군 유닛의 기력이 1 회복한다.", RelicType.SpecialEffect, () => FreeMealTicket()));
         relics.Add(new WarRelic(41, "파괴공작용 대포", 1, "일반, 엘리트 전투 시작 전에 적의 체력을 10% 감소시킨다.", RelicType.StateBoost, () => CannonForSabotage()));
-        relics.Add(new WarRelic(42, "자율 개발 명령서", 1, "획득 시 무작위의 병종 강화 3종을 1단계 강화시킨다. (많이 보유한 병종을 우선함)", RelicType.SpecialEffect, () => AutonomousDevelopmentOrder()));
+        relics.Add(new WarRelic(42, "자율 개발 명령서", 1, "획득 시 무작위의 병종 강화 3종을 1단계 강화시킨다.", RelicType.GetEffect, () => AutonomousDevelopmentOrder()));
         relics.Add(new WarRelic(43, "해진 정찰 보고서", 1, "엘리트, 보스 전투에서 아군이 주는 피해가 15% 증가한다.", RelicType.StateBoost, () => EnemyGeneralScoutReport()));
         relics.Add(new WarRelic(44, "추가 징병 계획서", 1, "용병단의 판매 유닛 슬롯 수가 4 증가한다.", RelicType.SpecialEffect, () => MistakenOrderReceipt()));
         relics.Add(new WarRelic(45, "전술적 단일화 교본", 10, "배치한 유닛의 병종이 한 종류일 경우 유닛의 체력과 공격력이 10% 증가하고, 경갑 유닛의 기동력이 5, 중갑 유닛의 장갑이 5 증가한다.", RelicType.StateBoost, () => TacticalUnificationManual()));
         relics.Add(new WarRelic(46, "기술 비급서", 1, "아군 유닛이 기술로 주는 피해가 20% 증가한다.", RelicType.BattleActive, () => TechnicalManual()));
-        relics.Add(new WarRelic(47, "보물지도", 1, "획득 시 다음에 진입한 이벤트 지역이 보물 지역으로 변경된다.", RelicType.SpecialEffect, () => TreasureMap()));
+        relics.Add(new WarRelic(47, "보물지도", 1, "획득 시 다음에 진입한 이벤트 지역이 보물 지역으로 변경된다.", RelicType.GetEffect, () => TreasureMap()));
         relics.Add(new WarRelic(48, "무지개 열쇠", 1, "한 챕터에 두번, 길이 이어지지 않은 지역으로 이동할 수 있다.", RelicType.SpecialEffect, () => RainbowKey()));
         relics.Add(new WarRelic(49, "재상의 보증서", 1, "금화를 소모할 때, 500금화까지 빌려서 사용할 수 있게된다.", RelicType.SpecialEffect, () => CreditAuthorization()));
         
@@ -100,7 +100,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(76, "경량 갑옷", 1, "경갑 특성을 지닌 유닛의 회피율이 5% 증가한다.", RelicType.StateBoost, () =>LightWeightArmor()));
         relics.Add(new WarRelic(77, "뿔피리", 1, "돌격 피해 배수가 30% 증가한다.", RelicType.BattleActive, () =>Horn()));
         relics.Add(new WarRelic(78, "사리 유산", 50, "중첩된 횟수당 모든 유닛의 체력과 공격력이 1% 증가한다. 중첩은 고승이 적을 처치할 때마다 1, 전투에서 승리할 때마다 3 증가한다.", RelicType.StateBoost, () =>SariHeritage()));
-        relics.Add(new WarRelic(79, "기이한 조각", 1, "획득 시 원하는 유닛에게 무한 특성을 부여한다.", RelicType.SpecialEffect, () =>StrangePiece()));
+        relics.Add(new WarRelic(79, "기이한 조각", 1, "획득 시 원하는 유닛에게 무한 특성을 부여한다.", RelicType.GetEffect, () =>StrangePiece()));
         
         relics.Add(new WarRelic(80, "합금 박차", 1, "내 첫 번째 유닛이 기병이라면 해당 유닛의 체력이 15% 증가하고, 강한 돌격 특성을 얻는다.", RelicType.StateBoost, () =>AlloySpur()));
         relics.Add(new WarRelic(81, "벼려진 마창", 1, "유닛의 공격력이 기동력에 비례해 증가한다.", RelicType.StateBoost, () =>ForgedStable()));
@@ -162,7 +162,7 @@ public static class WarRelicDatabase
     }
 
     //고고학 키트 7
-    private static void ArchaeologyKit()
+    private static void StrangeMagnifyingGlass()
     {
 
     }
@@ -395,19 +395,19 @@ public static class WarRelicDatabase
     //비어있는 보석 건틀렛 23
     private static void EmptyGemGauntlet()
     {
-
+        RelicManager.CheckFusion();
     }
 
     //작은 보석 더미 24
     private static void SmallGemPile()
     {
-
+        RelicManager.CheckFusion();
     }
 
     //커다란 보석 25
     private static void LargeGem()
     {
-
+        RelicManager.CheckFusion();
     }
 
     //완성된 보석 건틀렛 26
@@ -564,10 +564,30 @@ public static class WarRelicDatabase
         }
     }
 
-    //자율 개발 명령서 42
+    // 자율 개발 명령서 42
     private static void AutonomousDevelopmentOrder()
     {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var unitTypes = myUnits.Select(u => u.branchIdx)
+                               .Distinct()
+                               .Where(t => t >= 0 && t < 8)
+                               .ToList();
 
+        if (unitTypes.Count == 0) return;
+
+        for (int i = 0; i < unitTypes.Count; i++)
+        {
+            int r = UnityEngine.Random.Range(i, unitTypes.Count);
+            (unitTypes[i], unitTypes[r]) = (unitTypes[r], unitTypes[i]);
+        }
+
+        int count = Mathf.Min(3, unitTypes.Count);
+        for (int i = 0; i < count; i++)
+        {
+            int type = unitTypes[i];
+            bool isAttack = UnityEngine.Random.value < 0.5f;
+            RogueLikeData.Instance.IncreaseUpgrade(type, isAttack, false);
+        }
     }
 
     //해진 정찰 보고서 43

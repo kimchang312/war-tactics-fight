@@ -18,6 +18,8 @@ public class RogueLikeData
     
     private int nextUnitUniqueId = 0;
 
+    private int maxUnits = 5;
+
     private List<RogueUnitDataBase> myUnits = new();
     private List<RogueUnitDataBase> enemyUnits = new();
     private List<RogueUnitDataBase> savedMyUnits = new();
@@ -37,7 +39,11 @@ public class RogueLikeData
     private float myFinalDamage = 1;
     private float enemyFinalDamage = 1;
 
+    private UnitUpgrade[] upgradeValues = new UnitUpgrade[8];
+
     private int sariStack = 0;
+
+    private int[] costTable = { 100, 150, 200, 250, 300 };
 
     //현재 필드 id 전투 종료 후 0으로 1~5
     private int fieldId = 0;
@@ -46,6 +52,8 @@ public class RogueLikeData
     private BattleRewardData battleReward = new();
 
     private int rerollChance = 0;
+
+    private bool isFreeUpgrade =false;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -57,6 +65,8 @@ public class RogueLikeData
             relicsByType[type] = new List<WarRelic>();
             relicIdsByType[type] = new HashSet<int>(); // 중복 검사용 HashSet 초기화
         }
+        for (int i = 0; i < upgradeValues.Length; i++)
+            upgradeValues[i] = new UnitUpgrade();
     }
     //내 데이터 전부 반환
     public SavePlayerData GetRogueLikeData()
@@ -64,7 +74,8 @@ public class RogueLikeData
         SavePlayerData data = new(0, savedMyUnits, relicIdsByType.Values
                                     .SelectMany(hashSet => hashSet)
                                     .ToList(),encounteredEvent.Values.ToList(),
-                                    currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,sariStack);
+                                    currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,
+                                    upgradeValues, sariStack);
         return data;
     }
     // 보유한 유닛 기력만 재설정 해서 반환
@@ -76,7 +87,6 @@ public class RogueLikeData
         // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
         foreach (var unit in units.Concat(deadUnits))
         {
-
             var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
             if (savedUnit == null) continue;
 
@@ -86,7 +96,6 @@ public class RogueLikeData
             }
             else
             {
-                
                 savedUnit.energy = unit.energy; // 기력 갱신
             }
         }
@@ -103,6 +112,7 @@ public class RogueLikeData
             currentStageY,
             chapter,
             currentStageType,
+            upgradeValues,
             sariStack
         );
 
@@ -148,6 +158,13 @@ public class RogueLikeData
             {
                 relicsByType[relic.type].Add(relic);
                 relicIdsByType[relic.type].Add(relicId); // 중복 관리 HashSet에도 추가
+
+                //획득 시 발동
+                if (relic.type == RelicType.GetEffect)
+                {
+                    relic.executeAction();
+                }
+
             }
         }
     }
@@ -293,6 +310,21 @@ public class RogueLikeData
     {
         return currentGold;
     }
+    //골드 획득
+    public void EarnGold(int gold)
+    {
+        float addGold = GetOwnedRelicById(5) == null ? 0 : 0.15f;
+        gold = (int)((addGold+1)*gold);
+        currentGold += gold;
+    }
+    //골드 감소
+    public void ReduceGold(int gold)
+    {
+        int rentalGold = RogueLikeData.instance.GetOwnedRelicById(49) == null ? 0 : -500;
+        spentGold += gold;
+        currentGold =Math.Max(rentalGold, currentGold-gold);
+    }
+
     //현재 골드 수정
     public void SetCurrentGold(int gold)
     {
@@ -307,11 +339,22 @@ public class RogueLikeData
     {
         spentGold = gold;
     }
-
     public int GetMorale()
     {
         return playerMorale;
     }
+    public void AddMorale(int add)
+    {
+        playerMorale = Math.Min(100, playerMorale+add);
+    }
+
+    public void ReduceMorale(int reduce)
+    {
+        float addReduce = GetOwnedRelicById(33) == null ? 0 : 0.2f;
+        reduce = (int)(reduce * (1 - addReduce));
+        playerMorale = Math.Max(0,playerMorale-reduce);
+    }
+
     public void SetMorale(int value)
     {
         playerMorale = value;
@@ -398,7 +441,7 @@ public class RogueLikeData
     {
         float value = chapter == 1 ? 1 : (chapter == 2 ? 1.5f : 2);
         int getGold = ((int)(gold * value));
-        currentGold += getGold;
+        EarnGold(getGold);
         return getGold;
     }
     //랜덤유산 제거
@@ -446,23 +489,27 @@ public class RogueLikeData
         return battleReward;
     }
 
-    public void SetGoldReward(int setGold)
+    public void AddGoldReward(int setGold)
     {
-        battleReward.gold = setGold;
+        battleReward.gold += setGold;
     }
-    public void SetMoraleReward(int setMoraleReward)
+    public void AddMoraleReward(int setMoraleReward)
     {
-        battleReward.morale = setMoraleReward;
+        battleReward.morale += setMoraleReward;
     }
-    public void SetRelicReward(int setRelicId)
+    public void AddRerollChange(int addReroll)
+    {
+        battleReward.rerollChance += addReroll;
+    }
+    public void AddRelicReward(int setRelicId)
     {
         battleReward.relicIds.Add(setRelicId);
     }
-    public void SetUnitReward(RogueUnitDataBase setUnits)
+    public void AddUnitReward(RogueUnitDataBase setUnits)
     {
         battleReward.newUnits.Add(setUnits);
     }
-    public void SetChangeReward(RogueUnitDataBase setChanges)
+    public void AddChangeReward(RogueUnitDataBase setChanges)
     {
         battleReward.changedUnits.Add(setChanges);
     }
@@ -474,6 +521,10 @@ public class RogueLikeData
         {
             unit.effectDictionary.Clear();
         }
+    }
+    public int GetCostTable(int level)
+    {
+        return costTable[level];
     }
 
     public int GetRerollChance()
@@ -501,4 +552,81 @@ public class RogueLikeData
         this.currentStageType = stageType;
         this.sariStack = sariSatck;
     }
+
+    // 강화 수치 반환
+    public int GetUpgrade(int unitTypeIndex, bool isAttack)
+    {
+        return isAttack ? upgradeValues[unitTypeIndex].attackLevel : upgradeValues[unitTypeIndex].defenseLevel;
+    }
+
+    // 강화 수치 증가 (강화 비용 차감 포함)
+    public void IncreaseUpgrade(int unitTypeIndex, bool isAttack,bool isPurchase=true)
+    {
+        if (unitTypeIndex < 0 || unitTypeIndex >= upgradeValues.Length)
+            return;
+
+        int currentLevel = isAttack
+            ? upgradeValues[unitTypeIndex].attackLevel
+            : upgradeValues[unitTypeIndex].defenseLevel;
+
+        if (currentLevel >= 5)
+            return;
+
+        if (isPurchase)
+        {
+            if (!isFreeUpgrade)
+            {
+                // 단계별 비용 테이블
+                float isSale = GetOwnedRelicById(1) == null ? 0 : 0.2f;
+                int cost = costTable[currentLevel];
+
+                if (currentGold < cost)
+                    return; // 금화 부족
+
+                // 금화 차감
+                currentGold -= cost;
+            }
+            isFreeUpgrade = false;
+        }
+
+        // 강화 수치 증가
+        if (isAttack)
+            upgradeValues[unitTypeIndex].attackLevel++;
+        else
+            upgradeValues[unitTypeIndex].defenseLevel++;
+    }
+
+    public (int unitType, bool isAttack) GetRandomUpgradeTarget()
+    {
+        // 총 16개 항목 중 하나 선택
+        int randomIndex = UnityEngine.Random.Range(0, 16);
+
+        int unitType = randomIndex / 2;           // 0~7
+        bool isAttack = (randomIndex % 2 == 0);   // 짝수면 공격, 홀수면 방어
+
+        return (unitType, isAttack);
+    }
+
+    // 랜덤 병종 강화 (기존 함수 재사용)
+    public void IncreaseRandomUpgrade(bool isPurchase = true)
+    {
+        var (unitType, isAttack) = GetRandomUpgradeTarget();
+        IncreaseUpgrade(unitType, isAttack, isPurchase);
+    }
+
+    public void SetIsFreeUpgrade(bool isFree = true)
+    {
+        isFreeUpgrade = isFree;
+    }
+
+    public int GetMaxUnits()
+    {
+        return maxUnits;
+    }
+    public void SetMaxUnits(int maxUnits)
+    {
+        this.maxUnits = maxUnits;
+    }
+
+
 }

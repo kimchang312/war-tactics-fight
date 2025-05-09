@@ -316,7 +316,29 @@ public class RogueUnitDataBase
         RogueUnitDataBase recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스 생성
         return recreated;
     }
+    //희귀도에 따른 무작위 유닛 획득
+    public static RogueUnitDataBase GetRandomUnitByRarity(int rarity)
+    {
+        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
 
+        // 희귀도에 해당하는 유닛 필터
+        var filtered = allUnits.Where(u => u.rarity == rarity).ToList();
+
+        if (filtered.Count == 0)
+        {
+            Debug.LogWarning($"희귀도 {rarity}에 해당하는 유닛이 없습니다.");
+            return null;
+        }
+
+        // 무작위 유닛 1개 선택
+        int idx = UnityEngine.Random.Range(0, filtered.Count);
+        var selected = filtered[idx];
+
+        // UniqueId 자동 할당
+        selected.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
+
+        return selected;
+    }
 
 
 }

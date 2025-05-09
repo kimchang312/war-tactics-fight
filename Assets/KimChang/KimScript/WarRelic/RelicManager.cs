@@ -43,6 +43,16 @@ public class RelicManager
             grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
         }
 
+        if(grade==1 )
+        {
+            var relic = RogueLikeData.Instance.GetOwnedRelicById(6);
+            if (relic != null && !relic.used)
+            {
+                grade = 10;
+                relic.used = false;
+            }
+        }
+
         var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
         var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
 
@@ -54,24 +64,6 @@ public class RelicManager
 
         return available[UnityEngine.Random.Range(0, available.Count)].id;
     }
-    // 유산 ID 기반으로 획득 또는 제거 처리
-    public static void ApplyRelicAction(int relicId, RelicAction action)
-    {
-        if (relicId < 0) return;
-
-        if (action == RelicAction.Acquire)
-        {
-            RogueLikeData.Instance.AcquireRelic(relicId);
-            var relic = WarRelicDatabase.GetRelicById(relicId);
-            if (relic != null)
-                ownedRelics.TryAdd(relicId, relic);
-        }
-        else if (action == RelicAction.Remove)
-        {
-            RogueLikeData.Instance.RemoveRelicById(relicId);
-            ownedRelics.Remove(relicId);
-        }
-    }
 
     //무작위 유산 추가 || 제거
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
@@ -79,6 +71,15 @@ public class RelicManager
         if (grade == 5)
         {
             grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
+        }
+        if (grade == 1)
+        {
+            var relic = RogueLikeData.Instance.GetOwnedRelicById(6);
+            if (relic != null && !relic.used)
+            {
+                grade = 10;
+                relic.used = false;
+            }
         }
         // 후보 유산 리스트
         var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
@@ -116,6 +117,12 @@ public class RelicManager
         // 필요한 유물들이 전부 포함되어 있는지 확인
         if (requiredRelicIds.All(id => ownedRelics.ContainsKey(id)))
         {
+            // 기존 유물 사용 처리
+            foreach (int id in requiredRelicIds)
+            {
+                ownedRelics[id].used = true;
+            }
+
             WarRelic newRelic = WarRelicDatabase.GetRelicById(26);
             if (newRelic != null)
             {
@@ -124,7 +131,6 @@ public class RelicManager
             }
         }
     }
-
     // 스탯 유산 발동
     public static int RunStateRelic()
     {

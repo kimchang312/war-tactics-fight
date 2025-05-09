@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using static RelicManager;
@@ -21,12 +20,6 @@ public class EventManager
             .Select(kv => kv.Value)
             .ToList();
 
-        if (!candidates.Any())
-        {
-            Debug.Log("모든 이벤트를 만났거나 등장조건 불일치");
-            return null;
-        }
-
         int idx = UnityEngine.Random.Range(0, candidates.Count);
         return candidates[idx];
     }
@@ -36,11 +29,9 @@ public class EventManager
     {
         int currentChapter = RogueLikeData.Instance.GetChapter();
 
-        // 등장 챕터 체크
         if (!eventData.eventChapter.Contains(currentChapter))
             return false;
 
-        // 모든 조건이 None일 경우 true 반환
         bool allNone = true;
         for (int i = 0; i < eventData.requireThing.Count; i++)
         {
@@ -51,7 +42,7 @@ public class EventManager
             }
         }
         if (allNone) return true;
-        // 조건 검사
+
         for (int i = 0; i < eventData.requireThing.Count; i++)
         {
             var thing = eventData.requireThing[i];
@@ -88,11 +79,13 @@ public class EventManager
             case RequireThing.Morale:
                 {
                     int morale = RogueLikeData.Instance.GetMorale();
-                    if (form == RequireForm.None)
-                        return InRange(morale, count);
-                    break;
+                    float reduceMorale = 1;
+                    if(RogueLikeData.Instance.GetOwnedRelicById(33) == null)
+                    {
+                        reduceMorale += 0.2f;
+                    }
+                    return InRange(morale, count,true, reduceMorale);
                 }
-                
             case RequireThing.Unit:
                 {
                     int requireCount = int.Parse(count);
@@ -476,22 +469,24 @@ public class EventManager
                     else if(form == RequireForm.None)
                     {
                         int goldCount = int.Parse(count);
-                        int gold = RogueLikeData.Instance.GetCurrentGold();
-                        RogueLikeData.Instance.SetCurrentGold(gold-goldCount);
+                        RogueLikeData.Instance.ReduceGold(goldCount);
                         requireLog += $"{goldCount}금화를 지불하였습니다.\n";
                     }
                     break;
                 case RequireThing.Morale:
                     if(form == RequireForm.None)
                     {
-                        int moraleCount = int.Parse(count);
-                        int morale =RogueLikeData.Instance.GetMorale();
-                        RogueLikeData.Instance.SetMorale(morale-moraleCount);
+                        float reduceMorale = 1;
+                        if (RogueLikeData.Instance.GetOwnedRelicById(33) == null)
+                        {
+                            reduceMorale += 0.2f;
+                        }
+                        int moraleCount = (int)(int.Parse(count)*reduceMorale);
+                        RogueLikeData.Instance.ReduceMorale(moraleCount);
                         requireLog += $"사기가 {moraleCount}만큼 감소했습니다.\n";
                     }
                     break;
             }
-
         }
     }
     //선택시 보상 획득
@@ -514,7 +509,7 @@ public class EventManager
                         int gold = int.Parse(count);
                         if (isBattle)
                         {
-                            RogueLikeData.Instance.SetGoldReward(gold);
+                            RogueLikeData.Instance.AddGoldReward(gold);
                         }
                         else
                         {
@@ -529,12 +524,11 @@ public class EventManager
                         int morale = int.Parse(count);
                         if (isBattle)
                         {
-                            RogueLikeData.Instance.SetMoraleReward(morale);
+                            RogueLikeData.Instance.AddMoraleReward(morale);
                         }
                         else
                         {
-                            RogueLikeData.Instance.SetMorale(
-                            Mathf.Min(100, RogueLikeData.Instance.GetMorale() + morale));
+                            RogueLikeData.Instance.AddMorale(morale);
                             resultLog += $"- 사기 {morale} 회복\n";
                         }
                         break;
@@ -570,7 +564,7 @@ public class EventManager
                         {
                             for(int k=0; k<relicCount; k++)
                             {
-                                RogueLikeData.Instance.SetRelicReward(RelicManager.GetRandomRelicId(grade, RelicAction.Acquire));
+                                RogueLikeData.Instance.AddRelicReward(RelicManager.GetRandomRelicId(grade, RelicAction.Acquire));
                             }
                         }
                         else
@@ -626,7 +620,6 @@ public class EventManager
                         }
                     }
                     break;
-
                 case ResultType.Unit:
                     if(form == ResultForm.None)
                     {
@@ -660,7 +653,7 @@ public class EventManager
 
                                 if (isBattle)
                                 {
-                                    RogueLikeData.Instance.SetUnitReward(validUnits[randIndex]);
+                                    RogueLikeData.Instance.AddUnitReward(validUnits[randIndex]);
                                 }
                                 else
                                 {
@@ -668,7 +661,6 @@ public class EventManager
                                     resultLog += $"- {validUnits[randIndex].unitName}이(가) 추가되었습니다.";
                                 }
                             }
-
                         }
                         else
                         {
@@ -705,7 +697,7 @@ public class EventManager
 
                                 if (isBattle)
                                 {
-                                    RogueLikeData.Instance.SetUnitReward(validUnits[randIndex]);
+                                    RogueLikeData.Instance.AddUnitReward(validUnits[randIndex]);
                                 }
                                 else
                                 {
@@ -754,8 +746,6 @@ public class EventManager
                                 resultLog += $"모든 영웅 유닛을 보유하고 있습니다.";
                                 break;
                             }
-
-                            // 랜덤하게 unitCount개 획득
                             for (int k = 0; k < unitCount && validUnits.Count > 0; k++)
                             {
                                 int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
@@ -867,9 +857,10 @@ public class EventManager
                                     }
                                     break;
                                 }
-                            case 5: // 무작위 병종 무작위 강화 미구현
+                            case 5:
                                 {
-                                    //resultLog += RogueUnitTraining.ApplyRandomTraining();
+                                    RogueLikeData.Instance.IncreaseRandomUpgrade(false);
+                                    resultLog += "- 무작위 병종이 강화되었습니다.\n";
                                     break;
                                 }
                             case 6: // 사기 회복(최대)
@@ -880,8 +871,7 @@ public class EventManager
                                 }
                             case 7: // 사기 -25
                                 {
-                                    int current = RogueLikeData.Instance.GetMorale();
-                                    RogueLikeData.Instance.SetMorale(Math.Max(0, current - 25));
+                                    RogueLikeData.Instance.ReduceMorale(25);
                                     resultLog += " 사기가 25 감소했습니다.\n";
                                     break;
                                 }
@@ -944,8 +934,40 @@ public class EventManager
                     isBattle = true;
                     break;
                 case ResultType.Training:
-                    resultLog += "병종강화 미구현";
-                    break;
+                    {
+                        for (int k = 0; k < choiceData.resultValue.Count; k++)
+                        {
+                            string valueStr = choiceData.resultValue[k];
+                            bool useRandom = string.IsNullOrEmpty(valueStr) || valueStr == "-1";
+
+                            int upgradeCount = (k < choiceData.resultCount.Count && int.TryParse(choiceData.resultCount[k], out var c)) ? c : 1;
+
+                            for (int j = 0; j < upgradeCount; j++)
+                            {
+                                if (useRandom)
+                                {
+                                    RogueLikeData.Instance.IncreaseRandomUpgrade(false);
+                                }
+                                else
+                                {
+                                    var unitTypeParts = valueStr.Split(',');
+                                    List<int> unitTypes = unitTypeParts
+                                        .Select(s => int.TryParse(s, out var v) ? v : -1)
+                                        .Where(v => v >= 0 && v < 8)
+                                        .ToList();
+
+                                    if (unitTypes.Count == 0) continue;
+
+                                    int randomType = unitTypes[UnityEngine.Random.Range(0, unitTypes.Count)];
+                                    bool isAttack = UnityEngine.Random.value < 0.5f;
+
+                                    RogueLikeData.Instance.IncreaseUpgrade(randomType, isAttack, false);
+                                }
+                            }
+                            resultLog += $"랜덤 병종 {upgradeCount}회 강화함\n";
+                        }
+                        break;
+                    }
                 case ResultType.Field:
                     {
                         int fieldId = int.Parse(value);
@@ -977,11 +999,11 @@ public class EventManager
     {
         float winChance = unit.rarity switch
         {
-            1 => 0.25f,  // 희귀도 1 → 25%
-            2 => 0.5f,   // 희귀도 2 → 50%
-            3 => 0.75f,  // 희귀도 3 → 75%
-            4 => 0.9f,   // 희귀도 4 → 90%
-            _ => 0f      // 그 외 → 승리 불가
+            1 => 0.25f, 
+            2 => 0.5f,  
+            3 => 0.75f, 
+            4 => 0.9f,  
+            _ => 0f     
         };
 
         return UnityEngine.Random.value < winChance;
@@ -1000,18 +1022,18 @@ public class EventManager
         }
 
         int v = int.Parse(countStr);
-        return (v, int.MaxValue);   // single number → ≥ v
+        return (v, int.MaxValue); 
     }
-    //true ? actual>=constStr : actual<=constStr
-    private static bool InRange(int actual, string countStr, bool useMinBound = true)
+
+    private static bool InRange(int actual, string countStr, bool useMinBound = true,float addtion=1)
     {
         if (countStr.Contains('~'))
         {
             var (min, max) = ParseRange(countStr);
-            return actual >= min && actual <= max;
+            return actual >= min && actual <= max*addtion;
         }
 
-        int v = int.Parse(countStr);
+        int v = (int)(int.Parse(countStr)*addtion);
         return useMinBound ? actual >= v : actual <= v;
     }
     public static EventData GetEventById(int eventId)
@@ -1028,7 +1050,6 @@ public class EventManager
             return null;
         }
     }
-    Debug.LogError($"이벤트 ID {eventId}를 찾을 수 없음.");
     return null;
 }
 
