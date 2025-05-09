@@ -29,8 +29,7 @@ public class EventUIManager : MonoBehaviour
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
 
         EventData eventData = EventManager.GetRandomEvent();
-        //테스트
-        eventData = EventManager.GetEventById(21);
+
         List<EventChoiceData> eventChoiceDatas = new();
         
         foreach (int choiceId in eventData.choiceIds)
