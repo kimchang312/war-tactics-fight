@@ -23,13 +23,18 @@ public class UIGenerator : MonoBehaviour
     // key: "level_row" -> value: StageNodeUI 인스턴스
     private Dictionary<string, StageNodeUI> stageUIMap = new Dictionary<string, StageNodeUI>();
 
-    void Start()
+    private void Awake()
     {
-        if (mapGenerator == null) return;
+        mapGenerator.GeneratePathsNonCrossing();
 
         CreateUIMap();
         LinkUIConnections();
         DrawAllConnectionLines();
+    }
+    void Start()
+    {
+        if (mapGenerator == null) return;
+
 
         // ← UI 생성 직후, 반드시 초기 잠금/언락을 수행
         if (GameManager.Instance != null)

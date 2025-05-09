@@ -1,9 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Threading.Tasks;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private GameObject eventManager;
+    [SerializeField] private GameObject storeManager; 
+
     public static GameManager Instance { get; private set; }
 
     // 스테이지 프리셋 변경 이벤트
@@ -24,18 +28,26 @@ public class GameManager : MonoBehaviour
     private List<StageNodeUI> allStages = new List<StageNodeUI>();
     // 현재 플레이어가 위치한 스테이지
     private StageNodeUI currentStage;
-    // 현재 선택된 스테이지 presetID
-    private int currentPresetID;
 
-    private void Awake()
+    private async void Awake()
     {
-        // 싱글턴 보장
-        if (Instance != null && Instance != this)
+        if (Instance == null)
         {
-            Destroy(gameObject);
-            return;
+            // 최초 인스턴스라면 여기서 고정
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-        Instance = this;
+        else if (Instance != this)
+        {
+            // 이미 다른 인스턴스가 살아있다면, 이 오브젝트는 파괴
+            Destroy(gameObject);
+        }
+
+        await GoogleSheetLoader.Instance.LoadUnitSheetData();
+        SaveData save = new();
+        save.LoadData();
+        EventManager.LoadEventData();
+        StoreManager.LoadStoreData();
     }
 
     private void Start()
@@ -81,10 +93,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void OnStageClicked(StageNodeUI clickedStage)
     {
-        // clickedStage.PresetID 프로퍼티로 presetID를 읽어옵니다.
-        currentPresetID = clickedStage.PresetID;
-        // 변경 이벤트 발생
-        OnPresetChanged?.Invoke(currentPresetID);
+       
 
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
@@ -118,9 +127,6 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log(" → 해당 스테이지로 이동할 수 없습니다.");
         }
-
-        currentPresetID = clickedStage.PresetID;
-        OnPresetChanged?.Invoke(currentPresetID);
     }
 
     /// <summary>
@@ -128,6 +134,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void SetCurrentStage(StageNodeUI newStage)
     {
+        RogueLikeData.Instance.SetCurrentStage(newStage.level, newStage.row, newStage.stageType);
+        RogueLikeData.Instance.SetPresetID(newStage.PresetID);
+
         // 1) 일단 모든 스테이지 잠금
         foreach (var s in allStages)
             s.LockStage();
@@ -157,6 +166,18 @@ public class GameManager : MonoBehaviour
                 Debug.LogError("[GameManager] restUI 레퍼런스가 없습니다!");
             }
         }
+        else if (newStage.stageType == StageType.Event)
+        {
+           eventManager.SetActive(true);
+        }
+        else if (newStage.stageType == StageType.Shop)
+        {
+           storeManager.SetActive(true);
+        }
+        else if(newStage.stageType == StageType.Combat || newStage.stageType == StageType.Elite|| newStage.stageType ==StageType.Boss) 
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("AutoBattleScene");
+        }
     }
 
     /// <summary>
@@ -182,8 +203,5 @@ public class GameManager : MonoBehaviour
             if (s.level == 0)
                 s.UnlockStage();
     }
-    public int GetCurrentPresetID()
-    {
-        return currentPresetID;
-    }
+    
 }

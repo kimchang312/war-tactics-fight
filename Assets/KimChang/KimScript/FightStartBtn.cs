@@ -16,7 +16,7 @@ public class FightStartBtn : MonoBehaviour
     void Start()
     {
         //버튼을 눌렀을때 AutoBattleScene으로 이동후 전투를 실행시키라는 명령을 버튼에 추가해줌
-        fightButton.onClick.AddListener(OnFightButtonClick);
+        fightButton.onClick.AddListener(MoveScene);
     }
 
     //버튼을 눌렀을때 AutoBattleScene으로 이동후 자동전투 함수를 호출
@@ -25,7 +25,10 @@ public class FightStartBtn : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
         SceneManager.LoadScene("AutoBattleScene");
     }
-
+    private void MoveScene()
+    {
+        SceneManager.LoadScene("RLmap");
+    }
 
     //자동 전투 함수를 호출하는 함수
     async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
