@@ -31,9 +31,9 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public bool IsLocked => isLocked;
 
     // 클릭 가능/불가능 제어
-    private CanvasGroup canvasGroup;
-    private Button button;
-    private Image image;
+    [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField] private Button button;
+    [SerializeField] private Image image;
 
     [SerializeField] private int presetID;
     public int PresetID => presetID;
@@ -43,6 +43,16 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         canvasGroup = GetComponent<CanvasGroup>();
         button = GetComponent<Button>();
         image = GetComponent<Image>();
+    }
+    private void Init()
+    {
+        // null 체크 후에만 GetComponent
+        if (canvasGroup == null)
+            canvasGroup = GetComponent<CanvasGroup>();
+        if (button == null)
+            button = GetComponent<Button>();
+        if (image == null)
+            image = GetComponent<Image>();
     }
 
     /// <summary>
@@ -87,7 +97,13 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public void LockStage()
     {
         isLocked = true;
-        // 클릭 이벤트 차단
+        // 클릭 이벤트 차단W
+        if(canvasGroup == null) {
+            this.gameObject.AddComponent<CanvasGroup>();
+            canvasGroup =GetComponent<CanvasGroup>();
+            Debug.Log(canvasGroup);
+        }
+      
         canvasGroup.blocksRaycasts = false;
         // 하이라이트, 포커스 등 UI 인터랙션 모두 차단
         canvasGroup.interactable = false;

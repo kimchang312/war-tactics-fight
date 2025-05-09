@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 3347421173925932390}
   - component: {fileID: 7137415386272452317}
   - component: {fileID: 7222266196478289899}
-  - component: {fileID: 7965168571043657101}
   - component: {fileID: 5094000065825651096}
+  - component: {fileID: 7965168571043657101}
   m_Layer: 5
   m_Name: StageNodeUI
   m_TagString: Untagged
@@ -122,6 +122,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!225 &5094000065825651096
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2433633343516762061}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &7965168571043657101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -145,15 +157,7 @@ MonoBehaviour:
   treasureSprite: {fileID: 21300000, guid: 61513b3cb2b831e4396809055f9c0258, type: 3}
   bossSprite: {fileID: 21300000, guid: 2139a6f952b6bfd40b7117a7697b0afb, type: 3}
   connectedStages: []
---- !u!225 &5094000065825651096
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2433633343516762061}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
+  canvasGroup: {fileID: 5094000065825651096}
+  button: {fileID: 7222266196478289899}
+  image: {fileID: 7137415386272452317}
+  presetID: 0

@@ -31,6 +31,7 @@ public class RogueLikeData
     private int currentStageX = 1;
     private int currentStageY = 0;
     private int chapter = 1;
+    private int presetID = -1;
     private StageType currentStageType = StageType.Combat;
 
     private int currentGold = 0;
@@ -627,6 +628,12 @@ public class RogueLikeData
     {
         this.maxUnits = maxUnits;
     }
-
-
+    public int GetPresetID()
+    {
+        return presetID;
+    }
+    public void SetPresetID(int presetID)
+    {
+        this.presetID=presetID;
+    }
 }
