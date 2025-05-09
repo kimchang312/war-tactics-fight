@@ -14,7 +14,6 @@ public class EventUIManager : MonoBehaviour
 
     [SerializeField] private UnitSelectUI unitSelectUI;       //유닛 선택 창
 
-    [SerializeField] private TextMeshProUGUI selectTitle;       //선택창 글자
     [SerializeField] private ObjectPool objectPool;
 
     private void Awake()
