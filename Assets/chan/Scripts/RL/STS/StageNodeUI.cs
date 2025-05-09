@@ -35,10 +35,9 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     private Button button;
     private Image image;
 
-    [SerializeField]
-    int presetID;
-
+    [SerializeField] private int presetID;
     public int PresetID => presetID;
+
     private void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
@@ -65,7 +64,8 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
             case StageType.Treasure: image.sprite = treasureSprite; break;
             case StageType.Boss: image.sprite = bossSprite; break;
         }
-
+        // presetID 할당
+        this.presetID = node.presetID;
     }
 
     /// <summary>
