@@ -1,9 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+
+    // 스테이지 프리셋 변경 이벤트
+    public event Action<int> OnPresetChanged;
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
@@ -20,6 +24,8 @@ public class GameManager : MonoBehaviour
     private List<StageNodeUI> allStages = new List<StageNodeUI>();
     // 현재 플레이어가 위치한 스테이지
     private StageNodeUI currentStage;
+    // 현재 선택된 스테이지 presetID
+    private int currentPresetID;
 
     private void Awake()
     {
@@ -49,11 +55,37 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int CurrentGold
+    {
+        get => RogueLikeData.Instance.GetCurrentGold();
+        set => RogueLikeData.Instance.SetCurrentGold(value);
+    }
+
+    public int SpentGold
+    {
+        get => RogueLikeData.Instance.GetSpentGold();
+        set => RogueLikeData.Instance.SetSpentGold(value);
+    }
+    public int PlayerMorale
+    {
+        get => RogueLikeData.Instance.GetMorale();
+        set => RogueLikeData.Instance.SetMorale(value);
+    }
+
+    /*public int RerollCount
+    {
+    물어보고 추가 - 내용은 보유 리롤 횟수 접근
+    }*/
     /// <summary>
     /// StageNodeUI가 클릭되었을 때 호출됩니다.
     /// </summary>
     public void OnStageClicked(StageNodeUI clickedStage)
     {
+        // clickedStage.PresetID 프로퍼티로 presetID를 읽어옵니다.
+        currentPresetID = clickedStage.PresetID;
+        // 변경 이벤트 발생
+        OnPresetChanged?.Invoke(currentPresetID);
+
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
         // 잠겨 있으면 아무 동작 안 함
@@ -86,6 +118,9 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log(" → 해당 스테이지로 이동할 수 없습니다.");
         }
+
+        currentPresetID = clickedStage.PresetID;
+        OnPresetChanged?.Invoke(currentPresetID);
     }
 
     /// <summary>
@@ -146,5 +181,9 @@ public class GameManager : MonoBehaviour
         foreach (var s in allStages)
             if (s.level == 0)
                 s.UnlockStage();
+    }
+    public int GetCurrentPresetID()
+    {
+        return currentPresetID;
     }
 }

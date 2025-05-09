@@ -24,6 +24,8 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     // 이 스테이지와 연결된 다음 스테이지 UI 객체들
     public List<StageNodeUI> connectedStages = new List<StageNodeUI>();
 
+
+
     // 내부 잠금 상태
     private bool isLocked = false;
     public bool IsLocked => isLocked;
@@ -32,6 +34,9 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     private CanvasGroup canvasGroup;
     private Button button;
     private Image image;
+
+    [SerializeField] private int presetID;
+    public int PresetID => presetID;
 
     private void Awake()
     {
@@ -59,7 +64,8 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
             case StageType.Treasure: image.sprite = treasureSprite; break;
             case StageType.Boss: image.sprite = bossSprite; break;
         }
-
+        // presetID 할당
+        this.presetID = node.presetID;
     }
 
     /// <summary>

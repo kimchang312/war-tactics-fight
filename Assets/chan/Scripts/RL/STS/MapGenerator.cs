@@ -21,6 +21,7 @@ public class StageNode
     public StageType stageType;
     public Color stageColor; // 스테이지 색상
     public List<StageNode> connectedNodes; // 다음 레벨과 연결된 노드 목록
+    public int presetID;
 
     public StageNode(int level, int row, StageType stageType)
     {
@@ -57,6 +58,8 @@ public class MapGenerator : MonoBehaviour
         // 보스 스테이지 제외 일반 경로 생성
         GeneratePathsNonCrossing();
     }
+
+
 
     /// <summary>
     /// 보스 스테이지를 제외한 일반 스테이지(레벨 0~totalLevels-2)의 경로를 생성합니다.
