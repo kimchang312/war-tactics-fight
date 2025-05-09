@@ -313,6 +313,7 @@ public class MapGenerator : MonoBehaviour
                     }
                     StageNode node = new StageNode(lvl, row, type);
                     nodeDict[key] = node;
+                    node.presetID = PickPresetID(lvl + 1,type);
                 }
             }
         }

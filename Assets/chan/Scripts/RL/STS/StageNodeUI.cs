@@ -97,7 +97,7 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public void LockStage()
     {
         isLocked = true;
-        // 클릭 이벤트 차단W
+        // 클릭 이벤트 차단W 이거 해결해야함
         if(canvasGroup == null) {
             this.gameObject.AddComponent<CanvasGroup>();
             canvasGroup =GetComponent<CanvasGroup>();
