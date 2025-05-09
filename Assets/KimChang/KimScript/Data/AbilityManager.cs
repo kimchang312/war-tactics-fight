@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -869,21 +870,15 @@ public class AbilityManager
     {
         int burningId = 0;
 
-        // 효과가 존재하지 않거나 지속시간이 0 이면 종료
         if (!unit.effectDictionary.TryGetValue(burningId, out BuffDebuffData burningEffect) || burningEffect.Duration == 0)
             return;
 
-        // 지속 시간과 등급 제한 적용
         burningEffect.Duration = Mathf.Min(burningEffect.Duration, 2);
         burningEffect.EffectGrade = Mathf.Min(burningEffect.EffectGrade, 3);
 
-        // 피해량 계산 (최대 fireDamageValue * 3 제한)
         float damage = Mathf.Min(burningEffect.EffectGrade * fireDamageValue, fireDamageValue * 3);
-
-        // 체력 감소 적용
         unit.health -= damage;
 
-        // 지속시간 감소
         burningEffect.Duration--;
 
         CallDamageText(damage, "작열 ", isTeam, false);
@@ -891,32 +886,24 @@ public class AbilityManager
     // 치유(Healing) 기능 - 후열 유닛이 전열 유닛을 치유
     private void ProcessHealing(List<RogueUnitDataBase> units,bool isTeam)
     {
-        // 치유받을 전열 유닛 (현재 attackerIndex 위치의 유닛)
         RogueUnitDataBase frontUnit = units[0];
         float heal = 0;
 
-        // 후열 유닛 탐색 (attackerIndex 이후의 유닛)
         for (int i = 1; i < units.Count; i++)
         {
             RogueUnitDataBase healer = units[i];
 
-            // 치유 특성이 없거나 사거리가 2 미만이면 스킵
             if (!healer.healing || healer.range < 2)
                 continue;
 
-            // 후열에서의 순서 계산 (현재 위치 차이)
             int rearPosition = i;
 
-            // 치유 조건: (사거리) - (후열에서의 순서) >= 1 확인
             if (healer.range - rearPosition >= 1 && frontUnit.health > 0)
             {
-                // 치유량 = 치유하는 유닛의 공격력
                 float healAmount = healer.attackDamage;
-                //상흔 확인
                 healAmount = HealHealth(frontUnit, healAmount);
 
                 heal += healAmount;
-                // 최대 체력을 넘지 않도록 제한
                 frontUnit.health = Mathf.Min(frontUnit.maxHealth, frontUnit.health + healAmount);
             }
         }
@@ -940,14 +927,11 @@ public class AbilityManager
     //체력이 가장 낮은 유닛의 인덱스를 반환
     private int CalculateMinHealthIndex(List<RogueUnitDataBase> units)
     {
-        // 최소 체력 유닛 번호 (-1은 유효한 유닛이 없는 경우를 대비)
         int minHealthNumber = -1;
-        // 최소 체력 기준 (초기값은 float.MaxValue로 설정)
         float lastHealth = float.MaxValue;
 
         for (int i = 1; i < units.Count; i++)
         {
-            // 체력이 0보다 크고, 현재 최소 체력보다 작은 경우 갱신
             if (units[i].health > 0 && units[i].health < lastHealth)
             {
                 lastHealth = units[i].health;
@@ -955,7 +939,6 @@ public class AbilityManager
             }
         }
 
-        // 최소 체력 유닛 번호 반환 (유효한 유닛이 없으면 -1 반환)
         return minHealthNumber;
     }
 
@@ -964,38 +947,30 @@ public class AbilityManager
     {
         float allDamage = 0;
         string text = "원거리 ";
-        foreach (var attacker in attackers.Skip(1)) // 첫 번째 유닛(전열) 제외
+        foreach (var attacker in attackers.Skip(1))
         {
             if (!attacker.rangedAttack || attacker.health <= 0 || attacker.range - attackers.IndexOf(attacker) < 1)
-                continue; // 유효한 원거리 공격자가 아니면 스킵
+                continue;
 
             float damage = attacker.attackDamage * finalDamage;
 
             for (int k = 0; k < 2; k++)
             {
-                if (k == 1 && !attacker.doubleShot) break; // 연발 공격이 없으면 1회 공격만
+                if (k == 1 && !attacker.doubleShot) break;
 
-                // 회피 여부 확인
                 if (CalculateAccuracy(defenders[0], attacker,isTeam, isFirstAttack))
                     continue;
 
-                // 중갑 적용 (heavyArmorValue 감소, 최소 0 보장)
                 if (damage > 0 &&defenders[0].heavyArmor && !defenders[0].pierce)
                 {
                     damage = Mathf.Max(0, damage - heavyArmorValue);
                     
                 }
                 
-                // 작열 적용
                 CalculateBurning(attacker, defenders,ref text);
-
-                //추적자
                 CalculateTracker(attacker, defenders[0]);
-
-                //사신
                 CalculateReaper(isTeam);
 
-                // 가시 피해 (thorns)
                 if (damage > 0 && defenders[0].thorns)
                 {
                     attacker.health -= thornsDamageValue;
@@ -1064,19 +1039,17 @@ public class AbilityManager
     // 진홍 사제 효과 적용 (앞에 있는 유닛들에게 흡혈 부여)
     private void CalculateBloodPriest(List<RogueUnitDataBase> units)
     {
-        for (int i = 1; i < units.Count; i++)  // 첫 유닛은 앞에 대상이 없으므로 시작 인덱스 1부터
+        for (int i = 1; i < units.Count; i++) 
         {
-            if (units[i].idx == 50)  // 핏빛 사제 발견 
+            if (units[i].idx == 50) 
             {
-                // 사거리에서 1을 빼고, 0 이하가 되지 않도록 보정
                 int range = Mathf.Max(0, (int)units[i].range - 1);
-                // 앞쪽 유닛의 개수를 고려하여 효과 적용 범위 제한
                 int effectiveRange = Mathf.Min(range, i);
 
                 for (int j = 1; j <= effectiveRange; j++)
                 {
                     int targetIndex = i - j;
-                    units[targetIndex].lifeDrain = true;  // 흡혈 특성 부여
+                    units[targetIndex].lifeDrain = true; 
                 }
             }
         }
@@ -1089,7 +1062,7 @@ public class AbilityManager
         if (heroList.Count <= 0) return;
         if (isTeam)
         {
-            mybindingAttackDamage += 5 * heroList.Count;  // 보유한 영웅 수만큼 효과 적용
+            mybindingAttackDamage += 5 * heroList.Count; 
         }
         else if (!isTeam)
         {
@@ -1162,7 +1135,6 @@ public class AbilityManager
 
         foreach (int index in sniperIndices)
         {
-            // 현재 위치를 제외한 1 ~ units.Count 범위에서 랜덤한 위치 선택
             int newIndex = UnityEngine.Random.Range(1, units.Count);
 
             var sniper = units[index];
@@ -1241,7 +1213,6 @@ public class AbilityManager
     {
         if (unit.idx != 60 || !isFrontDefenderDead || unit.health <= 0) return; // 생존 중인 노인 기사만 적용
 
-        // 제외할 특성 목록 (배울 수 없는 것들)
         HashSet<string> excludedTraits = new()
     {
         "heavyArmor", "rangedAttack", "healing", "alive", "fStriked",
@@ -1250,19 +1221,17 @@ public class AbilityManager
         "firstStrike", "challenge", "smokeScreen"
     };
 
-        // 특성 필드만 필터링 (불필요한 bool 필드 제외)
         List<FieldInfo> traitFields = typeof(RogueUnitDataBase).GetFields()
             .Where(field => field.FieldType == typeof(bool) &&
                             !excludedTraits.Contains(field.Name) &&
-                            field.DeclaringType == typeof(RogueUnitDataBase)) // 부모 클래스로부터 상속된 bool 필드 제외
+                            field.DeclaringType == typeof(RogueUnitDataBase))
             .ToList();
 
-        // 현재 unit이 보유하지 않은 특성만 선택
         List<FieldInfo> availableTraits = traitFields
-            .Where(field => !(bool)field.GetValue(unit)) // 현재 false인 특성만 추가
+            .Where(field => !(bool)field.GetValue(unit))
             .ToList();
 
-        if (availableTraits.Count == 0) return; // 배울 수 있는 특성이 없으면 종료
+        if (availableTraits.Count == 0) return; 
 
         // 무작위 특성 선택
         FieldInfo selectedTrait = availableTraits[UnityEngine.Random.Range(0, availableTraits.Count)];
@@ -1291,16 +1260,14 @@ public class AbilityManager
     // 미치광이 전열 효과 (후열 유닛 3명에게 디버프 적용)
     private void CalculateFrontManiac(RogueUnitDataBase attacker, List<RogueUnitDataBase> defenders)
     {
-        if (attacker.idx != 61) return; // 미치광이 전열이 아니면 종료
-        if (!CheckBackUnit(defenders)) return; // 상대 후열 유닛이 없으면 종료
+        if (attacker.idx != 61) return; 
+        if (!CheckBackUnit(defenders)) return; 
 
         List<RogueUnitDataBase> backUnits = defenders.Skip(1).Where(unit => unit.health > 0).ToList();
         int debuffTargetCount = Mathf.Min(3, backUnits.Count);
 
-        // 후열 유닛 중에서 랜덤하게 3명 선택
         List<RogueUnitDataBase> selectedTargets = backUnits.OrderBy(x => UnityEngine.Random.value).Take(debuffTargetCount).ToList();
 
-        // 선택된 유닛들에게 디버프 적용
         foreach (var unit in selectedTargets)
         {
             int id = 0, type = 1, rank = 1, duration = 2;
@@ -1347,13 +1314,10 @@ public class AbilityManager
 
         for (int i = 0; i < heroCount; i++)
         {
-            // row로부터 유닛 생성, UniqueId는 내부에서 자동 설정됨
             var newUnit = RogueUnitDataBase.ConvertToUnitDataBase(row);
 
-            // UniqueId 생성
             newUnit.UniqueId = RogueUnitDataBase.BuildUnitUniqueId(newUnit.branchIdx, newUnit.idx, isTeam);
 
-            // 리스트 앞에 삽입
             units.Insert(0, newUnit);
         }
     }
@@ -1379,13 +1343,11 @@ public class AbilityManager
         int deadHeavyArmorCount = deadUnits.Count(unit => unit.heavyArmor);
         if (deadHeavyArmorCount <= 0) return;
 
-        // 체력 증가 수치 계산
         int healthIncrease = 10 * deadHeavyArmorCount* heroCount;
 
-        // 살아있는 아군 유닛들의 체력 증가
         foreach (var unit in units)
         {
-            if (unit.health > 0) // 살아있는 유닛만 처리
+            if (unit.health > 0)
             {
                 unit.maxHealth += healthIncrease;
                 unit.health += healthIncrease;
@@ -1616,7 +1578,7 @@ public class AbilityManager
         }
     }
     //전투 종료 시 사기 계산
-    public void EndBattleMorale(List<RogueUnitDataBase> deadUnits,List<RogueUnitDataBase> deadEnemyUnits)
+    public int EndBattleMorale(List<RogueUnitDataBase> deadUnits,List<RogueUnitDataBase> deadEnemyUnits)
     {
         int morale = RogueLikeData.Instance.GetMorale();
         int addMorale = 0;
@@ -1658,6 +1620,8 @@ public class AbilityManager
         if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
         morale += addMorale;
         RogueLikeData.Instance.SetMorale(morale);
+
+        return morale;
     }
 
     //후열 타격
@@ -1688,4 +1652,10 @@ public class AbilityManager
     {
         autoBattleUI.ShowDamage(MathF.Round(damage), text, !team, isAttack,unitIndex);
     }
+
+  
+
+
+
+
 }

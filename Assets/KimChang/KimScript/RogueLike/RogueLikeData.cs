@@ -18,6 +18,8 @@ public class RogueLikeData
     
     private int nextUnitUniqueId = 0;
 
+    private int maxUnits = 5;
+
     private List<RogueUnitDataBase> myUnits = new();
     private List<RogueUnitDataBase> enemyUnits = new();
     private List<RogueUnitDataBase> savedMyUnits = new();
@@ -156,6 +158,13 @@ public class RogueLikeData
             {
                 relicsByType[relic.type].Add(relic);
                 relicIdsByType[relic.type].Add(relicId); // 중복 관리 HashSet에도 추가
+
+                //획득 시 발동
+                if (relic.type == RelicType.GetEffect)
+                {
+                    relic.executeAction();
+                }
+
             }
         }
     }
@@ -608,6 +617,15 @@ public class RogueLikeData
     public void SetIsFreeUpgrade(bool isFree = true)
     {
         isFreeUpgrade = isFree;
+    }
+
+    public int GetMaxUnits()
+    {
+        return maxUnits;
+    }
+    public void SetMaxUnits(int maxUnits)
+    {
+        this.maxUnits = maxUnits;
     }
 
 
