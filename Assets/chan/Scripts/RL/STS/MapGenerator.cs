@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Jobs.LowLevel.Unsafe;
+using UnityEditor;
 
 public enum StageType
 {
@@ -51,21 +53,53 @@ public class MapGenerator : MonoBehaviour
     private Dictionary<string, StageNode> nodeDict = new Dictionary<string, StageNode>();
     public Dictionary<string, StageNode> NodeDictionary { get { return nodeDict; } }
 
-    
+
 
     void Start()
     {
         // 보스 스테이지 제외 일반 경로 생성
-        GeneratePathsNonCrossing();
+        //GeneratePathsNonCrossing();
     }
 
+    // ─── Combat/Elite/Boss 에 맞춰 presetID 선정 함수 ─────────────────
+    private int PickPresetID(int level, StageType stageType)
+    {
+        int chapter = RogueLikeData.Instance.GetChapter();
 
+        // StageType → JSON 문자열 매핑
+        string jsonType = stageType switch
+        {
+            StageType.Combat => "normal",
+            StageType.Elite => "elite",
+            StageType.Boss => "boss",
+            _ => null
+        };
+        if (jsonType == null)
+            return -1;
 
-    /// <summary>
-    /// 보스 스테이지를 제외한 일반 스테이지(레벨 0~totalLevels-2)의 경로를 생성합니다.
-    /// 각 레벨마다 totalPaths개의 행 값을 비내림차순으로 결정하며,
-    /// 규칙에 따라 생성합니다.
-    /// </summary>
+        // JSON에서 후보 리스트 가져오기
+        var candidates = StagePresetLoader.I.GetPresets(chapter, level, jsonType);
+        if (candidates == null || candidates.Count == 0)
+        {
+            Debug.LogWarning($"[{chapter}-{level}-{jsonType}] 후보 프리셋이 없습니다.");
+            return -1;
+        }
+
+        int idx;
+        if (stageType == StageType.Combat)
+        {
+            // 둘 중 랜덤 하나 선택
+            idx = UnityEngine.Random.Range(0, candidates.Count);
+        }
+        else
+        {
+            // Elite/Boss는 첫 번째 사용 (필요 시 로직 확장)
+            idx = 0;
+        }
+        return candidates[idx].PresetID;
+    }
+
+    
     public void GeneratePathsNonCrossing()
     {
         int normalLevels = totalLevels - 1; // 보스 스테이지 제외

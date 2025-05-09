@@ -33,16 +33,7 @@ public class StagePresetLoader : MonoBehaviour
 
     void Awake()
     {
-        if (I == null)
-        {
-            I = this;
-            DontDestroyOnLoad(this);
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        
         LoadAllPresets();
     }
 
