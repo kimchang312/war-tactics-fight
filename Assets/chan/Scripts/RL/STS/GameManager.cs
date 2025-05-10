@@ -2,11 +2,20 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private GameObject eventManager;
-    [SerializeField] private GameObject storeManager; 
+    [SerializeField] private GameObject storeManager;
+
+    public int currentStageX;
+    public int currentStageY;
+    public StageType currentStageType;
+    public List<StageNode> nodes;      // 모델만 저장
+    public List<List<int>> paths;
+    public Vector3 playerMarkerPosition;
 
     public static GameManager Instance { get; private set; }
 
@@ -28,7 +37,7 @@ public class GameManager : MonoBehaviour
     private List<StageNodeUI> allStages = new List<StageNodeUI>();
     // 현재 플레이어가 위치한 스테이지
     private StageNodeUI currentStage;
-
+    private bool _isFirstMapEntry = true; // 맵 첫 진입 구분용
     private async void Awake()
     {
         if (Instance == null)
@@ -41,7 +50,10 @@ public class GameManager : MonoBehaviour
         {
             // 이미 다른 인스턴스가 살아있다면, 이 오브젝트는 파괴
             Destroy(gameObject);
+            return;
         }
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
 
         await GoogleSheetLoader.Instance.LoadUnitSheetData();
         SaveData save = new();
@@ -50,21 +62,21 @@ public class GameManager : MonoBehaviour
         StoreManager.LoadStoreData();
     }
 
-    private void Start()
+private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+ {
+     if (scene.name != "RLmap")
+        return;
+
+     // 맵 씬에 진입했을 때만
+     allStages = FindObjectsOfType<StageNodeUI>().ToList();     InitializeStageLocks();
+     _isFirstMapEntry = false;
+ }
+
+private void Start()
     {
         // 씬에 있는 모든 StageNodeUI 컴포넌트를 수집
         allStages.AddRange(FindObjectsOfType<StageNodeUI>());
 
-        // 1) 일단 전부 잠그고
-        foreach (var s in allStages)
-            s.LockStage();
-
-        // 2) 레벨 1(0 인덱스) 스테이지만 열어준다
-        foreach (var s in allStages)
-        {
-            if (s.level == 0)
-                s.UnlockStage();
-        }
     }
 
     public int CurrentGold
@@ -93,7 +105,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void OnStageClicked(StageNodeUI clickedStage)
     {
-       
+
 
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
@@ -102,7 +114,7 @@ public class GameManager : MonoBehaviour
             return;
 
         // 첫 이동이거나, 현재 스테이지와 연결된 경우에만 이동
-        if (currentStage == null )
+        if (currentStage == null)
             // 첫 이동엔 레벨 1만 허용
             if (clickedStage.level == 0)
             {
@@ -134,49 +146,48 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void SetCurrentStage(StageNodeUI newStage)
     {
+        allStages = FindObjectsOfType<StageNodeUI>().ToList();
+
         RogueLikeData.Instance.SetCurrentStage(newStage.level, newStage.row, newStage.stageType);
         RogueLikeData.Instance.SetPresetID(newStage.PresetID);
 
-        // 1) 일단 모든 스테이지 잠금
+
+        // --- 전투/엘리트/보스 스테이지 진입 처리 먼저 ---
+        if (newStage.stageType == StageType.Combat ||
+            newStage.stageType == StageType.Elite ||
+            newStage.stageType == StageType.Boss)
+        {
+            SceneManager.LoadScene("AutoBattleScene");
+            return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
+        }
+        // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---
+        // 2) 맵 UI 전체 잠금
         foreach (var s in allStages)
             s.LockStage();
 
-        // 2) 플레이어 마커 이동
+        // 3) 플레이어 마커 이동
         MovePlayerMarkerTo(newStage);
 
-        // 3) 새 스테이지 잠금 해제
+        // 4) 진입 스테이지 언락
         newStage.UnlockStage();
         currentStage = newStage;
 
-        // 4) 새 스테이지와 연결된 스테이지들만 잠금 해제
-        foreach (var connectstage in newStage.connectedStages)
-            connectstage.UnlockStage();
+        // 5) 연결된 다음 스테이지들 언락
+        foreach (var nxt in newStage.connectedStages)
+            nxt.UnlockStage();
 
-        // 5) 스테이지 입장 후, 타입별 이벤트 처리
-        // Rest 이벤트 처리
+        // 6) 타입별 처리
         if (newStage.stageType == StageType.Rest)
         {
-            Debug.Log($"[GameManager] RestStage 진입: level={newStage.level}, row={newStage.row}");
-            if (restUI != null)
-            {
-                restUI.Show();
-            }
-            else
-            {
-                Debug.LogError("[GameManager] restUI 레퍼런스가 없습니다!");
-            }
+            restUI?.Show();
         }
         else if (newStage.stageType == StageType.Event)
         {
-           eventManager.SetActive(true);
+            eventManager.SetActive(true);
         }
         else if (newStage.stageType == StageType.Shop)
         {
-           storeManager.SetActive(true);
-        }
-        else if(newStage.stageType == StageType.Combat || newStage.stageType == StageType.Elite|| newStage.stageType ==StageType.Boss) 
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("AutoBattleScene");
+            storeManager.SetActive(true);
         }
     }
 
@@ -193,15 +204,42 @@ public class GameManager : MonoBehaviour
 
     public void InitializeStageLocks()
     {
-        allStages.Clear();
-        allStages.AddRange(FindObjectsOfType<StageNodeUI>());
+        // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
+        var all = FindObjectsOfType<StageNodeUI>().ToList();
+        if (all.Count == 0)
+            return;
 
-        foreach (var s in allStages)
-            s.LockStage();
+        // 2) 일단 전부 잠근다
+        all.ForEach(s => s.LockStage());
 
-        foreach (var s in allStages)
-            if (s.level == 0)
-                s.UnlockStage();
+        // 첫 진입(첫 실행)이면 → 오로지 level==0(1레벨) 노드만 언락
+        if (_isFirstMapEntry)
+        {
+            foreach (var s in all)
+                if (s.level == 0 && s.stageType == StageType.Combat)
+                    s.UnlockStage();
+            return;
+        }
+
+        // 두 번째 이후(맵으로 복귀)면 → 저장된 스테이지, 연결된 다음 스테이지만 언락
+        var savedX = RogueLikeData.Instance.GetCurrentStageX();
+        var savedY = RogueLikeData.Instance.GetCurrentStage().y;
+        var savedType = RogueLikeData.Instance.GetCurrentStageType();
+
+        var savedUI = all.FirstOrDefault(s =>
+            s.level == savedX &&
+            s.row == savedY &&
+            s.stageType == savedType);
+
+        if (savedUI != null)
+        {
+            savedUI.UnlockStage();
+            foreach (var nxt in savedUI.connectedStages)
+                nxt.UnlockStage();
+        }
+        else
+        {
+            Debug.LogWarning($"[GameManager] 저장된 스테이지 UI를 찾을 수 없습니다: {savedX},{savedY},{savedType}");
+        }
     }
-    
 }
