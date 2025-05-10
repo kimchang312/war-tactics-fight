@@ -33,7 +33,17 @@ public class StagePresetLoader : MonoBehaviour
 
     void Awake()
     {
-        
+        // 싱글턴 세팅
+        if (I == null)
+        {
+            I = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (I != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         LoadAllPresets();
     }
 

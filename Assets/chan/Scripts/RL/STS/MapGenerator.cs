@@ -6,7 +6,7 @@ using UnityEditor;
 
 public enum StageType
 {
-    Unknown,
+    Unknown,  // 스테이지 첫 진입시 조건에 사용
     Combat,   // 전투
     Elite,    // 엘리트 (하층부에서는 배치 안 됨)
     Event,    // 이벤트
@@ -313,6 +313,11 @@ public class MapGenerator : MonoBehaviour
                     }
                     StageNode node = new StageNode(lvl, row, type);
                     nodeDict[key] = node;
+                    // ① StagePresetLoader.I 가 준비되어 있는지 확인
+                    if (StagePresetLoader.I != null)
+                    node.presetID = PickPresetID(lvl + 1, type);
+                    else
+                    Debug.LogWarning("[MapGenerator] StagePresetLoader.I is null; presetID skipped");
                 }
             }
         }
