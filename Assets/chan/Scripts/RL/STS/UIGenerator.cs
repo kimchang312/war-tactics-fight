@@ -23,27 +23,30 @@ public class UIGenerator : MonoBehaviour
     // key: "level_row" -> value: StageNodeUI 인스턴스
     private Dictionary<string, StageNodeUI> stageUIMap = new Dictionary<string, StageNodeUI>();
 
-    private void Awake()
+    
+
+    private bool _hasInitialized = false;
+    
+
+
+    private void Start()
     {
-        mapGenerator.GeneratePathsNonCrossing();
 
-        CreateUIMap();
-        LinkUIConnections();
-        DrawAllConnectionLines();
+        if (!_hasInitialized)
+        {
+            _hasInitialized = true;
+
+            mapGenerator.GeneratePathsNonCrossing();
+            CreateUIMap();
+            LinkUIConnections();
+            DrawAllConnectionLines();
+
+            // UI 생성이 완전히 끝났으니 여기서 한 번만 락/언락
+            if (GameManager.Instance != null)
+                GameManager.Instance.InitializeStageLocks();
+        }
     }
-    void Start()
-    {
-        if (mapGenerator == null) return;
 
-
-        // ← UI 생성 직후, 반드시 초기 잠금/언락을 수행
-        if (GameManager.Instance != null)
-            GameManager.Instance.InitializeStageLocks();
-    }
-
-    /// <summary>
-    /// 1) 모든 스테이지 UI 생성 및 배치, stageUIMap에 저장
-    /// </summary>
     void CreateUIMap()
     {
         stageUIMap.Clear();
@@ -70,9 +73,7 @@ public class UIGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 2) mapGenerator의 연결정보를 읽어 StageNodeUI.connectedStages에 할당
-    /// </summary>
+
     void LinkUIConnections()
     {
         foreach (var kvp in mapGenerator.NodeDictionary)
@@ -92,9 +93,6 @@ public class UIGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 3) UI들 간 연결선을 그림
-    /// </summary>
     void DrawAllConnectionLines()
     {
         foreach (var ui in stageUIMap.Values)

@@ -2,11 +2,20 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private GameObject eventManager;
-    [SerializeField] private GameObject storeManager; 
+    [SerializeField] private GameObject storeManager;
+
+    public int currentStageX;
+    public int currentStageY;
+    public StageType currentStageType;
+    public List<StageNode> nodes;      // 모델만 저장
+    public List<List<int>> paths;
+    public Vector3 playerMarkerPosition;
 
     public static GameManager Instance { get; private set; }
 
@@ -41,7 +50,10 @@ public class GameManager : MonoBehaviour
         {
             // 이미 다른 인스턴스가 살아있다면, 이 오브젝트는 파괴
             Destroy(gameObject);
+            return;
         }
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
 
         await GoogleSheetLoader.Instance.LoadUnitSheetData();
         SaveData save = new();
@@ -50,21 +62,19 @@ public class GameManager : MonoBehaviour
         StoreManager.LoadStoreData();
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 1) 씬에 있는 모든 StageNodeUI 를 새로 수집
+        allStages = FindObjectsOfType<StageNodeUI>().ToList();
+
+        InitializeStageLocks();
+    }
+
     private void Start()
     {
         // 씬에 있는 모든 StageNodeUI 컴포넌트를 수집
         allStages.AddRange(FindObjectsOfType<StageNodeUI>());
 
-        // 1) 일단 전부 잠그고
-        foreach (var s in allStages)
-            s.LockStage();
-
-        // 2) 레벨 1(0 인덱스) 스테이지만 열어준다
-        foreach (var s in allStages)
-        {
-            if (s.level == 0)
-                s.UnlockStage();
-        }
     }
 
     public int CurrentGold
@@ -93,7 +103,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void OnStageClicked(StageNodeUI clickedStage)
     {
-       
+
 
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
@@ -102,7 +112,7 @@ public class GameManager : MonoBehaviour
             return;
 
         // 첫 이동이거나, 현재 스테이지와 연결된 경우에만 이동
-        if (currentStage == null )
+        if (currentStage == null)
             // 첫 이동엔 레벨 1만 허용
             if (clickedStage.level == 0)
             {
@@ -134,6 +144,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void SetCurrentStage(StageNodeUI newStage)
     {
+        allStages = FindObjectsOfType<StageNodeUI>().ToList();
+
         RogueLikeData.Instance.SetCurrentStage(newStage.level, newStage.row, newStage.stageType);
         RogueLikeData.Instance.SetPresetID(newStage.PresetID);
 
@@ -168,13 +180,13 @@ public class GameManager : MonoBehaviour
         }
         else if (newStage.stageType == StageType.Event)
         {
-           eventManager.SetActive(true);
+            eventManager.SetActive(true);
         }
         else if (newStage.stageType == StageType.Shop)
         {
-           storeManager.SetActive(true);
+            storeManager.SetActive(true);
         }
-        else if(newStage.stageType == StageType.Combat || newStage.stageType == StageType.Elite|| newStage.stageType ==StageType.Boss) 
+        else if (newStage.stageType == StageType.Combat || newStage.stageType == StageType.Elite || newStage.stageType == StageType.Boss)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene("AutoBattleScene");
         }
@@ -193,15 +205,28 @@ public class GameManager : MonoBehaviour
 
     public void InitializeStageLocks()
     {
-        allStages.Clear();
-        allStages.AddRange(FindObjectsOfType<StageNodeUI>());
+        // 아직 한 번도 이동 안 한 상태 → 레벨0만 언락
+        if (currentStage == null)
+        {
+            foreach (var ui in allStages)
+                if (ui.level == 0 && ui.stageType == StageType.Combat)
+                    ui.UnlockStage();
+            return;
+        }
 
-        foreach (var s in allStages)
-            s.LockStage();
+        // 돌아온 상황 → 저장된 currentStage 위치를 찾아 언락
+        var pos = RogueLikeData.Instance.GetCurrentStage();
+        var savedUI = allStages.FirstOrDefault(ui =>
+            ui.level == pos.x &&
+            ui.row == pos.y &&
+            ui.stageType == pos.type);
 
-        foreach (var s in allStages)
-            if (s.level == 0)
-                s.UnlockStage();
+        if (savedUI != null)
+        {
+            savedUI.UnlockStage();
+            foreach (var nxt in savedUI.connectedStages)
+                nxt.UnlockStage();
+            currentStage = savedUI;
+        }
     }
-    
 }

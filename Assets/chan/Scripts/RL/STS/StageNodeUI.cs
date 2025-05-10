@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
+[RequireComponent(typeof(CanvasGroup), typeof(Button), typeof(Image))]
 public class StageNodeUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("Node Data")]
@@ -40,19 +41,23 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
 
     private void Awake()
     {
+        // 컴포넌트가 무조건 붙어 있으므로 GetComponent로 캐시
         canvasGroup = GetComponent<CanvasGroup>();
         button = GetComponent<Button>();
         image = GetComponent<Image>();
     }
-    private void Init()
+
+    private void OnEnable()
     {
-        // null 체크 후에만 GetComponent
-        if (canvasGroup == null)
-            canvasGroup = GetComponent<CanvasGroup>();
-        if (button == null)
-            button = GetComponent<Button>();
-        if (image == null)
-            image = GetComponent<Image>();
+        // 다시 활성화될 때마다 깨진 참조 복구
+        if (canvasGroup == null || button == null || image == null)
+            CacheComponents();
+    }
+    private void CacheComponents()
+    {
+        canvasGroup = GetComponent<CanvasGroup>();
+        button = GetComponent<Button>();
+        image = GetComponent<Image>();
     }
 
     /// <summary>
@@ -64,18 +69,19 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         row = node.row;
         stageType = node.stageType;
         // 1) StageType별로 스프라이트 교체
-        switch (stageType)
+        image.sprite = stageType switch
         {
-            case StageType.Combat: image.sprite = combatSprite; break;
-            case StageType.Elite: image.sprite = eliteSprite; break;
-            case StageType.Event: image.sprite = eventSprite; break;
-            case StageType.Shop: image.sprite = shopSprite; break;
-            case StageType.Rest: image.sprite = restSprite; break;
-            case StageType.Treasure: image.sprite = treasureSprite; break;
-            case StageType.Boss: image.sprite = bossSprite; break;
-        }
+            StageType.Combat => combatSprite,
+            StageType.Elite => eliteSprite,
+            StageType.Event => eventSprite,
+            StageType.Shop => shopSprite,
+            StageType.Rest => restSprite,
+            StageType.Treasure => treasureSprite,
+            StageType.Boss => bossSprite,
+            _ => image.sprite
+        };
         // presetID 할당
-        this.presetID = node.presetID;
+        presetID = node.presetID;
     }
 
     /// <summary>
@@ -91,38 +97,32 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         GameManager.Instance.OnStageClicked(this);
     }
 
-    /// <summary>
+    
     /// 이 스테이지를 잠급니다.
-    /// </summary>
+    
     public void LockStage()
     {
         isLocked = true;
-        // 클릭 이벤트 차단W 이거 해결해야함
-        if(canvasGroup == null) {
-            this.gameObject.AddComponent<CanvasGroup>();
-            canvasGroup =GetComponent<CanvasGroup>();
-            Debug.Log(canvasGroup);
+        if (canvasGroup != null)
+        {
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable = false;
         }
-      
-        canvasGroup.blocksRaycasts = false;
-        // 하이라이트, 포커스 등 UI 인터랙션 모두 차단
-        canvasGroup.interactable = false;
-
-        // Button 인터랙션도 차단
-        if (button != null)
-            button.interactable = false;
+        if (button != null) button.interactable = false;
     }
 
-    /// <summary>
+    
     /// 이 스테이지 잠금을 해제합니다.
-    /// </summary>
+   
     public void UnlockStage()
     {
         isLocked = false;
-        canvasGroup.blocksRaycasts = true;
-        canvasGroup.interactable = true;
-        if (button != null)
-            button.interactable = true;
+        if (canvasGroup != null)
+        {
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.interactable = true;
+        }
+        if (button != null) button.interactable = true;
     }
 
     /// <summary>
