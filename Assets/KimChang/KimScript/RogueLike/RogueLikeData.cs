@@ -32,6 +32,7 @@ public class RogueLikeData
     private int currentStageY = 0;
     private int chapter = 1;
     private int presetID = -1;
+
     private StageType currentStageType = StageType.Combat;
 
     private int currentGold = 0;
@@ -425,10 +426,16 @@ public class RogueLikeData
         encounteredEvent.Add(id, id);
     }
     //아군 데이터 저장
-    public void SetSavedMyUnits(RogueUnitDataBase unit)
+    public void AddSavedMyUnits(RogueUnitDataBase unit)
     {
         savedMyUnits.Add(unit);
     }
+    //저장된 데이터 초기화
+    public void ClearSavedMyUnits()
+    {
+        savedMyUnits.Clear();
+    }
+
     public int GetChapter()
     {
         return chapter;

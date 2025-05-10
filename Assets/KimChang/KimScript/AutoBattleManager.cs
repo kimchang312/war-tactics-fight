@@ -29,10 +29,6 @@ public class AutoBattleManager : MonoBehaviour
     //유닛별 고유 id
     private static int globalUnitId = 0;
 
-    //유닛 총 갯수
-    int myUnitMax;
-    int enemyUnitMax;
-
     // 첫 공격
     bool isFirstAttack = true;
     private enum BattleState
@@ -58,15 +54,17 @@ public class AutoBattleManager : MonoBehaviour
     private float enemyFinalDamage = 0;
 
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
-    private async void Start()
+    private void Start()
     {
         currentState = BattleState.None;
-
+        InitializeRogueLike();
+        /*
         List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
         List<int> enemyIds = PlayerData.Instance.GetEnemyUnitIndexes();
         if (myIds.Count <= 0) return;
 
         await InitializeBattle(myIds, enemyIds);
+        */
     }
     private async void Update()
     {
@@ -79,9 +77,9 @@ public class AutoBattleManager : MonoBehaviour
             case BattleState.None:
                 isProcessing = false;
                 break;
-            case BattleState.Enter:
+            /*case BattleState.Enter:
                 HandleEnter();
-                break;
+                break;*/
             case BattleState.Check:
                 await HandleCheck();
                 break;
@@ -129,7 +127,7 @@ public class AutoBattleManager : MonoBehaviour
                 RogueUnitDataBase savedUnit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,true);
                 myUnits.Add(unit);
                 //기본 유닛 데이터 따로 저장
-                RogueLikeData.Instance.SetSavedMyUnits(savedUnit);
+                RogueLikeData.Instance.AddSavedMyUnits(savedUnit);
             }
         }
 
@@ -147,6 +145,22 @@ public class AutoBattleManager : MonoBehaviour
 
         return (myUnits, enemyUnits);
     }
+    //유닛 id를 기반으로 유닛 생성
+    private List<RogueUnitDataBase> GetUnitsById(List<int> unitIds)
+    {
+        List<RogueUnitDataBase> units = new();
+        foreach (int unitId in unitIds)
+        {
+            List<string> rowData = GoogleSheetLoader.Instance.GetRowUnitData(unitId);
+            if (rowData != null)
+            {
+                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData, false);
+                units.Add(unit);
+            }
+        }
+        return units;
+    }
+
 
     //유닛 데이터 받고 전투 시작
     public async Task StartBattle(List<int> _myUnitIds, List<int> _enemyUnitIds)
@@ -282,7 +296,6 @@ public class AutoBattleManager : MonoBehaviour
     //전투 전 발동
     private void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage)
     {
-
         abilityManager.ProcessBeforeBattle(units, defenders, isTeam, finalDamage, autoBattleUI);
     }
     //전투 당 한번
@@ -361,11 +374,7 @@ public class AutoBattleManager : MonoBehaviour
 
         // 유닛 데이터 받아옴
         (myUnits, enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
-   
-        myUnitMax = myUnits.Count;
-        enemyUnitMax = enemyUnits.Count;
 
-        isFirstAttack = true;
         isFirstAttack = true;
 
         //기본 데이터 설정
@@ -385,13 +394,38 @@ public class AutoBattleManager : MonoBehaviour
         // 상태를 Preparation으로 설정
         currentState = BattleState.Enter;
     }
-    //전투 스테이지 입장
+    //로그라이크 모드일떄 초기화
+    private void InitializeRogueLike()
+    {
+        autoBattleUI.ToggleLoadingWindow();
+        int presetId = RogueLikeData.Instance.GetPresetID();
+        if (presetId == -1) return;
+        List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
+        enemyUnits = GetUnitsById(unitIds);
+        myUnits = RogueUnitDataBase.SetMyUnitsNormalize();
+        ProcessEnter();
+
+        RogueUnitDataBase.SetSavedUnitsByMyUnits();
+        isFirstAttack = true;
+        SetBaseData();
+        //데이터 저장
+        SaveData saveData = new SaveData();
+        saveData.SaveDataFile();
+        ProcessRelic();
+        UpdateUnitUI();
+        //로딩창 종료
+        autoBattleUI.ToggleLoadingWindow();
+
+        currentState = BattleState.Check;
+    }
+
+    /*전투 스테이지 입장
     private void HandleEnter()
     {
         ProcessEnter();
         currentState = BattleState.Check;
         isProcessing = false;
-    }
+    }*/
     // 확인 단계 처리 (전투 시작 전에 필요한 확인 작업 수행)
     private async Task HandleCheck()
     {
@@ -548,7 +582,7 @@ public class AutoBattleManager : MonoBehaviour
             }
 
             //남은 금액 덧셈
-            score += PlayerData.currency;
+            score += RogueLikeData.Instance.GetCurrentGold();
         }
 
         autoBattleUI.UpdateScore((int)score);
@@ -586,12 +620,12 @@ public class AutoBattleManager : MonoBehaviour
         myFinalDamage = RogueLikeData.Instance.GetMyMultipleDamage();
         enemyFinalDamage = RogueLikeData.Instance.GetEnemyMultipleDamage();
 
-        myUnits = RogueLikeData.Instance.GetMyUnits();
-
         //유산 이미지 생성
         autoBattleUI.CreateWarRelic();
     }
     
+    
+
 }
 
 
