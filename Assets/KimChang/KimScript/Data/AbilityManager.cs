@@ -35,6 +35,21 @@ public class AbilityManager
     Dictionary<int, List<RogueUnitDataBase>> myHeroUnits = new();
     Dictionary<int, List<RogueUnitDataBase>> enemyHeroUnits = new();
 
+    //지휘관 효과
+    public void ProcessCommenderEffect()
+    {
+        int presetId = RogueLikeData.Instance.GetPresetID();
+        if (presetId < 48) return;
+        var abilityActions = new List<Action>
+        {
+            ()=> {if(presetId == 49) CommenderEffect.CalculateSlash();  },
+            ()=> {if (presetId ==57) CommenderEffect.CalculateLazaros(); },
+            ()=>{if(presetId ==59)CommenderEffect.CalculateBelphegor(); },
+            ()=> {if(presetId == 62) CommenderEffect.CalculateStein(); },
+        };
+
+    }
+
     //입장 시 채크
     public void ProcessEnter()
     {
@@ -125,6 +140,8 @@ public class AbilityManager
                 
         }
 
+        //지휘관 효과
+        CalculateFieldEffect();
     }
     
     public bool ProcessOneTurn()
@@ -585,7 +602,7 @@ public class AbilityManager
     //무한
     private void CalculateEndLess(RogueUnitDataBase unit,bool isTeam)
     {
-        if (!isTeam || !unit.endless) return;
+        if (!unit.endless) return;
         unit.energy = Math.Min(unit.maxEnergy, unit.energy + 1);
     }
     //위압

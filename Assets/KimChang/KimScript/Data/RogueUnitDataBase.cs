@@ -339,6 +339,36 @@ public class RogueUnitDataBase
 
         return selected;
     }
+    //내 유닛 정상화
+    public static List<RogueUnitDataBase> SetMyUnitsNormalize()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach (var unit in myUnits)
+        {
+            unit.health = unit.maxHealth;
+            unit.attackDamage = unit.baseAttackDamage;
+            unit.armor = unit.baseArmor;
+            unit.mobility = unit.baseMobility;
+            unit.range = unit.baseRange;
+            unit.antiCavalry = unit.baseAntiCavalry;
+
+        }
+        return myUnits;
+    }
+    //내 유닛들로 저장된 유닛 초기화
+    public static void SetSavedUnitsByMyUnits()
+    {
+        RogueLikeData.Instance.ClearSavedMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach(var unit in myUnits)
+        {
+            int id = unit.idx;
+            List<string> row = GoogleSheetLoader.Instance.GetRowUnitData(id);
+            RogueUnitDataBase newUnit = ConvertToUnitDataBase(row);
+            RogueLikeData.Instance.AddSavedMyUnits(newUnit);
+
+        }
+    }
 
 
 }
