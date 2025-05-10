@@ -225,6 +225,9 @@ public class StoreUI : MonoBehaviour
         int gold = RogueLikeData.Instance.GetCurrentGold();
         if (gold < cost) return false;
         RogueLikeData.Instance.ReduceGold(cost);
+        //데이터 저장
+        SaveData saveData = new();
+        saveData.SaveDataFile();
         return true;
     }
 
