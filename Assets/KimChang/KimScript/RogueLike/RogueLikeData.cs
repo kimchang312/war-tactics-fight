@@ -31,7 +31,7 @@ public class RogueLikeData
     private int currentStageX = 1;
     private int currentStageY = 0;
     private int chapter = 1;
-    private int presetID = -1;
+    private int presetID = 1;
 
     private StageType currentStageType = StageType.Combat;
 

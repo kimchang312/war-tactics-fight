@@ -54,8 +54,16 @@ public class AutoBattleManager : MonoBehaviour
     private float enemyFinalDamage = 0;
 
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
-    private void Start()
+    private async void Start()
     {
+        
+        SaveData save = new();
+        save.LoadData();
+        EventManager.LoadEventData();
+        StoreManager.LoadStoreData();
+        await GoogleSheetLoader.Instance.LoadUnitSheetData();
+        if (autoBattleUI == null)
+            autoBattleUI = FindObjectOfType<AutoBattleUI>();
         currentState = BattleState.None;
         InitializeRogueLike();
         /*
@@ -284,7 +292,7 @@ public class AutoBattleManager : MonoBehaviour
                 enemyRangUnits.Add(enemyUnits[i]);
             }
         }
-
+        
         autoBattleUI.CreateUnitBox(myUnits, enemyUnits, abilityManager.CalculateDodge(myUnits[0],true,isFirstAttack), abilityManager.CalculateDodge(enemyUnits[0],false,isFirstAttack),myRangeUnits,enemyRangUnits);
     }
     //전투 입장
@@ -348,7 +356,7 @@ public class AutoBattleManager : MonoBehaviour
     {
         //유닛 생성 UI
         CallCreateUnit();
-
+        
         //유닛 숫자 UI 최신화
         UpdateUnitCount();
 
@@ -391,6 +399,7 @@ public class AutoBattleManager : MonoBehaviour
         autoBattleUI.ToggleLoadingWindow();
         //유닛 생성
         UpdateUnitUI();
+
         // 상태를 Preparation으로 설정
         currentState = BattleState.Enter;
     }
@@ -402,17 +411,24 @@ public class AutoBattleManager : MonoBehaviour
         if (presetId == -1) return;
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
         enemyUnits = GetUnitsById(unitIds);
+        //myUnits = GetUnitsById(unitIds);
         myUnits = RogueUnitDataBase.SetMyUnitsNormalize();
+        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+        
         ProcessEnter();
 
         RogueUnitDataBase.SetSavedUnitsByMyUnits();
         isFirstAttack = true;
         SetBaseData();
+        
         //데이터 저장
         SaveData saveData = new SaveData();
         saveData.SaveDataFile();
+        
         ProcessRelic();
+         
         UpdateUnitUI();
+        
         //로딩창 종료
         autoBattleUI.ToggleLoadingWindow();
 
@@ -431,10 +447,10 @@ public class AutoBattleManager : MonoBehaviour
     {
         //맵 효과
         abilityManager.CalculateFieldEffect();
-
+        
         ProcessBeforeBattle(myUnits, enemyUnits, true, myFinalDamage);
         ProcessBeforeBattle(enemyUnits, myUnits, false, enemyFinalDamage);
-
+        
         await Task.Delay((int)waittingTime);
         currentState = BattleState.Start;
         isProcessing = false; // 체크가 끝난 후 상태를 변경

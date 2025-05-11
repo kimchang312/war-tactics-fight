@@ -629,7 +629,7 @@ public class AutoBattleUI : MonoBehaviour
     //보상 창 열기+ 통계,점수,승패 창 닫기 
     private void OpenRewardWindow()
     {
-        SceneManager.LoadScene("Event");
+        SceneManager.LoadScene("RLmap");
         /*
         staticsWindow.SetActive(false);
         endWindow.SetActive(false);

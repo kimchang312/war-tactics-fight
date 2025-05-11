@@ -91,6 +91,7 @@ public class AbilityManager
     public void CalculateFieldEffect()
     {
         int fieldId = RogueLikeData.Instance.GetFieldId();
+        
         switch (fieldId) 
         {
             case 2:
@@ -141,7 +142,7 @@ public class AbilityManager
         }
 
         //지휘관 효과
-        CalculateFieldEffect();
+        ProcessCommenderEffect();
     }
     
     public bool ProcessOneTurn()

@@ -77,7 +77,11 @@ public class SaveData
             // 1. 내 유닛 전부 수정하기
             List<RogueUnitDataBase> myUnits = new(savePlayerData.myUnits);
             RogueLikeData.Instance.SetAllMyUnits(myUnits);
-
+            foreach (var unit in myUnits)
+            {
+                Debug.Log(unit.unitName);
+                unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
+            }
             // 2. 유물 정보 업데이트하기 (relicIds를 Dictionary로 변환)
             foreach (var id in savePlayerData.relicIds)
             {
