@@ -9,6 +9,8 @@ public class RestUI : MonoBehaviour
     public Button buffButton;       // 기력,사기 회복 선택 버튼. 버튼명 임시
     public Button closeButton;      // 패널 닫기 버튼
 
+    // 업글비용 SetIsFreeUpgrade(bool isFree = true)
+
     private CanvasGroup panelCG;
 
     private void Awake()

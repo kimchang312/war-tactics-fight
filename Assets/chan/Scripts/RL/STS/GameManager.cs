@@ -234,5 +234,7 @@ private void Start()
         currentStage.UnlockStage();
         foreach (var nxt in currentStage.connectedStages)
             nxt.UnlockStage();
+
+        
     }
 }
