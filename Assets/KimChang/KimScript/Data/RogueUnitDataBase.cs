@@ -242,9 +242,6 @@ public class RogueUnitDataBase
         bool healing = rowData[38] == "TRUE";
         bool lifeDrain = rowData[39] == "TRUE";
 
-        // 빈칸
-        //string blink = "빈";
-
         // 추가 능력치
         bool charge = rowData[41] == "TRUE";
         bool defense = rowData[42] == "TRUE";
@@ -275,6 +272,25 @@ public class RogueUnitDataBase
             maxHealth,maxEnergy, true, false, UniqueId, effectDictionary
         );
     }
+    // 새로운 복사본을 만드는 메서드
+    public RogueUnitDataBase Clone()
+    {
+        // 이 객체의 복사본을 새로 생성
+        return new RogueUnitDataBase(
+            this.idx, this.unitName, this.unitBranch, this.branchIdx, this.unitId, this.unitExplain, this.unitImg, this.unitFaction, this.factionIdx,
+            this.tag, this.tagIdx, this.unitPrice, this.rarity,
+            this.health, this.armor, this.attackDamage, this.mobility, this.range, this.antiCavalry, this.energy,
+            this.baseHealth, this.baseArmor, this.baseAttackDamage, this.baseMobility, this.baseRange, this.baseAntiCavalry, this.baseEnergy,
+            this.lightArmor, this.heavyArmor, this.rangedAttack, this.bluntWeapon, this.pierce, this.agility,
+            this.strongCharge, this.perfectAccuracy, this.slaughter, this.bindingForce, this.bravery, this.suppression,
+            this.plunder, this.doubleShot, this.scorching, this.thorns, this.endless, this.impact, this.healing,
+            this.lifeDrain, this.charge, this.defense, this.throwSpear, this.guerrilla, this.guard, this.assassination,
+            this.drain, this.overwhelm, this.martyrdom, this.wounding, this.vengeance, this.counter, this.firstStrike,
+            this.challenge, this.smokeScreen, this.maxHealth, this.maxEnergy, this.alive, this.fStriked, this.UniqueId,
+            new Dictionary<int, BuffDebuffData>(this.effectDictionary) // 효과 딕셔너리도 복사
+        );
+    }
+
     public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam)
     {
         int serial = RogueLikeData.Instance.GetNextUnitUniqueId();
