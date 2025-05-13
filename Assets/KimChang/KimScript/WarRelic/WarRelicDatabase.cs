@@ -117,7 +117,31 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(91, "불길한 족쇄", 0, "병영의 훈련 비용이 20% 증가한다.", RelicType.SpecialEffect, () => OminousChains()));
         relics.Add(new WarRelic(92, "맛있는 군용식량", 1, "비 영웅 유닛의 체력과 공격력이 8% 증가한다.", RelicType.StateBoost, () => DeliciousMilitaryRations()));
         relics.Add(new WarRelic(93, "맛있는 특별식", 1, "영웅 유닛의 체력과 공격력이 12% 증가한다.", RelicType.StateBoost, () => DeliciousSpecialMeal()));
+        //94
+        relics.Add(new WarRelic(95, "전속전진의 신발", 10, "돌격 스킬을 가진 유닛에게 충격 특성을 부여한다. 원래 충격을 가진 유닛은 기동력이 3 증가한다.", RelicType.StateBoost, () => ShoesOfFullSpeedAhead()));
+        relics.Add(new WarRelic(96, "장식된 로자리오", 1, "지원 유닛에게 영향받는 아군 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => DecoratedRosary()));
+        relics.Add(new WarRelic(97, "비상탈출 교본", 1, "궁병과 지원 유닛이 전열로 진입할 때, 유격의 효과를 발동시킨다. (유닛 당 1회)", RelicType.StateBoost, () => EmergencyEscapeManual()));
+        //99
+        relics.Add(new WarRelic(99, "욕망의 항아리", 1, "매 정비턴이 시작될 때, 금화 a 획득, 사기 b 감소", RelicType.SpecialEffect, () => JarOfDesire()));
+        
+        relics.Add(new WarRelic(100, "무지개의 시작", 1, "전투 시작 시, 첫번째 유닛의 체력, 공격력 15% 증가", RelicType.StateBoost, () => BeginningOfRainbow()));
+        relics.Add(new WarRelic(101, "지평선의 끝", 1, "전투 시작 시, 마지막 유닛의 체력, 공격력 15% 증가", RelicType.StateBoost, () => EndOfHorizon()));
+        relics.Add(new WarRelic(102, "도박꾼의 운명", 10, "전투 시작 시, 보유한 골드의 20%를 소모한다. 기병이 아닌 유닛의 체력과 공격력이 소모한 골드에 비례하여 증가한다.", RelicType.StateBoost, () => GamblerFate()));
+        relics.Add(new WarRelic(103, "흑요석 심장", 1, "전투 종료 후, 기력이 최대인 ", RelicType.SpecialEffect, () => ObsidianHeart()));
+        relics.Add(new WarRelic(104, "긍지의 양날도끼", 1, "전투 시작 시, 플레이어와 상대의 무작위 유닛 2개가 앞으로 나온다.먼저 2번째 유닛이 죽은 부대 유닛의 공격력이 10% 감소한다. ", RelicType.ActiveState, () => DoubleEdgedAxeOfPride()));
+        relics.Add(new WarRelic(105, "저주받은 갑옷", 10, "내 유닛이 받는 피해가 항상 40% 감소한다. 내 유닛이 항상 80%의 확률로 기력 소모가 2배가 된다.", RelicType.StateBoost, () => CursedArmor()));
+        relics.Add(new WarRelic(106, "제어 횃불", 1, "보스를 처치하면 작열의 피해량이 영구적으로 20 증가한다.", RelicType.StateBoost, () => ControlTorch()));
+        relics.Add(new WarRelic(107, "훈장 무더기", 1, "항상 부대 상한이 50% 감소한다. 내 유닛의 체력과 공격력, 대기병이 80% 증가한다.", RelicType.StateBoost, () => PileOfMedals()));
+        relics.Add(new WarRelic(108, "애매한 묵시록", 1, "사기가 90 이상이라면 내 유닛의 공격력이 20 증가한다. 사기가 60 이하라면 내 유닛의 공격력이 30 감소한다.", RelicType.StateBoost, () => AmbiguousApocalypse()));
+        relics.Add(new WarRelic(109, "전쟁론", 10, "전투 스테이지를 마칠 때마다, 첫번째 유닛의 병종이 무작위 강화 2개를 얻는다.", RelicType.SpecialEffect, () => TheoryOfWar()));
 
+        relics.Add(new WarRelic(110, "대서사시", 10, "영웅 유닛 제한이 2 증가한다. 즉시 영웅 유닛 보상을 획득한다. 찢겨진 명단 전쟁 유산을 얻는다.", RelicType.GetEffect, () => Epic()));
+        relics.Add(new WarRelic(111, "멸시의 오브", 1, "모든 선택지에서 희귀도 1 유닛이 등장하지 않는다.", RelicType.SpecialEffect, () => OrbOfContempt()));
+        relics.Add(new WarRelic(112, "질긴 채찍", 1, "전투 중, 적 유닛의 대기병 수치가 50% 감소한다.", RelicType.StateBoost, () => ToughWhip()));
+        //113
+        //114
+        relics.Add(new WarRelic(115, "투창용 깃창", 1, "내 모든 창병이 투창 기술을 가진다.", RelicType.StateBoost, () => JavelinForThrowing()));
+        relics.Add(new WarRelic(116, "영광의 대가", 50, "사기가 증가하지 않는다.", RelicType.SpecialEffect, () => PriceOfGlory()));
     }
 
     public static WarRelic GetRelicById(int id)
@@ -1214,7 +1238,54 @@ public static class WarRelicDatabase
         {
             unit.attackDamage += addAttack;
         }
+    }
+    //전쟁론 109
+    private static void TheoryOfWar()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        bool isAttack = UnityEngine.Random.value < 0.5f;
+        for (int i = 0; i < 2; i++)
+        {
+            RogueLikeData.Instance.IncreaseUpgrade(myUnits[0].branchIdx, isAttack, false);
+        }
+    }
+    //대서사시 110
+    private static void Epic()
+    {
+        //영웅유닛 제한 +2
+        RogueUnitDataBase unit = RogueUnitDataBase.GetRandomUnitByRarity(4);
+        RogueLikeData.Instance.AddMyUnis(unit);
+        RogueLikeData.Instance.AcquireRelic(89);
+    }
+    //멸시의 오브 111
+    private static void OrbOfContempt()
+    {
 
     }
+    //질긴 채찍 112
+    private static void ToughWhip()
+    {
+        var enemyUnits= RogueLikeData.Instance.GetEnemyUnits();
+        foreach (var unit in enemyUnits)
+        {
+            unit.antiCavalry -= Mathf.Round(unit.antiCavalry * 0.5f);
+        }
+    }
+    // 113
+    // 114
+    //투창용 깃창 115
+    private static void JavelinForThrowing()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach(var unit in myUnits)
+        {
+            if (unit.branchIdx != 0) continue;
+            unit.throwSpear = true;
+        }
+    }
+    //영광의 대가 116
+    private static void PriceOfGlory() { }
+
+
 
 }

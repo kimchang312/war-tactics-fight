@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
@@ -6,11 +7,35 @@ using UnityEngine;
 
 public static class CommenderEffect
 {
+    //프레디
+    public static void CalculateFreddy()
+    {
+        //플레이어는 적보다 유닛을 많이 배치할 수 없다
+    }
 
     //핸드릭슨
-    public static void CalculateHendrix() { }
-    //래논
-    public static void CalculateLennon() { }
+    public static void CalculateHendrix() 
+    { 
+        var myUnits= RogueLikeData.Instance.GetMyUnits();
+        var enemyUnits =RogueLikeData.Instance.GetEnemyUnits();
+        foreach (var unit in myUnits)
+        {
+            if(unit.branchIdx != 5) continue;
+            unit.mobility = Math.Max(1, unit.mobility - 1);
+
+        }
+        foreach (var unit in enemyUnits)
+        {
+
+        }
+        //모든 경기병,암살자 회피율 0.05 버프로 구현
+    }
+    //레논
+    public static void CalculateLennon() 
+    {
+        //적 전사가 전열에서 플레이어 유닛 처치 시 사기-2
+
+    }
     //모리슨
     public static void CalcualteMorrison()
     {
@@ -38,9 +63,15 @@ public static class CommenderEffect
         }
     }
     //커트
-    public static void CalculateKurt() { }
+    public static void CalculateKurt() 
+    { 
+        //모든 암살이 50%확률로 즉사
+    }
     //잰더
-    public static void CalculateZander() { }
+    public static void CalculateZander() 
+    { 
+        //플레이어 유닛이 피해 받을때 마다 장갑 -2 디버프로 구현
+    }
     public static void CalculateOzzy() { }
     //슬래시
     public static void CalculateSlash()
@@ -49,7 +80,7 @@ public static class CommenderEffect
 
         foreach (var unit in enemyUnits)
         {
-            if (unit.branchIdx == 1 || unit.branchIdx == 6) // 전사, 암살자
+            if (unit.branchIdx == 1 || unit.branchIdx == 4)
             {
                 unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.2f);
                 unit.maxHealth -= Mathf.Round(unit.baseHealth * 0.1f);
@@ -57,7 +88,6 @@ public static class CommenderEffect
             }
         }
     }
-
     public static void CalculateCobain() { }
 
     public static void CalculateClapton()
@@ -70,8 +100,11 @@ public static class CommenderEffect
             unit.antiCavalry *= 2;
         }
     }
-
-    public static void CalculateAxl() { }
+    //액슬
+    public static void CalculateAxl() 
+    { 
+        //모든 유닛 체력 50이하 즉사 유닛 사망 관리에서 확인 디버프 처리
+    }
 
     public static void CalculateBowie()
     {
@@ -129,11 +162,23 @@ public static class CommenderEffect
     }
 
     public static void CalculateVedder() { }
-    public static void CalculatePage() { }
+    //페이지
+    public static void CalculatePage() 
+    { 
+        //더 많은 부대가치
+    }
     public static void CalculateSyd() { }
-    public static void CalculateAmarok() { }
+    //아마록
+    public static void CalculateAmarok() 
+    { 
+        //적이 33%확률로 암살,돌격이 한번더 발동 버프로 구현
+    }
     public static void CalculateBruennar() { }
-    public static void CalculateSirion() { }
+    //시리온
+    public static void CalculateSirion() 
+    {
+        //적 유닛이 죽으면 적이 원거리 공격가능 유닛이 원거리 공격
+    }
     public static void CalculateValeric() { }
     public static void CalculateGrondal() { }
     public static void CalculateErebos()
@@ -145,6 +190,7 @@ public static class CommenderEffect
             ClearUnitSkill(unit);
         }
     }
+    //라자루스
     public static void CalculateLazaros()
     {
         var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
@@ -197,13 +243,23 @@ public static class CommenderEffect
 }           unit.maxHealth += 50;
             unit.health = unit.maxHealth;
         }
-
-
-
     }
     public static void CalculateOrtheon() { }
     public static void CalculateAsmodeus() { }
-    public static void CalculateHosh(){}
+    //호쉬
+    public static void CalculateHosh()
+    {
+        var allUnits = RogueLikeData.Instance.GetMyUnits();
+        allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
+        foreach (var unit in allUnits)
+        {
+            unit.mobility = 1;
+
+        }
+
+        //회피율 0 디버프로 구현
+    }
+    //슈타인
     public static void CalculateStein()
     {
         var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
