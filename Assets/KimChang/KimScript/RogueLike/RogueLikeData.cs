@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class RogueLikeData
 {
@@ -31,7 +32,7 @@ public class RogueLikeData
     private int currentStageX = 1;
     private int currentStageY = 0;
     private int chapter = 1;
-    private int presetID = -1;
+    private int presetID = 1;
 
     private StageType currentStageType = StageType.Combat;
 
@@ -50,7 +51,7 @@ public class RogueLikeData
     //현재 필드 id 전투 종료 후 0으로 1~5
     private int fieldId = 0;
 
-    //다음 전투 추가 보상
+    //전투 추가 보상
     private BattleRewardData battleReward = new();
 
     private int rerollChance = 0;
@@ -73,11 +74,11 @@ public class RogueLikeData
     //내 데이터 전부 반환
     public SavePlayerData GetRogueLikeData()
     {
-        SavePlayerData data = new(0, savedMyUnits, relicIdsByType.Values
+        SavePlayerData data = new(0, myUnits, relicIdsByType.Values
                                     .SelectMany(hashSet => hashSet)
                                     .ToList(),encounteredEvent.Values.ToList(),
                                     currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,
-                                    upgradeValues, sariStack);
+                                    upgradeValues, sariStack,battleReward);
         return data;
     }
     // 보유한 유닛 기력만 재설정 해서 반환
@@ -115,9 +116,11 @@ public class RogueLikeData
             chapter,
             currentStageType,
             upgradeValues,
-            sariStack
+            sariStack,
+            battleReward
         );
-
+        
+        myUnits = savedCopy;
         return data;
     }
 
@@ -291,6 +294,7 @@ public class RogueLikeData
     {
         currentStageX = x;
         currentStageY = y;
+        Debug.Log(type);
         currentStageType = type;
     }
     public int GetCurrentStageX()
@@ -345,17 +349,27 @@ public class RogueLikeData
     {
         return playerMorale;
     }
-    public void AddMorale(int add)
+    // 사기 증감 통합 함수
+    public int ChangeMorale(int value)
     {
-        playerMorale = Math.Min(100, playerMorale+add);
+        int morale;
+        if (value >= 0)
+        {
+            // 증가: 최대 100 제한
+            morale= Math.Min(100, playerMorale + value);
+            playerMorale = morale;
+        }
+        else
+        {
+            // 감소: 유산 33 보유 시 20% 감소량 완화
+            float reductionModifier = GetOwnedRelicById(33) == null ? 1f : 0.8f;
+            int reduced = (int)(-value * reductionModifier);
+            morale = Math.Max(0, playerMorale - reduced);
+            playerMorale = morale;
+        }
+        return morale;
     }
 
-    public void ReduceMorale(int reduce)
-    {
-        float addReduce = GetOwnedRelicById(33) == null ? 0 : 0.2f;
-        reduce = (int)(reduce * (1 - addReduce));
-        playerMorale = Math.Max(0,playerMorale-reduce);
-    }
 
     public void SetMorale(int value)
     {
@@ -444,11 +458,17 @@ public class RogueLikeData
     {
         this.chapter = chapter;
     }
+    //챕터에 따른 이벤트 골드
+    public int GetGoldByChapter(int gold)
+    {
+        float value = chapter == 1 ? 1 : (chapter == 2 ? 1.5f : 2);
+        return ((int)(gold * value));
+    }
+
     //챕터에 따른 이벤트 골드 획득
     public int AddGoldByEventChapter(int gold)
     {
-        float value = chapter == 1 ? 1 : (chapter == 2 ? 1.5f : 2);
-        int getGold = ((int)(gold * value));
+        int getGold = GetGoldByChapter(gold);
         EarnGold(getGold);
         return getGold;
     }
@@ -496,7 +516,6 @@ public class RogueLikeData
     {
         return battleReward;
     }
-
     public void AddGoldReward(int setGold)
     {
         battleReward.gold += setGold;
@@ -521,7 +540,14 @@ public class RogueLikeData
     {
         battleReward.changedUnits.Add(setChanges);
     }
-
+    public void SetBattleReward(BattleRewardData battleReward)
+    {
+        this.battleReward = battleReward;   
+    }
+    public void ClearBattleReward()
+    {
+        battleReward = new();
+    }
     //버프 디버프 초기화
     public void ClearBuffDeBuff()
     {
@@ -545,7 +571,7 @@ public class RogueLikeData
     }
 
     public void SetLoadData(List<int> eventId,int gold,int sentGold,int morale,
-        int stageX,int stageY,int chapter, StageType stageType,int sariSatck)
+        int stageX,int stageY,int chapter, StageType stageType,int sariSatck,BattleRewardData battleReward)
     {
         foreach(int id in eventId)
         {
@@ -559,6 +585,7 @@ public class RogueLikeData
         this.chapter = chapter;
         this.currentStageType = stageType;
         this.sariStack = sariSatck;
+        this.battleReward = battleReward;
     }
 
     // 강화 수치 반환

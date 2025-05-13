@@ -35,61 +35,57 @@ public class RelicManager
         AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.BattleActive));
         AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.ActiveState));
     }
-    // 특정 등급에서 중복 여부를 고려하여 랜덤 유산 ID 1개를 선택
-    public static int GetRandomRelicId(int grade, RelicAction action)
+    // 특정 등급에서 중복 여부를 고려하여 랜덤 유산들 반환
+    public static List<WarRelic> GetAvailableRelics(int grade, RelicAction action)
     {
         if (grade == 5)
         {
             grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
-        }
-
-        if(grade==1 )
-        {
-            var relic = RogueLikeData.Instance.GetOwnedRelicById(6);
-            if (relic != null && !relic.used)
-            {
-                grade = 10;
-                relic.used = false;
-            }
         }
 
         var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
         var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
 
-        var available = (action == RelicAction.Acquire)
+        return (action == RelicAction.Acquire)
             ? relics.Where(r => !ownedIds.Contains(r.id)).ToList()
             : relics.Where(r => ownedIds.Contains(r.id)).ToList();
-
-        if (available.Count == 0) return -1;
-
-        return available[UnityEngine.Random.Range(0, available.Count)].id;
     }
-
-    //무작위 유산 추가 || 제거
-    public static WarRelic HandleRandomRelic(int grade, RelicAction action)
+    //랜덤 유산id하나 반환
+    public static int GetRandomRelicId(int grade, RelicAction action)
     {
-        if (grade == 5)
-        {
-            grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
-        }
+        // Relic 6 효과: 일반 → 전설로 1회 업그레이드
         if (grade == 1)
         {
             var relic = RogueLikeData.Instance.GetOwnedRelicById(6);
             if (relic != null && !relic.used)
             {
+                relic.used = true;
                 grade = 10;
-                relic.used = false;
             }
         }
-        // 후보 유산 리스트
-        var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
-        var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
 
-        // 중복 방지 리스트
-        var available = (action == RelicAction.Acquire)
-            ? relics.Where(r => !ownedIds.Contains(r.id)).ToList()
-            : relics.Where(r => ownedIds.Contains(r.id)).ToList();
+        var available = GetAvailableRelics(grade, action);
+        if (available.Count == 0) return -1;
 
+        return available[UnityEngine.Random.Range(0, available.Count)].id;
+    }
+
+
+    //무작위 유산 추가 || 제거
+    public static WarRelic HandleRandomRelic(int grade, RelicAction action)
+    {
+        // Relic 6 효과 적용
+        if (grade == 1)
+        {
+            var relic = RogueLikeData.Instance.GetOwnedRelicById(6);
+            if (relic != null && !relic.used)
+            {
+                relic.used = true;
+                grade = 10;
+            }
+        }
+
+        var available = GetAvailableRelics(grade, action);
         if (available.Count == 0) return null;
 
         var selected = available[UnityEngine.Random.Range(0, available.Count)];
@@ -107,6 +103,8 @@ public class RelicManager
 
         return selected;
     }
+
+
     // 보유한 유물 중 ID 23, 24, 25을 모두 가지고 있는지 확인하고, 있으면 유물 26 추가
     public static void CheckFusion()
     {

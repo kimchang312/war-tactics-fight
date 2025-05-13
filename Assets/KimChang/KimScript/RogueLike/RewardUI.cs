@@ -1,102 +1,263 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class RewardUI : MonoBehaviour
 {
-    [SerializeField] private GameObject firstRelic;
-    [SerializeField] private GameObject secondRelic;
-    [SerializeField] private GameObject thirdRelic;
-
+    [SerializeField] private GameObject backFrame;
+    [SerializeField] private TextMeshProUGUI resultText;
+    [SerializeField] private GameObject goldResult;
+    [SerializeField] private GameObject moraleResult;
+    [SerializeField] private Button unitResult;
+    [SerializeField] private Button relicResult;
+    [SerializeField] private Button leaveBtn;
+    [SerializeField] private GameObject rewardSelectObj;
+    [SerializeField] private TextMeshProUGUI selectText;
+    [SerializeField] private GameObject selectRewards;
     [SerializeField] private Button rerollBtn;
+    [SerializeField] private Button skipBtn;
 
-    private void Start()
+    private void OnEnable()
     {
-        rerollBtn.onClick.AddListener(CreateRelics);
-
-        // 각 유산 오브젝트에 클릭 이벤트 연결
-        AddRelicClickListener(firstRelic);
-        AddRelicClickListener(secondRelic);
-        AddRelicClickListener(thirdRelic);
+        ResetUI();
+        transform.SetAsLastSibling();
+        CreateRewardUI();
     }
 
-    // 유산 생성
-    public void CreateRelics()
+    private void CreateRewardUI()
     {
-        List<int> selectedRelicIds = new List<int>();
-
-        for (int i = 0; i < 3; i++)
+        BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+        moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  사기 {reward.morale}";
+        resultText.text = reward.battleResult switch
         {
-            // 중복 방지를 위해 반복하여 유산 ID 선택
-            int relicId;
-            do
+            2 => "패배",
+            1 => "무승부",
+            _ => resultText.text
+        };
+
+        if (reward.battleResult == 0)
+        {
+            goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {reward.gold}";
+            goldResult.SetActive(true);
+
+            if (HasUnitReward(reward))
             {
-                relicId = RewardManager.GetRandomWarRelicId();
+                unitResult.onClick.AddListener(() => OpenReward(true));
+                unitResult.gameObject.SetActive(true);
             }
-            while (selectedRelicIds.Contains(relicId) && relicId != -1);
 
-            // 선택된 ID 저장
-            if (relicId != -1)
+            if (HasRelicReward(reward))
             {
-                selectedRelicIds.Add(relicId);
+                relicResult.onClick.AddListener(() => OpenReward(false));
+                relicResult.gameObject.SetActive(true);
             }
 
-            // 해당 유산 오브젝트 선택
-            GameObject relic = i == 0 ? firstRelic : (i == 1 ? secondRelic : thirdRelic);
-
-            // 이미지 설정
-            Image relicImage = relic.GetComponent<Image>();
-            Sprite sprite = Resources.Load<Sprite>($"KIcon/WarRelic/{relicId}");
-            relicImage.sprite = sprite;
-
-            // 오브젝트 이름을 relicId로 설정
-            relic.name = $"{relicId}";
-
-            // 텍스트 설정
-            TextMeshProUGUI relicText = relic.GetComponentInChildren<TextMeshProUGUI>(true);
-            if (relicText != null)
-            {
-                relicText.text = $"{relicId}";
-            }
+            RogueLikeData.Instance.AddRerollChange(reward.rerollChance);
         }
+
+        RogueLikeData.Instance.EarnGold(reward.gold);
+        RogueLikeData.Instance.ChangeMorale(reward.morale);
+
+        moraleResult.SetActive(true);
+        backFrame.SetActive(true);
     }
 
-    // 유산을 선택하면 호출되는 함수
-    private void OnRelicSelected(GameObject relicObject)
+    private void ResetUI()
     {
-        if (int.TryParse(relicObject.name, out int relicId))
-        {
-            // 유산을 보유 목록에 추가
-            RogueLikeData.Instance.AcquireRelic(relicId);
+        backFrame.SetActive(false);
+        goldResult.SetActive(false);
+        moraleResult.SetActive(false);
+        unitResult.onClick.RemoveAllListeners();
+        unitResult.gameObject.SetActive(false);
+        relicResult.onClick.RemoveAllListeners();
+        relicResult.gameObject.SetActive(false);
+        leaveBtn.onClick.AddListener(() => gameObject.SetActive(false));
+        rewardSelectObj.SetActive(false);
 
-            Debug.Log($"유산 ID {relicId}이(가) 보유 목록에 추가되었습니다.");
-            // 유산 재생성
-            CreateRelics();
+        foreach (Transform child in selectRewards.transform)
+            child.gameObject.SetActive(false);
+
+        rerollBtn.onClick.RemoveAllListeners();
+        skipBtn.onClick.RemoveAllListeners();
+        rerollBtn.onClick.AddListener(RerollReward);
+        skipBtn.onClick.AddListener(SkipSelectReward);
+    }
+
+    private void OpenReward(bool isUnit)
+    {
+        BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+        selectText.text = isUnit ? "유닛 선택" : "유산 선택";
+
+        if (isUnit)
+        {
+            if (reward.unitGrade.Count > 0)
+            {
+                var units = RewardManager.GetRandomUnitsByGrade(reward.unitGrade[0]);
+                for (int i = 0; i < units.Count; i++)
+                {
+                    Button btn = selectRewards.transform.GetChild(i).GetComponent<Button>();
+                    RogueUnitDataBase unit = units[i];
+                    CreateUnit(btn, unit, RewardType.UnitGrade);
+                }
+            }
+            else if (reward.newUnits.Count > 0)
+            {
+                Button btn = selectRewards.transform.GetChild(0).GetComponent<Button>();
+                RogueUnitDataBase unit = reward.newUnits[0];
+                CreateUnit(btn, unit, RewardType.NewUnit);
+            }
+            else if (reward.changedUnits.Count > 0)
+            {
+                Button btn = selectRewards.transform.GetChild(0).GetComponent<Button>();
+                RogueUnitDataBase unit = reward.changedUnits[0];
+                CreateUnit(btn, unit, RewardType.ChangeUnit);
+            }
         }
         else
         {
-            Debug.LogWarning("유산 ID 파싱에 실패했습니다.");
-        }
-    }
+            if (reward.relicGrade.Count > 0)
+            {
+                int grade = reward.relicGrade[0];
+                var selected = new List<WarRelic>();
+                var selectedIds = new HashSet<int>();
 
-    // 유산 오브젝트에 클릭 이벤트 리스너 추가
-    private void AddRelicClickListener(GameObject relic)
-    {
-        Button relicButton = relic.GetComponent<Button>();
-        if (relicButton == null)
+                int attempts = 0;
+                while (selected.Count < 3 && attempts++ < 100)
+                {
+                    int id = RelicManager.GetRandomRelicId(grade, RelicManager.RelicAction.Acquire);
+                    if (id == -1 || selectedIds.Contains(id)) continue;
+
+                    var relic = WarRelicDatabase.GetRelicById(id);
+                    if (relic != null)
+                    {
+                        selected.Add(relic);
+                        selectedIds.Add(id);
+                    }
+                }
+                for (int i = 0; i < selected.Count; i++)
+                {
+                    Button btn = selectRewards.transform.GetChild(i).GetComponent<Button>();
+                    WarRelic relic = selected[i];
+                    CreateRelic(btn, relic, RewardType.RelicGrade);
+                }
+            }
+            else if (reward.relicIds.Count > 0)
+            {
+                Button btn = selectRewards.transform.GetChild(0).GetComponent<Button>();
+                var relic = WarRelicDatabase.GetRelicById(reward.relicIds[0]);
+                CreateRelic(btn, relic, RewardType.NewRelic);
+            }
+        }
+
+        if (!HasUnitReward(reward) && !HasRelicReward(reward))
         {
-            relicButton = relic.AddComponent<Button>(); // 없으면 추가
+            RogueLikeData.Instance.ClearBattleReward();
+            new SaveData().SaveDataFile();
+            if (SceneManager.GetActiveScene().name != "RLmap")
+                SceneManager.LoadScene("RLmap");
+            else
+                gameObject.SetActive(false);
+            return;
         }
 
-        // 클릭 이벤트 등록
-        relicButton.onClick.AddListener(() => OnRelicSelected(relic));
+        rewardSelectObj.SetActive(true);
+        rerollBtn.gameObject.SetActive(true);
+        skipBtn.gameObject.SetActive(true);
+        backFrame.SetActive(false);
     }
 
-    // 유산 제거 (필요 시 구현)
-    private void ClearRelics()
+
+    private void ClickReward(RewardInfromation info)
     {
-        // 필요한 경우 유산 제거 로직 작성
+        if (info.type == RewardType.UnitGrade || info.type == RewardType.NewUnit || info.type == RewardType.ChangeUnit)
+        {
+            var unit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(info.unitId));
+            RogueLikeData.Instance.AddMyUnis(unit);
+        }
+        else if (info.type == RewardType.RelicGrade || info.type == RewardType.NewRelic)
+            RogueLikeData.Instance.AcquireRelic(info.relicId);
+
+        SkipSelectReward();
     }
+
+    private void RerollReward()
+    {
+        int reroll = RogueLikeData.Instance.GetRerollChance();
+        var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
+        countText.text = $"{reroll}";
+
+        if (reroll > 0)
+        {
+            var info = selectRewards.transform.GetChild(0).GetComponent<RewardInfromation>();
+            OpenReward(info.unitId > -1);
+            RogueLikeData.Instance.SetRerollChance(--reroll);
+            countText.text = $"{reroll}";
+        }
+    }
+
+    private void SkipSelectReward()
+    {
+        BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+        var info = selectRewards.transform.GetChild(0).GetComponent<RewardInfromation>();
+
+        switch (info.type)
+        {
+            case RewardType.UnitGrade: reward.unitGrade.RemoveAt(0); break;
+            case RewardType.NewUnit: reward.newUnits.RemoveAt(0); break;
+            case RewardType.ChangeUnit: reward.changedUnits.RemoveAt(0); break;
+            case RewardType.RelicGrade: reward.relicGrade.RemoveAt(0); break;
+            case RewardType.NewRelic: reward.relicIds.RemoveAt(0); break;
+        }
+
+        if (HasUnitReward(reward)) OpenReward(true);
+        else if (HasRelicReward(reward)) OpenReward(false);
+        else
+        {
+            RogueLikeData.Instance.ClearBattleReward();
+            new SaveData().SaveDataFile();
+            if (SceneManager.GetActiveScene().name != "RLmap")
+                SceneManager.LoadScene("RLmap");
+            else
+                gameObject.SetActive(false);
+        }
+    }
+
+    private static bool HasUnitReward(BattleRewardData r) =>
+        r.unitGrade.Count > 0 || r.newUnits.Count > 0 || r.changedUnits.Count > 0;
+
+    private static bool HasRelicReward(BattleRewardData r) =>
+        r.relicGrade.Count > 0 || r.relicIds.Count > 0;
+
+    private RewardInfromation CreateUnit(Button btn, RogueUnitDataBase unit, RewardType type)
+    {
+        btn.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite($"UnitImages/{unit.unitImg}");
+        btn.GetComponentInChildren<TextMeshProUGUI>().text = unit.unitName;
+
+        var info = btn.GetComponent<RewardInfromation>();
+        info.unitId = unit.idx;
+        info.relicId = -1;
+        info.type = type;
+
+        btn.onClick.AddListener(() => ClickReward(info));
+        btn.gameObject.SetActive(true);
+        return info;
+    }
+
+    private RewardInfromation CreateRelic(Button btn, WarRelic relic, RewardType type)
+    {
+        btn.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite($"KIcon/WarRelic/{relic.id}");
+        btn.GetComponentInChildren<TextMeshProUGUI>().text = relic.name;
+
+        var info = btn.GetComponent<RewardInfromation>();
+        info.relicId = relic.id;
+        info.unitId = -1;
+        info.type = type;
+
+        btn.onClick.AddListener(() => ClickReward(info));
+        btn.gameObject.SetActive(true);
+        return info;
+    }
+
 }

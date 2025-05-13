@@ -21,10 +21,10 @@ public class SavePlayerData
     public StageType currentStageType;
     public UnitUpgrade[] unitUpgrades; 
     public int sariStack;
-    
+    public BattleRewardData battleReward;
     public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds,
         int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
-        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack)
+        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward)
     {
         this.id = id;
         this.myUnits = myUnits;
@@ -39,6 +39,7 @@ public class SavePlayerData
         this.currentStageType = currentStageType;
         this.unitUpgrades = unitUpgrades;
         this.sariStack = sariStack;
+        this.battleReward = battleReward;
     }
 }
 
@@ -50,7 +51,6 @@ public class SaveData
     public void SaveDataFile()
     {
         SavePlayerData savePlayerData = RogueLikeData.Instance.GetRogueLikeData();
-
         // 데이터를 JSON 문자열로 직렬화
         _jsonData = JsonUtility.ToJson(savePlayerData);
        // Debug.Log(savePlayerData.myUnits[0].unitName);
@@ -60,7 +60,6 @@ public class SaveData
     public void SaveDataBattaleEnd(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
         SavePlayerData savePlayerData = RogueLikeData.Instance.GetBattleEndRogueLikeData(units, deadUnits);
-
         // 데이터를 JSON 문자열로 직렬화
         _jsonData = JsonUtility.ToJson(savePlayerData);
         // Debug.Log(savePlayerData.myUnits[0].unitName);
@@ -77,7 +76,10 @@ public class SaveData
             // 1. 내 유닛 전부 수정하기
             List<RogueUnitDataBase> myUnits = new(savePlayerData.myUnits);
             RogueLikeData.Instance.SetAllMyUnits(myUnits);
-
+            foreach (var unit in myUnits)
+            {
+                unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
+            }
             // 2. 유물 정보 업데이트하기 (relicIds를 Dictionary로 변환)
             foreach (var id in savePlayerData.relicIds)
             {
@@ -86,7 +88,7 @@ public class SaveData
 
             RogueLikeData.Instance.SetLoadData(savePlayerData.eventIds,savePlayerData.currentGold, savePlayerData.spentGold,
                 savePlayerData.playerMorale, savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,
-                savePlayerData.currentStageType, savePlayerData.sariStack);
+                savePlayerData.currentStageType, savePlayerData.sariStack, savePlayerData.battleReward);
 
             Debug.Log("데이터 로드 성공!");
         }

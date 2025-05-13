@@ -392,6 +392,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eventManager: {fileID: 1876729134}
   storeManager: {fileID: 1915050877}
+  canvas: {fileID: 972372224}
   currentStageX: 0
   currentStageY: 0
   currentStageType: 0
