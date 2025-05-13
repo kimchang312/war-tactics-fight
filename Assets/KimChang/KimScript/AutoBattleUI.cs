@@ -8,66 +8,47 @@ using DG.Tweening;
 using System.Text.RegularExpressions;
 using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
+using UnityEngine.Pool;
+
 #if UNITY_EDITOR
 using UnityEditor.Playables;
 #endif
-
-
 
 public class AutoBattleUI : MonoBehaviour
 {
     [SerializeField] private Transform canvasTransform;
     [SerializeField] private GameObject canvas;
 
-    [SerializeField] private FightResult fightResult;           //전투 종료 시 보여주는 화면
     [SerializeField] private RewardUI rewardUI;
 
     [SerializeField] private TextMeshProUGUI _myUnitCountUI;
     [SerializeField] private TextMeshProUGUI _enemyUnitCountUI;
     [SerializeField] private TextMeshProUGUI _myUnitHPUI;
     [SerializeField] private TextMeshProUGUI _emyUnitHPUI;
-    [SerializeField] private Image myMostDamImg;               
-    [SerializeField] private TextMeshProUGUI myMostDamageText;   //가장 높은 피해 내 유닛
-    [SerializeField] private Image myMostTakenImg;
-    [SerializeField] private TextMeshProUGUI myMostTakenText;   //가장 많은 피해 받은 내 유닛
-    [SerializeField] private Image enemyMostDamImg;
-    [SerializeField] private TextMeshProUGUI enemyMostDamageText;   //가장 높은 피해 적 유닛
-    [SerializeField] private Image enemyMostTakenImg;  
-    [SerializeField] private TextMeshProUGUI enemyMostTakenText;    //가장 많은 피해 받은 적 유닛
 
-    [SerializeField] private TextMeshProUGUI moraleText;        //사기 수치
-    [SerializeField] private ObjectPool objectPool;            //  obj풀링
-    [SerializeField] private GameObject abilityPool;              //기술+특성 풀
+    [SerializeField] private TextMeshProUGUI moraleText;       
+    [SerializeField] private ObjectPool objectPool;          
+    [SerializeField] private GameObject abilityPool;           
 
-    [SerializeField] private GameObject battleUnit;           // 전투 화면 유닛
-    [SerializeField] private TextMeshProUGUI _myDodge;        // 내 회피율
-    [SerializeField] private TextMeshProUGUI _enemyDodge;        // 상대 회피율
-    [SerializeField] private Slider myHpBar;                    // 내 체력 바
-    [SerializeField] private Slider enemyHpBar;                 // 상대 체력 바
-    [SerializeField] private GameObject myRangeCount;                    //내 원거리 유닛 수
-    [SerializeField] private GameObject enemyRangeCount;                 //상대 원거리 유닛 수
-    [SerializeField] private GameObject staticsWindow;
-    [SerializeField] private Button staticsToggleBtn;
-    [SerializeField] private Button GoTestBtn;
-    [SerializeField] private Button rewardArrowBtn;
+    [SerializeField] private GameObject battleUnit;          
+    [SerializeField] private TextMeshProUGUI _myDodge;       
+    [SerializeField] private TextMeshProUGUI _enemyDodge;      
+    [SerializeField] private Slider myHpBar;                    
+    [SerializeField] private Slider enemyHpBar;                
+    [SerializeField] private GameObject myRangeCount;             
+    [SerializeField] private GameObject enemyRangeCount;               
 
-    [SerializeField] private GameObject loadingWindow;        //로딩창
-
-    [SerializeField] private GameObject endWindow;
-
-    [SerializeField] private GameObject rewardWindow;          //보상 창
+    [SerializeField] private GameObject loadingWindow;     
 
     [SerializeField] private GameObject relicBox;           
 
-    [SerializeField] private ExplainAbility explainAbility;     //능력 설명 툴팁
-    [SerializeField] private ExplainRelic explainRelic;         //유산 툴팁
+    [SerializeField] private ExplainAbility explainAbility;     
+    [SerializeField] private ExplainRelic explainRelic;         
 
-    [SerializeField] private TMP_InputField relicInput;             //유물 id 받을 창
+    private Vector3 myTeam = new(270, 280, 0);               
+    private Vector3 enemyTeam = new(-270, 280, 0);          
 
-    private Vector3 myTeam = new(270, 280, 0);                 // 아군 데미지 뜨는 위치
-    private Vector3 enemyTeam = new(-270, 280, 0);           // 상대 데미지지 뜨는 위치
-
-    private float waittingTime = 500f;        //애니메이션 대기 시간
+    private float waittingTime = 500f;
 
     private Dictionary<int, GameObject> myUnitCache = new();
     private Dictionary<int, GameObject> enemyUnitCache = new();
@@ -75,14 +56,9 @@ public class AutoBattleUI : MonoBehaviour
     private void Start()
     {
         ResetUIActive();
-
+        
         myHpBar.interactable = false;
         enemyHpBar.interactable = false;
-        staticsToggleBtn.onClick.AddListener(ToggleStaticsWindow);
-        GoTestBtn.onClick.AddListener(ClickGoTestBtn);
-        rewardArrowBtn.onClick.AddListener(OpenRewardWindow);
-        // 입력 완료 시 처리하는 이벤트 등록
-        relicInput.onEndEdit.AddListener(OnEndEdit);
 
         UpdateMorale();
     }
@@ -402,7 +378,6 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
-
     //능력치 아이콘 제거
     private void ClearExistingAbilityIcons()
     {
@@ -415,16 +390,9 @@ public class AutoBattleUI : MonoBehaviour
     //전투 종료
     public void FightEnd(int result)
     {
-        fightResult.EndGame(result);
-
-        rewardUI.CreateRelics();
+        rewardUI.gameObject.SetActive(true);
     }
 
-    //점수 보여주기
-    public void UpdateScore(int result)
-    {
-        fightResult.ViewScore(result);
-    }
 
     //능력 창 띄위기
     public void CreateAbility(string ability, bool myTeam)
@@ -496,34 +464,6 @@ public class AutoBattleUI : MonoBehaviour
 
     }
 
-    //종료 시 통계 보여주기
-    public void ViewStatics(string max, string text, int num,int unitIdx)
-    {
-        switch (num)
-        {
-            //내 최뎀유닛
-            case 0:
-                ChangeStaticImage(myMostDamImg, myMostDamageText,max, text, unitIdx);
-                break;
-            // 내 최받유닛
-            case 1:
-                ChangeStaticImage(myMostTakenImg, myMostTakenText, max, text, unitIdx);
-                break;
-            //상대 최뎀유닛
-            case 2:
-                ChangeStaticImage(enemyMostDamImg, enemyMostDamageText, max, text, unitIdx);
-                break;
-            //상대 최받유닛
-            case 3:
-                ChangeStaticImage(enemyMostTakenImg, enemyMostTakenText, max, text, unitIdx);
-                break;
-            default:
-                Debug.Log("숫자가 0~3이 아님");
-                break;
-        }
-
-    }
-
     //이미지 변경
     private void ChangeStaticImage(Image img, TextMeshProUGUI textUI, string max, string text, int idx)
     {
@@ -532,17 +472,6 @@ public class AutoBattleUI : MonoBehaviour
 
         // 텍스트 변경
         textUI.text = $"{max}\n{text}";
-    }
-
-
-    //통계창 온오프
-    private void ToggleStaticsWindow()
-    {
-        // 활성화 상태를 반대로 설정
-        if (staticsWindow != null)
-        {
-            staticsWindow.SetActive(!staticsWindow.activeSelf);
-        }
     }
 
     //유산 생성
@@ -583,37 +512,6 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
-
-    // 입력 완료 시 처리
-    private void OnEndEdit(string input)
-    {
-        // 숫자만 필터링
-        string filteredInput = Regex.Replace(input, "[^0-9]", "");
-
-        // 정수로 변환
-        if (int.TryParse(filteredInput, out int relicId))
-        {
-            // 1~61 범위 내에 있을 경우에만 처리
-            if (relicId >= 1 && relicId <= 61)
-            {
-                RogueLikeData.Instance.AcquireRelic(relicId);
-                Debug.Log($"유산 획득: ID {relicId}");
-            }
-            else
-            {
-                Debug.Log("입력값이 1~61 범위를 벗어남");
-            }
-        }
-        else
-        {
-            Debug.Log("숫자 변환 실패");
-        }
-
-        // 입력 필드 초기화 및 다시 입력 가능하도록 포커스 유지
-        relicInput.text = "";
-        relicInput.ActivateInputField();
-    }
-
     //로딩창 간단하게 구현
     public void ToggleLoadingWindow()
     {
@@ -640,17 +538,13 @@ public class AutoBattleUI : MonoBehaviour
     //보상 창 닫기
     private void CloseRewardWindow()
     {
-        rewardWindow.SetActive(false);
+        rewardUI.gameObject.SetActive(false);
     }
 
     //ui 활성화 비활성화 초기화
     private void ResetUIActive()
     {
-        fightResult.CloseThis();
-        endWindow.SetActive(true);
-        GoTestBtn.gameObject.SetActive(true);
-        rewardArrowBtn.gameObject.SetActive(true);
-        rewardWindow.SetActive(false);
+        rewardUI.gameObject.SetActive(false);
         //staticsToggleBtn.gameObject.SetActive(true);
     }
 

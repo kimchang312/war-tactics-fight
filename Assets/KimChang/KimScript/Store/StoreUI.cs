@@ -279,7 +279,7 @@ public class StoreUI : MonoBehaviour
                 ApplyEnergyItem(item, btn);
                 break;
             case "Morale":
-                RogueLikeData.Instance.AddMorale(int.Parse(item.value));
+                RogueLikeData.Instance.ChangeMorale(int.Parse(item.value));
                 break;
         }
 
