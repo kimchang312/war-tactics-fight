@@ -524,7 +524,7 @@ public class AbilityManager
 
         if (RogueLikeData.Instance.GetPresetID() == 50 && !isTeam && isFrontDefendrDead && frontAttacker.branchIdx == 1) 
         {
-            RogueLikeData.Instance.ReduceMorale(2);
+            RogueLikeData.Instance.ChangeMorale(-2);
         }
         else if (RogueLikeData.Instance.GetPresetID() == 61 && !isTeam && deadAttackers.Count>0) 
         {
