@@ -39,10 +39,10 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(20, "민병대 나팔", 10, "희귀도 1 유닛의 체력과 공격력이 15% 증가한다.", RelicType.StateBoost, () => MilitiaHorn()));
         relics.Add(new WarRelic(21, "소름끼치는 구슬", 10, "소유 중인 저주등급 유산 한개마다 아군 유닛의 체력과 공격력이 10% 증가한다.", RelicType.StateBoost, () => CreepyOrb()));
         relics.Add(new WarRelic(22, "해주 부적", 20, "저주등급 유산의 해로운 효과를 받지 않게 된다.", RelicType.AllEffect, () => HaejuAmulet()));
-        relics.Add(new WarRelic(23, "비어있는 보석 건틀렛", 10, "당장에는 아무런 효과도 없다. 작은 구멍 여러개와 커다란 구멍 하나가 있는 건틀렛이다.", RelicType.GetEffect, () => EmptyGemGauntlet()));
-        relics.Add(new WarRelic(24, "작은 보석 더미", 10, "당장에는 아무런 효과도 없다. 작은 보석 여러개의 더미로, 색상이 다양하다.", RelicType.GetEffect, () => SmallGemPile()));
-        relics.Add(new WarRelic(25, "커다란 보석", 10, "당장에는 아무런 효과도 없다. 커다랗고 하얀 보석이다.", RelicType.GetEffect, () => LargeGem()));
-        relics.Add(new WarRelic(26, "완성된 보석 건틀렛", 50, "마침내 완성시킨 보석 건틀렛이다. 적의 체력이 절반으로 감소한다.", RelicType.StateBoost, () => CompletedGemGauntlet()));
+        relics.Add(new WarRelic(23, "오래된 방패", 10, "당장에는 아무런 효과도 없다. 두 개의 홈이 있는 오래된 방패다.", RelicType.GetEffect, () => EmptyGemGauntlet()));
+        relics.Add(new WarRelic(24, "붉은 보석", 10, "당장에는 아무런 효과도 없다. 커다랗고 붉은 보석이다.", RelicType.GetEffect, () => SmallGemPile()));
+        relics.Add(new WarRelic(25, "푸른 보석", 10, "당장에는 아무런 효과도 없다. 커다랗고 푸른 보석이다.", RelicType.GetEffect, () => LargeGem()));
+        relics.Add(new WarRelic(26, "찬란한 방패", 50, "찬란한 빛을 뿜어내는 방패다. 적의 체력이 절반으로 감소한다.", RelicType.StateBoost, () => CompletedGemGauntlet()));
         relics.Add(new WarRelic(27, "하트 보석 목걸이", 20, "아군 전열 유닛의 체력이 0이 되는 공격을 받을 때 체력의 최대치까지 회복한다. 전투에 한번만 발동한다.", RelicType.BattleActive, () => HeartGemNecklace()));
         relics.Add(new WarRelic(28, "용기의 깃발", 20, "사기로 인한 모든 효과의 적용 기준치가 10 낮아진다.", RelicType.StateBoost, () => FlagOfCourage()));
         relics.Add(new WarRelic(29, "부러진 직검", 0, "아군 유닛의 공격력이 15% 감소한다.", RelicType.StateBoost, () => BrokenStraightSword()));
@@ -108,6 +108,16 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(83, "창술 교범", 1, "수비 태세의 패널티가 사라지며, 수비 태세 기술을 가지고 있는 유닛의 체력이 20 증가한다.", RelicType.ActiveState, () =>SpearManual()));
         relics.Add(new WarRelic(84, "치유석", 1, "치유량이 30% 증가한다.", RelicType.BattleActive, () =>HealingStone()));
         relics.Add(new WarRelic(85, "정예병 모집서", 1, "희귀도 1 유닛의 등장 확률이 15% 감소한다.", RelicType.SpecialEffect, () =>EliteRecruitment()));
+        relics.Add(new WarRelic(86, "커다란 짐수레", 1, "부대 상한보다 3개 더 적은 유닛을 사용하여 전투 승리 시, 얻는 금화 +100%", RelicType.SpecialEffect, () => LargeCart()));
+        relics.Add(new WarRelic(87, "파이브 오브 어 카인드", 1, "5개 이상의 서로 다른 병종을 사용하여 부대를 구성하면 유닛 체력이 15% 증가한다.", RelicType.StateBoost, () => FiveOfAKind()));
+        relics.Add(new WarRelic(88, "로열 스트레이트 플러시", 1, "2개 이하의 병종을 사용하여 부대를 구성하면 유닛 공격력이 15% 증가한다.", RelicType.StateBoost, () => RoyalStraightFlush()));
+        relics.Add(new WarRelic(89, "찢겨진 명단", 0, "부대 상한이 2 감소한다.", RelicType.SpecialEffect, () => TornList()));
+        
+        relics.Add(new WarRelic(90, "깨진 거울", 0, "희귀도 3 유닛과 전설 전쟁 유산이 등장할 확률이 10% 감소한다.", RelicType.SpecialEffect, () => BrokenMirror()));
+        relics.Add(new WarRelic(91, "불길한 족쇄", 0, "병영의 훈련 비용이 20% 증가한다.", RelicType.SpecialEffect, () => OminousChains()));
+        relics.Add(new WarRelic(92, "맛있는 군용식량", 1, "비 영웅 유닛의 체력과 공격력이 8% 증가한다.", RelicType.StateBoost, () => DeliciousMilitaryRations()));
+        relics.Add(new WarRelic(93, "맛있는 특별식", 1, "영웅 유닛의 체력과 공격력이 12% 증가한다.", RelicType.StateBoost, () => DeliciousSpecialMeal()));
+
     }
 
     public static WarRelic GetRelicById(int id)
@@ -998,6 +1008,212 @@ public static class WarRelicDatabase
     //정예병 모집서 85
     private static void EliteRecruitment()
     {
+
+    }
+    //커다란 짐수레 86
+    private static void LargeCart()
+    {
+
+    }
+    //파이브오브어카인드 87
+    private static void FiveOfAKind()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var distinctBranches = new HashSet<int>();
+
+        // 병종 수 체크
+        foreach (var unit in myUnits)
+        {
+            if (unit.health <= 0) continue; // 사망한 유닛 제외
+            distinctBranches.Add(unit.branchIdx);
+            if (distinctBranches.Count > 5) break;
+        }
+
+        if (distinctBranches.Count < 5) return;
+
+        // 체력 +15%
+        foreach (var unit in myUnits)
+        {
+            if (unit.health <= 0) continue;
+            unit.maxHealth += Mathf.Round(unit.baseHealth*0.15f);
+            unit.health = unit.maxHealth;
+        }
+    }
+    //로열 스트레이트 플러시 88
+    private static void RoyalStraightFlush()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var distinctBranches = new HashSet<int>();
+
+        // 병종 수 체크
+        foreach (var unit in myUnits)
+        {
+            if (unit.health <= 0) continue; // 사망한 유닛 제외
+            distinctBranches.Add(unit.branchIdx);
+            if(distinctBranches.Count >2) break;
+        }
+
+        // 체력 +15%
+        foreach (var unit in myUnits)
+        {
+            if (unit.health <= 0) continue;
+            unit.attackDamage += Mathf.Round(unit.baseAttackDamage*0.15f);
+        }
+    }
+    //찢겨진 명단 89
+    private static void TornList()
+    {
+
+    }
+    //깨진 거울 90
+    private static void BrokenMirror()
+    {
+
+    }
+    //불길한 족쇄 91
+    private static void OminousChains()
+    {
+
+    }
+    //맛있는 군용식량 92
+    private static void DeliciousMilitaryRations()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach(var unit in myUnits)
+        {
+            if (unit.branchIdx == 8) continue;
+            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.08f);
+            unit.maxHealth += Mathf.Round(unit.baseHealth * 0.08f);
+            unit.health = unit.maxHealth;
+        }
+    }
+    //맛있는 특별식 93
+    private static void DeliciousSpecialMeal()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach (var unit in myUnits)
+        {
+            if (unit.branchIdx != 8) continue;
+            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.12f);
+            unit.maxHealth += Mathf.Round(unit.baseHealth * 0.12f);
+            unit.health = unit.maxHealth;
+        }
+    }
+    // 94
+
+    //전속전진의 신발 95
+    private static void ShoesOfFullSpeedAhead()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach (var unit in myUnits)
+        {
+            if (unit.impact)
+            {
+                unit.mobility += 3;
+            }
+            if (unit.charge)
+            {
+                unit.impact = true;
+            }
+        }
+    }
+    //장식된 로자리오 96
+    private static void DecoratedRosary()
+    {
+
+    }
+    //비상탈출 교본 97
+    private static void EmergencyEscapeManual()
+    {
+
+    }
+    // 98
+    //욕망의 항아리 99
+    private static void JarOfDesire()
+    {
+
+    }
+    //무지개의 시작 100
+    private static void BeginningOfRainbow()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        myUnits[0].attackDamage += Mathf.Round(myUnits[0].baseAttackDamage * 0.15f);
+        myUnits[0].maxHealth += Mathf.Round(myUnits[0].baseHealth * 0.15f);
+        myUnits[0].health = myUnits[0].maxHealth;
+    }
+    //지평선의 끝 101
+    private static void EndOfHorizon()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var last = myUnits[myUnits.Count - 1];
+        last.attackDamage += Mathf.Round(last.baseAttackDamage * 0.15f);
+        last.maxHealth += Mathf.Round(last.baseHealth * 0.15f);
+        last.health = last.maxHealth;
+    }
+    //도박꾼의 운명 102
+    private static void GamblerFate()
+    {
+        int gold = RogueLikeData.Instance.GetCurrentGold();
+        int spentGold = (int)(gold * 0.2f);
+        if (spentGold == 0) return;
+        RogueLikeData.Instance.ReduceGold(spentGold);
+        float addAttack = spentGold * 0.001f;
+        float addHealth = spentGold * 0.0005f;
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach (var unit in myUnits)
+        {
+            if (unit.tagIdx != 1) continue;
+            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * addAttack);
+            unit.maxHealth += Mathf.Round(unit.baseHealth * addHealth);
+            unit.health = unit.maxHealth;
+        }
+    }
+    //흑요석 심장 103
+    private static void ObsidianHeart()
+    {
+
+    }
+    //긍지의 양날도끼 104
+    private static void DoubleEdgedAxeOfPride()
+    {
+
+    }
+    //저주받은 갑옷 105
+    private static void CursedArmor()
+    {
+        RogueLikeData.Instance.AddEnemyMultipleDamage(-0.4f);
+    }
+    //제어 횟불 106
+    private static void ControlTorch()
+    {
+
+    }
+    //훈장 무더기 107
+    private static void PileOfMedals()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach (var unit in myUnits)
+        {
+            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.8f);
+            unit.antiCavalry += Mathf.Round(unit.baseAntiCavalry * 0.8f);
+            unit.maxHealth += Mathf.Round(unit.baseHealth * 0.8f);
+            unit.health = unit.maxHealth;
+        }
+    }
+    //애매한 묵시록 108
+    private static void AmbiguousApocalypse()
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int addAttack = -30;
+        if(morale >= 90)
+        {
+            addAttack = 20;
+        }
+        foreach (var unit in myUnits)
+        {
+            unit.attackDamage += addAttack;
+        }
 
     }
 

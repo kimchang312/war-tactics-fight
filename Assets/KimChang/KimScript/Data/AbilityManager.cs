@@ -1659,10 +1659,7 @@ public class AbilityManager
     private void CalculateUpgradeUnit(List<RogueUnitDataBase> units,bool isTeam)
     {
         if (!isTeam) return;
-        foreach(var unit in units)
-        {
-            UpgradeManager.Instance.UpgradeRogueLikeUnit(unit);
-        }
+        UpgradeManager.Instance.ProcessUpgrade();
     }
 
     //데미지 ui 호출

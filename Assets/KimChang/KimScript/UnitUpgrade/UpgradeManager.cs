@@ -84,51 +84,7 @@ public class UpgradeManager
         return upgradeValues[branchIdx];
     }
 
-    // 유닛을 넣으면 강화 수치만큼 증가해서 반환
-    public UnitDataBase UpgradeUnit(UnitDataBase unit)
-    {
-        // 병종 인덱스를 가져옵니다.
-        int branchIdx = unit.branchIdx;
-
-        // 병종에 해당하는 강화 수치를 가져옵니다.
-        var upgradeValues = UpgradeManager.Instance.GetUpgradeValues(branchIdx);
-
-        // 유닛의 능력치를 강화 수치만큼 증가시킵니다.
-        unit.maxHealth += upgradeValues.healthBoost;
-        unit.health += upgradeValues.healthBoost;
-        unit.armor += upgradeValues.armorBoost;
-        unit.attackDamage += upgradeValues.attackDamageBoost;
-        unit.mobility += upgradeValues.mobilityBoost;
-        unit.range += upgradeValues.rangeBoost;
-        unit.antiCavalry += upgradeValues.antiCavalryBoost;
-
-        return unit;
-    }
-
-    public RogueUnitDataBase UpgradeRogueLikeUnit(RogueUnitDataBase unit)
-    {
-        // 병종 인덱스를 가져옵니다.
-        int branchIdx = unit.branchIdx;
-
-        // 병종에 해당하는 강화 수치를 가져옵니다.
-        var upgradeValues = UpgradeManager.Instance.GetUpgradeValues(branchIdx);
-
-        // 유닛의 능력치를 강화 수치만큼 증가시킵니다.
-        unit.maxHealth += upgradeValues.healthBoost;
-        unit.health += upgradeValues.healthBoost;
-        unit.armor += upgradeValues.armorBoost;
-        unit.attackDamage += upgradeValues.attackDamageBoost;
-        unit.mobility += upgradeValues.mobilityBoost;
-        unit.range += upgradeValues.rangeBoost;
-        unit.antiCavalry += upgradeValues.antiCavalryBoost;
-
-        return unit;
-    }
-
-
-
-
-    private void ProcessUpgrade()
+    public void ProcessUpgrade()
     {
         var myUnits = RogueLikeData.Instance.GetMyUnits();
 
