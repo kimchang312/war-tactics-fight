@@ -20,13 +20,25 @@ public static class CommenderEffect
         var enemyUnits =RogueLikeData.Instance.GetEnemyUnits();
         foreach (var unit in myUnits)
         {
-            if(unit.branchIdx != 5) continue;
-            unit.mobility = Math.Max(1, unit.mobility - 1);
+            if(unit.branchIdx == 5)
+            {
+                unit.mobility = Math.Max(1, unit.mobility - 1);
 
+            }
+            else if(unit.branchIdx == 4)
+            {
+
+            }
+
+            
         }
         foreach (var unit in enemyUnits)
         {
+            if (unit.branchIdx == 5 || unit.branchIdx == 4)
+            {
+                
 
+            }
         }
         //모든 경기병,암살자 회피율 0.05 버프로 구현
     }
@@ -34,7 +46,7 @@ public static class CommenderEffect
     public static void CalculateLennon() 
     {
         //적 전사가 전열에서 플레이어 유닛 처치 시 사기-2
-
+        //구현
     }
     //모리슨
     public static void CalcualteMorrison()
@@ -66,11 +78,19 @@ public static class CommenderEffect
     public static void CalculateKurt() 
     { 
         //모든 암살이 50%확률로 즉사
+        // 구현
     }
     //잰더
-    public static void CalculateZander() 
+    public static void CalculateZander(bool isTeam,int index) 
     { 
-        //플레이어 유닛이 피해 받을때 마다 장갑 -2 디버프로 구현
+        //플레이어 유닛이 피해 받을때 마다 장갑 -2
+        //구현
+        if(RogueLikeData.Instance.GetPresetID() == 54 && !isTeam)
+        {
+            var myUnits = RogueLikeData.Instance.GetMyUnits();
+            RogueUnitDataBase unit = myUnits[index];
+            unit.armor = Math.Max(0, unit.armor - 2);
+        }
     }
     public static void CalculateOzzy() { }
     //슬래시
@@ -103,7 +123,21 @@ public static class CommenderEffect
     //액슬
     public static void CalculateAxl() 
     { 
-        //모든 유닛 체력 50이하 즉사 유닛 사망 관리에서 확인 디버프 처리
+        //모든 유닛 체력 50이하 즉사 유닛 사망 관리에서 확인
+        //구현
+        if(RogueLikeData.Instance.GetPresetID() == 55)
+        {
+            var allUnits = RogueLikeData.Instance.GetMyUnits();
+            allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
+            foreach(var unit in allUnits)
+            {
+                if(unit.health <= 50)
+                {
+                    unit.health = 0;
+                }
+            }
+
+        }
     }
 
     public static void CalculateBowie()
@@ -112,7 +146,7 @@ public static class CommenderEffect
         var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
         foreach (var unit in myUnits)
         {
-            int traitCount = CountUnitTrait(unit); // 유닛이 가진 특성 개수
+            int traitCount = CountUnitTrait(unit);
             unit.health -= 5 * traitCount;
         }
         foreach (var unit in enemyUnits)
@@ -130,7 +164,7 @@ public static class CommenderEffect
 
         foreach (var unit in allUnits)
         {
-            if (unit.branchIdx == 0) // 중보병
+            if (unit.branchIdx == 3)
             {
                 unit.maxHealth += 150;
                 unit.health = unit.maxHealth;
@@ -157,7 +191,7 @@ public static class CommenderEffect
 
         foreach (var unit in myUnits)
         {
-            unit.effectDictionary[0] = new BuffDebuffData(0, 1, 1, 2); // 작열 상태 1 부여
+            unit.effectDictionary[0] = new BuffDebuffData(0, 1, 1, 2);
         }
     }
 
@@ -170,14 +204,16 @@ public static class CommenderEffect
     public static void CalculateSyd() { }
     //아마록
     public static void CalculateAmarok() 
-    { 
-        //적이 33%확률로 암살,돌격이 한번더 발동 버프로 구현
+    {
+        //적이 33%확률로 암살 구현
+        //돌격이 한번더 발동 버프로 구현 해야함
     }
     public static void CalculateBruennar() { }
     //시리온
     public static void CalculateSirion() 
     {
         //적 유닛이 죽으면 적이 원거리 공격가능 유닛이 원거리 공격
+        //구현
     }
     public static void CalculateValeric() { }
     public static void CalculateGrondal() { }
@@ -210,7 +246,7 @@ public static class CommenderEffect
         }
         foreach (var unit in enemyUnits)
         {
-            if (unit.branchIdx == 0) // 중보병
+            if (unit.branchIdx == 3)
             {
                 unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.15f);
                 unit.armor += Mathf.Round(unit.baseArmor*0.15f);
@@ -254,10 +290,8 @@ public static class CommenderEffect
         foreach (var unit in allUnits)
         {
             unit.mobility = 1;
-
         }
-
-        //회피율 0 디버프로 구현
+        //구현
     }
     //슈타인
     public static void CalculateStein()
@@ -280,11 +314,11 @@ public static class CommenderEffect
         var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
         foreach (var unit in enemyUnits)
         {
-            if (unit.branchIdx == 0) // 창병
+            if (unit.branchIdx == 0)
             {
                 unit.throwSpear = true;
             }
-            else if (unit.branchIdx == 1) // 전사
+            else if (unit.branchIdx == 1)
             {
                 unit.assassination = true;
             }
@@ -298,15 +332,12 @@ public static class CommenderEffect
 
         if (myUnits.Count == 0) return;
 
-        // myUnits에서 무작위 유닛 1개 선택
         var selectedUnit = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
 
-        // 공격력 및 체력 30% 증가
         selectedUnit.attackDamage = Mathf.Round(selectedUnit.baseAttackDamage * 1.3f);
         selectedUnit.maxHealth = Mathf.RoundToInt(selectedUnit.baseHealth * 1.3f);
         selectedUnit.health = selectedUnit.maxHealth;
 
-        // 적 유닛에 추가
         enemyUnits.Add(selectedUnit);
         myUnits.Remove(selectedUnit);
         RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
