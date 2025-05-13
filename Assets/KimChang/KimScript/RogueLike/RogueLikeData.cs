@@ -643,4 +643,5 @@ public class RogueLikeData
     {
         this.presetID=presetID;
     }
+
 }

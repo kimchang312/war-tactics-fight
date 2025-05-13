@@ -187,7 +187,7 @@ private void Start()
         // 6) 타입별 처리
         if (newStage.stageType == StageType.Rest)
         {
-            restUI?.Show();
+            restUI.Show();
         }
         else if (newStage.stageType == StageType.Event)
         {

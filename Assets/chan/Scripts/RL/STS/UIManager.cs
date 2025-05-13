@@ -31,7 +31,6 @@ public class UIManager : MonoBehaviour
         UIUpdateAll();
     }
 
-    /// <summary>골드/사기/리롤 전부 갱신</summary>
     public void UIUpdateAll()
     {
         UpdateGold();
@@ -55,5 +54,10 @@ public class UIManager : MonoBehaviour
     {
         int r = RogueLikeData.Instance.GetRerollChance();
         rerollText.text = r.ToString(); ;
+    }
+
+    public void UpdateEnergyDisplay()
+    {
+
     }
 }
