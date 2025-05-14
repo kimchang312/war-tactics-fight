@@ -20,6 +20,7 @@ public class RogueLikeData
     private int nextUnitUniqueId = 0;
 
     private int maxUnits = 5;
+    private int maxHero = 2;
 
     private List<RogueUnitDataBase> myUnits = new();
     private List<RogueUnitDataBase> enemyUnits = new();
@@ -32,7 +33,7 @@ public class RogueLikeData
     private int currentStageX = 1;
     private int currentStageY = 0;
     private int chapter = 1;
-    private int presetID = 1;
+    private int presetID = -1;
 
     private StageType currentStageType = StageType.Combat;
 
@@ -294,7 +295,6 @@ public class RogueLikeData
     {
         currentStageX = x;
         currentStageY = y;
-        Debug.Log(type);
         currentStageType = type;
     }
     public int GetCurrentStageX()
@@ -669,5 +669,13 @@ public class RogueLikeData
     public void SetPresetID(int presetID)
     {
         this.presetID=presetID;
+    }
+    public int GetMaxHero()
+    {
+        return maxHero;
+    }
+    public void SetMaxHero(int maxHero)
+    {
+        this.maxHero = maxHero;
     }
 }

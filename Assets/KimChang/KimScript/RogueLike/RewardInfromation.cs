@@ -9,13 +9,5 @@ public class RewardInfromation : MonoBehaviour
     public int relicId=-1;
 }
 
-public enum RewardType 
-{
-    None,
-    UnitGrade,
-    NewUnit,
-    ChangeUnit,
-    RelicGrade,
-    NewRelic
-}
+
 

@@ -91,7 +91,7 @@ public static class RewardManager
     // 등급에 따라 유닛 3명을 반환하는 함수
     public static List<RogueUnitDataBase> GetRandomUnitsByGrade(int grade)
     {
-        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
         Dictionary<int, int> rarityWeights = grade switch
         {
@@ -139,6 +139,18 @@ public static class RewardManager
                 return kvp.Key;
         }
         return weights.Keys.First();
+    }
+
+    public static bool CheckGameOver()
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+        if (morale < 1) return true;
+        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach (var unit in myUnits)
+        {
+            if (unit.energy > 0) return false; 
+        }
+        return true;
     }
 
 

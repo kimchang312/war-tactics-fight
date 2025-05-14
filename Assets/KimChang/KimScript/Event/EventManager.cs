@@ -641,7 +641,7 @@ public class EventManager
                             var (min, max) = ParseRange(value);
 
                             // 전체 유닛 불러오기
-                            var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+                            var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
                             // 희귀도 범위 조건에 맞는 유닛 필터링
                             var validUnits = allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList();
@@ -650,7 +650,7 @@ public class EventManager
                             {
                                 int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
                                 validUnits.RemoveAt(randIndex); // 중복 방지
-                                RogueUnitDataBase newUnit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(validUnits[randIndex].idx));
+                                RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(validUnits[randIndex].idx);
                                 if (isBattle)
                                 {
                                     RogueLikeData.Instance.AddUnitReward(newUnit);
@@ -667,7 +667,7 @@ public class EventManager
                             int unitRarity = int.Parse(value);
                             int unitCount = int.Parse(count);
                             // 전체 유닛 불러오기
-                            var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+                            var allUnits = UnitLoader.Instance.GetAllCachedUnits();
                             List<RogueUnitDataBase> validUnits;
                             if (unitRarity == 4)
                             {
@@ -688,9 +688,7 @@ public class EventManager
                                 validUnits = allUnits.Where(u => u.rarity == unitRarity).ToList();
                             }
 
-                            // 희귀도 범위 조건에 맞는 유닛 필터링
-                              
-                            for(int k = 0; k < unitCount; k++)
+                            // 희귀도 범위 조건에 맞는 유닛 필터링                            for(int k = 0; k < unitCount; k++)
                             {
                                 int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
                                 validUnits.RemoveAt(randIndex); // 중복 방지
@@ -710,8 +708,7 @@ public class EventManager
                     else if(form == ResultForm.Select)
                     {
                         var originUnit = selectedUnits[0];
-                        var row = GoogleSheetLoader.Instance.GetRowUnitData(originUnit.idx);
-                        RogueUnitDataBase clone= RogueUnitDataBase.ConvertToUnitDataBase(row);
+                        RogueUnitDataBase clone= UnitLoader.Instance.GetCloneUnitById(originUnit.idx);
                         clone.energy=originUnit.energy;
                         RogueLikeData.Instance.AddMyUnis(clone);
                         resultLog += $"- {clone.unitName}이(가) 추가되었습니다.";
@@ -721,7 +718,7 @@ public class EventManager
                         int unitRarity = int.Parse(value);
                         int unitCount = int.Parse(count);
                         // 전체 유닛 불러오기
-                        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+                        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
                         List<RogueUnitDataBase> validUnits;
                         var originUnit = selectedUnits[0]; // 희생할 유닛
                         float chance = originUnit.rarity switch
@@ -865,7 +862,7 @@ public class EventManager
                                 {
                                     var (min, max) = ParseRange("1~3");
 
-                                    var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+                                    var allUnits = UnitLoader.Instance.GetAllCachedUnits();
                                     var myIdxSet = Enumerable.ToHashSet(RogueLikeData.Instance.GetMyUnits().Select(u => u.idx));
                                     var candidates = allUnits.Where(u => u.rarity >= min && u.rarity <= max && !myIdxSet.Contains(u.idx)).ToList();
 

@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public class StoreItemData
 {
-    public int itemId;
+    public int itemId= -1;
     public string itemName;
     public int price;
     public float priceRateMin;

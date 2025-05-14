@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ public class UnitLoader
     private UnitLoader() { }
 
     // JSON 파일에서 유닛 데이터를 읽고 캐시함
-    public static void LoadUnitsFromJson()
+    public void LoadUnitsFromJson()
     {
         // 캐시가 없다면 초기화
         if (unitCache == null)
@@ -114,19 +115,8 @@ public class UnitLoader
         }
     }
 
-    // 캐시된 유닛을 id로 가져오는 함수
-    public static RogueUnitDataBase GetUnitById(int id)
-    {
-        // 캐시에 해당 id가 있으면 반환, 없으면 null 반환
-        if (unitCache != null && unitCache.ContainsKey(id))
-        {
-            return unitCache[id];
-        }
-        return null;
-    }
-
     // id 기반으로 유닛을 복사하여 반환하는 함수
-    public static RogueUnitDataBase GetCloneUnitById(int id ,bool isTeam=true)
+    public RogueUnitDataBase GetCloneUnitById(int id ,bool isTeam=true)
     {
         if (unitCache != null && unitCache.ContainsKey(id))
         {
@@ -135,5 +125,10 @@ public class UnitLoader
             return unit;
         }
         return null;
+    }
+    // 모든 캐시된 유닛을 리스트로 반환
+    public List<RogueUnitDataBase> GetAllCachedUnits()
+    {
+        return unitCache?.Values.ToList() ?? new List<RogueUnitDataBase>();
     }
 }

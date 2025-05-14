@@ -117,7 +117,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(91, "불길한 족쇄", 0, "병영의 훈련 비용이 20% 증가한다.", RelicType.SpecialEffect, () => OminousChains()));
         relics.Add(new WarRelic(92, "맛있는 군용식량", 1, "비 영웅 유닛의 체력과 공격력이 8% 증가한다.", RelicType.StateBoost, () => DeliciousMilitaryRations()));
         relics.Add(new WarRelic(93, "맛있는 특별식", 1, "영웅 유닛의 체력과 공격력이 12% 증가한다.", RelicType.StateBoost, () => DeliciousSpecialMeal()));
-        //94
+        relics.Add(new WarRelic(94, "무쇠 투구", 1, "중갑 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => CastIronHelmet()));
         relics.Add(new WarRelic(95, "전속전진의 신발", 10, "돌격 스킬을 가진 유닛에게 충격 특성을 부여한다. 원래 충격을 가진 유닛은 기동력이 3 증가한다.", RelicType.StateBoost, () => ShoesOfFullSpeedAhead()));
         relics.Add(new WarRelic(96, "장식된 로자리오", 1, "지원 유닛에게 영향받는 아군 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => DecoratedRosary()));
         relics.Add(new WarRelic(97, "비상탈출 교본", 1, "궁병과 지원 유닛이 전열로 진입할 때, 유격의 효과를 발동시킨다. (유닛 당 1회)", RelicType.StateBoost, () => EmergencyEscapeManual()));
@@ -139,7 +139,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(111, "멸시의 오브", 1, "모든 선택지에서 희귀도 1 유닛이 등장하지 않는다.", RelicType.SpecialEffect, () => OrbOfContempt()));
         relics.Add(new WarRelic(112, "질긴 채찍", 1, "전투 중, 적 유닛의 대기병 수치가 50% 감소한다.", RelicType.StateBoost, () => ToughWhip()));
         //113
-        //114
+        relics.Add(new WarRelic(114, "병마용", 1, "전투 시작 시, 내 모든 유닛 체력의 합이 1700 이상이면, 금화 200 획득", RelicType.StateBoost, () => TerracottaArmy()));
         relics.Add(new WarRelic(115, "투창용 깃창", 1, "내 모든 창병이 투창 기술을 가진다.", RelicType.StateBoost, () => JavelinForThrowing()));
         relics.Add(new WarRelic(116, "영광의 대가", 50, "사기가 증가하지 않는다.", RelicType.SpecialEffect, () => PriceOfGlory()));
     }
@@ -1123,7 +1123,11 @@ public static class WarRelicDatabase
             unit.health = unit.maxHealth;
         }
     }
-    // 94
+    //무쇠 투구 94
+    private static void CastIronHelmet()
+    {
+
+    }
 
     //전속전진의 신발 95
     private static void ShoesOfFullSpeedAhead()
@@ -1272,7 +1276,11 @@ public static class WarRelicDatabase
         }
     }
     // 113
-    // 114
+    // 병마용 114
+    private static void TerracottaArmy()
+    {
+
+    }
     //투창용 깃창 115
     private static void JavelinForThrowing()
     {
