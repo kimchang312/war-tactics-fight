@@ -60,7 +60,7 @@ public class RestUI : MonoBehaviour
     {
         Debug.Log("연회");
         //부대 전체의 사기를 30만큼 회복
-        RogueLikeData.Instance.AddMorale(30);
+        RogueLikeData.Instance.ChangeMorale(30);
         Hide();
     }
     private void OnRest()
