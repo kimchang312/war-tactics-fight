@@ -91,6 +91,7 @@ public class AbilityManager
     public void CalculateFieldEffect()
     {
         int fieldId = RogueLikeData.Instance.GetFieldId();
+        
         switch (fieldId) 
         {
             case 2:
@@ -141,7 +142,7 @@ public class AbilityManager
         }
 
         //지휘관 효과
-        CalculateFieldEffect();
+        ProcessCommenderEffect();
     }
     
     public bool ProcessOneTurn()
@@ -164,12 +165,12 @@ public class AbilityManager
         int randomIndex = UnityEngine.Random.Range(0, myUnits.Count);
         myUnits[randomIndex].health -= 30;
         myUnits[randomIndex].health = Mathf.Max(myUnits[randomIndex].health, 0); // 체력 0 밑으로 방지
-        CallDamageText(30, "번개 ", true, false, randomIndex);
+        CallDamageText(30, "폭풍우 ", true, false, randomIndex);
 
         int randomI = UnityEngine.Random.Range(0, enemyUnits.Count);
         enemyUnits[randomI].health -= 30;
         enemyUnits[randomI].health = Mathf.Max(enemyUnits[randomI].health, 0); // 체력 0 밑으로 방지
-        CallDamageText(30, "번개 ", false, false, randomI);
+        CallDamageText(30, "폭풍우 ", false, false, randomI);
 
         return true;
     }
@@ -271,7 +272,6 @@ public class AbilityManager
         RogueUnitDataBase frontDefender = defenders[0];
         float allDamage = 0;
         string firstText = "충돌 ";
-        //isFirstAttak 시 발동
         if (isFirstAttack)
         {
             ChrashIsFirstAttack(frontAttaker, defenders, ref multiplier, ref reduceDamage,ref firstText, isTeam);
@@ -288,8 +288,7 @@ public class AbilityManager
             (reduceDamage, text) = ApplyChrashAbility(frontAttaker, frontDefender, isTeam, reduceDamage, text);
 
             float damage = frontAttaker.attackDamage * multiplier;
-            //장갑 미 적용 데미지
-            //float actualDamage = (damage -reduceDamage)*finalDamage;
+
             //관통
             if (!frontAttaker.pierce)
             {
@@ -373,7 +372,7 @@ public class AbilityManager
                     CallDamageText(thornsDamageValue, "가시 ", isTeam, false);
                 }
 
-                // 흡혈 (한 번만 적용)
+                // 흡혈
                 if (frontAttaker.lifeDrain)
                 {
                     float heal = HealHealth(frontAttaker, Mathf.Min(Mathf.Round(frontAttaker.health+(normalDamage * bloodSuckingValue)), frontAttaker.maxHealth));
@@ -416,14 +415,16 @@ public class AbilityManager
         ref List<RogueUnitDataBase> myDeathUnits, ref List<RogueUnitDataBase> enemyDeathUnits,
         ref bool isFirstAttack,RogueUnitDataBase myFrontUnit,RogueUnitDataBase enemyFrontUnit)
     {
-        bool myUnitDied = false;   // 내 유닛 중 0번이 죽었는지 체크
-        bool enemyUnitDied = false; // 상대 유닛 중 0번이 죽었는지 체크
+        bool myUnitDied = false;
+        bool enemyUnitDied = false;
 
-        List<RogueUnitDataBase> tempMyDeathUnits = new();  // 임시 사망 유닛 리스트
-        List<RogueUnitDataBase> tempEnemyDeathUnits = new(); // 임시 사망 유닛 리스트
+        List<RogueUnitDataBase> tempMyDeathUnits = new();
+        List<RogueUnitDataBase> tempEnemyDeathUnits = new();
 
         List<int> myDeathIndexes = new();
         List<int> enemyDeathIndexes = new();
+
+        CommenderEffect.CalculateAxl();
 
         // 내 유닛 사망 처리
         for (int i = myUnits.Count - 1; i >= 0; i--)
@@ -432,7 +433,7 @@ public class AbilityManager
             {
                 if (i == 0 && RelicManager.CheckRelicById(27))
                 {
-                    myUnits[i].health = myUnits[i].maxHealth; // 유닛 체력 회복
+                    myUnits[i].health = myUnits[i].maxHealth;
                     continue;
                 }
 
@@ -458,11 +459,12 @@ public class AbilityManager
         // 사망한 유닛들에 대한 이벤트 한 번만 호출
         if (tempEnemyDeathUnits.Count > 0 || tempMyDeathUnits.Count > 0)
         {
-            OnUnitDeath(tempEnemyDeathUnits,tempMyDeathUnits, ref enemyUnits, myUnits, false, enemyUnitDied, myUnitDied);
-            OnUnitDeath(tempMyDeathUnits, tempEnemyDeathUnits, ref myUnits, enemyUnits, true, myUnitDied, enemyUnitDied);
+            //공격자 적
+            OnUnitDeath(tempEnemyDeathUnits,tempMyDeathUnits, ref enemyUnits, myUnits, false, enemyUnitDied, myUnitDied,isFirstAttack);
+            //공격자 나
+            OnUnitDeath(tempMyDeathUnits, tempEnemyDeathUnits, ref myUnits, enemyUnits, true, myUnitDied, enemyUnitDied, isFirstAttack);
         }
 
-        // Relic 54 저주인형 발동
         if (tempMyDeathUnits.Count > 0 && enemyUnits.Count > 0 && RelicManager.CheckRelicById(54))
         {
             enemyUnits[0].health -= tempMyDeathUnits.Sum(unit => unit.health * 0.1f);
@@ -510,15 +512,25 @@ public class AbilityManager
 
 
     // 유닛 사망 시 실행되는 함수 (추가 기능 확장 가능)
-    private void OnUnitDeath(List<RogueUnitDataBase> deadAttackers,List<RogueUnitDataBase> deadDefenders,ref List<RogueUnitDataBase> attackers,List<RogueUnitDataBase> defenders, bool isTeam, bool isFrontAttackerDead,bool isFrontDefendrDead)
+    private void OnUnitDeath(List<RogueUnitDataBase> deadAttackers,List<RogueUnitDataBase> deadDefenders,ref List<RogueUnitDataBase> attackers,List<RogueUnitDataBase> defenders, bool isTeam, bool isFrontAttackerDead,bool isFrontDefendrDead,bool isFirstAttack)
     {
         if(attackers.Count == 0) return;
         RogueUnitDataBase frontAttacker = attackers[0];
-        //유닛들 하나씩 순회 하며 특정 능력 유닛 채크
+
         //봉인 풀린 자 채크
         CalculateTheUnsealedOne(deadDefenders.Count, isTeam);
         //불굴의 방패
         CalculateIndomitableShieldDead(attackers, deadAttackers, isTeam);
+
+        if (RogueLikeData.Instance.GetPresetID() == 50 && !isTeam && isFrontDefendrDead && frontAttacker.branchIdx == 1) 
+        {
+            RogueLikeData.Instance.ChangeMorale(-2);
+        }
+        else if (RogueLikeData.Instance.GetPresetID() == 61 && !isTeam && deadAttackers.Count>0) 
+        {
+            float finalDamage = RogueLikeData.Instance.GetEnemyMultipleDamage();
+            CalculateRangeAttack(attackers, deadAttackers,isTeam,finalDamage,isFirstAttack);
+        }
 
         //스킬 사용 유닛이 안죽었을 시
         if (!isFrontAttackerDead)
@@ -597,7 +609,7 @@ public class AbilityManager
     {
         //적 or 약탈 없음
         if (!isTeam || !unit.plunder) return;
-        RogueLikeData.Instance.EarnGold(plunderGold);
+        RogueLikeData.Instance.AddGoldReward(plunderGold);
     }
     //무한
     private void CalculateEndLess(RogueUnitDataBase unit,bool isTeam)
@@ -626,7 +638,7 @@ public class AbilityManager
         text += "회피 ";
     }
     //암살
-    private void CalculateAssassination(RogueUnitDataBase attacker, List<RogueUnitDataBase> defenders, float finalDamage, ref float _damage, ref string text,bool isTeam,bool isFirstAttack)
+    private void CalculateAssassination(RogueUnitDataBase attacker, List<RogueUnitDataBase> defenders, float finalDamage, ref float _damage, ref string text,bool isTeam,bool isOnce=false)
     {
         int minHealthIndex = CalculateMinHealthIndex(defenders);
         if (minHealthIndex == -1) return;
@@ -634,17 +646,34 @@ public class AbilityManager
 
         RogueUnitDataBase target= CalculateBackAttack(defenders);
 
-        //수호 있을 때
         if (target != null) 
         {
+
             target.health -= MathF.Round(damage * (1 - (target.armor / (target.armor + 10))));
             _damage += damage;
 
-            Debug.Log("수호");
             CallDamageText(damage, "암살 수호 ", !isTeam, true);
+
+            // 33% 확률로 한 번 더 실행
+            if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && Random.value < 0.33f)
+            {
+                CalculateAssassination(attacker, defenders, finalDamage, ref _damage, ref text,isTeam,true);
+            }
+        
         }
-        else //수호 없을때
+        else 
         {
+            if (RogueLikeData.Instance.GetPresetID() == 52)
+            {
+                if (Random.value < 0.5f)
+                {
+                    defenders[minHealthIndex].health = 0;
+                    CallDamageText(defenders[minHealthIndex].health, "암살 ", !isTeam, true, minHealthIndex);
+
+                    return;
+                }
+            }
+
             defenders[minHealthIndex].health -= damage;
 
             CallDamageText(damage, "암살 ", !isTeam, true,minHealthIndex);
@@ -654,6 +683,11 @@ public class AbilityManager
                 attacker.health -= damage;
 
                 CallDamageText(damage, "복수 ", isTeam, true);
+            }
+
+            if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && Random.value < 0.33f)
+            {
+                CalculateAssassination(attacker, defenders, finalDamage, ref _damage, ref text, isTeam, true);
             }
         }
     }
@@ -787,9 +821,15 @@ public class AbilityManager
     public float CalculateDodge(RogueUnitDataBase unit,bool isTeam,bool isFirstAttack)
     {
         float dodge;
-        float addDodge = 0;
-        float mulityDodge = 13;
-        Dictionary<int, Action> dodgeEffects = new()
+        if (RogueLikeData.Instance.GetPresetID()==58)
+        {
+            dodge = 0;
+        }
+        else
+        {
+            float addDodge = 0;
+            float mulityDodge = 13;
+            Dictionary<int, Action> dodgeEffects = new()
         {
             { 2, () => addDodge += 15 },
             { 4, () => addDodge += 5 },
@@ -798,14 +838,15 @@ public class AbilityManager
             { 9, () => addDodge -=5 },
             { 10,() => addDodge +=5 },
         };
-        //폭풍의 창
-        CalculateSpearOfStormDodge(unit, isTeam,isFirstAttack);
-        foreach (var key in dodgeEffects.Keys)
-        {
-            if (unit.effectDictionary.ContainsKey(key)) dodgeEffects[key]();
-        }
+            //폭풍의 창
+            CalculateSpearOfStormDodge(unit, isTeam, isFirstAttack);
+            foreach (var key in dodgeEffects.Keys)
+            {
+                if (unit.effectDictionary.ContainsKey(key)) dodgeEffects[key]();
+            }
 
-        dodge = (2 + ((mulityDodge / 9) * (unit.mobility - 1))) + (unit.agility ? 10.0f : 0) + addDodge;
+            dodge = (2 + ((mulityDodge / 9) * (unit.mobility - 1))) + (unit.agility ? 10.0f : 0) + addDodge;
+        }
 
         return MathF.Floor(Mathf.Clamp(dodge, 0, 100));
     }
@@ -900,7 +941,7 @@ public class AbilityManager
 
         CallDamageText(damage, "작열 ", isTeam, false);
     }
-    // 치유(Healing) 기능 - 후열 유닛이 전열 유닛을 치유
+    // 치유
     private void ProcessHealing(List<RogueUnitDataBase> units,bool isTeam)
     {
         RogueUnitDataBase frontUnit = units[0];
@@ -1109,7 +1150,7 @@ public class AbilityManager
     {
         if (!isTeam || units[0].idx != 54 || units[0].health <1) return;
         int morale = RogueLikeData.Instance.GetMorale();
-        RogueLikeData.Instance.AddMorale(10);
+        RogueLikeData.Instance.ChangeMorale(10);
         CalculateFirstMorale(units, isTeam, true);
 
     }
@@ -1180,7 +1221,7 @@ public class AbilityManager
             }
         }
     }
-    // 암살단장(Assassination Leader)의 선제타격 실행
+    // 암살단장
     private bool ExecuteAssassinationLeaderStrike(bool isTeam, List<RogueUnitDataBase> defenders, float finalDamage)
     {
         int heroId = 58;
@@ -1250,16 +1291,11 @@ public class AbilityManager
 
         if (availableTraits.Count == 0) return; 
 
-        // 무작위 특성 선택
         FieldInfo selectedTrait = availableTraits[UnityEngine.Random.Range(0, availableTraits.Count)];
 
-        // 특성 적용
         selectedTrait.SetValue(unit, true);
 
-        // 적용된 특성은 다시 나오지 않도록 리스트에서 제거
         availableTraits.Remove(selectedTrait);
-
-        Debug.Log($"노인 기사({unit.unitName})가 {selectedTrait.Name} 특성을 획득!");
     }
     //미치광이 전투 시작 시
     private bool CalculateManiac(List<RogueUnitDataBase> defenders,bool isTeam)
@@ -1274,7 +1310,7 @@ public class AbilityManager
         }
         return true;
     }
-    // 미치광이 전열 효과 (후열 유닛 3명에게 디버프 적용)
+    // 미치광이 전열 효과
     private void CalculateFrontManiac(RogueUnitDataBase attacker, List<RogueUnitDataBase> defenders)
     {
         if (attacker.idx != 61) return; 
@@ -1321,19 +1357,9 @@ public class AbilityManager
         int heroCount = GetHeroUnitList(isTeam, heroId).Count * 3;
         if (heroCount <= 0) return;
 
-        // 해당 유닛의 원본 row 가져오기
-        var row = GoogleSheetLoader.Instance.GetRowUnitData(0);
-        if (row == null)
-        {
-            Debug.Log($"유닛 idx {0} 의 Row 데이터를 찾을 수 없습니다.");
-            return;
-        }
-
         for (int i = 0; i < heroCount; i++)
         {
-            var newUnit = RogueUnitDataBase.ConvertToUnitDataBase(row);
-
-            newUnit.UniqueId = RogueUnitDataBase.BuildUnitUniqueId(newUnit.branchIdx, newUnit.idx, isTeam);
+            RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(0,isTeam);
 
             units.Insert(0, newUnit);
         }
@@ -1417,21 +1443,19 @@ public class AbilityManager
         int reduceMorale = RelicManager.CheckRelicById(28) ? -10 : 0;
         float newMultiplier = 0f;
 
-        // 사기 수치에 따른 능력치 조정
         if (morale >= (90 + reduceMorale)) newMultiplier = 0.2f;
         else if (morale >= (70 + reduceMorale)) newMultiplier = 0.1f;
         else if (morale <= (30 + reduceMorale)) newMultiplier = -0.1f;
 
-        if (newMultiplier == moraleMultiplier) return; // 변화 없으면 그대로 리턴
+        if (newMultiplier == moraleMultiplier) return; 
 
-        // 새로운 사기 배율 적용
         float multiplierDifference = newMultiplier - moraleMultiplier;
-        moraleMultiplier = newMultiplier; // 현재 사기 배율 업데이트
+        moraleMultiplier = newMultiplier;
 
         // 유닛 능력치 조정
         foreach (var unit in units)
         {
-            if (morale <= (30 + reduceMorale) && unit.bravery) continue; // '용맹' 특성을 가진 유닛은 디버프 적용 안 함
+            if (morale <= (30 + reduceMorale) && unit.bravery) continue;
 
             float healthChange = Mathf.Round(unit.baseHealth * multiplierDifference);
             unit.maxHealth += healthChange;
@@ -1440,7 +1464,6 @@ public class AbilityManager
             unit.attackDamage += Mathf.Round(unit.baseAttackDamage * multiplierDifference);
         }
 
-        // 사기 10 이하이면 탈주 로직 실행
         if (morale <= (10 + reduceMorale) && !isBattle)
         {
             RemoveLowMoraleUnits(units);
@@ -1468,7 +1491,6 @@ public class AbilityManager
         {
             RogueUnitDataBase leavingUnit = removableUnits[UnityEngine.Random.Range(0, removableUnits.Count)];
             units.Remove(leavingUnit);
-            Debug.Log($"{leavingUnit.unitName}이(가) 사기가 낮아 부대를 떠남!");
         }
     }
 
@@ -1594,52 +1616,6 @@ public class AbilityManager
             }
         }
     }
-    //전투 종료 시 사기 계산
-    public int EndBattleMorale(List<RogueUnitDataBase> deadUnits,List<RogueUnitDataBase> deadEnemyUnits)
-    {
-        int morale = RogueLikeData.Instance.GetMorale();
-        int addMorale = 0;
-        StageType stageType = RogueLikeData.Instance.GetCurrentStageType();
-        foreach (var unit in deadUnits)
-        {
-            switch (unit.rarity)
-            {
-                case 1:
-                    addMorale -= 1;
-                    break;
-                case 2:
-                    addMorale -= 2;
-                    break;
-                case 3:
-                    addMorale -= 2;
-                    break;
-                case 4:
-                    addMorale -= 5;
-                    break;
-            }
-        }
-        //유산 33
-        if(RelicManager.CheckRelicById(33)) addMorale = (int)(addMorale * 1.2);
-        if (deadEnemyUnits.Count == 0) addMorale += 10; 
-        if(stageType == StageType.Combat)
-        {
-            addMorale += 15;
-        }
-        else if (stageType ==StageType.Elite)
-        {
-            addMorale += 20;
-        }
-        else if(stageType == StageType.Boss)
-        {
-            addMorale += 35;
-        }
-        //유산 56
-        if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
-        morale += addMorale;
-        RogueLikeData.Instance.SetMorale(morale);
-
-        return morale;
-    }
 
     //후열 타격
     private RogueUnitDataBase CalculateBackAttack(List<RogueUnitDataBase> defenders)
@@ -1658,19 +1634,18 @@ public class AbilityManager
     private void CalculateUpgradeUnit(List<RogueUnitDataBase> units,bool isTeam)
     {
         if (!isTeam) return;
-        foreach(var unit in units)
-        {
-            UpgradeManager.Instance.UpgradeRogueLikeUnit(unit);
-        }
+        UpgradeManager.Instance.ProcessUpgrade();
     }
 
     //데미지 ui 호출
     private void CallDamageText(float damage, string text, bool team,bool isAttack ,int unitIndex = 0)
     {
+        //team? 나의 공격 : 상대 공격
+        CommenderEffect.CalculateZander(team, unitIndex);
         autoBattleUI.ShowDamage(MathF.Round(damage), text, !team, isAttack,unitIndex);
     }
 
-  
+    
 
 
 

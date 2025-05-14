@@ -482,7 +482,7 @@ public class EventManager
                             reduceMorale += 0.2f;
                         }
                         int moraleCount = (int)(int.Parse(count)*reduceMorale);
-                        RogueLikeData.Instance.ReduceMorale(moraleCount);
+                        moraleCount = RogueLikeData.Instance.ChangeMorale(moraleCount);
                         requireLog += $"사기가 {moraleCount}만큼 감소했습니다.\n";
                     }
                     break;
@@ -528,7 +528,7 @@ public class EventManager
                         }
                         else
                         {
-                            RogueLikeData.Instance.AddMorale(morale);
+                            morale = RogueLikeData.Instance.ChangeMorale(morale);
                             resultLog += $"- 사기 {morale} 회복\n";
                         }
                         break;
@@ -641,7 +641,7 @@ public class EventManager
                             var (min, max) = ParseRange(value);
 
                             // 전체 유닛 불러오기
-                            var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+                            var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
                             // 희귀도 범위 조건에 맞는 유닛 필터링
                             var validUnits = allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList();
@@ -650,15 +650,15 @@ public class EventManager
                             {
                                 int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
                                 validUnits.RemoveAt(randIndex); // 중복 방지
-
+                                RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(validUnits[randIndex].idx);
                                 if (isBattle)
                                 {
-                                    RogueLikeData.Instance.AddUnitReward(validUnits[randIndex]);
+                                    RogueLikeData.Instance.AddUnitReward(newUnit);
                                 }
                                 else
                                 {
-                                    RogueLikeData.Instance.AddMyUnis(validUnits[randIndex]);
-                                    resultLog += $"- {validUnits[randIndex].unitName}이(가) 추가되었습니다.";
+                                    RogueLikeData.Instance.AddMyUnis(newUnit);
+                                    resultLog += $"- {newUnit.unitName}이(가) 추가되었습니다.";
                                 }
                             }
                         }
@@ -667,7 +667,7 @@ public class EventManager
                             int unitRarity = int.Parse(value);
                             int unitCount = int.Parse(count);
                             // 전체 유닛 불러오기
-                            var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+                            var allUnits = UnitLoader.Instance.GetAllCachedUnits();
                             List<RogueUnitDataBase> validUnits;
                             if (unitRarity == 4)
                             {
@@ -688,21 +688,19 @@ public class EventManager
                                 validUnits = allUnits.Where(u => u.rarity == unitRarity).ToList();
                             }
 
-                            // 희귀도 범위 조건에 맞는 유닛 필터링
-                              
-                            for(int k = 0; k < unitCount; k++)
+                            // 희귀도 범위 조건에 맞는 유닛 필터링                            for(int k = 0; k < unitCount; k++)
                             {
                                 int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
                                 validUnits.RemoveAt(randIndex); // 중복 방지
-
+                                RogueUnitDataBase newUnit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(validUnits[randIndex].idx));
                                 if (isBattle)
                                 {
-                                    RogueLikeData.Instance.AddUnitReward(validUnits[randIndex]);
+                                    RogueLikeData.Instance.AddUnitReward(newUnit);
                                 }
                                 else
                                 {
-                                    RogueLikeData.Instance.AddMyUnis(validUnits[randIndex]);
-                                    resultLog += $"- {validUnits[randIndex].unitName}이(가) 추가되었습니다.";
+                                    RogueLikeData.Instance.AddMyUnis(newUnit);
+                                    resultLog += $"- {newUnit.unitName}이(가) 추가되었습니다.";
                                 }
                             }
                         }
@@ -710,8 +708,7 @@ public class EventManager
                     else if(form == ResultForm.Select)
                     {
                         var originUnit = selectedUnits[0];
-                        var row = GoogleSheetLoader.Instance.GetRowUnitData(originUnit.idx);
-                        RogueUnitDataBase clone= RogueUnitDataBase.ConvertToUnitDataBase(row);
+                        RogueUnitDataBase clone= UnitLoader.Instance.GetCloneUnitById(originUnit.idx);
                         clone.energy=originUnit.energy;
                         RogueLikeData.Instance.AddMyUnis(clone);
                         resultLog += $"- {clone.unitName}이(가) 추가되었습니다.";
@@ -721,7 +718,7 @@ public class EventManager
                         int unitRarity = int.Parse(value);
                         int unitCount = int.Parse(count);
                         // 전체 유닛 불러오기
-                        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+                        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
                         List<RogueUnitDataBase> validUnits;
                         var originUnit = selectedUnits[0]; // 희생할 유닛
                         float chance = originUnit.rarity switch
@@ -764,13 +761,33 @@ public class EventManager
                     }
                     break;
                 case ResultType.Change:
-                    if(form == ResultForm.Select)
+                    int changeCount = int.Parse(count);
+                    if (form == ResultForm.Select)
                     {
-                        foreach(var unit in selectedUnits)
+                        if (isBattle)
                         {
-                            var newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
-                            RogueLikeData.Instance.AddMyUnis(newUnit);
-                            resultLog += $"- {unit.unitName}이 전직해 {newUnit.unitName}이(가) 되었습니다.";
+                            foreach(var unit in selectedUnits)
+                            {
+                                RogueUnitDataBase newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
+                                for(int k = 1;k< changeCount; k++)
+                                {
+                                    newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
+                                }
+                                RogueLikeData.Instance.AddChangeReward(newUnit);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var unit in selectedUnits)
+                            {
+                                RogueUnitDataBase newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
+                                for (int k = 1; k < changeCount; k++)
+                                {
+                                    newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
+                                }
+                                RogueLikeData.Instance.AddMyUnis(newUnit);
+                                resultLog += $"- {unit.unitName}이 전직해 {newUnit.unitName}이(가) 되었습니다.\n";
+                            }
                         }
                     }
                     else if(form == ResultForm.Random)
@@ -784,7 +801,7 @@ public class EventManager
                         // 무작위로 unitCount개 뽑기 (중복 없이)
                         var changeUnits = candidates
                             .OrderBy(_ => UnityEngine.Random.value)
-                            .Take(unitCount)
+                            .Take(changeCount)
                             .ToList();
                         foreach(var unit in changeUnits)
                         {
@@ -845,7 +862,7 @@ public class EventManager
                                 {
                                     var (min, max) = ParseRange("1~3");
 
-                                    var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+                                    var allUnits = UnitLoader.Instance.GetAllCachedUnits();
                                     var myIdxSet = Enumerable.ToHashSet(RogueLikeData.Instance.GetMyUnits().Select(u => u.idx));
                                     var candidates = allUnits.Where(u => u.rarity >= min && u.rarity <= max && !myIdxSet.Contains(u.idx)).ToList();
 
@@ -871,8 +888,8 @@ public class EventManager
                                 }
                             case 7: // 사기 -25
                                 {
-                                    RogueLikeData.Instance.ReduceMorale(25);
-                                    resultLog += " 사기가 25 감소했습니다.\n";
+                                    int morale = RogueLikeData.Instance.ChangeMorale(25);
+                                    resultLog += $" 사기가 {morale} 감소했습니다.\n";
                                     break;
                                 }
                             case 8: // 금화(중) 획득
