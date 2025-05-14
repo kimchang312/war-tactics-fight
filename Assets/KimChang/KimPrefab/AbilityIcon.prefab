@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 2905213037864514669}
   - component: {fileID: 8102064158035100577}
   - component: {fileID: 8428377936899249147}
+  - component: {fileID: 8788177226645892002}
+  - component: {fileID: 7855742999733551727}
   m_Layer: 5
   m_Name: AbilityIcon
   m_TagString: Untagged
@@ -75,3 +77,50 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8788177226645892002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7355244959479386498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isItem: 0
+  item:
+    itemId: 0
+    itemName: 
+    price: 0
+    priceRateMin: 0
+    priceRateMax: 0
+    rarity: 0
+    type: 
+    form: 
+    value: 
+    count: 0
+    condition: 
+    description: 
+  price: 0
+  units: []
+  rerollCount: 0
+  relicId: -1
+  type: 0
+  unitId: -1
+  abilityId: -1
+--- !u!114 &7855742999733551727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7355244959479386498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ItemToolTip: {fileID: 0}
+  unitPackageToolTip: {fileID: 0}

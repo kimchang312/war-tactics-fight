@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 129775395414032120}
   - component: {fileID: 1446523825020537874}
   m_Layer: 5
-  m_Name: UnitName
+  m_Name: RewardName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -146,7 +146,8 @@ GameObject:
   - component: {fileID: 8505070669206958332}
   - component: {fileID: 8097361985227734491}
   - component: {fileID: 6727016239927810470}
-  - component: {fileID: -4537423483895537780}
+  - component: {fileID: 1043615563245772661}
+  - component: {fileID: 6789844564205879511}
   m_Layer: 5
   m_Name: Reward
   m_TagString: Untagged
@@ -256,7 +257,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &-4537423483895537780
+--- !u!114 &1043615563245772661
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -265,81 +266,41 @@ MonoBehaviour:
   m_GameObject: {fileID: 3254225596962771800}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a769ad214f0a47e42b2776075573e7d2, type: 3}
+  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
-  unit:
-    idx: 0
-    unitName: 
-    unitBranch: 
-    branchIdx: 0
-    unitId: 
-    unitExplain: 
-    unitImg: 
-    unitFaction: 
-    factionIdx: 0
-    tag: 
-    tagIdx: 0
-    unitPrice: 0
+  ItemToolTip: {fileID: 0}
+  unitPackageToolTip: {fileID: 0}
+--- !u!114 &6789844564205879511
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3254225596962771800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isItem: 0
+  item:
+    itemId: 0
+    itemName: 
+    price: 0
+    priceRateMin: 0
+    priceRateMax: 0
     rarity: 0
-    baseHealth: 0
-    baseArmor: 0
-    baseAttackDamage: 0
-    baseMobility: 0
-    baseRange: 0
-    baseAntiCavalry: 0
-    baseEnergy: 0
-    health: 0
-    armor: 0
-    attackDamage: 0
-    mobility: 0
-    range: 0
-    antiCavalry: 0
-    energy: 0
-    lightArmor: 0
-    heavyArmor: 0
-    rangedAttack: 0
-    bluntWeapon: 0
-    pierce: 0
-    agility: 0
-    strongCharge: 0
-    perfectAccuracy: 0
-    slaughter: 0
-    bindingForce: 0
-    bravery: 0
-    suppression: 0
-    plunder: 0
-    doubleShot: 0
-    scorching: 0
-    thorns: 0
-    endless: 0
-    impact: 0
-    healing: 0
-    lifeDrain: 0
-    charge: 0
-    defense: 0
-    throwSpear: 0
-    guerrilla: 0
-    guard: 0
-    assassination: 0
-    drain: 0
-    overwhelm: 0
-    martyrdom: 0
-    wounding: 0
-    vengeance: 0
-    counter: 0
-    firstStrike: 0
-    challenge: 0
-    smokeScreen: 0
-    maxHealth: 0
-    maxEnergy: 0
-    alive: 0
-    fStriked: 0
-  relic:
-    id: 0
-    name: 
-    grade: 0
-    tooltip: 
-    type: 0
-    used: 0
+    type: 
+    form: 
+    value: 
+    count: 0
+    condition: 
+    description: 
+  price: 0
+  units: []
+  rerollCount: 0
+  relicId: -1
+  type: 0
+  unitId: -1
+  abilityId: -1

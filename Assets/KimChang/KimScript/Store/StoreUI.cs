@@ -187,7 +187,7 @@ public class StoreUI : MonoBehaviour
 
     private List<RogueUnitDataBase> FilterAndSelectUnits(StoreItemData item)
     {
-        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
         List<RogueUnitDataBase> filtered = item.form switch
         {
             "Rarity" => EventManager.ParseRange(item.value) is var (min, max) ? allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList() : new(),
@@ -240,6 +240,7 @@ public class StoreUI : MonoBehaviour
     private void SetItemInformation(Transform child, StoreItemData storeItemData, int price, List<RogueUnitDataBase> units = null, int relicId = -1, int rerollCount = 0)
     {
         ItemInformation itemInformation = child.GetComponent<ItemInformation>();
+        itemInformation.isItem = true;
         itemInformation.item = storeItemData;
         itemInformation.price = price;
         if (units != null) itemInformation.units = units;

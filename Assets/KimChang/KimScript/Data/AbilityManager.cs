@@ -1357,14 +1357,9 @@ public class AbilityManager
         int heroCount = GetHeroUnitList(isTeam, heroId).Count * 3;
         if (heroCount <= 0) return;
 
-        // 해당 유닛의 원본 row 가져오기
-        var row = GoogleSheetLoader.Instance.GetRowUnitData(0);
-
         for (int i = 0; i < heroCount; i++)
         {
-            var newUnit = RogueUnitDataBase.ConvertToUnitDataBase(row);
-
-            newUnit.UniqueId = RogueUnitDataBase.BuildUnitUniqueId(newUnit.branchIdx, newUnit.idx, isTeam);
+            RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(0,isTeam);
 
             units.Insert(0, newUnit);
         }
