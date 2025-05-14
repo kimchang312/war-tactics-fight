@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Sprites;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 
@@ -242,9 +243,6 @@ public class RogueUnitDataBase
         bool healing = rowData[38] == "TRUE";
         bool lifeDrain = rowData[39] == "TRUE";
 
-        // 빈칸
-        //string blink = "빈";
-
         // 추가 능력치
         bool charge = rowData[41] == "TRUE";
         bool defense = rowData[42] == "TRUE";
@@ -275,6 +273,25 @@ public class RogueUnitDataBase
             maxHealth,maxEnergy, true, false, UniqueId, effectDictionary
         );
     }
+    // 새로운 복사본을 만드는 메서드
+    public RogueUnitDataBase Clone()
+    {
+        // 이 객체의 복사본을 새로 생성
+        return new RogueUnitDataBase(
+            this.idx, this.unitName, this.unitBranch, this.branchIdx, this.unitId, this.unitExplain, this.unitImg, this.unitFaction, this.factionIdx,
+            this.tag, this.tagIdx, this.unitPrice, this.rarity,
+            this.health, this.armor, this.attackDamage, this.mobility, this.range, this.antiCavalry, this.energy,
+            this.baseHealth, this.baseArmor, this.baseAttackDamage, this.baseMobility, this.baseRange, this.baseAntiCavalry, this.baseEnergy,
+            this.lightArmor, this.heavyArmor, this.rangedAttack, this.bluntWeapon, this.pierce, this.agility,
+            this.strongCharge, this.perfectAccuracy, this.slaughter, this.bindingForce, this.bravery, this.suppression,
+            this.plunder, this.doubleShot, this.scorching, this.thorns, this.endless, this.impact, this.healing,
+            this.lifeDrain, this.charge, this.defense, this.throwSpear, this.guerrilla, this.guard, this.assassination,
+            this.drain, this.overwhelm, this.martyrdom, this.wounding, this.vengeance, this.counter, this.firstStrike,
+            this.challenge, this.smokeScreen, this.maxHealth, this.maxEnergy, this.alive, this.fStriked, this.UniqueId,
+            new Dictionary<int, BuffDebuffData>(this.effectDictionary) // 효과 딕셔너리도 복사
+        );
+    }
+
     public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam)
     {
         int serial = RogueLikeData.Instance.GetNextUnitUniqueId();
@@ -296,44 +313,36 @@ public class RogueUnitDataBase
     }
     public static RogueUnitDataBase RandomUnitReForm(RogueUnitDataBase unit)
     {
-        // 희귀도 4 이상은 전직 불가
         if (unit.rarity >= 4) return unit;
 
-        // 전직 희귀도 결정
         int newRarity = RollPromotion(unit.rarity);
 
         // 새로운 희귀도의 유닛 중 랜덤 선택
-        var pool = GoogleSheetLoader.Instance.GetAllUnitsAsObject()
+        var pool = UnitLoader.Instance.GetAllCachedUnits()
                      .Where(u => u.rarity == newRarity)
                      .ToList();
 
         if (pool.Count == 0) return null;
 
         var picked = pool[UnityEngine.Random.Range(0, pool.Count)];
-        var row = GoogleSheetLoader.Instance.GetRowUnitData(picked.idx);
-        if (row == null) return null;
+        if (picked == null) return null;
 
-        RogueUnitDataBase recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스 생성
+        RogueUnitDataBase recreated = UnitLoader.Instance.GetCloneUnitById(picked.idx);
         return recreated;
     }
     //희귀도에 따른 무작위 유닛 획득
     public static RogueUnitDataBase GetRandomUnitByRarity(int rarity)
     {
-        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
-        // 희귀도에 해당하는 유닛 필터
         var filtered = allUnits.Where(u => u.rarity == rarity).ToList();
 
         if (filtered.Count == 0)
-        {
-            Debug.LogWarning($"희귀도 {rarity}에 해당하는 유닛이 없습니다.");
             return null;
-        }
 
-        // 무작위 유닛 1개 선택
         int idx = UnityEngine.Random.Range(0, filtered.Count);
         var selected = filtered[idx];
-
+        RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);
         // UniqueId 자동 할당
         selected.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
 
@@ -363,10 +372,8 @@ public class RogueUnitDataBase
         foreach(var unit in myUnits)
         {
             int id = unit.idx;
-            List<string> row = GoogleSheetLoader.Instance.GetRowUnitData(id);
-            RogueUnitDataBase newUnit = ConvertToUnitDataBase(row);
+            RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(id);
             RogueLikeData.Instance.AddSavedMyUnits(newUnit);
-
         }
     }
 

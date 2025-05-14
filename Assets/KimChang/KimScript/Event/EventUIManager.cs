@@ -105,6 +105,10 @@ public class EventUIManager : MonoBehaviour
         ResetButtonUI();
         //이벤트 추가
         RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);
+        //저장
+        SaveData saveData = new();
+        saveData.SaveDataFile();
+
         leaveBtn.gameObject.SetActive(true);
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)

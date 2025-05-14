@@ -290,45 +290,6 @@ public class UnitCombatStatics
         return unitStats.Where(unit => unit.IsAlly() == isTeam).Sum(unit => unit.TotalDamageTaken);
     }
 
-    //전투 종료 통계 묶음
-    public static void ProcessBattleStatics(Dictionary<int, UnitCombatStatics> unitStats, AutoBattleUI autoBattleUI)
-    {
-        ViewBattleStatistics(unitStats, autoBattleUI);
-        SaveCombatStatistics(unitStats);
-    }
-
-    //전투 종료 통계 표시
-    private static void ViewBattleStatistics(Dictionary<int, UnitCombatStatics> unitStats, AutoBattleUI autoBattleUI)
-    {
-        // Dictionary -> List 변환
-        List<UnitCombatStatics> unitStatsList = unitStats.Values.ToList();
-
-        UnitCombatStatics myMostDam = GetAllyWithHighestDamageDealt(unitStatsList);
-        UnitCombatStatics myMostTaken = GetAllyWithHighestDamageTaken(unitStatsList);
-        UnitCombatStatics enemyMostDam = GetEnemyWithHighestDamageDealt(unitStatsList);
-        UnitCombatStatics enemyMostTaken = GetEnemyWithHighestDamageTaken(unitStatsList);
-
-        // 아군 최고 피해량
-        autoBattleUI.ViewStatics(
-            $"아군 피해량의 {(myMostDam.TotalDamageDealt / GetTotalDamageDealt(unitStatsList, true)) * 100}%",
-            FilterHighDamage(myMostDam), 0, (myMostDam.UnitID) & 0x3FF);
-
-        // 아군 받은 피해량
-        autoBattleUI.ViewStatics(
-            $"아군 받은 피해량의 {(myMostTaken.TotalDamageTaken / GetTotalDamageTaken(unitStatsList, false)) * 100}%",
-            FilterHighTaken(myMostTaken), 1, (myMostTaken.UnitID) & 0x3FF);
-
-        // 적군 최고 피해량
-        autoBattleUI.ViewStatics(
-            $"적군 피해량의 {(enemyMostDam.TotalDamageDealt / GetTotalDamageDealt(unitStatsList, true)) * 100}%",
-            FilterHighDamage(enemyMostDam), 2, (enemyMostDam.UnitID) & 0x3FF);
-
-        // 적군 받은 피해량
-        autoBattleUI.ViewStatics(
-            $"적군 받은 피해량의 {(enemyMostTaken.TotalDamageTaken / GetTotalDamageTaken(unitStatsList, false)) * 100}%",
-            FilterHighTaken(enemyMostTaken), 3, (enemyMostTaken.UnitID) & 0x3FF);
-    }
-
 
     // 전투 통계 저장
     private static void SaveCombatStatistics(Dictionary<int, UnitCombatStatics> unitStats)

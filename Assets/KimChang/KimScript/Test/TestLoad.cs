@@ -11,6 +11,6 @@ public class TestLoad : MonoBehaviour
         save.LoadData();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
-
+        UnitLoader.Instance.LoadUnitsFromJson();
     }
 }
