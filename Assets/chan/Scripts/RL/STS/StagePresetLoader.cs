@@ -71,26 +71,28 @@ public class StagePresetLoader : MonoBehaviour
         }
     }
 
-    /*public StagePreset GetPresetByID(int id)
-    {
-        
-        return presets.FirstOrDefault(p => p.PresetID == id);
-        
-    }
-
-    public List<int> GetUnitList(int presetID)
-    {
-        var p = GetPresetByID(presetID);
-        return p != null ? p.UnitList : new List<int>();
-    }*/
     // chapter, level, stageType 으로 후보 목록 필터링
     public List<StagePreset> GetPresets(int chapter, int level, string stageType)
-        => presets.Where(p =>
-                p.Chapter == chapter &&
-                p.Level == level &&
-                p.StageType == stageType
-           ).ToList();
-
+    {
+        if (stageType == "elite" || stageType == "boss")
+        {
+            // 레벨 무시 → 챕터 + 타입만 필터
+            return presets
+                .Where(p => p.Chapter == chapter && p.StageType == stageType)
+                .ToList();
+        }
+        else
+        {
+            // 기존대로 챕터·레벨·타입 모두 매칭
+            return presets
+                .Where(p =>
+                    p.Chapter == chapter &&
+                    p.Level == level &&
+                    p.StageType == stageType
+                )
+                .ToList();
+        }
+    }
     // ID 로 딱 하나 꺼내는 용
     public StagePreset GetByID(int id)
         => presets.FirstOrDefault(p => p.PresetID == id);

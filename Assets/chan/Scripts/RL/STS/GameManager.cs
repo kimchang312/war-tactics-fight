@@ -4,7 +4,6 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using System.Linq;
-using static UnityEngine.ParticleSystem;
 
 public class GameManager : MonoBehaviour
 {

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6984661051042606298}
   - component: {fileID: 1287492314336222942}
   - component: {fileID: 3167708698423791519}
+  - component: {fileID: 19649264707154164}
   m_Layer: 5
   m_Name: MyUnitPrefabs
   m_TagString: Untagged
@@ -77,6 +78,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &19649264707154164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3332958348597769504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3da2e596dc8bbf24685ef77f334fe5b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitImage: {fileID: 3167708698423791519}
+  energyText: {fileID: 6911676212104947843}
 --- !u!1 &4301364976155505636
 GameObject:
   m_ObjectHideFlags: 0
@@ -89,7 +104,7 @@ GameObject:
   - component: {fileID: 4492734338060051247}
   - component: {fileID: 7655495149705044288}
   m_Layer: 5
-  m_Name: Image
+  m_Name: image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -164,7 +179,7 @@ GameObject:
   - component: {fileID: 5150351455663041020}
   - component: {fileID: 6911676212104947843}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: energy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
