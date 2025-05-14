@@ -670,6 +670,7 @@ public class RogueLikeData
     {
         this.presetID=presetID;
     }
+
     public int GetMaxHero()
     {
         return maxHero;
@@ -678,4 +679,5 @@ public class RogueLikeData
     {
         this.maxHero = maxHero;
     }
+
 }

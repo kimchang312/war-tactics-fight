@@ -4,7 +4,6 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using System.Linq;
-using static UnityEngine.ParticleSystem;
 
 public class GameManager : MonoBehaviour
 {
@@ -187,7 +186,7 @@ private void Start()
         // 6) 타입별 처리
         if (newStage.stageType == StageType.Rest)
         {
-            restUI?.Show();
+            restUI.Show();
         }
         else if (newStage.stageType == StageType.Event)
         {
@@ -234,5 +233,7 @@ private void Start()
         currentStage.UnlockStage();
         foreach (var nxt in currentStage.connectedStages)
             nxt.UnlockStage();
+
+        
     }
 }
