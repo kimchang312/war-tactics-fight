@@ -22,6 +22,9 @@ public class RogueLikeData
     private int maxUnits = 5;
     private int maxHero = 2;
 
+    //실제 보유한 유닛
+    private List<RogueUnitDataBase> myTeam = new();
+    //전투에 사용되는 유닛
     private List<RogueUnitDataBase> myUnits = new();
     private List<RogueUnitDataBase> enemyUnits = new();
     private List<RogueUnitDataBase> savedMyUnits = new();
@@ -79,7 +82,7 @@ public class RogueLikeData
                                     .SelectMany(hashSet => hashSet)
                                     .ToList(),encounteredEvent.Values.ToList(),
                                     currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,
-                                    upgradeValues, sariStack,battleReward);
+                                    upgradeValues, sariStack,battleReward, nextUnitUniqueId);
         return data;
     }
     // 보유한 유닛 기력만 재설정 해서 반환
@@ -118,10 +121,11 @@ public class RogueLikeData
             currentStageType,
             upgradeValues,
             sariStack,
-            battleReward
+            battleReward,
+            nextUnitUniqueId
         );
         
-        myUnits = savedCopy;
+        myTeam = savedCopy;
         return data;
     }
 
@@ -133,7 +137,21 @@ public class RogueLikeData
     //내 유닛 하나 추가
     public void AddMyUnis(RogueUnitDataBase unit)
     {
-        myUnits.Add(unit);
+        int heroCount = 0;
+        int maxHeroCount = GetMaxHero();
+        foreach(var one in myTeam)
+        {
+            if(one.branchIdx==8) heroCount++;
+        }
+        if(heroCount >= maxHeroCount)
+        {
+            RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
+        }
+        else
+        {
+            myTeam.Add(unit);
+        }
+        
     }
 
     //상대 유닛 전부 수정하기
@@ -159,9 +177,13 @@ public class RogueLikeData
         WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
         if (relic != null && relicsByType.ContainsKey(relic.type))
         {
-            // HashSet을 사용한 빠른 중복 확인
             if (!relicIdsByType[relic.type].Contains(relicId))
             {
+                if (relicId == 53 && UnityEngine.Random.value <= 0.75f)
+                {
+                    RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
+                }
+
                 relicsByType[relic.type].Add(relic);
                 relicIdsByType[relic.type].Add(relicId); // 중복 관리 HashSet에도 추가
 
@@ -230,7 +252,7 @@ public class RogueLikeData
         }
     }
 
-    // 특정 ID의 유물을 가져오는 함수
+    // 특정 ID
     public WarRelic GetOwnedRelicById(int relicId)
     {
         foreach (var relicList in relicsByType.Values)
@@ -243,7 +265,7 @@ public class RogueLikeData
                 }
             }
         }
-        return null; // 보유한 유물 중 해당 ID의 유물이 없음
+        return null;
     }
 
     // 보유한 모든 유물을 반환하는 함수
@@ -326,10 +348,25 @@ public class RogueLikeData
     //골드 감소
     public void ReduceGold(int gold)
     {
-        int rentalGold = RogueLikeData.instance.GetOwnedRelicById(49) == null ? 0 : -500;
-        spentGold += gold;
-        currentGold =Math.Max(rentalGold, currentGold-gold);
+        bool hasLoanRelic = RogueLikeData.Instance.GetOwnedRelicById(49) != null;
+        int minGold = hasLoanRelic ? -500 : 0;
+
+        int availableGold = currentGold - gold;
+
+        if (availableGold < minGold)
+        {
+            // 초과 사용한 만큼 차감 불가능
+            int allowedUsage = currentGold - minGold;
+            spentGold += allowedUsage;
+            currentGold = minGold;
+        }
+        else
+        {
+            spentGold += gold;
+            currentGold = availableGold;
+        }
     }
+
 
     //현재 골드 수정
     public void SetCurrentGold(int gold)
@@ -612,7 +649,9 @@ public class RogueLikeData
             if (!isFreeUpgrade)
             {
                 // 단계별 비용 테이블
-                float isSale = GetOwnedRelicById(1) == null ? 0 : 0.2f;
+                float isSale = RelicManager.CheckRelicById(1) ? 0.2f : 0;
+                isSale += RelicManager.CheckRelicById(58) ? -0.2f : 0;
+
                 int cost = costTable[currentLevel];
 
                 if (currentGold < cost)
@@ -673,11 +712,31 @@ public class RogueLikeData
 
     public int GetMaxHero()
     {
+        int addHero = 0;
+        if (RelicManager.CheckRelicById(57))
+        {
+            addHero += 1;
+        }
         return maxHero;
     }
     public void SetMaxHero(int maxHero)
     {
         this.maxHero = maxHero;
     }
+
+    public List<RogueUnitDataBase> GetMyTeam()
+    {
+        return myTeam;
+    }
+    public void AddMyTeam(RogueUnitDataBase unit)
+    {
+        myTeam.Add(unit);
+    }
+    public void SetMyTeam(List<RogueUnitDataBase> units)
+    {
+        this.myTeam = units;
+    }
+
+   
 
 }
