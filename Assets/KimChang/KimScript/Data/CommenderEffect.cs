@@ -27,26 +27,21 @@ public static class CommenderEffect
             }
             else if(unit.branchIdx == 4)
             {
-
+                unit.effectDictionary[12] = new(12, 0, 1, -1);
             }
-
-            
         }
         foreach (var unit in enemyUnits)
         {
             if (unit.branchIdx == 5 || unit.branchIdx == 4)
             {
-                
-
+                unit.effectDictionary[12] = new(12, 0, 1, -1);
             }
         }
-        //모든 경기병,암살자 회피율 0.05 버프로 구현
     }
     //레논
     public static void CalculateLennon() 
     {
-        //적 전사가 전열에서 플레이어 유닛 처치 시 사기-2
-        //구현
+
     }
     //모리슨
     public static void CalcualteMorrison()
@@ -77,14 +72,11 @@ public static class CommenderEffect
     //커트
     public static void CalculateKurt() 
     { 
-        //모든 암살이 50%확률로 즉사
-        // 구현
+
     }
     //잰더
     public static void CalculateZander(bool isTeam,int index) 
     { 
-        //플레이어 유닛이 피해 받을때 마다 장갑 -2
-        //구현
         if(RogueLikeData.Instance.GetPresetID() == 54 && !isTeam)
         {
             var myUnits = RogueLikeData.Instance.GetMyUnits();
@@ -123,8 +115,6 @@ public static class CommenderEffect
     //액슬
     public static void CalculateAxl() 
     { 
-        //모든 유닛 체력 50이하 즉사 유닛 사망 관리에서 확인
-        //구현
         if(RogueLikeData.Instance.GetPresetID() == 55)
         {
             var allUnits = RogueLikeData.Instance.GetMyUnits();
@@ -205,8 +195,11 @@ public static class CommenderEffect
     //아마록
     public static void CalculateAmarok() 
     {
-        //적이 33%확률로 암살 구현
-        //돌격이 한번더 발동 버프로 구현 해야함
+        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+        foreach(var unit in enemyUnits)
+        {
+            unit.effectDictionary[11] = new(11, 0, 1, -1);
+        }
     }
     public static void CalculateBruennar() { }
     //시리온

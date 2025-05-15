@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using UnityEditor.Sprites;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
@@ -177,7 +178,7 @@ public class RogueUnitDataBase
         this.maxEnergy = maxEnergy;
         this.alive = alive;
         this.fStriked = fStriked;
-        this.UniqueId = uniqueId;
+        this.UniqueId = BuildUnitUniqueId(branchIdx,idx);
         this.effectDictionary = effectDictionary??new Dictionary<int, BuffDebuffData>();
     }
     public static RogueUnitDataBase ConvertToUnitDataBase(List<string> rowData,bool isTeam=true)
@@ -292,7 +293,7 @@ public class RogueUnitDataBase
         );
     }
 
-    public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam)
+    public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam=true)
     {
         int serial = RogueLikeData.Instance.GetNextUnitUniqueId();
         int teamBit = isTeam ? 0 : 1;
@@ -351,7 +352,7 @@ public class RogueUnitDataBase
     //내 유닛 정상화
     public static List<RogueUnitDataBase> SetMyUnitsNormalize()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
             unit.health = unit.maxHealth;
@@ -360,7 +361,6 @@ public class RogueUnitDataBase
             unit.mobility = unit.baseMobility;
             unit.range = unit.baseRange;
             unit.antiCavalry = unit.baseAntiCavalry;
-
         }
         return myUnits;
     }
@@ -368,8 +368,8 @@ public class RogueUnitDataBase
     public static void SetSavedUnitsByMyUnits()
     {
         RogueLikeData.Instance.ClearSavedMyUnits();
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        foreach(var unit in myUnits)
+        var myTeam = RogueLikeData.Instance.GetMyTeam();
+        foreach(var unit in myTeam)
         {
             int id = unit.idx;
             RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(id);
@@ -377,5 +377,13 @@ public class RogueUnitDataBase
         }
     }
 
+    public static List<RogueUnitDataBase> GetBaseUnits()
+    {
+        List<RogueUnitDataBase> units = new();
+        units.Add(UnitLoader.Instance.GetCloneUnitById(0));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(2));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(3));
+        return units;
+    }
 
 }

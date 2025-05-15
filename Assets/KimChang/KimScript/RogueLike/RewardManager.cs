@@ -33,6 +33,7 @@ public static class RewardManager
         reward.unitGrade.Add(grade);
         reward.relicGrade.Add(grade);
 
+        RelicManager.ConquerorSeal(ref reward,type,grade);
     }
     //전투 종료 시 사기 계산
     private static int EndBattleMorale(int result, List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits,StageType type)

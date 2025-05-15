@@ -216,6 +216,10 @@ public class StoreUI : MonoBehaviour
     private bool SetButtonState(Button btn, int price)
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
+        if (RogueLikeData.Instance.GetOwnedRelicById(49) != null)
+        {
+            gold += 500;
+        }
         btn.interactable = gold >= price;
         return btn.interactable;
     }
