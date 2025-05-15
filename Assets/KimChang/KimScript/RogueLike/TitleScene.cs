@@ -36,6 +36,7 @@ public class TitleScene : MonoBehaviour
         saveData.DeleteSaveFile();
         List<RogueUnitDataBase> units= RogueUnitDataBase.GetBaseUnits();
         RogueLikeData.Instance.SetMyTeam(units);
+        RogueLikeData.Instance.SetAllMyUnits(units);
         saveData.SaveDataFile();
         SceneManager.LoadScene("RLmap");
     }

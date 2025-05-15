@@ -353,6 +353,7 @@ public class RogueUnitDataBase
     public static List<RogueUnitDataBase> SetMyUnitsNormalize()
     {
         var myUnits = RogueLikeData.Instance.GetMyTeam();
+        
         foreach (var unit in myUnits)
         {
             unit.health = unit.maxHealth;

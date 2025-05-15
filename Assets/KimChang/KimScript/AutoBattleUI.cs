@@ -48,7 +48,8 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject loadingWindow;     
 
     [SerializeField] private GameObject relicBox;
-    [SerializeField] private GameObject abilityBox;
+    [SerializeField] private Transform myAbilityBox;
+    [SerializeField] private Transform enemyAbilityBox;
 
     [SerializeField] private GameObject itemToolTip;    
 
@@ -189,8 +190,8 @@ public class AutoBattleUI : MonoBehaviour
     {
         Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0)};
         Vector3[] enemyPositions = { new Vector3(200, 94, 0), new Vector3(152, -385, 0) };
-        Vector3 myRangeUnitPos = new Vector3(-833, -143, 0);
-        Vector3 enemyRangeUnitPos = new Vector3(837, -143, 0);
+        Vector3 myRangeUnitPos = new Vector3(-833, -95, 0);
+        Vector3 enemyRangeUnitPos = new Vector3(837, -95, 0);
 
         float firstSize = 250;
         float secondSize = 200;
@@ -226,7 +227,7 @@ public class AutoBattleUI : MonoBehaviour
     //원거리 유닛 생성
     private void CreateRangeUnit(int rangeUnitCount, Vector3 position, GameObject number, bool isMyTeam)
     {
-        float size = 200f;
+        //float size = 200f;
         string myTeam = isMyTeam ? "My" : "Enemy";
 
         Image numberImg = number.GetComponent<Image>();
@@ -240,8 +241,12 @@ public class AutoBattleUI : MonoBehaviour
 
         GameObject unit = objectPool.GetBattleUnit();
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(size - 10, size - 10);
+        //rectTransform.sizeDelta = new Vector2(size - 10, size - 10);
         rectTransform.anchoredPosition = position;
+
+        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
         // 이미지 설정 & 투명도 정상화
         Image img = unit.GetComponent<Image>();
@@ -252,7 +257,7 @@ public class AutoBattleUI : MonoBehaviour
         Transform childUnit = unit.transform.GetChild(0);
         RectTransform childRectTransform = childUnit.GetComponent<RectTransform>();
         Image childImg = childUnit.GetComponent<Image>();
-        childRectTransform.sizeDelta = new Vector2(size, size);
+        //childRectTransform.sizeDelta = new Vector2(size, size);
         childImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}SecondUnit");
 
         // 숫자 이미지 설정
@@ -330,13 +335,6 @@ public class AutoBattleUI : MonoBehaviour
     // 능력치 아이콘 생성
     private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
-        float posY = -103f;
-        float myTeamPosX = -280f;
-        float enemyTeamPosX = 88f;
-        float interval = 62f;
-
-        float teamPosX = isTeam ? myTeamPosX : enemyTeamPosX;
-
         var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool))
             .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
@@ -349,25 +347,38 @@ public class AutoBattleUI : MonoBehaviour
                 continue;
 
             GameObject iconImage = objectPool.GetAbility();
-            RectTransform rectTransform = iconImage.GetComponent<RectTransform>();
             ItemInformation itemInfo = iconImage.GetComponent<ItemInformation>();
             ExplainItem explainItem = iconImage.GetComponent<ExplainItem>();
-
-            rectTransform.anchoredPosition = new Vector2(teamPosX + (i * interval), posY);
-            rectTransform.localScale = Vector3.one;
 
             Image img = iconImage.GetComponent<Image>();
             img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
 
             // 이름 설정
             itemInfo.isItem = false;
-            itemInfo.abilityId = attr.Name == "defense"
-                ? 129
-                : GameTextData.GetIdxFromString(attr.Name) ?? int.Parse(attr.Name);
+            int? idx = GameTextData.GetIdxFromString(attr.Name);
+            if (attr.Name == "defense")
+            {
+                itemInfo.abilityId = 129;
+            }
+            else if (idx.HasValue)
+            {
+                itemInfo.abilityId = idx.Value;
+            }
+            else if (int.TryParse(attr.Name, out int parsedId))
+            {
+                itemInfo.abilityId = parsedId;
+            }
+            else
+            {
+                Debug.LogWarning($"abilityId 파싱 실패: {attr.Name}");
+                itemInfo.abilityId = -1; // 혹은 예외 처리 또는 기본값 지정
+            }
+
 
             explainItem.ItemToolTip =itemToolTip;
+            Transform abilityBox = isTeam? myAbilityBox: enemyAbilityBox;
 
-            iconImage.transform.SetParent(abilityBox.transform, false);
+            iconImage.transform.SetParent(abilityBox, false);
 
             i++;
         }
