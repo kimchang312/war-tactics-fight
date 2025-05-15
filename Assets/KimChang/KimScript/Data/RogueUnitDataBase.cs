@@ -352,7 +352,7 @@ public class RogueUnitDataBase
     //내 유닛 정상화
     public static List<RogueUnitDataBase> SetMyUnitsNormalize()
     {
-        var myUnits = RogueLikeData.Instance.GetMyTeam();
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
         
         foreach (var unit in myUnits)
         {

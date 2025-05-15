@@ -43,6 +43,10 @@ public class RelicManager
         {
             grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
         }
+        else if(grade == 7)
+        {
+            grade = UnityEngine.Random.value < 0.5f ? 10 : 1;
+        }
 
         var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
         var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();

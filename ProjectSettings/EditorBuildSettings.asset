@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/KimChang/KimScenes/ArrangeUnitsSecene.unity
     guid: e85f892caf75ea542809e74119273e64
   - enabled: 1
+    path: Assets/KimChang/KimScenes/Title.unity
+    guid: ae4324ccf23bbd04c9661089b1dfe571
+  - enabled: 1
     path: Assets/chan/chanScenes/Main.unity
     guid: 86ce24a51618a15408a83cda012d1d94
   - enabled: 1
