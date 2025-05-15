@@ -393,7 +393,8 @@ public class AutoBattleManager : MonoBehaviour
         int presetId = RogueLikeData.Instance.GetPresetID();
         if (presetId == -1) return;
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
-        Debug.Log(unitIds.Count);
+        StagePreset pre = StagePresetLoader.I.GetByID(presetId);
+        Debug.Log(presetId+" "+ pre.UnitCount + ""+unitIds.Count);
         enemyUnits = GetUnitsById(unitIds);
         //myUnits = GetUnitsById(unitIds);
         myUnits = RogueUnitDataBase.SetMyUnitsNormalize();

@@ -38,7 +38,7 @@ public static class RewardManager
     //전투 종료 시 사기 계산
     private static int EndBattleMorale(int result, List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits,StageType type)
     {
-        int morale = RogueLikeData.Instance.GetMorale();
+        int morale = 0;
         int addMorale = 0;
         int reduceMorale = 0;
         foreach (var unit in deadUnits)
@@ -84,6 +84,14 @@ public static class RewardManager
         if (RelicManager.CheckRelicById(33)) addMorale = (int)(reduceMorale * 1.2);
         //유산 56
         if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
+        if (RelicManager.CheckRelicById(59) && type ==StageType.Boss) 
+        {
+            var myUnits =RogueLikeData.Instance.GetMyUnits();
+            foreach (var unit in myUnits)
+            {
+                unit.energy = unit.maxEnergy;
+            }
+        }
         morale += addMorale + reduceMorale;
 
         return morale;

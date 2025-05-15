@@ -13,11 +13,16 @@ public class LineUpBar : MonoBehaviour
         foreach (Transform child in contentParent)
             Destroy(child.gameObject);
 
+
         MakeUnitList();
     }
     public void MakeUnitList()
     {
         
+        // 1) 데이터 가져오기
+        //var testunit = RogueUnitDataBase.GetRandomUnitByRarity(1);
+        //RogueLikeData.Instance.AddMyUnis(testunit);
+
         // 2) 데이터 꺼내오기
         var units = RogueLikeData.Instance.GetMyTeam();
         Debug.Log(units.Count);

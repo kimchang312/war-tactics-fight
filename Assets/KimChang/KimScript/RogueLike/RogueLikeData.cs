@@ -21,7 +21,7 @@ public class RogueLikeData
 
     private int maxUnits = 5;
     private int maxHero = 2;
-
+    
     //실제 보유한 유닛
     private List<RogueUnitDataBase> myTeam = new();
     //전투에 사용되는 유닛
@@ -124,7 +124,7 @@ public class RogueLikeData
             battleReward,
             nextUnitUniqueId
         );
-        
+        Debug.Log("저장할 유닛"+savedCopy.Count);
         myTeam = savedCopy;
         return data;
     }
@@ -137,6 +137,7 @@ public class RogueLikeData
     //내 유닛 하나 추가
     public void AddMyUnis(RogueUnitDataBase unit)
     {
+        
         int heroCount = 0;
         int maxHeroCount = GetMaxHero();
         foreach(var one in myTeam)
@@ -149,6 +150,7 @@ public class RogueLikeData
         }
         else
         {
+            Debug.Log("추가" + unit.unitName);
             myTeam.Add(unit);
         }
         
@@ -695,7 +697,11 @@ public class RogueLikeData
 
     public int GetMaxUnits()
     {
-        return maxUnits;
+        int addMax = 0;
+        if (RelicManager.CheckRelicById(66)) addMax += 1;
+        if (RelicManager.CheckRelicById(67)) addMax += 3;
+
+        return maxUnits+addMax;
     }
     public void SetMaxUnits(int maxUnits)
     {
@@ -730,10 +736,13 @@ public class RogueLikeData
     }
     public void AddMyTeam(RogueUnitDataBase unit)
     {
+        Debug.Log("추가");
         myTeam.Add(unit);
     }
     public void SetMyTeam(List<RogueUnitDataBase> units)
     {
+        Debug.Log(units.Count);
+        Debug.Log(myTeam.Count);
         this.myTeam = units;
     }
 

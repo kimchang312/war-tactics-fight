@@ -195,5 +195,34 @@ public class RelicManager
         else
             return relics.Where(id => ownedIds.Contains(id)).ToList();
     }
+    public static List<WarRelic> GetAvailableRelicsAllGrades(RelicAction action)
+    {
+        var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
+
+        return (action == RelicAction.Acquire)
+            ? WarRelicDatabase.relics.Where(r => !ownedIds.Contains(r.id)).ToList()
+            : WarRelicDatabase.relics.Where(r => ownedIds.Contains(r.id)).ToList();
+    }
+
+    public static WarRelic HandleRandomRelicAllGrades(RelicAction action)
+    {
+        var available = GetAvailableRelicsAllGrades(action);
+        if (available.Count == 0) return null;
+
+        var selected = available[UnityEngine.Random.Range(0, available.Count)];
+
+        if (action == RelicAction.Acquire)
+        {
+            RogueLikeData.Instance.AcquireRelic(selected.id);
+            ownedRelics.TryAdd(selected.id, selected);
+        }
+        else if (action == RelicAction.Remove)
+        {
+            RogueLikeData.Instance.RemoveRelicById(selected.id);
+            ownedRelics.Remove(selected.id);
+        }
+
+        return selected;
+    }
 
 }
