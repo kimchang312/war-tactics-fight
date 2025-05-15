@@ -60,9 +60,9 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         image = GetComponent<Image>();
     }
 
-    /// <summary>
+
     /// MapGenerator에서 할당한 노드 데이터를 기반으로 초기화
-    /// </summary>
+
     public void Setup(StageNode node)
     {
         level = node.level;
@@ -84,9 +84,9 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         presetID = node.presetID;
     }
 
-    /// <summary>
+
     /// 클릭 이벤트 처리 (IPointerClickHandler)
-    /// </summary>
+    
     public void OnPointerClick(PointerEventData eventData)
     {
         if (isLocked)
@@ -125,9 +125,9 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         if (button != null) button.interactable = true;
     }
 
-    /// <summary>
+
     /// 이 스테이지가 other와 연결되어 있는지 확인합니다.
-    /// </summary>
+
     public bool IsConnectedTo(StageNodeUI other)
     {
         return connectedStages.Contains(other);

@@ -18,7 +18,7 @@ public class UIGenerator : MonoBehaviour
     public float verticalSpacing = 150f;
 
     [Header("Margin Settings")]
-    public Vector2 startMargin = new Vector2(100f, -50f);
+    public Vector2 startMargin = new Vector2(80f, -70f);
 
     // key: "level_row" -> value: StageNodeUI 인스턴스
     private Dictionary<string, StageNodeUI> stageUIMap = new Dictionary<string, StageNodeUI>();

@@ -9,7 +9,11 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private GameObject eventManager;
     [SerializeField] private GameObject storeManager;
-    [SerializeField] private GameObject canvas;
+
+    [Header("Map UI & Enemy Info Panel")]
+    [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
+    [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
+    [SerializeField] private GameObject PlacePanel;
 
     public int currentStageX;
     public int currentStageY;
@@ -100,9 +104,7 @@ private void Start()
     {
     물어보고 추가 - 내용은 보유 리롤 횟수 접근
     }*/
-    /// <summary>
-    /// StageNodeUI가 클릭되었을 때 호출됩니다.
-    /// </summary>
+    
     public void OnStageClicked(StageNodeUI clickedStage)
     {
 
@@ -141,9 +143,9 @@ private void Start()
         }
     }
 
-    /// <summary>
-    /// 내부: 현재 스테이지를 변경(이동)하고, 잠금/해제 로직을 실행합니다.
-    /// </summary>
+
+    ///현재 스테이지를 변경(이동)하고, 잠금/해제 로직을 실행합니다.
+
     private void SetCurrentStage(StageNodeUI newStage)
     {
         allStages = FindObjectsOfType<StageNodeUI>().ToList();
@@ -163,8 +165,7 @@ private void Start()
             newStage.stageType == StageType.Elite ||
             newStage.stageType == StageType.Boss)
         {
-            canvas.SetActive(false);
-            SceneManager.LoadScene("AutoBattleScene");
+            enemyInfoPanel.SetActive(true);
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---
@@ -195,9 +196,9 @@ private void Start()
         }
     }
 
-    /// <summary>
+
     /// 플레이어 마커를 해당 스테이지 UI 위치로 이동시킵니다.
-    /// </summary>
+
     private void MovePlayerMarkerTo(StageNodeUI target)
     {
         if (playerMarker == null)
@@ -208,7 +209,7 @@ private void Start()
 
     public void InitializeStageLocks()
     {
-        canvas.SetActive(true );
+        mapCanvas.SetActive(true);
         // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
         var all = FindObjectsOfType<StageNodeUI>().ToList();
         // ② 일단 전부 잠급니다
@@ -227,6 +228,8 @@ private void Start()
         }
 
         // 그 외(맵 복귀) → 마지막 찍힌 currentStage + 연결된 다음 노드만 언락
+        enemyInfoPanel.SetActive(false); //250515 적 정보 패널 false
+
         currentStage.UnlockStage();
         foreach (var nxt in currentStage.connectedStages)
             nxt.UnlockStage();
