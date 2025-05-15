@@ -7,12 +7,15 @@ public class UnitUIPrefab : MonoBehaviour
     public Image unitImage;
     public TextMeshProUGUI energyText;
 
-    public void Setup(RogueUnitDataBase unit)
+    public void SetupIMG(RogueUnitDataBase unit)
     {
-        // 1) 아이콘
+        // 아이콘
         unitImage.sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");     // data에 sprite 프로퍼티가 있다고 가정
-        Debug.Log(unit.unitImg);
-        // 2) 기력 텍스트 "현재/최대"
+    }
+    public void SetupEnergy(RogueUnitDataBase unit)
+    {
+
+        // 기력 텍스트 "현재/최대"
         energyText.text = $"{unit.energy}";
     }
 }
