@@ -9,27 +9,31 @@ public class LineUpBar : MonoBehaviour
 
     private void OnEnable()
     {
-        RefreshUnitList();
-    }
-    public void RefreshUnitList()
-    {
         // 1) 기존에 있던 UI 전부 지우기
         foreach (Transform child in contentParent)
             Destroy(child.gameObject);
 
+
+        MakeUnitList();
+    }
+    public void MakeUnitList()
+    {
+        
         // 1) 데이터 가져오기
         //var testunit = RogueUnitDataBase.GetRandomUnitByRarity(1);
         //RogueLikeData.Instance.AddMyUnis(testunit);
 
         // 2) 데이터 꺼내오기
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
+        Debug.Log(units.Count);
 
         // 3) 하나씩 Instantiate + Setup
         foreach (var unit in units)
         {
             var go = Instantiate(unitUIPrefab, contentParent);
             var ui = go.GetComponent<UnitUIPrefab>();
-            ui.Setup(unit);
+            ui.SetupIMG(unit);
+            ui.SetupEnergy(unit);
         }
     }
 }
