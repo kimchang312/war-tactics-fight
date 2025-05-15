@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using UnityEditor.Presets;
 
 public class GameManager : MonoBehaviour
 {
@@ -61,6 +62,7 @@ public class GameManager : MonoBehaviour
         save.LoadData();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
+        UnitLoader.Instance.LoadUnitsFromJson();
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -82,33 +84,9 @@ private void Start()
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
             InitializeStageLocks();
     }
-
-    public int CurrentGold
-    {
-        get => RogueLikeData.Instance.GetCurrentGold();
-        set => RogueLikeData.Instance.SetCurrentGold(value);
-    }
-
-    public int SpentGold
-    {
-        get => RogueLikeData.Instance.GetSpentGold();
-        set => RogueLikeData.Instance.SetSpentGold(value);
-    }
-    public int PlayerMorale
-    {
-        get => RogueLikeData.Instance.GetMorale();
-        set => RogueLikeData.Instance.SetMorale(value);
-    }
-
-    /*public int RerollCount
-    {
-    물어보고 추가 - 내용은 보유 리롤 횟수 접근
-    }*/
     
     public void OnStageClicked(StageNodeUI clickedStage)
     {
-
-
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
         // 잠겨 있으면 아무 동작 안 함
@@ -165,7 +143,17 @@ private void Start()
             newStage.stageType == StageType.Elite ||
             newStage.stageType == StageType.Boss)
         {
+
             enemyInfoPanel.SetActive(true);
+            var enemies = LoadEnemyUnits(newStage.PresetID);
+            var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
+
+            string cmdName = preset.Commander ?? "";
+            /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
+                              ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
+                              : "";*/
+            var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
+            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName/*, cmdSkill*/);
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---
@@ -235,5 +223,21 @@ private void Start()
             nxt.UnlockStage();
 
         
+    }
+    private List<RogueUnitDataBase> LoadEnemyUnits(int presetID)
+    {
+        // 1) StagePresetLoader에서 프리셋 가져오기
+        var preset = StagePresetLoader.I.GetByID(presetID);
+        if (preset == null)
+        {
+            Debug.LogError($"[GameManager] Preset {presetID} 을(를) 찾을 수 없습니다.");
+            return new List<RogueUnitDataBase>();
+        }
+
+        // 2) 프리셋의 UnitList(int idx 리스트) → UnitLoader로부터 복제해서 반환
+        return preset.UnitList
+                     .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, /*isTeam=*/ false))
+                     .Where(u => u != null)
+                     .ToList();
     }
 }

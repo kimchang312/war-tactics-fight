@@ -60,9 +60,6 @@ public class StagePresetLoader : MonoBehaviour
         try
         {
             presets = JsonConvert.DeserializeObject<List<StagePreset>>(ta.text);
-            Debug.Log($"[{nameof(StagePresetLoader)}] 프리셋 {presets[0].PresetID}개 로드 완료");
-            Debug.Log($"[{nameof(StagePresetLoader)}] 프리셋 {presets[1].PresetID}개 로드 완료");
-            Debug.Log($"[{nameof(StagePresetLoader)}] 프리셋 {presets[2].PresetID}개 로드 완료");
         }
         catch (JsonException je)
         {
@@ -93,7 +90,6 @@ public class StagePresetLoader : MonoBehaviour
                 .ToList();
         }
     }
-    // ID 로 딱 하나 꺼내는 용
     public StagePreset GetByID(int id)
         => presets.FirstOrDefault(p => p.PresetID == id);
 }
