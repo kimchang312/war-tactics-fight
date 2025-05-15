@@ -40,7 +40,12 @@ public class StoreUI : MonoBehaviour
 
     private int CalculateDiscountedPrice(StoreItemData item)
     {
-        return (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax) * GetSaleRatio());
+        int cost =  (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
+        float sale = 1;
+        sale += RelicManager.CheckRelicById(0) ? 0.2f : 0;
+        sale += RelicManager.CheckRelicById(58) ? -0.2f : 0;
+        cost = (int)(cost * sale);
+        return cost;
     }
 
     private void ShowUnitUI()

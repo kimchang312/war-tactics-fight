@@ -18,6 +18,7 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private GameObject selectRewards;
     [SerializeField] private Button rerollBtn;
     [SerializeField] private Button skipBtn;
+    [SerializeField] private UnitSelectUI unitSelectUI;
 
     private void OnEnable()
     {
@@ -86,6 +87,7 @@ public class RewardUI : MonoBehaviour
         skipBtn.onClick.RemoveAllListeners();
         rerollBtn.onClick.AddListener(RerollReward);
         skipBtn.onClick.AddListener(SkipSelectReward);
+        unitSelectUI.gameObject.SetActive(false);
     }
 
     private void OpenReward(bool isUnit)
@@ -156,7 +158,10 @@ public class RewardUI : MonoBehaviour
 
         if (!HasUnitReward(reward) && !HasRelicReward(reward))
         {
-            LeaveReward();
+            backFrame.SetActive(true);
+            rewardSelectObj.SetActive(false);
+            unitResult.gameObject.SetActive(false);
+            relicResult.gameObject.SetActive(false);
         }
 
         int reroll = RogueLikeData.Instance.GetRerollChance();
@@ -181,6 +186,7 @@ public class RewardUI : MonoBehaviour
     private void ClickReward(ItemInformation info)
     {
         if (info.isItem) return;
+        BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         if (info.type == RewardType.UnitGrade || info.type == RewardType.NewUnit || info.type == RewardType.ChangeUnit)
         {
             RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(info.unitId);
@@ -189,6 +195,11 @@ public class RewardUI : MonoBehaviour
         else if (info.type == RewardType.RelicGrade || info.type == RewardType.NewRelic)
         {
             RogueLikeData.Instance.AcquireRelic(info.relicId);
+            if (info.relicId == 79)
+            {
+                unitSelectUI.gameObject.SetActive(true);
+                unitSelectUI.OpenSelectUnitWindow(SkipSelectReward);
+            }
         }
 
         SkipSelectReward();
@@ -217,8 +228,7 @@ public class RewardUI : MonoBehaviour
     {
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
-        if (info.isItem) return;
-
+        //if (info.isItem) return;       
         switch (info.type)
         {
             case RewardType.UnitGrade: reward.unitGrade.RemoveAt(0); break;
@@ -227,7 +237,6 @@ public class RewardUI : MonoBehaviour
             case RewardType.RelicGrade: reward.relicGrade.RemoveAt(0); break;
             case RewardType.NewRelic: reward.relicIds.RemoveAt(0); break;
         }
-
         if (HasUnitReward(reward)){
             OpenReward(true);
         }
@@ -236,12 +245,10 @@ public class RewardUI : MonoBehaviour
         }
         else
         {
-            RogueLikeData.Instance.ClearBattleReward();
-            new SaveData().SaveDataFile();
-            if (SceneManager.GetActiveScene().name != "RLmap")
-                SceneManager.LoadScene("RLmap");
-            else
-                gameObject.SetActive(false);
+            backFrame.SetActive(true);
+            rewardSelectObj.SetActive(false);
+            unitResult.gameObject.SetActive(false);
+            relicResult.gameObject.SetActive(false);
         }
     }
 

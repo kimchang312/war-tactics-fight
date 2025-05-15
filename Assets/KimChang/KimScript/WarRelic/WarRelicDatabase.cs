@@ -94,7 +94,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(70, "선봉대 군화", 1, "아군의 첫 전열 유닛에 한해서 기동력이 3 증가한다.", RelicType.StateBoost, () =>VanguardBoots()));
         relics.Add(new WarRelic(71, "녹슨 쇠말뚝", 1, "아군의 모든 공격마다 장갑을 무시하는 고정 피해 5가 추가된다.", RelicType.BattleActive, () =>RustyIronStake()));
         relics.Add(new WarRelic(72, "수상한 부등변다면체", 10, "전투에 아군을 도와주는 영웅 유닛을 무작위로 하나 소환한다. 단, 10% 확률로 적군에 소환된다.", RelicType.StateBoost, () => SuspiciousScalenePolyhedron()));
-        relics.Add(new WarRelic(73, "뭐든지 들어있는 상자", 1, "모든 유산 중에 하나를 무작위로 얻는다.", RelicType.SpecialEffect, () =>AnythingBox()));
+        relics.Add(new WarRelic(73, "뭐든지 들어있는 상자", 1, "모든 유산 중에 하나를 무작위로 얻는다.", RelicType.GetEffect, () =>AnythingBox()));
         relics.Add(new WarRelic(74, "신성한 문서", 1, "'순교' 기술이 다음 순서 유닛의 체력을 이 유닛의 공격력만큼 증가시킨다.", RelicType.BattleActive, () =>SacredDocument()));
         relics.Add(new WarRelic(75, "푯대", 1, "기동력으로 증가하는 회피율이 2배가 된다.", RelicType.StateBoost, () =>Signpost()));
         relics.Add(new WarRelic(76, "경량 갑옷", 1, "경갑 특성을 지닌 유닛의 회피율이 5% 증가한다.", RelicType.StateBoost, () =>LightWeightArmor()));
@@ -928,7 +928,8 @@ public static class WarRelicDatabase
     //뭐든지 들어있는 상자 73
     private static void AnythingBox()
     {
-
+        RogueLikeData.Instance.GetOwnedRelicById(73).used = true;
+        RelicManager.HandleRandomRelicAllGrades(RelicManager.RelicAction.Acquire);
     }
     //신성한 문서 74
     private static void SacredDocument()
@@ -978,7 +979,6 @@ public static class WarRelicDatabase
     //기이한 조각 79
     private static void StrangePiece()
     {
-
     }
     //합금 박차 80
     private static void AlloySpur()
