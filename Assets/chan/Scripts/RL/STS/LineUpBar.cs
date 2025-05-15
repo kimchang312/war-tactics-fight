@@ -16,13 +16,11 @@ public class LineUpBar : MonoBehaviour
         // 1) 기존에 있던 UI 전부 지우기
         foreach (Transform child in contentParent)
             Destroy(child.gameObject);
-
-        // 1) 데이터 가져오기
         var testunit = RogueUnitDataBase.GetRandomUnitByRarity(1);
         RogueLikeData.Instance.AddMyUnis(testunit);
-
         // 2) 데이터 꺼내오기
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
+        Debug.Log(units.Count);
 
         // 3) 하나씩 Instantiate + Setup
         foreach (var unit in units)

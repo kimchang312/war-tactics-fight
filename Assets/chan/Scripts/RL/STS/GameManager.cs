@@ -20,9 +20,6 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance { get; private set; }
 
-    // 스테이지 프리셋 변경 이벤트
-    public event Action<int> OnPresetChanged;
-
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
     public RectTransform playerMarker;
