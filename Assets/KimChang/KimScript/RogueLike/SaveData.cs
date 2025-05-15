@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static RogueLikeData;
 
 [System.Serializable]
@@ -22,9 +23,10 @@ public class SavePlayerData
     public UnitUpgrade[] unitUpgrades; 
     public int sariStack;
     public BattleRewardData battleReward;
+    public int nextUniqueId;
     public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds,
         int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
-        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward)
+        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward,int nextUniqueId)
     {
         this.id = id;
         this.myUnits = myUnits;
@@ -40,6 +42,7 @@ public class SavePlayerData
         this.unitUpgrades = unitUpgrades;
         this.sariStack = sariStack;
         this.battleReward = battleReward;
+        this.nextUniqueId = nextUniqueId;
     }
 }
 
@@ -75,7 +78,7 @@ public class SaveData
 
             // 1. 내 유닛 전부 수정하기
             List<RogueUnitDataBase> myUnits = new(savePlayerData.myUnits);
-            RogueLikeData.Instance.SetAllMyUnits(myUnits);
+            RogueLikeData.Instance.SetMyTeam(myUnits);
             foreach (var unit in myUnits)
             {
                 unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
@@ -98,4 +101,39 @@ public class SaveData
         }
     }
 
+    public void DeleteSaveFile()
+    {
+        try
+        {
+            if (File.Exists(_filePath))
+            {
+                File.Delete(_filePath);
+                Debug.Log("저장 파일 삭제 성공!");
+            }
+            else
+            {
+                Debug.LogWarning("삭제할 저장 파일이 없습니다.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"저장 파일 삭제 실패: {ex.Message}");
+        }
+    }
+    private void LoadRogueLike()
+    {
+        string filePath = Application.dataPath + "/KimChang/Json/PlayerData.json";
+
+        if (File.Exists(filePath))
+        {
+            LoadData();
+            SceneManager.LoadScene("RLmap");
+        }
+        else
+        {
+            Debug.LogWarning("로드할 데이터가 없습니다.");
+            // 필요하면 사용자 알림 UI 추가
+            // e.g., ShowPopup("저장된 데이터가 없습니다.");
+        }
+    }
 }

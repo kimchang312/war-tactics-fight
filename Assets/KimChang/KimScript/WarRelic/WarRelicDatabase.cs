@@ -14,7 +14,7 @@ public static class WarRelicDatabase
     private static System.Random random = new();
     static WarRelicDatabase()
     {
-        relics.Add(new WarRelic(0, "할인패", 1, "용병단과 상단의 금화 가격이 20% 감소한다.", RelicType.SpecialEffect, () => DiscountCard()));
+        relics.Add(new WarRelic(0, "할인쿠폰", 1, "상단의 금화 가격이 20% 감소한다.", RelicType.SpecialEffect, () => DiscountCard()));
         relics.Add(new WarRelic(1, "연구 예산 지원금", 1, "군사 아카데미의 강화 비용이 20% 감소한다.", RelicType.SpecialEffect, () => SolidAnvil()));
         relics.Add(new WarRelic(2, "인내력의 깃발", 1, "기력이 감소할 때마다 25% 확률로 감소하지 않는다.", RelicType.SpecialEffect, () => FlagOfEndurance()));
         relics.Add(new WarRelic(3, "추가 보급 명령서", 1, "병영에서 유닛 훈련에 요구하는 턴이 1 감소한다. (1 미만으로 내려가지 않음)", RelicType.SpecialEffect, () => ExtraSupplyOrder()));
@@ -33,7 +33,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(15, "수호자의 훈장", 10, "수호 스킬을 가진 아군 유닛의 장갑이 4 증가하고, 공격 받을때 피해를 둘로 나눠서 받는다.", RelicType.ActiveState, () => MedalOfImperialGuard()));
         relics.Add(new WarRelic(16, "헤르메스 신발", 10, "경갑 유닛의 기동력이 8 증가한다.", RelicType.StateBoost, () => VeryLightMilitaryPants()));
         relics.Add(new WarRelic(17, "팔랑크스 전술서", 10, "창병 유닛의 대기병이 50% 증가한다.", RelicType.StateBoost, () => PhalanxTacticsBook()));
-        relics.Add(new WarRelic(18, "정예 기병대 안장", 10, "기병 유닛에게 \"맹진\" 특성을 부여한다. 맹진: 4회 공격마다 돌격을 다시 시전한다.", RelicType.StateBoost, () => EliteCavalrySaddle()));
+        //relics.Add(new WarRelic(18, "정예 기병대 안장", 10, "기병 유닛에게 \"맹진\" 특성을 부여한다. 맹진: 4회 공격마다 돌격을 다시 시전한다.", RelicType.StateBoost, () => EliteCavalrySaddle()));
         relics.Add(new WarRelic(19, "정예 궁병 부대 깃털모자", 10, "궁병의 공격력이 20% 증가하며, 암살 기술에 대한 회피율이 3배 증가한다.", RelicType.ActiveState, () => EliteArcherFeatherHat()));
        
         relics.Add(new WarRelic(20, "민병대 나팔", 10, "희귀도 1 유닛의 체력과 공격력이 15% 증가한다.", RelicType.StateBoost, () => MilitiaHorn()));
@@ -62,11 +62,11 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(41, "파괴공작용 대포", 1, "일반, 엘리트 전투 시작 전에 적의 체력을 10% 감소시킨다.", RelicType.StateBoost, () => CannonForSabotage()));
         relics.Add(new WarRelic(42, "자율 개발 명령서", 1, "획득 시 무작위의 병종 강화 3종을 1단계 강화시킨다.", RelicType.GetEffect, () => AutonomousDevelopmentOrder()));
         relics.Add(new WarRelic(43, "해진 정찰 보고서", 1, "엘리트, 보스 전투에서 아군이 주는 피해가 15% 증가한다.", RelicType.StateBoost, () => EnemyGeneralScoutReport()));
-        relics.Add(new WarRelic(44, "추가 징병 계획서", 1, "용병단의 판매 유닛 슬롯 수가 4 증가한다.", RelicType.SpecialEffect, () => MistakenOrderReceipt()));
+        //relics.Add(new WarRelic(44, "추가 징병 계획서", 1, "용병단의 판매 유닛 슬롯 수가 4 증가한다.", RelicType.SpecialEffect, () => MistakenOrderReceipt()));
         relics.Add(new WarRelic(45, "전술적 단일화 교본", 10, "배치한 유닛의 병종이 한 종류일 경우 유닛의 체력과 공격력이 10% 증가하고, 경갑 유닛의 기동력이 5, 중갑 유닛의 장갑이 5 증가한다.", RelicType.StateBoost, () => TacticalUnificationManual()));
         relics.Add(new WarRelic(46, "기술 비급서", 1, "아군 유닛이 기술로 주는 피해가 20% 증가한다.", RelicType.BattleActive, () => TechnicalManual()));
         relics.Add(new WarRelic(47, "보물지도", 1, "획득 시 다음에 진입한 이벤트 지역이 보물 지역으로 변경된다.", RelicType.GetEffect, () => TreasureMap()));
-        relics.Add(new WarRelic(48, "무지개 열쇠", 1, "한 챕터에 두번, 길이 이어지지 않은 지역으로 이동할 수 있다.", RelicType.SpecialEffect, () => RainbowKey()));
+        //relics.Add(new WarRelic(48, "무지개 열쇠", 1, "한 챕터에 두번, 길이 이어지지 않은 지역으로 이동할 수 있다.", RelicType.SpecialEffect, () => RainbowKey()));
         relics.Add(new WarRelic(49, "재상의 보증서", 1, "금화를 소모할 때, 500금화까지 빌려서 사용할 수 있게된다.", RelicType.SpecialEffect, () => CreditAuthorization()));
         
         relics.Add(new WarRelic(50, "순금 나팔", 10, "금화를 소모할 때 소모한 금화 100당 아군 유닛의 공격력이 1% 증가한다. 소모한 금화량이 저장되고 소지한 금화로 취급되어 관련 효과를 적용받을 수 있다.", RelicType.StateBoost, () => GoldenHorn()));
@@ -258,16 +258,16 @@ public static class WarRelicDatabase
         foreach (var unit in units)
         {
             unit.maxHealth += MathF.Round(unit.baseHealth*0.3f);
-            unit.health = unit.maxHealth; // 체력 증가
-            unit.attackDamage +=MathF.Round(unit.baseAttackDamage * 0.3f); // 공격력 증가
+            unit.health = unit.maxHealth;
+            unit.attackDamage +=MathF.Round(unit.baseAttackDamage * 0.3f);
 
-            if (unit.rangedAttack) // 원거리 공격 유닛의 경우
+            if (unit.rangedAttack)
             {
-                unit.range++; // 사거리 증가
+                unit.range++;
             }
         }
 
-        RogueLikeData.Instance.SetAllMyUnits(units); // 변경된 데이터 저장
+        RogueLikeData.Instance.SetAllMyUnits(units);
     }
 
 

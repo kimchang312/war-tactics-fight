@@ -73,6 +73,10 @@ public class EventManager
                 if (form == RequireForm.None)
                 {
                     int gold = RogueLikeData.Instance.GetCurrentGold();
+                    if(RogueLikeData.Instance.GetOwnedRelicById(49) != null)
+                    {
+                        gold += 500;
+                    }
                     return InRange(gold, count);
                 }
                 break;
@@ -93,7 +97,7 @@ public class EventManager
                     {
                         if (value.Contains("~"))
                         {
-                            var myUnits = RogueLikeData.Instance.GetMyUnits();
+                            var myUnits = RogueLikeData.Instance.GetMyTeam();
 
                             var (min, max) = ParseRange(value);
                             int unitCount = 0;
@@ -109,7 +113,7 @@ public class EventManager
                         }
                         else if (!string.IsNullOrEmpty(value))
                         {
-                            var myUnits = RogueLikeData.Instance.GetMyUnits();
+                            var myUnits = RogueLikeData.Instance.GetMyTeam();
                             int rarity = int.Parse(value);
                             int unitCount = 0;
                             foreach (var unit in myUnits)
@@ -122,14 +126,14 @@ public class EventManager
                             }
                             return false;
                         }
-                        return RogueLikeData.Instance.GetMyUnits().Count >= requireCount;
+                        return RogueLikeData.Instance.GetMyTeam().Count >= requireCount;
                     }
                     else if (form == RequireForm.Random)
                     {
 
                         if (value.Contains("~"))
                         {
-                            var myUnits = RogueLikeData.Instance.GetMyUnits();
+                            var myUnits = RogueLikeData.Instance.GetMyTeam();
 
                             var (min, max) = ParseRange(value);
                             int unitCount = 0;
@@ -145,7 +149,7 @@ public class EventManager
                         }
                         else if (!string.IsNullOrEmpty(value))
                         {
-                            var myUnits = RogueLikeData.Instance.GetMyUnits();
+                            var myUnits = RogueLikeData.Instance.GetMyTeam();
                             int rarity = int.Parse(value);
                             int unitCount = 0;
 
@@ -159,11 +163,11 @@ public class EventManager
                             }
                             return false;
                         }
-                        return RogueLikeData.Instance.GetMyUnits().Count >= requireCount;
+                        return RogueLikeData.Instance.GetMyTeam().Count >= requireCount;
                     }
                     else if (form == RequireForm.Special)
                     {
-                        return RogueLikeData.Instance.GetMyUnits().Count >= requireCount;
+                        return RogueLikeData.Instance.GetMyTeam().Count >= requireCount;
                     }
                     break;
                 }
@@ -200,7 +204,7 @@ public class EventManager
                 {
                     if (!string.IsNullOrEmpty(value))
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var myUnits = RogueLikeData.Instance.GetMyTeam();
                         int energyValue = int.Parse(value);
                         int unitCount= 0;
                         int requireCount = int.Parse(count);
@@ -219,7 +223,7 @@ public class EventManager
                 {
                     if(string.IsNullOrEmpty(value)) return true;
 
-                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    var myUnits = RogueLikeData.Instance.GetMyTeam();
                     int energyValue = int.Parse(value);
                     int unitCount = 0;
                     int requireCount = int.Parse(count);
@@ -236,7 +240,7 @@ public class EventManager
             case RequireThing.AttackDamage:
                 {
                     int threshold = int.Parse(count);
-                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    var myUnits = RogueLikeData.Instance.GetMyTeam();
                     foreach (var unit in myUnits)
                     {
                         if (unit.attackDamage >= threshold)
@@ -258,6 +262,10 @@ public class EventManager
     private static bool CheckSpecialRequire(EventData eventData)
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
+        if (RogueLikeData.Instance.GetOwnedRelicById(49) != null)
+        {
+            gold += 500;
+        }
         int morale = RogueLikeData.Instance.GetMorale();
         if (eventData.eventId == 5)
         {
@@ -279,7 +287,6 @@ public class EventManager
         {
             if(gold >=100 || morale >=6) return true;
         }
-        // 그 외 조건 생기면 추가
         return false;
     }
 
@@ -362,7 +369,7 @@ public class EventManager
                     }
                     else if (form == RequireForm.Random)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var myUnits = RogueLikeData.Instance.GetMyTeam();
                         int energy = int.Parse(value);
                         int unitCount = int.Parse(value);
 
@@ -392,10 +399,10 @@ public class EventManager
                 case RequireThing.Unit:
                     if(form == RequireForm.Select)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var myUnits = RogueLikeData.Instance.GetMyTeam();
                         var selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
                         myUnits.RemoveAll(selectedUnits.Contains);
-                        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+                        RogueLikeData.Instance.SetMyTeam(myUnits);
                         foreach(var unit in selectedUnits)
                         {
                             requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
@@ -403,7 +410,7 @@ public class EventManager
                     }
                     else if (form == RequireForm.Random)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var myUnits = RogueLikeData.Instance.GetMyTeam();
                         int maxRarity = int.Parse(value);
                         int unitCount = int.Parse(count);
 
@@ -415,9 +422,9 @@ public class EventManager
                             .ToList();
 
                         // 선택된 유닛 제거
-                        var currentUnits = RogueLikeData.Instance.GetMyUnits(); // 새로 가져오기
+                        var currentUnits = RogueLikeData.Instance.GetMyTeam(); // 새로 가져오기
                         currentUnits.RemoveAll(unit => candidates.Contains(unit));
-                        RogueLikeData.Instance.SetAllMyUnits(currentUnits);
+                        RogueLikeData.Instance.SetMyTeam(currentUnits);
                         foreach (var unit in candidates)
                         {
                             RogueLikeData.Instance.AddSelectedUnits(unit);
@@ -435,7 +442,7 @@ public class EventManager
                     }
                     else if(form == RequireForm.None)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var myUnits = RogueLikeData.Instance.GetMyTeam();
                         int rarity = int.Parse(value);
                         var candidates = myUnits.Where(unit=>unit.rarity==rarity);
                         myUnits.RemoveAll(candidates.Contains);
@@ -546,7 +553,7 @@ public class EventManager
                     }
                     else if(form == ResultForm.All)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var myUnits = RogueLikeData.Instance.GetMyTeam();
                         foreach(var unit in myUnits)
                         {
                             unit.energy = unit.maxEnergy;
@@ -671,7 +678,7 @@ public class EventManager
                             List<RogueUnitDataBase> validUnits;
                             if (unitRarity == 4)
                             {
-                                var myUnits = RogueLikeData.Instance.GetMyUnits();
+                                var myUnits = RogueLikeData.Instance.GetMyTeam();
                                 var myUnitIdxSet = System.Linq.Enumerable.ToHashSet(myUnits.Select(u => u.idx)); // 중복 탐색 최적화
 
                                 validUnits = allUnits
@@ -731,7 +738,7 @@ public class EventManager
                         if (UnityEngine.Random.value < chance)
                         {
                             // 중복되지 않은 영웅 유닛만 필터링
-                            var myUnits = RogueLikeData.Instance.GetMyUnits();
+                            var myUnits = RogueLikeData.Instance.GetMyTeam();
                             var myUnitIdxSet = new HashSet<int>(myUnits.Select(u => u.idx));
 
                             validUnits = allUnits
@@ -793,7 +800,7 @@ public class EventManager
                     else if(form == ResultForm.Random)
                     {
                         int unitCount = int.Parse(count);
-                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var myUnits = RogueLikeData.Instance.GetMyTeam();
 
                         // rarity < 4 조건을 만족하는 유닛 필터링
                         var candidates = myUnits.Where(u => u.rarity < 4).ToList();
@@ -833,7 +840,7 @@ public class EventManager
                                 }
                             case 2: // 무작위 유닛 전직
                                 {
-                                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                                    var myUnits = RogueLikeData.Instance.GetMyTeam();
                                     if (myUnits.Count > 0)
                                     {
                                         var unit = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
@@ -841,7 +848,7 @@ public class EventManager
                                         if (promoted != null)
                                         {
                                             myUnits[myUnits.IndexOf(unit)] = promoted;
-                                            RogueLikeData.Instance.SetAllMyUnits(myUnits);
+                                            RogueLikeData.Instance.SetMyTeam(myUnits);
                                             resultLog += $"- '{unit.unitName}'이(가) 전직하여 '{promoted.unitName}'이(가) 되었습니다.\n";
                                         }
                                     }
@@ -849,7 +856,7 @@ public class EventManager
                                 }
                             case 3: // 무작위 유닛 기력을 1로
                                 {
-                                    var myUnits = RogueLikeData.Instance.GetMyUnits().Where(u => u.energy > 1).ToList();
+                                    var myUnits = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy > 1).ToList();
                                     if (myUnits.Count > 0)
                                     {
                                         var target = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
@@ -863,7 +870,7 @@ public class EventManager
                                     var (min, max) = ParseRange("1~3");
 
                                     var allUnits = UnitLoader.Instance.GetAllCachedUnits();
-                                    var myIdxSet = Enumerable.ToHashSet(RogueLikeData.Instance.GetMyUnits().Select(u => u.idx));
+                                    var myIdxSet = Enumerable.ToHashSet(RogueLikeData.Instance.GetMyTeam().Select(u => u.idx));
                                     var candidates = allUnits.Where(u => u.rarity >= min && u.rarity <= max && !myIdxSet.Contains(u.idx)).ToList();
 
                                     if (candidates.Count > 0)
@@ -906,7 +913,7 @@ public class EventManager
                         int rarity = unit.rarity;
 
                         // 희생 유닛 제거
-                        var myUnits = RogueLikeData.Instance.GetMyUnits();
+                        var myUnits = RogueLikeData.Instance.GetMyTeam();
                         int index = myUnits.IndexOf(unit);
 
                         switch (rarity)
