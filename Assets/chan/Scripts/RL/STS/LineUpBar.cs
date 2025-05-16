@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
 
 public class LineUpBar : MonoBehaviour
 {
@@ -13,7 +14,6 @@ public class LineUpBar : MonoBehaviour
         foreach (Transform child in contentParent)
             Destroy(child.gameObject);
 
-
         MakeUnitList();
     }
     public void MakeUnitList()
@@ -25,15 +25,40 @@ public class LineUpBar : MonoBehaviour
 
         // 2) 데이터 꺼내오기
         var units = RogueLikeData.Instance.GetMyTeam();
-        Debug.Log(units.Count);
 
         // 3) 하나씩 Instantiate + Setup
         foreach (var unit in units)
         {
             var go = Instantiate(unitUIPrefab, contentParent);
             var ui = go.GetComponent<UnitUIPrefab>();
-            ui.SetupIMG(unit);
+            ui.SetupIMG(unit,Context.Lineup);
             ui.SetupEnergy(unit);
+        }
+    }
+    public void UpdateLineupNumbers(IReadOnlyList<RogueUnitDataBase> placedUnits)
+    {
+        foreach (var ui in contentParent.GetComponentsInChildren<UnitUIPrefab>())
+        {
+            if (ui.ContextType != Context.Lineup) continue;
+
+            int idx = -1;
+            for (int i = 0; i < placedUnits.Count; i++)
+                if (placedUnits[i].idx == ui.UnitIdx)
+                {
+                    idx = i;
+                    break;
+                }
+
+            if (idx >= 0)
+            {
+                ui.SetNumber(idx + 1);
+                ui.GetComponent<CanvasGroup>().alpha = 0.5f;
+            }
+            else
+            {
+                ui.SetNumber(0);
+                ui.GetComponent<CanvasGroup>().alpha = 1f;
+            }
         }
     }
 }

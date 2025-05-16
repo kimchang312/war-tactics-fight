@@ -1,8 +1,6 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
-using UnityEditor.Presets;
-
 
 public class EnemyInfoPanel : MonoBehaviour
 {
@@ -44,14 +42,24 @@ public class EnemyInfoPanel : MonoBehaviour
         foreach (Transform child in enemyContainer)
             Destroy(child.gameObject);
 
+        // 생성 순서 표시
+        int order = 1;
+
         // 3) 적 유닛마다 UI 생성
         foreach (var enemy in enemies)
         {
             var go = Instantiate(enemyUIPrefab, enemyContainer);
-            go.GetComponent<UnitUIPrefab>().SetupIMG(enemy);
+            go.GetComponent<UnitUIPrefab>().SetupIMG(enemy,Context.Enemy);
+            var ui = go.GetComponent<UnitUIPrefab>();
+            ui.unitNumbering.text = order.ToString();
+            order++;
         }
         unitCountText.text = $"{enemies.Count}";
         // 4) 패널 켜기
         gameObject.SetActive(true);
+    }
+    public void OnPlaceButtonClicked()
+    {
+        GameManager.Instance.TogglePlacePanel(true);
     }
 }

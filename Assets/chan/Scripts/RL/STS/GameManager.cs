@@ -1,20 +1,25 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using System.Linq;
-using UnityEditor.Presets;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("플레이어 유닛 배치 UI")]
+    [SerializeField] private GameObject PlacePanel;     // 에디터에서 PlacePanel 오브젝트
+    [SerializeField] private LineUpBar lineUpBar;         // 에디터에서 LineUpBar 컴포넌트
+
+    public PlacePanel PlacePanelComponent => PlacePanel.GetComponent<PlacePanel>();
+    public LineUpBar LineUpBarComponent => lineUpBar;
+
     [SerializeField] private GameObject eventManager;
     [SerializeField] private GameObject storeManager;
 
     [Header("Map UI & Enemy Info Panel")]
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
     [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
-    [SerializeField] private GameObject PlacePanel;
+   
 
     public int currentStageX;
     public int currentStageY;
@@ -24,6 +29,9 @@ public class GameManager : MonoBehaviour
     public Vector3 playerMarkerPosition;
 
     public static GameManager Instance { get; private set; }
+
+    public bool IsPlaceMode { get; private set; }
+    
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
@@ -55,6 +63,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
 
         await GoogleSheetLoader.Instance.LoadUnitSheetData();
@@ -239,5 +248,17 @@ private void Start()
                      .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, /*isTeam=*/ false))
                      .Where(u => u != null)
                      .ToList();
+    }
+    public void TogglePlacePanel(bool open)
+    {
+        PlacePanel.SetActive(open);
+        IsPlaceMode = open;
+    }
+    
+    public void HideAllPanels()
+    {
+        mapCanvas.SetActive(false);
+        enemyInfoPanel.SetActive(false);
+        PlacePanel.SetActive(false);
     }
 }
