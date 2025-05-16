@@ -65,8 +65,22 @@ public class BGMManager : MonoBehaviour
                 PlayBGM("MapExplore");
                 break;
             case "AutoBattleScene":
-                PlayBGM("BattleNormal");
-                break;
+                {
+                    if (RogueLikeData.Instance != null)
+                    {
+                        var stageType = RogueLikeData.Instance.GetCurrentStageType();
+                        if (stageType == StageType.Boss)
+                            PlayBGM("BattleBoss");
+                        else
+                            PlayBGM("BattleNormal");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[BGMManager] RogueLikeData.Instance가 null입니다. 기본 BGM 재생");
+                        PlayBGM("BattleNormal");
+                    }
+                    break;
+                }
             default:
                 Debug.Log($"[BGMManager] No BGM assigned for scene: {scene.name}");
                 break;
