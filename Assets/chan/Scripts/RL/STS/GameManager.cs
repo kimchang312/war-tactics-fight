@@ -80,8 +80,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         return;
 
      // 맵 씬에 진입했을 때만
-     allStages = FindObjectsOfType<StageNodeUI>().ToList();     InitializeStageLocks();
-        InitializeStageLocks();
+     allStages = FindObjectsOfType<StageNodeUI>().ToList();
+     InitializeStageLocks();
  }
 
 private void Start()
@@ -226,7 +226,7 @@ private void Start()
 
         // 그 외(맵 복귀) → 마지막 찍힌 currentStage + 연결된 다음 노드만 언락
         enemyInfoPanel.SetActive(false); //250515 적 정보 패널 false
-
+        PlacePanel.SetActive(false);
         currentStage.UnlockStage();
         foreach (var nxt in currentStage.connectedStages)
             nxt.UnlockStage();
@@ -260,5 +260,6 @@ private void Start()
         mapCanvas.SetActive(false);
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
+        IsPlaceMode = false;
     }
 }

@@ -54,13 +54,6 @@ public class MapGenerator : MonoBehaviour
     public Dictionary<string, StageNode> NodeDictionary { get { return nodeDict; } }
 
 
-
-    void Start()
-    {
-        // 보스 스테이지 제외 일반 경로 생성
-        //GeneratePathsNonCrossing();
-    }
-
     // ─── Combat/Elite/Boss 에 맞춰 presetID 선정 함수 ─────────────────
     private int PickPresetID(int level, StageType stageType)
     {

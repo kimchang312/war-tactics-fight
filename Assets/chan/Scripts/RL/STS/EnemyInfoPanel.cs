@@ -49,7 +49,7 @@ public class EnemyInfoPanel : MonoBehaviour
         foreach (var enemy in enemies)
         {
             var go = Instantiate(enemyUIPrefab, enemyContainer);
-            go.GetComponent<UnitUIPrefab>().SetupIMG(enemy,Context.Enemy);
+            go.GetComponent<UnitUIPrefab>().SetupIMG(enemy,Context.Enemy,order);
             var ui = go.GetComponent<UnitUIPrefab>();
             ui.unitNumbering.text = order.ToString();
             order++;

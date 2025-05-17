@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using UnityEditor;
 
 public enum Context
 {
@@ -18,13 +19,16 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
     public TextMeshProUGUI unitNumbering;
     public TextMeshProUGUI placeOrder;
 
-    private Context PrefabType;
-    public Context ContextType => PrefabType;
-    private int _unitIdx;
-    public int UnitIdx => _unitIdx;
+    [SerializeField] public Context PrefabType;     // Inspector에 표시하도록 변경
+    
     private CanvasGroup canvasGroup;
-    [SerializeField] private GameObject numberTextObject;
-    [SerializeField] private TextMeshProUGUI numberText;
+    [SerializeField] private GameObject numberTextObject; // 번호 표시용 오브젝트
+    [SerializeField] private TextMeshProUGUI numberText; // 번호 표시 텍스트
+    [Header("유닛 식별용")]
+    public int unitId;     // 유닛 타입 식별자
+    public int uniqueId;
+
+    [HideInInspector] public RogueUnitDataBase unitData;
 
     private void Awake()
     {
@@ -33,79 +37,75 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
     }
 
-    public void SetupIMG(RogueUnitDataBase unit, Context ctx)
+    public void SetupIMG(RogueUnitDataBase unit,Context ctx, int uniqueId)
     {
-        _unitIdx = unit.idx;
+        unitData = unit;
+        unitId = unit.idx;
+        this.uniqueId = uniqueId;
         PrefabType = ctx;
-        // 아이콘
-        unitImage.sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");     // data에 sprite 프로퍼티가 있다고 가정
-        numberTextObject.gameObject.SetActive(false);                                                                // 초기 상태
-        switch (ctx)
-        {
-            case Context.Lineup:
-                canvasGroup.alpha = 1f;
-                canvasGroup.interactable = true;
-                break;
-            case Context.Placed:
-                canvasGroup.alpha = 0.5f;
-                canvasGroup.interactable = true;
-                break;
-            default: // Enemy
-                canvasGroup.alpha = 1f;
-                canvasGroup.interactable = false;
-                break;
-        }
-        unitNumbering.text = "";
-
+        
+        unitImage.sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");     // data에 sprite 프로퍼티가 있다고 가정                                                 
+                                                                                                        
+        canvasGroup.alpha = 1f;
+        canvasGroup.interactable = true;
+        canvasGroup.blocksRaycasts = true;
+        numberTextObject.SetActive(false);
     }
     public void SetupEnergy(RogueUnitDataBase unit)
     {
         // 기력 텍스트 "현재/최대"
         energyText.text = $"{unit.energy}";
     }
+    // 유닛 머리 위 생성 순서 텍스트
     public void SetNumber(int idx)
     {
         unitNumbering.text = idx.ToString();
     }
-    public void OnPointerClick(PointerEventData eventData)
+    // 보유 유닛 클릭 후 이미지 알파값 변경과 배치 순서 숫자표시
+    public void SetOrderNumber(int idx)
     {
-        var gm = GameManager.Instance;
-        if (!gm.IsPlaceMode) return;
-
-        var place = gm.PlacePanelComponent;
-        var lineup = gm.LineUpBarComponent;
-        switch (PrefabType)
-        {
-            case Context.Lineup:
-                // ① 배치판에 추가 → 반환된 순서로 UI 갱신
-                int order = place.AddUnitToBattle(_unitIdx);
-                PrefabType = Context.Placed;
-                UpdateSelectionNumber(order);
-                break;
-
-            case Context.Placed:
-                // ② 배치판에서 제거 → UI 정리 & 라인업 재정렬
-                place.RemoveUnitFromBattle(_unitIdx);
-                PrefabType = Context.Lineup;
-                break;
-        }
-        //배치판·라인업바 모두 다시 그림
-        place.UpdateBattleNumbers();
-        lineup.UpdateLineupNumbers(place.PlacedUnits);
-    }
-    public void UpdateSelectionNumber(int number)
-    {
-        if (number > 0)
+        if(idx>0) 
         {
             numberTextObject.SetActive(true);
-            numberText.text = number.ToString();
-            canvasGroup.alpha = 0.5f;
+            numberText.text = idx.ToString();
         }
         else
         {
             numberTextObject.SetActive(false);
-            canvasGroup.alpha = 1f;
         }
+    }
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (!GameManager.Instance.IsPlaceMode) return;
+        var place = GameManager.Instance.PlacePanelComponent;
+        var lineup = GameManager.Instance.LineUpBarComponent;
+
+        switch (PrefabType)
+        {
+            case Context.Lineup:
+                // ① 배치판에 추가 → 반환된 순서로 UI 갱신
+                int order = place.AddUnitToBattle(unitData);
+
+                canvasGroup.alpha = 0.5f;
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
+                numberTextObject.SetActive(true);
+                numberText.text = order.ToString();
+                break;
+
+            case Context.Placed:
+                // ② 배치판에서 제거 → UI 정리 & 라인업 재정렬
+                place.RemoveUnitFromBattle(unitData);
+                break;
+        }
+        lineup.UpdateLineupNumbers(place.PlacedUniqueIds);
+    }
+    public void RestoreFromPlaced()
+    {
+       numberTextObject.SetActive(false);
+       canvasGroup.alpha = 1f;
+       canvasGroup.interactable = true;
+       canvasGroup.blocksRaycasts = true;
     }
 }
 
