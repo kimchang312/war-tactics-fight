@@ -48,11 +48,13 @@ public class SavePlayerData
 
 public class SaveData
 {
-    private string _filePath= Application.persistentDataPath + "/PlayerData.json";
+    private string _filePath;
     private string _jsonData;
 
     public void SaveDataFile()
     {
+        _filePath = Application.persistentDataPath + "/PlayerData.json";
+
         SavePlayerData savePlayerData = RogueLikeData.Instance.GetRogueLikeData();
         // 데이터를 JSON 문자열로 직렬화
         _jsonData = JsonUtility.ToJson(savePlayerData);
@@ -62,6 +64,8 @@ public class SaveData
     
     public void SaveDataBattaleEnd(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
+        _filePath = Application.persistentDataPath + "/PlayerData.json";
+
         SavePlayerData savePlayerData = RogueLikeData.Instance.GetBattleEndRogueLikeData(units, deadUnits);
         // 데이터를 JSON 문자열로 직렬화
         _jsonData = JsonUtility.ToJson(savePlayerData);
@@ -70,6 +74,7 @@ public class SaveData
     }
     public void LoadData()
     {
+        _filePath = Application.persistentDataPath + "/PlayerData.json";
         try
         {
             // JSON 문자열을 객체로 역직렬화
@@ -103,6 +108,7 @@ public class SaveData
 
     public void DeleteSaveFile()
     {
+        _filePath = Application.persistentDataPath + "/PlayerData.json";
         try
         {
             if (File.Exists(_filePath))
