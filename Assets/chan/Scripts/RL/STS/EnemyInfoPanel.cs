@@ -2,7 +2,6 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 
-
 public class EnemyInfoPanel : MonoBehaviour
 {
     [Header("할당할 프리팹 & Content")]
@@ -10,33 +9,57 @@ public class EnemyInfoPanel : MonoBehaviour
     public RectTransform enemyContainer;    // ScrollView → Content
     [Header("전투 타입 텍스트")]
     public TextMeshProUGUI battleTypeText;
+    [Header("UI 레퍼런스")]
+    public TextMeshProUGUI unitCountText;       // “적 유닛 수: X” 를 보여줄 텍스트
     
-
-    public void ShowEnemyInfo(StageType stageType, int presetID)
-    {
+    [Header("지휘관 정보")]
+    public GameObject commanderInfo;
+    public TextMeshProUGUI commanderNameText;   // 지휘관 이름
+    public TextMeshProUGUI commanderSkillText;  // 지휘관 스킬 이름
+    public void ShowEnemyInfo(StageType stageType,
+                              List<RogueUnitDataBase> enemies,
+                              string commanderName /*,
+                             string commanderSkill*/)
+    
+        {
         // 1) 전투 타입 문구
         switch (stageType)
         {
             case StageType.Combat: battleTypeText.text = "일반 전투"; break;
-            case StageType.Elite: battleTypeText.text = "엘리트"; break;
-            case StageType.Boss: battleTypeText.text = "보스"; break;
+            case StageType.Elite: battleTypeText.text = "엘리트 전투"; break;
+            case StageType.Boss: battleTypeText.text = "보스 전투"; break;
             default: battleTypeText.text = ""; break;
         }
-
-        /* 3) presetID 로부터 유닛 IDX 리스트 가져오기
-        var unitIDs = StagePresetLoader.I.GetUnitList(presetID);
-        if (unitIDs == null || unitIDs.Count == 0)
+        // 2) 지휘관 정보
+        bool hasCommander = !string.IsNullOrEmpty(commanderName);
+        commanderInfo.SetActive(hasCommander);
+        if (hasCommander)
         {
-            Debug.LogWarning($"[{presetID}]에 바인드된 적이 없습니다.");
-            return;
+            commanderNameText.text = commanderName;
+            //commanderSkillText.text = commanderSkill;
         }
+        // 2) 기존 표시 지우기
+        foreach (Transform child in enemyContainer)
+            Destroy(child.gameObject);
 
-        // 4) 하나씩 Instantiate + Setup
-        foreach (int unitIdx in unitIDs)
+        // 생성 순서 표시
+        int order = 1;
+
+        // 3) 적 유닛마다 UI 생성
+        foreach (var enemy in enemies)
         {
             var go = Instantiate(enemyUIPrefab, enemyContainer);
-            var ui = go.GetComponent<UnitUIPrefab>();    // 혹은 EnemyUnitUI 
-            ui.SetupIMG(unitIdx);
-        }*/
+            go.GetComponent<UnitUIPrefab>().SetupIMG(enemy,Context.Enemy,order);
+            var ui = go.GetComponent<UnitUIPrefab>();
+            ui.unitNumbering.text = order.ToString();
+            order++;
+        }
+        unitCountText.text = $"{enemies.Count}";
+        // 4) 패널 켜기
+        gameObject.SetActive(true);
+    }
+    public void OnPlaceButtonClicked()
+    {
+        GameManager.Instance.TogglePlacePanel(true);
     }
 }

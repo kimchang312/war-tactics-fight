@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
 
 public class LineUpBar : MonoBehaviour
 {
@@ -13,27 +14,56 @@ public class LineUpBar : MonoBehaviour
         foreach (Transform child in contentParent)
             Destroy(child.gameObject);
 
-
         MakeUnitList();
     }
     public void MakeUnitList()
     {
-        
-        // 1) 데이터 가져오기
-        //var testunit = RogueUnitDataBase.GetRandomUnitByRarity(1);
-        //RogueLikeData.Instance.AddMyUnis(testunit);
-
-        // 2) 데이터 꺼내오기
+        // 데이터 꺼내오기
         var units = RogueLikeData.Instance.GetMyTeam();
-        Debug.Log(units.Count);
 
-        // 3) 하나씩 Instantiate + Setup
-        foreach (var unit in units)
+        // 하나씩 Instantiate + Setup
+        for (int i = 0; i < units.Count; i++)
         {
+            var u = units[i];
+
+            u.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
+
             var go = Instantiate(unitUIPrefab, contentParent);
             var ui = go.GetComponent<UnitUIPrefab>();
-            ui.SetupIMG(unit);
-            ui.SetupEnergy(unit);
+            ui.SetupIMG(u,Context.Lineup,u.UniqueId);
+            ui.SetupEnergy(u);
+           
         }
+    }
+    public void UpdateLineupNumbers(List<int> placedUniqueIds)
+    {
+        foreach (var ui in contentParent.GetComponentsInChildren<UnitUIPrefab>())
+        {
+            if (ui.PrefabType != Context.Lineup) continue;
+            int idx = placedUniqueIds.IndexOf(ui.uniqueId);
+            var cg = ui.GetComponent<CanvasGroup>();
+
+
+            if (idx >= 0)
+            { // → 배치된 MyUnitPrefab만 잠그고, 번호 표시
+                cg.alpha = 0.5f;
+                ui.SetOrderNumber(idx + 1);
+            }
+            else 
+            { 
+            // → 나머지 MyUnitPrefab 해제
+            cg.alpha = 1f;
+            ui.SetOrderNumber(0);
+            }
+        }
+    }
+    public UnitUIPrefab GetUnitUIByUniqueId(int uniqueId)
+    {
+        return contentParent
+            .GetComponentsInChildren<UnitUIPrefab>()
+            .FirstOrDefault(u =>
+                u.PrefabType == Context.Lineup &&
+                u.unitData.UniqueId == uniqueId
+            );
     }
 }

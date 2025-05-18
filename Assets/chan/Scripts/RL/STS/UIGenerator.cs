@@ -40,6 +40,7 @@ public class UIGenerator : MonoBehaviour
             CreateUIMap();
             LinkUIConnections();
             DrawAllConnectionLines();
+            //챕터 확인 후 생성 추가하기
 
             // UI 생성이 완전히 끝났으니 여기서 한 번만 락/언락
             if (GameManager.Instance != null)
