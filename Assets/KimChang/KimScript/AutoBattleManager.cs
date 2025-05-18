@@ -23,21 +23,19 @@ public class AutoBattleManager : MonoBehaviour
     RogueUnitDataBase myFrontUnit;
     RogueUnitDataBase enemyFrontUnit;
 
-    //유닛별 고유 id
     private static int globalUnitId = 0;
 
-    // 첫 공격
     bool isFirstAttack = true;
     private enum BattleState
     {
         None,
-        Enter,        //전투 입장
-        Check,        // 전투 전 확인 단계
-        Start,        // 확인 후 전투 시작
+        Enter,        
+        Check,        
+        Start,        
         Preparation,
         Crash,
         Support,
-        Animation,    // 전투 중 애니메이션 삽입
+        Animation,   
         Death,
         End
     }
@@ -394,16 +392,15 @@ public class AutoBattleManager : MonoBehaviour
         if (presetId == -1) return;
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
         StagePreset pre = StagePresetLoader.I.GetByID(presetId);
-        Debug.Log(presetId+" "+ pre.UnitCount + ""+unitIds.Count);
+
         enemyUnits = GetUnitsById(unitIds);
-        //myUnits = GetUnitsById(unitIds);
         myUnits = RogueUnitDataBase.SetMyUnitsNormalize();
-        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+        RogueLikeData.Instance.ClearSavedMyUnits();
+
         RogueLikeData.Instance.SetBattleUnitCount(myUnits.Count);
 
         ProcessEnter();
 
-        RogueUnitDataBase.SetSavedUnitsByMyUnits();
         isFirstAttack = true;
         SetBaseData();
         
@@ -540,15 +537,12 @@ public class AutoBattleManager : MonoBehaviour
         else
         {
             currentState = BattleState.End;
-
-            SaveData saveData = new SaveData();
-
-            saveData.SaveDataBattaleEnd(myUnits, myDeathUnits);
-
-            //전투 보상계산
+            foreach (var unit in enemyDeathUnits)
+            {
+                RogueLikeData.Instance.AddScore((int)unit.maxHealth);
+            }
             RewardManager.AddBattleRewardByStage(result, myDeathUnits, enemyDeathUnits);
 
-            //종료 시 UI 표기
             autoBattleUI.FightEnd();
 
             UpdateUnitCount();
@@ -567,6 +561,9 @@ public class AutoBattleManager : MonoBehaviour
             {
                 relic.Execute();
             }
+
+            SaveData saveData = new SaveData();
+            saveData.SaveDataBattaleEnd(myUnits, myDeathUnits);
 
             return true;
         }

@@ -344,7 +344,6 @@ public class RogueUnitDataBase
         int idx = UnityEngine.Random.Range(0, filtered.Count);
         var selected = filtered[idx];
         RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);
-        // UniqueId 자동 할당
         selected.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
 
         return selected;
@@ -364,18 +363,6 @@ public class RogueUnitDataBase
             unit.antiCavalry = unit.baseAntiCavalry;
         }
         return myUnits;
-    }
-    //내 유닛들로 저장된 유닛 초기화
-    public static void SetSavedUnitsByMyUnits()
-    {
-        RogueLikeData.Instance.ClearSavedMyUnits();
-        var myTeam = RogueLikeData.Instance.GetMyTeam();
-        foreach(var unit in myTeam)
-        {
-            int id = unit.idx;
-            RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(id);
-            RogueLikeData.Instance.AddSavedMyUnits(newUnit);
-        }
     }
 
     public static List<RogueUnitDataBase> GetBaseUnits()

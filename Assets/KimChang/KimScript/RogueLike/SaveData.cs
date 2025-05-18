@@ -24,9 +24,10 @@ public class SavePlayerData
     public int sariStack;
     public BattleRewardData battleReward;
     public int nextUniqueId;
+    public int score;
     public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds,
         int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
-        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward,int nextUniqueId)
+        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward,int nextUniqueId,int score)
     {
         this.id = id;
         this.myUnits = myUnits;
@@ -43,6 +44,7 @@ public class SavePlayerData
         this.sariStack = sariStack;
         this.battleReward = battleReward;
         this.nextUniqueId = nextUniqueId;
+        this.score = score;
     }
 }
 
@@ -56,9 +58,7 @@ public class SaveData
         _filePath = Application.persistentDataPath + "/PlayerData.json";
 
         SavePlayerData savePlayerData = RogueLikeData.Instance.GetRogueLikeData();
-        // 데이터를 JSON 문자열로 직렬화
         _jsonData = JsonUtility.ToJson(savePlayerData);
-       // Debug.Log(savePlayerData.myUnits[0].unitName);
         File.WriteAllText(_filePath, _jsonData);
     }
     
@@ -67,9 +67,7 @@ public class SaveData
         _filePath = Application.persistentDataPath + "/PlayerData.json";
 
         SavePlayerData savePlayerData = RogueLikeData.Instance.GetBattleEndRogueLikeData(units, deadUnits);
-        // 데이터를 JSON 문자열로 직렬화
         _jsonData = JsonUtility.ToJson(savePlayerData);
-        // Debug.Log(savePlayerData.myUnits[0].unitName);
         File.WriteAllText(_filePath, _jsonData);
     }
     public void LoadData()
@@ -77,18 +75,15 @@ public class SaveData
         _filePath = Application.persistentDataPath + "/PlayerData.json";
         try
         {
-            // JSON 문자열을 객체로 역직렬화
             string jsonData = File.ReadAllText(_filePath); // 파일에서 읽기
             SavePlayerData savePlayerData = JsonUtility.FromJson<SavePlayerData>(jsonData);
 
-            // 1. 내 유닛 전부 수정하기
             List<RogueUnitDataBase> myUnits = new(savePlayerData.myUnits);
             RogueLikeData.Instance.SetMyTeam(myUnits);
             foreach (var unit in myUnits)
             {
                 unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
             }
-            // 2. 유물 정보 업데이트하기 (relicIds를 Dictionary로 변환)
             foreach (var id in savePlayerData.relicIds)
             {
                 RogueLikeData.Instance.AcquireRelic(id);
@@ -96,7 +91,7 @@ public class SaveData
 
             RogueLikeData.Instance.SetLoadData(savePlayerData.eventIds,savePlayerData.currentGold, savePlayerData.spentGold,
                 savePlayerData.playerMorale, savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,
-                savePlayerData.currentStageType, savePlayerData.sariStack, savePlayerData.battleReward);
+                savePlayerData.currentStageType, savePlayerData.sariStack, savePlayerData.battleReward,savePlayerData.nextUniqueId,savePlayerData.score);
 
             Debug.Log("데이터 로드 성공!");
         }

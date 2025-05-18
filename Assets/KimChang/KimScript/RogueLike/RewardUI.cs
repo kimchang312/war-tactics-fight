@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System;
 
 public class RewardUI : MonoBehaviour
 {
@@ -54,6 +55,7 @@ public class RewardUI : MonoBehaviour
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         bool isGameOver = RewardManager.CheckGameOver();
         if (isGameOver) reward.battleResult = 5;
+        moraleResult.SetActive(true);
         moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  사기 {reward.morale}";
         resultText.text = reward.battleResult switch
         {
@@ -65,8 +67,20 @@ public class RewardUI : MonoBehaviour
 
         if (reward.battleResult == 0)
         {
-            goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {reward.gold}";
             goldResult.SetActive(true);
+
+            int chapter = RogueLikeData.Instance.GetChapter();
+            var type = RogueLikeData.Instance.GetCurrentStageType();
+            if(chapter==2 && type== StageType.Boss)
+            {
+                resultText.text = "정복";
+                moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"점수: {RogueLikeData.Instance.GetScore()}";
+                goldResult.GetComponentInChildren<TextMeshProUGUI>().text = "  타이틀 화면으로";
+                goldResult.AddComponent<Button>().onClick.AddListener(() => SceneManager.LoadScene("Title"));
+                
+            }
+
+            goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {reward.gold}";
 
             if (HasUnitReward(reward))
             {
@@ -95,7 +109,6 @@ public class RewardUI : MonoBehaviour
         RogueLikeData.Instance.EarnGold(reward.gold);
         RogueLikeData.Instance.ChangeMorale(reward.morale);
 
-        moraleResult.SetActive(true);
         backFrame.SetActive(true);
     }
 
