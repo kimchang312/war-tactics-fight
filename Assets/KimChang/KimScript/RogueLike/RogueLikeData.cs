@@ -61,6 +61,9 @@ public class RogueLikeData
     private int rerollChance = 0;
 
     private bool isFreeUpgrade =false;
+
+    //실제 전투에 배치된 유닛 수
+    private int battleUnitCount = 0;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -394,6 +397,7 @@ public class RogueLikeData
         int morale;
         if (value >= 0)
         {
+            if (RelicManager.CheckRelicById(116)) return 0;
             // 증가: 최대 100 제한
             morale= Math.Min(100, playerMorale + value);
             playerMorale = morale;
@@ -697,11 +701,15 @@ public class RogueLikeData
 
     public int GetMaxUnits()
     {
+        int maxCount = maxUnits;
         int addMax = 0;
         if (RelicManager.CheckRelicById(66)) addMax += 1;
         if (RelicManager.CheckRelicById(67)) addMax += 3;
+        if (RelicManager.CheckRelicById(89)) addMax -= 2;
+        maxCount = maxCount +addMax;
+        if (RelicManager.CheckRelicById(107)) maxCount /= 2;
 
-        return maxUnits+addMax;
+        return maxCount;
     }
     public void SetMaxUnits(int maxUnits)
     {
@@ -723,6 +731,11 @@ public class RogueLikeData
         {
             addHero += 1;
         }
+        if (RelicManager.CheckRelicById(110))
+        {
+            addHero += 2;
+        }
+        
         return maxHero;
     }
     public void SetMaxHero(int maxHero)
@@ -736,16 +749,21 @@ public class RogueLikeData
     }
     public void AddMyTeam(RogueUnitDataBase unit)
     {
-        Debug.Log("추가");
         myTeam.Add(unit);
     }
     public void SetMyTeam(List<RogueUnitDataBase> units)
     {
-        Debug.Log(units.Count);
-        Debug.Log(myTeam.Count);
         this.myTeam = units;
     }
 
-   
+    public int GetBattleUnitCount()
+    {
+        return battleUnitCount;
+    }
+    public void SetBattleUnitCount(int battleCount)
+    {
+        this.battleUnitCount = battleCount;
+        Debug.Log(battleUnitCount);
+    }
 
 }

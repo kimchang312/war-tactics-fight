@@ -399,7 +399,8 @@ public class AutoBattleManager : MonoBehaviour
         //myUnits = GetUnitsById(unitIds);
         myUnits = RogueUnitDataBase.SetMyUnitsNormalize();
         RogueLikeData.Instance.SetAllMyUnits(myUnits);
-        
+        RogueLikeData.Instance.SetBattleUnitCount(myUnits.Count);
+
         ProcessEnter();
 
         RogueUnitDataBase.SetSavedUnitsByMyUnits();
@@ -435,7 +436,22 @@ public class AutoBattleManager : MonoBehaviour
         
         ProcessBeforeBattle(myUnits, enemyUnits, true, myFinalDamage);
         ProcessBeforeBattle(enemyUnits, myUnits, false, enemyFinalDamage);
-        
+
+        //유산
+        if (RelicManager.CheckRelicById(114))
+        {
+            float sum = 0;
+            foreach (var unit in myUnits)
+            {
+                sum += unit.maxHealth;
+                if(sum >= 1700)
+                {
+                    RogueLikeData.Instance.EarnGold(200);
+                    break;
+                }
+            }
+        }
+
         await Task.Delay((int)waittingTime);
         currentState = BattleState.Start;
         isProcessing = false; // 체크가 끝난 후 상태를 변경
@@ -542,6 +558,15 @@ public class AutoBattleManager : MonoBehaviour
             RogueLikeData.Instance.SetFieldId(0);
 
             RogueLikeData.Instance.ClearBuffDeBuff();
+
+            RogueLikeData.Instance.SetBattleUnitCount(0);
+
+            //전투 종료 시 유산
+            WarRelic relic = RogueLikeData.Instance.GetOwnedRelicById(109);
+            if (relic != null)
+            {
+                relic.Execute();
+            }
 
             return true;
         }

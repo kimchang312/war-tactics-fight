@@ -10,13 +10,13 @@ public class TitleScene : MonoBehaviour
     [SerializeField] private Button newGameBtn;
     [SerializeField] private Button loadBtn;
     [SerializeField] private Button exitBtn;
-    SaveData saveData = new SaveData();
+    
     private void Start()
     {
         UnitLoader.Instance.LoadUnitsFromJson();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
-        string filePath = Application.dataPath + "/KimChang/Json/PlayerData.json";
+        string filePath = Application.persistentDataPath + "/PlayerData.json";
         if (File.Exists(filePath))
         {
             loadBtn.interactable = true;
@@ -33,6 +33,7 @@ public class TitleScene : MonoBehaviour
 
     private void GoRogueLike()
     {
+        SaveData saveData = new SaveData();
         saveData.DeleteSaveFile();
         List<RogueUnitDataBase> units= RogueUnitDataBase.GetBaseUnits();
         RogueLikeData.Instance.SetMyTeam(units);
@@ -42,6 +43,7 @@ public class TitleScene : MonoBehaviour
     }
     private void LoadRogueLike()
     {
+        SaveData saveData = new SaveData();
         saveData.LoadData();
         SceneManager.LoadScene("RLmap");
     }
