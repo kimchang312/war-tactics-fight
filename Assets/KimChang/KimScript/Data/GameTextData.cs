@@ -1,5 +1,12 @@
 using System.Collections.Generic;
+public class GameTextEntry
+{
+    public string[] Names;       
+    public string[] Descriptions; 
 
+    public string GetName(int lang) => lang >= 0 && lang < Names.Length ? Names[lang] : "";
+    public string GetDesc(int lang) => lang >= 0 && lang < Descriptions.Length ? Descriptions[lang] : "";
+}
 public class GameTextData
 {
     // 데이터 맵
@@ -17,7 +24,6 @@ public class GameTextData
         { 8, (new[] { "배경음", "BGM", "背景音" }, new string[0]) },
         { 9, (new[] { "켜기", "ON", "オン" }, new string[0]) },
         { 10, (new[] { "끄기", "OFF", "オフ" }, new string[0]) },
-
 
         // 버튼
         { 11, (new[] { "한국어", "한국어", "한국어" }, new string[0]) },
@@ -78,12 +84,14 @@ public class GameTextData
         { 95, (new[] { "중갑과 전투망치로 무장한 기병이다. 중갑에 특히 강력하다.", "A cavalry unit equipped with heavy armor and a war hammer. Especially strong against heavily armored enemies.", "重装甲と戦闘ハンマーで武装した騎兵です。特に重装甲に対して強力です。" }, new string[0]) },
 
         // 스탯
-        { 103, (new[] { "체력", "Health", "体力" }, new string[0]) },
-        { 104, (new[] { "장갑", "Armor", "装甲" }, new string[0]) },
-        { 105, (new[] { "공격력", "Attack Damage", "攻撃力" }, new string[0]) },
-        { 106, (new[] { "사거리", "Range", "射程" }, new string[0]) },
-        { 107, (new[] { "대기병", "Anti Calvary", "対騎兵" }, new string[0]) },
-        { 108, (new[] { "회피", "Dodge", "回避" }, new string[0]) },
+        { 101, (new[] { "체력", "Health", "体力" }, new string[0]) },
+        { 102, (new[] { "장갑", "Armor", "装甲" }, new string[0]) },
+        { 103, (new[] { "공격력", "Attack Damage", "攻撃力" }, new string[0]) },
+        { 104, (new[] { "사거리", "Range", "射程" }, new string[0]) },
+        { 105, (new[] { "대기병", "Anti Calvary", "対騎兵" }, new string[0]) },
+        { 106, (new[] { "회피", "Dodge", "回避" }, new string[0]) },
+        { 107, (new[] { "기력", "Energy", "" }, new[]{"기력. 전투에 참가할 때마다 1 감소. 0이 되면 유닛이 영구적으로 사망한다."}) },
+        { 108, (new[] { "희귀도", "Rarity", "" }, new[]{""}) },
 
         // 특성
         { 109, (new[] { "경갑", "Light Armor", "軽装甲" }, new[] { "낮거나 보통 수준의 장갑입니다.", "Low or average level armor.", "低または平均レベルの装甲です。" }) },
@@ -95,17 +103,17 @@ public class GameTextData
         { 115, (new[] { "강한 돌격", "Strong Charge", "猛突撃" }, new[] { "돌격이 더욱 강해집니다.", "Charge becomes stronger.", "突撃がさらに強力になります。" }) },
         { 116, (new[]  {"필중","Perfect Accuracy", "必中" }, new[]{"상대의 회피를 무시하고 공격합니다.", "Attacks ignore the opponent's evasion.", "相手の回避を無視して攻撃します。"}) },
         
-        { 117, (new[] { "결속", "BindingForce", "" }, new[] { "같은 태그 유닛 수만큼 공격력 증가", "", "" }) },
-        { 118, (new[] { "용맹", "Bravery", "" }, new[] { "용맹함", "", "" }) },
-        { 119, (new[] { "제압", "Suppression", "" }, new[] { "추뎀증", "", "" }) },
-        { 120, (new[] { "약탈", "Plunder", "" }, new[] { "약탈함", "", "" }) },
-        { 121, (new[] { "연발", "DoubleShot", "" }, new[] { "연발함", "", "" }) },
-        { 122, (new[] { "작열", "Scorching", "" }, new[] { "불탐", "", "" }) },
-        { 123, (new[] { "가시", "Thorns", "" }, new[] { "따끔함", "", "" }) },
-        { 124, (new[] { "무한", "Endless", "" }, new[] { "무한임", "", "" }) },
-        { 125, (new[] { "충격", "Impact", "" }, new[] { "충격적", "", "" }) },
-        { 126, (new[] { "치유", "Healing", "" }, new[] { "회복함", "", "" }) },
-        { 127, (new[] { "흡혈", "LifeDrain", "" }, new[] { "피흡", "", "" }) },
+        { 117, (new[] { "결속", "BindingForce", "" }, new[] { "동일한 태그의 아군만큼 공격력이 증가한다.", "", "" }) },
+        { 118, (new[] { "용맹", "Bravery", "" }, new[] { "사기 감소의 영향을 받지 않는다.", "", "" }) },
+        { 119, (new[] { "제압", "Suppression", "" }, new[] { "상대 최대 체력에 비례한 추가 피해를 입힌다.", "", "" }) },
+        { 120, (new[] { "약탈", "Plunder", "" }, new[] { "적을 처치하면 금화를 얻는다.", "", "" }) },
+        { 121, (new[] { "연발", "DoubleShot", "" }, new[] { "공격이 두 번 발동된다.", "", "" }) },
+        { 122, (new[] { "작열", "Scorching", "" }, new[] { "공격이 적을 불태워 추가 피해를 입힌다. (2턴간 지속되며 최대 3번 중첩)", "", "" }) },
+        { 123, (new[] { "가시", "Thorns", "" }, new[] { "이 유닛이 피해를 입으면 상대에게도 소량의 피해를 입힌다.", "", "" }) },
+        { 124, (new[] { "무한", "Endless", "" }, new[] { "적을 처치하면 기력을 회복한다.", "", "" }) },
+        { 125, (new[] { "충격", "Impact", "" }, new[] { "돌격 피해가 상대 뒷 유닛에게도 적용된다.", "", "" }) },
+        { 126, (new[] { "치유", "Healing", "" }, new[] { "공격력만큼 사거리 내 아군을 회복시킨다.", "", "" }) },
+        { 127, (new[] { "흡혈", "LifeDrain", "" }, new[] { "입힌 피해에 비례해 체력을 회복한다.", "", "" }) },
 
         // 기술
         { 128, (new[] { "돌격", "Charge", "突撃" },  new[] { "첫 공격이 기동력에 비례해 큰 피해를 입힙니다.",
@@ -136,13 +144,16 @@ public class GameTextData
                        "Greatly reduces the enemy’s mobility before the first attack.",
                        "最初の攻撃前に敵の機動力を大幅に低下させます。" }) },
 
-        { 137, (new[] { "순교", "Martyrdom", "" }, new[] { "순교임", "", "" }) },
-        { 138, (new[] { "상흔", "Wounding", "" }, new[] { "아파", "", "" }) },
-        { 139, (new[] { "복수", "Vengeance", "" }, new[] { "복수임", "", "" }) },
-        { 140, (new[] { "반격", "Counter", "" }, new[] { "반격함", "", "" }) },
-        { 141, (new[] { "선제타격", "FirstStrike", "" }, new[] { "선타", "", "" }) },
-        { 142, (new[] { "도전", "Challenge", "" }, new[] { "도전적", "", "" }) },
-        { 143, (new[] { "연막", "SmokeScreen", "" }, new[] { "안보임", "", "" }) },
+        { 137, (new[] { "순교", "Martyrdom", "" }, new[] { "이 유닛이 죽으면 내 다음 유닛의 공격력을 증가시킨다.", "", "" }) },
+        { 138, (new[] { "상흔", "Wounding", "" }, new[] { "상대 유닛을 치유 불가 상태로 만든다.", "", "" }) },
+        { 139, (new[] { "복수", "Vengeance", "" }, new[] { "뒤의 아군 유닛이 피해를 입으면 그 피해를 적에게 되돌려준다.", "", "" }) },
+        { 140, (new[] { "반격", "Counter", "" }, new[] { "첫 공격이 적의 공격을 되돌려준다.", "", "" }) },
+        { 141, (new[] { "선제타격", "FirstStrike", "" }, new[] { "전투가 시작될 때 상대 후열 유닛에게 피해를 입힌다.", "", "" }) },
+        { 142, (new[] { "도전", "Challenge", "" }, new[] { "가장 체력이 낮은 상대 후열 유닛을 끌고 온다.", "", "" }) },
+        { 143, (new[] { "연막", "SmokeScreen", "" }, new[] { "내 다음 유닛의 회피율을 증가시킨다.", "", "" }) },
+
+        { 160, (new[] { "사기", "Morale", "" }, new[] { "사기. 전투에서 승리할 때마다 증가. 사기가 높으면 유닛이 강해지고 낮으면 약해진다. 사기가 10 이하가 되면 유닛이 탈영할 수 있고, 0이 되면 원정에 실패한다.", "", "" }) },
+
     };
 
     // 역 매핑 데이터 (정규화된 문자열 -> idx)

@@ -64,6 +64,8 @@ public class RogueLikeData
 
     //실제 전투에 배치된 유닛 수
     private int battleUnitCount = 0;
+
+    private int score = 0;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -85,7 +87,7 @@ public class RogueLikeData
                                     .SelectMany(hashSet => hashSet)
                                     .ToList(),encounteredEvent.Values.ToList(),
                                     currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,
-                                    upgradeValues, sariStack,battleReward, nextUnitUniqueId);
+                                    upgradeValues, sariStack,battleReward, nextUnitUniqueId,score);
         return data;
     }
     // 보유한 유닛 기력만 재설정 해서 반환
@@ -93,7 +95,6 @@ public class RogueLikeData
     {
         // 저장용 복사 리스트 생성 (깊은 복사하지 않고 원본 savedMyUnits를 수정)
         List<RogueUnitDataBase> savedCopy = new(savedMyUnits);
-
         // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
         foreach (var unit in units.Concat(deadUnits))
         {
@@ -125,9 +126,9 @@ public class RogueLikeData
             upgradeValues,
             sariStack,
             battleReward,
-            nextUnitUniqueId
+            nextUnitUniqueId,
+            score
         );
-        Debug.Log("저장할 유닛"+savedCopy.Count);
         myTeam = savedCopy;
         return data;
     }
@@ -491,6 +492,7 @@ public class RogueLikeData
     public void ClearSavedMyUnits()
     {
         savedMyUnits.Clear();
+        savedMyUnits = myUnits;
     }
 
     public int GetChapter()
@@ -614,7 +616,7 @@ public class RogueLikeData
     }
 
     public void SetLoadData(List<int> eventId,int gold,int sentGold,int morale,
-        int stageX,int stageY,int chapter, StageType stageType,int sariSatck,BattleRewardData battleReward)
+        int stageX,int stageY,int chapter, StageType stageType,int sariSatck,BattleRewardData battleReward,int nextUniqueId,int score)
     {
         foreach(int id in eventId)
         {
@@ -629,6 +631,13 @@ public class RogueLikeData
         this.currentStageType = stageType;
         this.sariStack = sariSatck;
         this.battleReward = battleReward;
+        this.nextUnitUniqueId = nextUniqueId;
+        this.score = score;  
+    }
+    //강화 반환
+    public UnitUpgrade[] GetUpgradeValue()
+    {
+        return upgradeValues;
     }
 
     // 강화 수치 반환
@@ -763,7 +772,19 @@ public class RogueLikeData
     public void SetBattleUnitCount(int battleCount)
     {
         this.battleUnitCount = battleCount;
-        Debug.Log(battleUnitCount);
+    }
+
+    public int GetScore()
+    {
+        return score;
+    }
+    public void AddScore(int score)
+    {
+        this.score += score;
+    }
+    public void ClearScore()
+    {
+        this.score = 0;
     }
 
 }

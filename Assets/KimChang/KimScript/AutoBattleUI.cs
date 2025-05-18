@@ -5,14 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
-using System.Text.RegularExpressions;
-using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
-using UnityEngine.Pool;
-
-#if UNITY_EDITOR
-using UnityEditor.Playables;
-#endif
 
 public class AutoBattleUI : MonoBehaviour
 {
@@ -70,14 +63,12 @@ public class AutoBattleUI : MonoBehaviour
 
         UpdateMorale();
     }
-    //유닛 갯수 
     public void UpdateUnitCountUI(int myUnitCount, int enemyUnitCount)
     {
         _myUnitCountUI.text = $"{myUnitCount}";
         _enemyUnitCountUI.text = $"{enemyUnitCount}";
 
     }
-    //유닛 체력
     public void UpateUnitHPUI(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
     {
         if (_myUnitHPUI != null && _emyUnitHPUI)
@@ -86,7 +77,6 @@ public class AutoBattleUI : MonoBehaviour
             _emyUnitHPUI.text = $"{enemyUnitHP}/{enemyMaxHp}";
         }
 
-        //체력바 업데이트
         myHpBar.maxValue = myMaxHp;
         myHpBar.value = myUnitHP;
 
@@ -94,7 +84,6 @@ public class AutoBattleUI : MonoBehaviour
         enemyHpBar.value = enemyUnitHP;
     }
 
-    // 데미지 표시
     public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
     {
         float offsetX = 50f;
@@ -158,24 +147,22 @@ public class AutoBattleUI : MonoBehaviour
 
     private void BattleAnimation(float damage, string text, bool team,bool isAttack)
     {
-        // team = true -> 상대 공격, false -> 나의 공격
         if (!isAttack) return;
 
         GameObject unit = FindUnit(0, team);
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
 
-        Vector2 originPos = rectTransform.anchoredPosition; // 원래 UI 위치
-        float direction = team ? 1f : -1f; // team이 true면 반대 방향
+        Vector2 originPos = rectTransform.anchoredPosition;
+        float direction = team ? 1f : -1f;
 
-        Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f); // 뒤로 이동할 위치
-        Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f); // 앞으로 이동할 위치
+        Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f);
+        Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f);
 
-        // DOTween 애니메이션 시퀀스
         DG.Tweening.Sequence attackSequence = DOTween.Sequence();
-        attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f)) // 뒤로 0.05초 이동
-                      .AppendInterval(0.2f) // 0.2초 대기
-                      .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f)) // 앞으로 0.2초 이동
-                      .Append(rectTransform.DOAnchorPos(originPos, 0.05f)); // 원래 위치로 0.05초 이동
+        attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f))
+                      .AppendInterval(0.2f)
+                      .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f))
+                      .Append(rectTransform.DOAnchorPos(originPos, 0.05f));
 
         rectTransform.DOKill();
     }
@@ -185,7 +172,6 @@ public class AutoBattleUI : MonoBehaviour
         objectPool.ReturnDamageText(damageObj);
     }
 
-    //유닛 갯수 만큼 유닛 이미지 생성
     public void CreateUnitBox(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<RogueUnitDataBase> myRangeUnits, List<RogueUnitDataBase> enemyRangeUnits)
     {
         Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0)};
@@ -215,58 +201,48 @@ public class AutoBattleUI : MonoBehaviour
 
     }
 
-    // 기존 유닛 이미지 반환 및 비활성화
     private void ClearExistingUnitImages()
     {
         foreach (var unit in objectPool.GetActiveBattleUnits())
         {
-            objectPool.ReturnBattleUnit(unit); // 유닛 비활성화 및 반환
+            objectPool.ReturnBattleUnit(unit);
         }
     }
 
-    //원거리 유닛 생성
     private void CreateRangeUnit(int rangeUnitCount, Vector3 position, GameObject number, bool isMyTeam)
     {
-        //float size = 200f;
         string myTeam = isMyTeam ? "My" : "Enemy";
 
         Image numberImg = number.GetComponent<Image>();
 
         if (rangeUnitCount == 0)
         {
-            numberImg.color = new Color(1, 1, 1, 0); // 0~1 범위로 수정
+            numberImg.color = new Color(1, 1, 1, 0);
             return;
         }
         numberImg.color = new Color(1, 1, 1, 1);
 
         GameObject unit = objectPool.GetBattleUnit();
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
-        //rectTransform.sizeDelta = new Vector2(size - 10, size - 10);
         rectTransform.anchoredPosition = position;
 
         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
-        // 이미지 설정 & 투명도 정상화
         Image img = unit.GetComponent<Image>();
         img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
         img.sprite = SpriteCacheManager.GetSprite("KIcon/AbilityIcon/rangedAttack");
 
-        // 자식 유닛 이미지 설정
         Transform childUnit = unit.transform.GetChild(0);
         RectTransform childRectTransform = childUnit.GetComponent<RectTransform>();
         Image childImg = childUnit.GetComponent<Image>();
-        //childRectTransform.sizeDelta = new Vector2(size, size);
         childImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}SecondUnit");
 
-        // 숫자 이미지 설정
         numberImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}X{rangeUnitCount}");
 
-        // 숫자 이미지를 가장 뒤로
-        number.transform.SetSiblingIndex(number.transform.parent.childCount - 1);
+        //number.transform.SetSiblingIndex(number.transform.parent.childCount - 1);
 
-        // 유닛 이름 설정
         unit.name = $"{myTeam}RangeUnit";
     }
 
@@ -308,20 +284,15 @@ public class AutoBattleUI : MonoBehaviour
                 unitImage.transform.SetParent(parent,false);
             }
 
-
-            // 유닛 본체 이미지 설정
             Image img = unitImage.GetComponent<Image>();
             img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
             img.sprite = SpriteCacheManager.GetSprite($"UnitImages/{units[i].unitImg}");
 
-            // 유닛 테두리 프레임 이미지 설정
             unitFrame.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{unitTeam}");
 
-            // 유닛 이름 설정
             unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
         }
 
-        // 회피율 UI 설정
         if (isMyUnit)
         {
             _myDodge.text = $"회피율: {dodge}%";
@@ -332,14 +303,11 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
-    // 능력치 아이콘 생성
     private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
         var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool))
             .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
-
-        int i = 0;
 
         foreach (var attr in boolAttributes)
         {
@@ -353,7 +321,6 @@ public class AutoBattleUI : MonoBehaviour
             Image img = iconImage.GetComponent<Image>();
             img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
 
-            // 이름 설정
             itemInfo.isItem = false;
             int? idx = GameTextData.GetIdxFromString(attr.Name);
             if (attr.Name == "defense")
@@ -374,22 +341,19 @@ public class AutoBattleUI : MonoBehaviour
                 itemInfo.abilityId = -1; // 혹은 예외 처리 또는 기본값 지정
             }
 
-
             explainItem.ItemToolTip =itemToolTip;
             Transform abilityBox = isTeam? myAbilityBox: enemyAbilityBox;
 
             iconImage.transform.SetParent(abilityBox, false);
 
-            i++;
         }
     }
 
-    //능력치 아이콘 제거
     private void ClearExistingAbilityIcons()
     {
         foreach (var unit in objectPool.GetActiveAbilitys())
         {
-            objectPool.ReturnAbility(unit); // 능력 아이콘 비활성화 및 반환
+            objectPool.ReturnAbility(unit);
         }
     }
 
@@ -482,7 +446,6 @@ public class AutoBattleUI : MonoBehaviour
             Image relicImg = relicObject.GetComponent<Image>();
             relicImg.sprite = SpriteCacheManager.GetSprite($"KIcon/WarRelic/{warRelics[i].id}");
 
-            // 이름 설정
             itemInfo.isItem =false;
             itemInfo.relicId = warRelics[i].id;
 

@@ -128,7 +128,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(101, "지평선의 끝", 1, "전투 시작 시, 마지막 유닛의 체력, 공격력 15% 증가", RelicType.StateBoost, () => EndOfHorizon()));
         relics.Add(new WarRelic(102, "도박꾼의 운명", 10, "전투 시작 시, 보유한 골드의 20%를 소모한다. 기병이 아닌 유닛의 체력과 공격력이 소모한 골드에 비례하여 증가한다.", RelicType.StateBoost, () => GamblerFate()));
         relics.Add(new WarRelic(103, "흑요석 심장", 1, "전투 종료 후, 기력이 최대인 ", RelicType.SpecialEffect, () => ObsidianHeart()));
-        relics.Add(new WarRelic(104, "긍지의 양날도끼", 1, "전투 시작 시, 플레이어와 상대의 무작위 유닛 2개가 앞으로 나온다.먼저 2번째 유닛이 죽은 부대 유닛의 공격력이 10% 감소한다. ", RelicType.ActiveState, () => DoubleEdgedAxeOfPride()));
+        //relics.Add(new WarRelic(104, "긍지의 양날도끼", 1, "전투 시작 시, 플레이어와 상대의 무작위 유닛 2개가 앞으로 나온다.먼저 2번째 유닛이 죽은 부대 유닛의 공격력이 10% 감소한다. ", RelicType.ActiveState, () => DoubleEdgedAxeOfPride()));
         relics.Add(new WarRelic(105, "저주받은 갑옷", 10, "내 유닛이 받는 피해가 항상 40% 감소한다. 내 유닛이 항상 80%의 확률로 기력 소모가 2배가 된다.", RelicType.StateBoost, () => CursedArmor()));
         relics.Add(new WarRelic(106, "제어 횃불", 1, "보스를 처치하면 작열의 피해량이 영구적으로 20 증가한다.", RelicType.StateBoost, () => ControlTorch()));
         relics.Add(new WarRelic(107, "훈장 무더기", 1, "항상 부대 상한이 50% 감소한다. 내 유닛의 체력과 공격력, 대기병이 80% 증가한다.", RelicType.StateBoost, () => PileOfMedals()));

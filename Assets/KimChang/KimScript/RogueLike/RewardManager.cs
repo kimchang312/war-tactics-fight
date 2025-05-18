@@ -33,10 +33,15 @@ public static class RewardManager
     //현재 스테이지와 챕터에 따른 전투 보상 
     public static void AddBattleRewardByStage(int battleResult,List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits)
     {
+        int chapter = RogueLikeData.Instance.GetChapter();
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         reward.battleResult = battleResult;
         var type = RogueLikeData.Instance.GetCurrentStageType();
-        int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits,type);
+        if (battleResult == 0 && type ==StageType.Boss && chapter==1)
+        {
+            RogueLikeData.Instance.SetChapter(2);
+        }
+        int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
         reward.morale += morale;
         int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
         int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold);
