@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using TMPro;
 using UnityEngine;
@@ -25,8 +26,10 @@ public class PlacePanel : MonoBehaviour
         // 최대 배치 가능 수 표시
         int maxUnits = RogueLikeData.Instance.GetMaxUnits();
         maxUnitCount.text = $"/ {maxUnits.ToString()}";
-                 // 현재 배치 수 초기화
+        // 현재 배치 수 초기화
         UpdateCountTexts();
+        // 패널 처음 열릴 때는 항상 초기화
+        ClearPlacePanel();
     }
     public int AddUnitToBattle(RogueUnitDataBase unit)
     {
@@ -63,6 +66,7 @@ public class PlacePanel : MonoBehaviour
     public void ClearPlacePanel()
     {
         placedUnits.Clear();
+        PlacedUniqueIds.Clear();
         foreach (Transform child in PrefabContainer)
             Destroy(child.gameObject);
         // 초기화 후 현재 유닛 수 갱신
@@ -70,24 +74,26 @@ public class PlacePanel : MonoBehaviour
     }
     public void RemoveUnitFromBattle(RogueUnitDataBase unit)
     {
-        int idx = PlacedUniqueIds.IndexOf(unit.UniqueId);
-        if (idx < 0) return;
+        // 1) PrefabContainer 안에서 이 unit.UniqueId와 매칭되는 UI를 찾는다
+        var uiToRemove = PrefabContainer
+            .GetComponentsInChildren<UnitUIPrefab>()
+            .FirstOrDefault(ui => ui.uniqueId == unit.UniqueId);
 
         var lineupUI = GameManager.Instance.LineUpBarComponent.GetUnitUIByUniqueId(unit.UniqueId);
         if (lineupUI != null)
             lineupUI.RestoreFromPlaced();
 
-        // 데이터·UI 제거
-        placedUnits.RemoveAt(idx);
-        PlacedUniqueIds.RemoveAt(idx);
+        // 3) 데이터 리스트에서 UniqueId로 제거
+        placedUnits.RemoveAll(u => u.UniqueId == unit.UniqueId);
+        PlacedUniqueIds.Remove(unit.UniqueId);
 
-        DestroyImmediate(PrefabContainer.GetChild(idx).gameObject);
+        DestroyImmediate(uiToRemove.gameObject);
 
-        // 남은 BattleUnitP 번호 재부여
-        for (int i = 0; i < PrefabContainer.childCount; i++)
+        // 5) 남은 BattleUnitP 번호 재부여
+        var remainingUIs = PrefabContainer.GetComponentsInChildren<UnitUIPrefab>();
+        for (int i = 0; i < remainingUIs.Length; i++)
         {
-            var b = PrefabContainer.GetChild(i).GetComponent<UnitUIPrefab>();
-            b.SetNumber(i + 1);
+            remainingUIs[i].SetNumber(i + 1);
         }
         UpdateCountTexts();
         //배치 유닛 제거 후 MyPrefabs숫자 갱신
