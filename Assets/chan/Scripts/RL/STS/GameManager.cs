@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
     [Header("Map UI & Enemy Info Panel")]
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
     [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
-   
+    [SerializeField] private GameObject restPanel;
 
     public int currentStageX;
     public int currentStageY;
@@ -181,7 +181,9 @@ private void Start()
         // 6) 타입별 처리
         if (newStage.stageType == StageType.Rest)
         {
-            restUI.Show();
+            // 기존 restUI.Show() 대신
+            restPanel.SetActive(true);
+            return;
         }
         else if (newStage.stageType == StageType.Event)
         {
@@ -260,6 +262,7 @@ private void Start()
         mapCanvas.SetActive(false);
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
+        restPanel.SetActive(false);
         IsPlaceMode = false;
     }
 }

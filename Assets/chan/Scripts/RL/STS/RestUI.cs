@@ -17,9 +17,6 @@ public class RestUI : MonoBehaviour
         if (panelCG == null) panelCG = gameObject.AddComponent<CanvasGroup>();
 
         // 처음엔 숨기고, 인터랙션 차단
-        gameObject.SetActive(false);
-        panelCG.interactable = false;
-        panelCG.blocksRaycasts = false;
 
         trainingButton.onClick.RemoveAllListeners();
         partyButton.onClick.RemoveAllListeners();
@@ -27,16 +24,7 @@ public class RestUI : MonoBehaviour
         trainingButton.onClick.AddListener(OnTraining);
         partyButton.onClick.AddListener(OnParty);
         restButton.onClick.AddListener(OnRest);
-    }
-
-    public void Show()
-    {
-        gameObject.SetActive(true);
-        panelCG.interactable = true;
-        panelCG.blocksRaycasts = true;
-
-        Debug.Log("[RestUI] Show() 호출됨");
-
+        
     }
 
     public void Hide()
