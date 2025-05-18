@@ -1,16 +1,25 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using System.Linq;
-using static UnityEngine.ParticleSystem;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("플레이어 유닛 배치 UI")]
+    [SerializeField] private GameObject PlacePanel;     // 에디터에서 PlacePanel 오브젝트
+    [SerializeField] private LineUpBar lineUpBar;         // 에디터에서 LineUpBar 컴포넌트
+
+    public PlacePanel PlacePanelComponent => PlacePanel.GetComponent<PlacePanel>();
+    public LineUpBar LineUpBarComponent => lineUpBar;
+
     [SerializeField] private GameObject eventManager;
     [SerializeField] private GameObject storeManager;
-    [SerializeField] private GameObject canvas;
+
+    [Header("Map UI & Enemy Info Panel")]
+    [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
+    [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
+   
 
     public int currentStageX;
     public int currentStageY;
@@ -21,8 +30,8 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance { get; private set; }
 
-    // 스테이지 프리셋 변경 이벤트
-    public event Action<int> OnPresetChanged;
+    public bool IsPlaceMode { get; private set; }
+    
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
@@ -54,6 +63,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
 
         await GoogleSheetLoader.Instance.LoadUnitSheetData();
@@ -61,6 +71,7 @@ public class GameManager : MonoBehaviour
         save.LoadData();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
+        UnitLoader.Instance.LoadUnitsFromJson();
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -69,8 +80,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         return;
 
      // 맵 씬에 진입했을 때만
-     allStages = FindObjectsOfType<StageNodeUI>().ToList();     InitializeStageLocks();
-        InitializeStageLocks();
+     allStages = FindObjectsOfType<StageNodeUI>().ToList();
+     InitializeStageLocks();
  }
 
 private void Start()
@@ -82,35 +93,9 @@ private void Start()
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
             InitializeStageLocks();
     }
-
-    public int CurrentGold
-    {
-        get => RogueLikeData.Instance.GetCurrentGold();
-        set => RogueLikeData.Instance.SetCurrentGold(value);
-    }
-
-    public int SpentGold
-    {
-        get => RogueLikeData.Instance.GetSpentGold();
-        set => RogueLikeData.Instance.SetSpentGold(value);
-    }
-    public int PlayerMorale
-    {
-        get => RogueLikeData.Instance.GetMorale();
-        set => RogueLikeData.Instance.SetMorale(value);
-    }
-
-    /*public int RerollCount
-    {
-    물어보고 추가 - 내용은 보유 리롤 횟수 접근
-    }*/
-    /// <summary>
-    /// StageNodeUI가 클릭되었을 때 호출됩니다.
-    /// </summary>
+    
     public void OnStageClicked(StageNodeUI clickedStage)
     {
-
-
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
         // 잠겨 있으면 아무 동작 안 함
@@ -145,9 +130,9 @@ private void Start()
         }
     }
 
-    /// <summary>
-    /// 내부: 현재 스테이지를 변경(이동)하고, 잠금/해제 로직을 실행합니다.
-    /// </summary>
+
+    ///현재 스테이지를 변경(이동)하고, 잠금/해제 로직을 실행합니다.
+
     private void SetCurrentStage(StageNodeUI newStage)
     {
         allStages = FindObjectsOfType<StageNodeUI>().ToList();
@@ -167,8 +152,17 @@ private void Start()
             newStage.stageType == StageType.Elite ||
             newStage.stageType == StageType.Boss)
         {
-            canvas.SetActive(false);
-            SceneManager.LoadScene("AutoBattleScene");
+
+            enemyInfoPanel.SetActive(true);
+            var enemies = LoadEnemyUnits(newStage.PresetID);
+            var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
+
+            string cmdName = preset.Commander ?? "";
+            /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
+                              ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
+                              : "";*/
+            var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
+            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName/*, cmdSkill*/);
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---
@@ -187,7 +181,7 @@ private void Start()
         // 6) 타입별 처리
         if (newStage.stageType == StageType.Rest)
         {
-            restUI?.Show();
+            restUI.Show();
         }
         else if (newStage.stageType == StageType.Event)
         {
@@ -199,9 +193,9 @@ private void Start()
         }
     }
 
-    /// <summary>
+
     /// 플레이어 마커를 해당 스테이지 UI 위치로 이동시킵니다.
-    /// </summary>
+
     private void MovePlayerMarkerTo(StageNodeUI target)
     {
         if (playerMarker == null)
@@ -212,7 +206,7 @@ private void Start()
 
     public void InitializeStageLocks()
     {
-        canvas.SetActive(true );
+        mapCanvas.SetActive(true);
         // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
         var all = FindObjectsOfType<StageNodeUI>().ToList();
         // ② 일단 전부 잠급니다
@@ -231,8 +225,41 @@ private void Start()
         }
 
         // 그 외(맵 복귀) → 마지막 찍힌 currentStage + 연결된 다음 노드만 언락
+        enemyInfoPanel.SetActive(false); //250515 적 정보 패널 false
+        PlacePanel.SetActive(false);
         currentStage.UnlockStage();
         foreach (var nxt in currentStage.connectedStages)
             nxt.UnlockStage();
+
+        
+    }
+    private List<RogueUnitDataBase> LoadEnemyUnits(int presetID)
+    {
+        // 1) StagePresetLoader에서 프리셋 가져오기
+        var preset = StagePresetLoader.I.GetByID(presetID);
+        if (preset == null)
+        {
+            Debug.LogError($"[GameManager] Preset {presetID} 을(를) 찾을 수 없습니다.");
+            return new List<RogueUnitDataBase>();
+        }
+
+        // 2) 프리셋의 UnitList(int idx 리스트) → UnitLoader로부터 복제해서 반환
+        return preset.UnitList
+                     .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, /*isTeam=*/ false))
+                     .Where(u => u != null)
+                     .ToList();
+    }
+    public void TogglePlacePanel(bool open)
+    {
+        PlacePanel.SetActive(open);
+        IsPlaceMode = open;
+    }
+    
+    public void HideAllPanels()
+    {
+        mapCanvas.SetActive(false);
+        enemyInfoPanel.SetActive(false);
+        PlacePanel.SetActive(false);
+        IsPlaceMode = false;
     }
 }

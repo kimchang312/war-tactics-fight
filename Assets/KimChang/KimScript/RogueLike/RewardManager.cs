@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 
 public static class RewardManager
 {
@@ -9,6 +10,7 @@ public static class RewardManager
 {
     { StageType.Combat, 50 },
     { StageType.Elite, 150 },
+    { StageType.Treasure, 150 },
     { StageType.Boss, 250 }
 };
     private static readonly Dictionary<StageType, int> stageTypeGrade = new()
@@ -17,6 +19,16 @@ public static class RewardManager
     { StageType.Elite, 5 },
     { StageType.Boss, 10 }
 };
+
+    //보물 스테이지 일때 보상
+    public static (int, int) GetRewardTeasure()
+    {
+        var type = RogueLikeData.Instance.GetCurrentStageType();
+        int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
+        int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold);
+        int relicGrade = 7;
+        return (gold,relicGrade);
+    }
 
     //현재 스테이지와 챕터에 따른 전투 보상 
     public static void AddBattleRewardByStage(int battleResult,List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits)
@@ -28,16 +40,24 @@ public static class RewardManager
         reward.morale += morale;
         int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
         int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold);
+        //유산 
+        if (RelicManager.CheckRelicById(86) && reward.battleResult ==0)
+        {
+            int battleUnitCount = RogueLikeData.Instance.GetBattleUnitCount();
+            int maxUnit = RogueLikeData.Instance.GetMaxUnits();
+            if (battleUnitCount <= maxUnit - 3) gold *= 2;
+        }
         reward.gold += gold;
         int grade = stageTypeGrade.TryGetValue(type,out var val)? val: 0;
         reward.unitGrade.Add(grade);
         reward.relicGrade.Add(grade);
 
+        RelicManager.ConquerorSeal(ref reward,type,grade);
     }
     //전투 종료 시 사기 계산
     private static int EndBattleMorale(int result, List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits,StageType type)
     {
-        int morale = RogueLikeData.Instance.GetMorale();
+        int morale = 0;
         int addMorale = 0;
         int reduceMorale = 0;
         foreach (var unit in deadUnits)
@@ -83,6 +103,14 @@ public static class RewardManager
         if (RelicManager.CheckRelicById(33)) addMorale = (int)(reduceMorale * 1.2);
         //유산 56
         if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
+        if (RelicManager.CheckRelicById(59) && type ==StageType.Boss) 
+        {
+            var myUnits =RogueLikeData.Instance.GetMyUnits();
+            foreach (var unit in myUnits)
+            {
+                unit.energy = unit.maxEnergy;
+            }
+        }
         morale += addMorale + reduceMorale;
 
         return morale;
@@ -91,7 +119,7 @@ public static class RewardManager
     // 등급에 따라 유닛 3명을 반환하는 함수
     public static List<RogueUnitDataBase> GetRandomUnitsByGrade(int grade)
     {
-        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
         Dictionary<int, int> rarityWeights = grade switch
         {
@@ -139,6 +167,18 @@ public static class RewardManager
                 return kvp.Key;
         }
         return weights.Keys.First();
+    }
+
+    public static bool CheckGameOver()
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+        if (morale < 1) return true;
+        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyUnits();
+        foreach (var unit in myUnits)
+        {
+            if (unit.energy > 0) return false; 
+        }
+        return true;
     }
 
 

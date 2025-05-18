@@ -54,13 +54,6 @@ public class MapGenerator : MonoBehaviour
     public Dictionary<string, StageNode> NodeDictionary { get { return nodeDict; } }
 
 
-
-    void Start()
-    {
-        // 보스 스테이지 제외 일반 경로 생성
-        //GeneratePathsNonCrossing();
-    }
-
     // ─── Combat/Elite/Boss 에 맞춰 presetID 선정 함수 ─────────────────
     private int PickPresetID(int level, StageType stageType)
     {
@@ -85,17 +78,8 @@ public class MapGenerator : MonoBehaviour
             return -1;
         }
 
-        int idx;
-        if (stageType == StageType.Combat)
-        {
-            // 둘 중 랜덤 하나 선택
-            idx = UnityEngine.Random.Range(0, candidates.Count);
-        }
-        else
-        {
-            // Elite/Boss는 첫 번째 사용 (필요 시 로직 확장)
-            idx = 0;
-        }
+        // Combat, Elite, Boss 모두 후보 중 랜덤 선택
+        int idx = UnityEngine.Random.Range(0, candidates.Count);
         return candidates[idx].PresetID;
     }
 
@@ -344,6 +328,7 @@ public class MapGenerator : MonoBehaviour
         // 3) 보스 스테이지 생성 및 연결
         // 보스 스테이지는 전체 레벨 중 마지막(레벨 = normalLevels, 즉 totalLevels-1)에서 단일 노드로 생성합니다.
         StageNode bossNode = new StageNode(normalLevels, 3, StageType.Boss); // 여기서 row 3(예: D열) 고정
+        bossNode.presetID = PickPresetID(normalLevels, StageType.Boss);
         string bossKey = normalLevels + "_3";
         nodeDict[bossKey] = bossNode;
 

@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using UnityEditor.Sprites;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 
@@ -176,7 +178,7 @@ public class RogueUnitDataBase
         this.maxEnergy = maxEnergy;
         this.alive = alive;
         this.fStriked = fStriked;
-        this.UniqueId = uniqueId;
+        this.UniqueId = BuildUnitUniqueId(branchIdx,idx);
         this.effectDictionary = effectDictionary??new Dictionary<int, BuffDebuffData>();
     }
     public static RogueUnitDataBase ConvertToUnitDataBase(List<string> rowData,bool isTeam=true)
@@ -291,7 +293,7 @@ public class RogueUnitDataBase
         );
     }
 
-    public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam)
+    public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam=true)
     {
         int serial = RogueLikeData.Instance.GetNextUnitUniqueId();
         int teamBit = isTeam ? 0 : 1;
@@ -312,44 +314,36 @@ public class RogueUnitDataBase
     }
     public static RogueUnitDataBase RandomUnitReForm(RogueUnitDataBase unit)
     {
-        // 희귀도 4 이상은 전직 불가
         if (unit.rarity >= 4) return unit;
 
-        // 전직 희귀도 결정
         int newRarity = RollPromotion(unit.rarity);
 
         // 새로운 희귀도의 유닛 중 랜덤 선택
-        var pool = GoogleSheetLoader.Instance.GetAllUnitsAsObject()
+        var pool = UnitLoader.Instance.GetAllCachedUnits()
                      .Where(u => u.rarity == newRarity)
                      .ToList();
 
         if (pool.Count == 0) return null;
 
         var picked = pool[UnityEngine.Random.Range(0, pool.Count)];
-        var row = GoogleSheetLoader.Instance.GetRowUnitData(picked.idx);
-        if (row == null) return null;
+        if (picked == null) return null;
 
-        RogueUnitDataBase recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스 생성
+        RogueUnitDataBase recreated = UnitLoader.Instance.GetCloneUnitById(picked.idx);
         return recreated;
     }
     //희귀도에 따른 무작위 유닛 획득
     public static RogueUnitDataBase GetRandomUnitByRarity(int rarity)
     {
-        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
-        // 희귀도에 해당하는 유닛 필터
         var filtered = allUnits.Where(u => u.rarity == rarity).ToList();
 
         if (filtered.Count == 0)
-        {
-            Debug.LogWarning($"희귀도 {rarity}에 해당하는 유닛이 없습니다.");
             return null;
-        }
 
-        // 무작위 유닛 1개 선택
         int idx = UnityEngine.Random.Range(0, filtered.Count);
         var selected = filtered[idx];
-
+        RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);
         // UniqueId 자동 할당
         selected.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
 
@@ -359,6 +353,7 @@ public class RogueUnitDataBase
     public static List<RogueUnitDataBase> SetMyUnitsNormalize()
     {
         var myUnits = RogueLikeData.Instance.GetMyUnits();
+        
         foreach (var unit in myUnits)
         {
             unit.health = unit.maxHealth;
@@ -367,7 +362,6 @@ public class RogueUnitDataBase
             unit.mobility = unit.baseMobility;
             unit.range = unit.baseRange;
             unit.antiCavalry = unit.baseAntiCavalry;
-
         }
         return myUnits;
     }
@@ -375,16 +369,22 @@ public class RogueUnitDataBase
     public static void SetSavedUnitsByMyUnits()
     {
         RogueLikeData.Instance.ClearSavedMyUnits();
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        foreach(var unit in myUnits)
+        var myTeam = RogueLikeData.Instance.GetMyTeam();
+        foreach(var unit in myTeam)
         {
             int id = unit.idx;
-            List<string> row = GoogleSheetLoader.Instance.GetRowUnitData(id);
-            RogueUnitDataBase newUnit = ConvertToUnitDataBase(row);
+            RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(id);
             RogueLikeData.Instance.AddSavedMyUnits(newUnit);
-
         }
     }
 
+    public static List<RogueUnitDataBase> GetBaseUnits()
+    {
+        List<RogueUnitDataBase> units = new();
+        units.Add(UnitLoader.Instance.GetCloneUnitById(0));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(2));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(3));
+        return units;
+    }
 
 }

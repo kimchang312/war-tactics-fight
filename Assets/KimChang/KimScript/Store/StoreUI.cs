@@ -40,7 +40,12 @@ public class StoreUI : MonoBehaviour
 
     private int CalculateDiscountedPrice(StoreItemData item)
     {
-        return (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax) * GetSaleRatio());
+        int cost =  (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
+        float sale = 1;
+        sale += RelicManager.CheckRelicById(0) ? 0.2f : 0;
+        sale += RelicManager.CheckRelicById(58) ? -0.2f : 0;
+        cost = (int)(cost * sale);
+        return cost;
     }
 
     private void ShowUnitUI()
@@ -187,7 +192,7 @@ public class StoreUI : MonoBehaviour
 
     private List<RogueUnitDataBase> FilterAndSelectUnits(StoreItemData item)
     {
-        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
         List<RogueUnitDataBase> filtered = item.form switch
         {
             "Rarity" => EventManager.ParseRange(item.value) is var (min, max) ? allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList() : new(),
@@ -216,6 +221,10 @@ public class StoreUI : MonoBehaviour
     private bool SetButtonState(Button btn, int price)
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
+        if (RogueLikeData.Instance.GetOwnedRelicById(49) != null)
+        {
+            gold += 500;
+        }
         btn.interactable = gold >= price;
         return btn.interactable;
     }
@@ -240,6 +249,7 @@ public class StoreUI : MonoBehaviour
     private void SetItemInformation(Transform child, StoreItemData storeItemData, int price, List<RogueUnitDataBase> units = null, int relicId = -1, int rerollCount = 0)
     {
         ItemInformation itemInformation = child.GetComponent<ItemInformation>();
+        itemInformation.isItem = true;
         itemInformation.item = storeItemData;
         itemInformation.price = price;
         if (units != null) itemInformation.units = units;

@@ -51,26 +51,15 @@ public class AutoBattleManager : MonoBehaviour
     private float enemyFinalDamage = 0;
 
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
-    private async void Start()
+    private void Start()
     {
         //여기 코드 추후 삭제
-        SaveData save = new();
-        save.LoadData();
-        EventManager.LoadEventData();
-        StoreManager.LoadStoreData();
-        await GoogleSheetLoader.Instance.LoadUnitSheetData();
+        UnitLoader.Instance.LoadUnitsFromJson();
 
         if (autoBattleUI == null)
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
         currentState = BattleState.None;
         InitializeRogueLike();
-        /*
-        List<int> myIds = PlayerData.Instance.ShowPlacedUnitList();
-        List<int> enemyIds = PlayerData.Instance.GetEnemyUnitIndexes();
-        if (myIds.Count <= 0) return;
-
-        await InitializeBattle(myIds, enemyIds);
-        */
     }
     private async void Update()
     {
@@ -157,12 +146,8 @@ public class AutoBattleManager : MonoBehaviour
         List<RogueUnitDataBase> units = new();
         foreach (int unitId in unitIds)
         {
-            List<string> rowData = GoogleSheetLoader.Instance.GetRowUnitData(unitId);
-            if (rowData != null)
-            {
-                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData, false);
-                units.Add(unit);
-            }
+            RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(unitId, false);
+            units.Add(unit);
         }
         return units;
     }
@@ -408,11 +393,14 @@ public class AutoBattleManager : MonoBehaviour
         int presetId = RogueLikeData.Instance.GetPresetID();
         if (presetId == -1) return;
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
+        StagePreset pre = StagePresetLoader.I.GetByID(presetId);
+        Debug.Log(presetId+" "+ pre.UnitCount + ""+unitIds.Count);
         enemyUnits = GetUnitsById(unitIds);
         //myUnits = GetUnitsById(unitIds);
         myUnits = RogueUnitDataBase.SetMyUnitsNormalize();
         RogueLikeData.Instance.SetAllMyUnits(myUnits);
-        
+        RogueLikeData.Instance.SetBattleUnitCount(myUnits.Count);
+
         ProcessEnter();
 
         RogueUnitDataBase.SetSavedUnitsByMyUnits();
@@ -448,7 +436,22 @@ public class AutoBattleManager : MonoBehaviour
         
         ProcessBeforeBattle(myUnits, enemyUnits, true, myFinalDamage);
         ProcessBeforeBattle(enemyUnits, myUnits, false, enemyFinalDamage);
-        
+
+        //유산
+        if (RelicManager.CheckRelicById(114))
+        {
+            float sum = 0;
+            foreach (var unit in myUnits)
+            {
+                sum += unit.maxHealth;
+                if(sum >= 1700)
+                {
+                    RogueLikeData.Instance.EarnGold(200);
+                    break;
+                }
+            }
+        }
+
         await Task.Delay((int)waittingTime);
         currentState = BattleState.Start;
         isProcessing = false; // 체크가 끝난 후 상태를 변경
@@ -456,8 +459,6 @@ public class AutoBattleManager : MonoBehaviour
     // 시작 단계 처리 (전투 시작을 위한 초기화)
     private async Task<bool> HandleStart()
     {
-        Debug.Log("전투 시작");
-
         bool result = StartBattlePhase();
 
         await Task.Yield();
@@ -541,13 +542,14 @@ public class AutoBattleManager : MonoBehaviour
             currentState = BattleState.End;
 
             SaveData saveData = new SaveData();
+
             saveData.SaveDataBattaleEnd(myUnits, myDeathUnits);
 
             //전투 보상계산
             RewardManager.AddBattleRewardByStage(result, myDeathUnits, enemyDeathUnits);
 
             //종료 시 UI 표기
-            autoBattleUI.FightEnd(result);
+            autoBattleUI.FightEnd();
 
             UpdateUnitCount();
 
@@ -556,6 +558,15 @@ public class AutoBattleManager : MonoBehaviour
             RogueLikeData.Instance.SetFieldId(0);
 
             RogueLikeData.Instance.ClearBuffDeBuff();
+
+            RogueLikeData.Instance.SetBattleUnitCount(0);
+
+            //전투 종료 시 유산
+            WarRelic relic = RogueLikeData.Instance.GetOwnedRelicById(109);
+            if (relic != null)
+            {
+                relic.Execute();
+            }
 
             return true;
         }

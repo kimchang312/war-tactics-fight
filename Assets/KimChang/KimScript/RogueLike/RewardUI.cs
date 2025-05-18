@@ -12,26 +12,52 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private GameObject moraleResult;
     [SerializeField] private Button unitResult;
     [SerializeField] private Button relicResult;
+    [SerializeField] private Button retryBtn;
+    [SerializeField] private Button goTitleBtn;
     [SerializeField] private Button leaveBtn;
     [SerializeField] private GameObject rewardSelectObj;
     [SerializeField] private TextMeshProUGUI selectText;
     [SerializeField] private GameObject selectRewards;
     [SerializeField] private Button rerollBtn;
     [SerializeField] private Button skipBtn;
+    [SerializeField] private UnitSelectUI unitSelectUI;
+    SaveData saveData = new SaveData();
 
     private void OnEnable()
     {
         ResetUI();
         transform.SetAsLastSibling();
-        CreateRewardUI();
     }
 
-    private void CreateRewardUI()
+    public void CreateTeasureUI()
+    {
+        BattleRewardData reward = new();
+        
+        int gold, relicGrade;
+        (gold, relicGrade) = RewardManager.GetRewardTeasure();
+        reward.gold = gold;
+        reward.relicGrade.Add(relicGrade);
+
+        resultText.text = "전리품";
+        goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {gold}";
+        RogueLikeData.Instance.EarnGold(gold);
+
+        relicResult.onClick.AddListener(()=>OpenReward(false));
+        goldResult.SetActive(true);
+        relicResult.gameObject.SetActive(true);
+
+        leaveBtn.onClick.AddListener(() => gameObject.SetActive(false));
+    }
+
+    public void CreateRewardUI()
     {
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+        bool isGameOver = RewardManager.CheckGameOver();
+        if (isGameOver) reward.battleResult = 5;
         moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  사기 {reward.morale}";
         resultText.text = reward.battleResult switch
         {
+            5 => "전멸",
             2 => "패배",
             1 => "무승부",
             _ => resultText.text
@@ -56,6 +82,15 @@ public class RewardUI : MonoBehaviour
 
             RogueLikeData.Instance.AddRerollChange(reward.rerollChance);
         }
+        else if (isGameOver)
+        {
+            retryBtn.onClick.AddListener(ClickRetryBtn);
+            goTitleBtn.onClick.AddListener(ClickGoTitleBtn);
+
+            retryBtn.gameObject.SetActive(true);
+            goTitleBtn.gameObject.SetActive(true);
+            return;
+        }
 
         RogueLikeData.Instance.EarnGold(reward.gold);
         RogueLikeData.Instance.ChangeMorale(reward.morale);
@@ -73,8 +108,10 @@ public class RewardUI : MonoBehaviour
         unitResult.gameObject.SetActive(false);
         relicResult.onClick.RemoveAllListeners();
         relicResult.gameObject.SetActive(false);
-        leaveBtn.onClick.AddListener(() => gameObject.SetActive(false));
+        leaveBtn.onClick.AddListener(LeaveReward);
         rewardSelectObj.SetActive(false);
+        retryBtn.gameObject.SetActive(false);
+        goTitleBtn.gameObject.SetActive(false);
 
         foreach (Transform child in selectRewards.transform)
             child.gameObject.SetActive(false);
@@ -83,6 +120,7 @@ public class RewardUI : MonoBehaviour
         skipBtn.onClick.RemoveAllListeners();
         rerollBtn.onClick.AddListener(RerollReward);
         skipBtn.onClick.AddListener(SkipSelectReward);
+        unitSelectUI.gameObject.SetActive(false);
     }
 
     private void OpenReward(bool isUnit)
@@ -153,14 +191,23 @@ public class RewardUI : MonoBehaviour
 
         if (!HasUnitReward(reward) && !HasRelicReward(reward))
         {
-            RogueLikeData.Instance.ClearBattleReward();
-            new SaveData().SaveDataFile();
-            if (SceneManager.GetActiveScene().name != "RLmap")
-                SceneManager.LoadScene("RLmap");
-            else
-                gameObject.SetActive(false);
-            return;
+            backFrame.SetActive(true);
+            rewardSelectObj.SetActive(false);
+            unitResult.gameObject.SetActive(false);
+            relicResult.gameObject.SetActive(false);
         }
+
+        int reroll = RogueLikeData.Instance.GetRerollChance();
+        var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
+        if(reroll < 1)
+        {
+            rerollBtn.interactable = false;
+        }
+        else
+        {
+            rerollBtn.interactable = true;
+        }
+        countText.text = $"{reroll}";
 
         rewardSelectObj.SetActive(true);
         rerollBtn.gameObject.SetActive(true);
@@ -169,15 +216,24 @@ public class RewardUI : MonoBehaviour
     }
 
 
-    private void ClickReward(RewardInfromation info)
+    private void ClickReward(ItemInformation info)
     {
+        if (info.isItem) return;
+        BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         if (info.type == RewardType.UnitGrade || info.type == RewardType.NewUnit || info.type == RewardType.ChangeUnit)
         {
-            var unit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(info.unitId));
+            RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(info.unitId);
             RogueLikeData.Instance.AddMyUnis(unit);
         }
         else if (info.type == RewardType.RelicGrade || info.type == RewardType.NewRelic)
+        {
             RogueLikeData.Instance.AcquireRelic(info.relicId);
+            if (info.relicId == 79)
+            {
+                unitSelectUI.gameObject.SetActive(true);
+                unitSelectUI.OpenSelectUnitWindow(SkipSelectReward);
+            }
+        }
 
         SkipSelectReward();
     }
@@ -185,23 +241,27 @@ public class RewardUI : MonoBehaviour
     private void RerollReward()
     {
         int reroll = RogueLikeData.Instance.GetRerollChance();
-        var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
-        countText.text = $"{reroll}";
 
         if (reroll > 0)
         {
-            var info = selectRewards.transform.GetChild(0).GetComponent<RewardInfromation>();
+            var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
+            countText.text = $"{reroll}";
+            var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
             OpenReward(info.unitId > -1);
             RogueLikeData.Instance.SetRerollChance(--reroll);
             countText.text = $"{reroll}";
+            rerollBtn.interactable = true;
+            return;
         }
+        rerollBtn.interactable = false;
     }
 
+    //넘기기 or 보상 받으면 해당 보상 리스트에서 해당 보상 제거 및 새로운 보상 보여주기
     private void SkipSelectReward()
     {
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
-        var info = selectRewards.transform.GetChild(0).GetComponent<RewardInfromation>();
-
+        var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
+        //if (info.isItem) return;       
         switch (info.type)
         {
             case RewardType.UnitGrade: reward.unitGrade.RemoveAt(0); break;
@@ -210,17 +270,18 @@ public class RewardUI : MonoBehaviour
             case RewardType.RelicGrade: reward.relicGrade.RemoveAt(0); break;
             case RewardType.NewRelic: reward.relicIds.RemoveAt(0); break;
         }
-
-        if (HasUnitReward(reward)) OpenReward(true);
-        else if (HasRelicReward(reward)) OpenReward(false);
+        if (HasUnitReward(reward)){
+            OpenReward(true);
+        }
+        else if (HasRelicReward(reward)) {
+            OpenReward(false); 
+        }
         else
         {
-            RogueLikeData.Instance.ClearBattleReward();
-            new SaveData().SaveDataFile();
-            if (SceneManager.GetActiveScene().name != "RLmap")
-                SceneManager.LoadScene("RLmap");
-            else
-                gameObject.SetActive(false);
+            backFrame.SetActive(true);
+            rewardSelectObj.SetActive(false);
+            unitResult.gameObject.SetActive(false);
+            relicResult.gameObject.SetActive(false);
         }
     }
 
@@ -230,34 +291,61 @@ public class RewardUI : MonoBehaviour
     private static bool HasRelicReward(BattleRewardData r) =>
         r.relicGrade.Count > 0 || r.relicIds.Count > 0;
 
-    private RewardInfromation CreateUnit(Button btn, RogueUnitDataBase unit, RewardType type)
+    private ItemInformation CreateUnit(Button btn, RogueUnitDataBase unit, RewardType type)
     {
         btn.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite($"UnitImages/{unit.unitImg}");
         btn.GetComponentInChildren<TextMeshProUGUI>().text = unit.unitName;
 
-        var info = btn.GetComponent<RewardInfromation>();
+        var info = btn.GetComponent<ItemInformation>();
         info.unitId = unit.idx;
         info.relicId = -1;
         info.type = type;
+        info.isItem = false;
 
+        btn.onClick.RemoveAllListeners();
         btn.onClick.AddListener(() => ClickReward(info));
         btn.gameObject.SetActive(true);
         return info;
     }
 
-    private RewardInfromation CreateRelic(Button btn, WarRelic relic, RewardType type)
+    private ItemInformation CreateRelic(Button btn, WarRelic relic, RewardType type)
     {
         btn.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite($"KIcon/WarRelic/{relic.id}");
         btn.GetComponentInChildren<TextMeshProUGUI>().text = relic.name;
 
-        var info = btn.GetComponent<RewardInfromation>();
+        var info = btn.GetComponent<ItemInformation>();
         info.relicId = relic.id;
         info.unitId = -1;
         info.type = type;
+        info.isItem = false;
 
+        btn.onClick.RemoveAllListeners();
         btn.onClick.AddListener(() => ClickReward(info));
         btn.gameObject.SetActive(true);
         return info;
+    }
+
+    private void LeaveReward()
+    {
+        RogueLikeData.Instance.ClearBattleReward();
+        new SaveData().SaveDataFile();
+        if (SceneManager.GetActiveScene().name != "RLmap")
+            SceneManager.LoadScene("RLmap");
+        else
+            gameObject.SetActive(false);
+        return;
+    }
+    private void ClickRetryBtn()
+    {
+        saveData.DeleteSaveFile();
+        //스테이지 초기화 추가해야함
+        SceneManager.LoadScene("RLmap");
+    }
+    private void ClickGoTitleBtn()
+    {
+        saveData.DeleteSaveFile();
+        //스테이지 초기화 추가해야함
+        SceneManager.LoadScene("Title");
     }
 
 }

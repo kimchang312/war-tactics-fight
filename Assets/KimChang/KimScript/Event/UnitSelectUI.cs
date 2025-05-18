@@ -17,11 +17,9 @@ public class UnitSelectUI : MonoBehaviour
 
     public void OpenSelectUnitWindow(Action func, List<RogueUnitDataBase> selectUnits = null)
     {
-        // 1. 기존 오브젝트 정리
         objectPool.ReturnSelectUnit(selectUnitParent);
 
-        // 2. 유닛 리스트 가져오기
-        selectUnits ??= RogueLikeData.Instance.GetMyUnits();
+        selectUnits ??= RogueLikeData.Instance.GetMyTeam();
 
         // 3. 유닛 UI 생성
         foreach (var unit in selectUnits)

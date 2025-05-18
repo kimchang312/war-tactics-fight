@@ -430,7 +430,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1391114250}
         m_TargetAssemblyTypeName: GameStart, Assembly-CSharp
-        m_MethodName: LoadDifficultyScene
+        m_MethodName: LoadMainScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

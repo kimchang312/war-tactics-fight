@@ -18,7 +18,7 @@ public class UIGenerator : MonoBehaviour
     public float verticalSpacing = 150f;
 
     [Header("Margin Settings")]
-    public Vector2 startMargin = new Vector2(100f, -50f);
+    public Vector2 startMargin = new Vector2(80f, -70f);
 
     // key: "level_row" -> value: StageNodeUI 인스턴스
     private Dictionary<string, StageNodeUI> stageUIMap = new Dictionary<string, StageNodeUI>();
@@ -40,6 +40,7 @@ public class UIGenerator : MonoBehaviour
             CreateUIMap();
             LinkUIConnections();
             DrawAllConnectionLines();
+            //챕터 확인 후 생성 추가하기
 
             // UI 생성이 완전히 끝났으니 여기서 한 번만 락/언락
             if (GameManager.Instance != null)

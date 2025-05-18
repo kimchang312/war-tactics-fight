@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 
 public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private GameObject ItemToolTip;
+    public GameObject ItemToolTip;
     [SerializeField] private GameObject unitPackageToolTip;
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -17,7 +17,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         {
             unitPackageToolTip = FindInactiveObject("UnitPackageToolTip");
         }
-            ItemInformation info = GetComponent<ItemInformation>();
+        ItemInformation info = GetComponent<ItemInformation>();
         if (info == null)
         {
             Debug.LogWarning("ItemInformation 컴포넌트를 찾을 수 없습니다.");
@@ -56,9 +56,6 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         }
 
-        ItemToolTip.SetActive(true);
-        unitPackageToolTip.SetActive(false);
-
         RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
         Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -74,30 +71,42 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         TextMeshProUGUI textComponent = ItemToolTip.transform.GetChild(ItemToolTip.transform.childCount - 1)
             .GetComponent<TextMeshProUGUI>();
 
-        if (item == null)
-        {
-            textComponent.text = "아이템 정보 없음";
-        }
-        else if (item.itemId >= 0 && item.itemId < 34)
-        {
-            textComponent.text = $"{item.itemName}\n{item.description}";
-        }
-        else if (info.relicId != -1)
+        textComponent.text = "설정되지 않은 아이템";
+
+        if (info.relicId != -1)
         {
             var relic = WarRelicDatabase.GetRelicById(info.relicId);
             if (relic != null)
                 textComponent.text = $"{relic.name}\n{relic.tooltip}";
             else
-                textComponent.text = "유물 정보를 찾을 수 없습니다.";
+                textComponent.text = "유산 정보를 찾을 수 없습니다.";
         }
-        else if (item.itemId > 59 && item.itemId < 63)
+        else if (info.isItem)
         {
-            textComponent.text = $"주사위\n리롤을 {int.Parse(item.value)}회 추가한다";
+            if (item.itemId >= 0 && item.itemId < 34)
+            {
+                textComponent.text = $"{item.itemName}\n{item.description}";
+            }
+            else if (item.itemId > 59 && item.itemId < 63)
+            {
+                textComponent.text = $"주사위\n리롤을 {int.Parse(item.value)}회 추가한다";
+            }
         }
         else
         {
-            textComponent.text = "설정되지 않은 아이템";
+            if (info.abilityId != -1)
+            {
+                var (name, description) = GameTextData.GetLocalizedText(info.abilityId);
+                textComponent.text = $"{name}\n{description}";
+            }
+            else if(info.unitId > -1)
+            {
+                return;
+            }
         }
+
+        ItemToolTip.SetActive(true);
+        unitPackageToolTip.SetActive(false);
         ItemToolTip.transform.SetAsLastSibling();
     }
 

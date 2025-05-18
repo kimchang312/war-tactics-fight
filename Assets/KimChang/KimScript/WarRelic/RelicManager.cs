@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using UnityEngine;
 
 public class RelicManager
 {
@@ -41,6 +42,10 @@ public class RelicManager
         if (grade == 5)
         {
             grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
+        }
+        else if(grade == 7)
+        {
+            grade = UnityEngine.Random.value < 0.5f ? 10 : 1;
         }
 
         var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
@@ -105,17 +110,15 @@ public class RelicManager
     }
 
 
-    // 보유한 유물 중 ID 23, 24, 25을 모두 가지고 있는지 확인하고, 있으면 유물 26 추가
+    //
     public static void CheckFusion()
     {
-        if (ownedRelics.ContainsKey(26)) return; // 이미 유물 26을 보유 중이면 종료
+        if (ownedRelics.ContainsKey(26)) return;
 
         int[] requiredRelicIds = { 23, 24, 25 };
 
-        // 필요한 유물들이 전부 포함되어 있는지 확인
         if (requiredRelicIds.All(id => ownedRelics.ContainsKey(id)))
         {
-            // 기존 유물 사용 처리
             foreach (int id in requiredRelicIds)
             {
                 ownedRelics[id].used = true;
@@ -129,7 +132,6 @@ public class RelicManager
             }
         }
     }
-    // 스탯 유산 발동
     public static int RunStateRelic()
     {
         var stateRelics = ownedRelics.Values
@@ -149,15 +151,15 @@ public class RelicManager
         return 1;
     }
 
-    // 유산 유무 확인
     public static bool CheckRelicById(int relicId)
     {
         return ownedRelics.ContainsKey(relicId) && !ownedRelics[relicId].used;
     }
 
     // 유산 34 생존자의 넝마떼기
-    public static void SurvivorOfRag(ref List<RogueUnitDataBase> units)
+    public static void SurvivorOfRag(List<RogueUnitDataBase> units,bool isTeam)
     {
+        if (!isTeam) return;
         if (!ownedRelics.ContainsKey(34)) return;
 
         int onlyOne = 0;
@@ -169,16 +171,24 @@ public class RelicManager
             {
                 onlyOne++;
                 unitIndex = i;
-                units[i].attackDamage *= 1.3f;
+                units[i].attackDamage += Mathf.Round(units[i].baseAttackDamage*0.03f);
             }
         }
 
         if (onlyOne == 1 && unitIndex != -1)
         {
-            units[unitIndex].attackDamage *= 1.3f;
+            units[unitIndex].attackDamage += Mathf.Round(units[unitIndex].baseAttackDamage * 0.3f);
             units[unitIndex].mobility += 4;
         }
     }
+    //35
+    public static void ConquerorSeal(ref BattleRewardData reward,StageType type,int grade)
+    {
+        if (reward.battleResult != 0) return;
+        if (type != StageType.Elite) return;
+        reward.relicGrade.Add(grade);
+    }
+
     public static List<int> GetAvailableRelicIds(int grade, RelicAction action)
     {
         var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).Select(r => r.id).ToList();
@@ -188,6 +198,35 @@ public class RelicManager
             return relics.Where(id => !ownedIds.Contains(id)).ToList();
         else
             return relics.Where(id => ownedIds.Contains(id)).ToList();
+    }
+    public static List<WarRelic> GetAvailableRelicsAllGrades(RelicAction action)
+    {
+        var ownedIds = RogueLikeData.Instance.GetAllOwnedRelicIds().ToHashSet();
+
+        return (action == RelicAction.Acquire)
+            ? WarRelicDatabase.relics.Where(r => !ownedIds.Contains(r.id)).ToList()
+            : WarRelicDatabase.relics.Where(r => ownedIds.Contains(r.id)).ToList();
+    }
+
+    public static WarRelic HandleRandomRelicAllGrades(RelicAction action)
+    {
+        var available = GetAvailableRelicsAllGrades(action);
+        if (available.Count == 0) return null;
+
+        var selected = available[UnityEngine.Random.Range(0, available.Count)];
+
+        if (action == RelicAction.Acquire)
+        {
+            RogueLikeData.Instance.AcquireRelic(selected.id);
+            ownedRelics.TryAdd(selected.id, selected);
+        }
+        else if (action == RelicAction.Remove)
+        {
+            RogueLikeData.Instance.RemoveRelicById(selected.id);
+            ownedRelics.Remove(selected.id);
+        }
+
+        return selected;
     }
 
 }

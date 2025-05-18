@@ -45,6 +45,7 @@ public class AbilityManager
             ()=> {if(presetId == 49) CommenderEffect.CalculateSlash();  },
             ()=> {if (presetId ==57) CommenderEffect.CalculateLazaros(); },
             ()=>{if(presetId ==59)CommenderEffect.CalculateBelphegor(); },
+            ()=>{if(presetId ==60)CommenderEffect.CalculateAmarok(); },
             ()=> {if(presetId == 62) CommenderEffect.CalculateStein(); },
         };
 
@@ -164,12 +165,12 @@ public class AbilityManager
 
         int randomIndex = UnityEngine.Random.Range(0, myUnits.Count);
         myUnits[randomIndex].health -= 30;
-        myUnits[randomIndex].health = Mathf.Max(myUnits[randomIndex].health, 0); // 체력 0 밑으로 방지
+        myUnits[randomIndex].health = Mathf.Max(myUnits[randomIndex].health, 0);
         CallDamageText(30, "폭풍우 ", true, false, randomIndex);
 
         int randomI = UnityEngine.Random.Range(0, enemyUnits.Count);
         enemyUnits[randomI].health -= 30;
-        enemyUnits[randomI].health = Mathf.Max(enemyUnits[randomI].health, 0); // 체력 0 밑으로 방지
+        enemyUnits[randomI].health = Mathf.Max(enemyUnits[randomI].health, 0);
         CallDamageText(30, "폭풍우 ", false, false, randomI);
 
         return true;
@@ -180,13 +181,15 @@ public class AbilityManager
     {
         var myUnits = RogueLikeData.Instance.GetMyUnits();
         bool hasRelic = RogueLikeData.Instance.GetOwnedRelicById(2) != null;
-
+        bool isReduce = RelicManager.CheckRelicById(105);
         foreach (var unit in myUnits)
         {
-            if (hasRelic && UnityEngine.Random.value < 0.25f)
+            if (hasRelic && Random.value < 0.25f)
                 continue;
-
-            unit.energy = Math.Max(0, unit.energy - 1);
+            int reduce = 1;
+            if (isReduce && Random.value < 0.8f)
+                reduce *= 2;
+            unit.energy = Math.Max(0, unit.energy - reduce);
         }
     }
 
@@ -460,9 +463,9 @@ public class AbilityManager
         if (tempEnemyDeathUnits.Count > 0 || tempMyDeathUnits.Count > 0)
         {
             //공격자 적
-            OnUnitDeath(tempEnemyDeathUnits,tempMyDeathUnits, ref enemyUnits, myUnits, false, enemyUnitDied, myUnitDied,isFirstAttack);
+            OnUnitDeath(tempEnemyDeathUnits,tempMyDeathUnits, ref enemyUnits, false, enemyUnitDied, myUnitDied,isFirstAttack);
             //공격자 나
-            OnUnitDeath(tempMyDeathUnits, tempEnemyDeathUnits, ref myUnits, enemyUnits, true, myUnitDied, enemyUnitDied, isFirstAttack);
+            OnUnitDeath(tempMyDeathUnits, tempEnemyDeathUnits, ref myUnits, true, myUnitDied, enemyUnitDied, isFirstAttack);
         }
 
         if (tempMyDeathUnits.Count > 0 && enemyUnits.Count > 0 && RelicManager.CheckRelicById(54))
@@ -512,7 +515,7 @@ public class AbilityManager
 
 
     // 유닛 사망 시 실행되는 함수 (추가 기능 확장 가능)
-    private void OnUnitDeath(List<RogueUnitDataBase> deadAttackers,List<RogueUnitDataBase> deadDefenders,ref List<RogueUnitDataBase> attackers,List<RogueUnitDataBase> defenders, bool isTeam, bool isFrontAttackerDead,bool isFrontDefendrDead,bool isFirstAttack)
+    private void OnUnitDeath(List<RogueUnitDataBase> deadAttackers,List<RogueUnitDataBase> deadDefenders,ref List<RogueUnitDataBase> attackers, bool isTeam, bool isFrontAttackerDead,bool isFrontDefendrDead,bool isFirstAttack)
     {
         if(attackers.Count == 0) return;
         RogueUnitDataBase frontAttacker = attackers[0];
@@ -521,6 +524,8 @@ public class AbilityManager
         CalculateTheUnsealedOne(deadDefenders.Count, isTeam);
         //불굴의 방패
         CalculateIndomitableShieldDead(attackers, deadAttackers, isTeam);
+        //넝마떼기
+        RelicManager.SurvivorOfRag(attackers, isTeam);
 
         if (RogueLikeData.Instance.GetPresetID() == 50 && !isTeam && isFrontDefendrDead && frontAttacker.branchIdx == 1) 
         {
@@ -721,7 +726,11 @@ public class AbilityManager
         if (attacker.charge)
         {
             multiplier = CalculateCharge(attacker.mobility);
-            text += "돌격 ";
+            if (attacker.effectDictionary.ContainsKey(11) && UnityEngine.Random.value < 0.33f)
+            {
+                multiplier *= 2;
+                text += "아마록 ";
+            }
             //유산
             if (RelicManager.CheckRelicById(77)) multiplier += 0.3f; 
             //강한 돌격
@@ -729,8 +738,9 @@ public class AbilityManager
             {
                 multiplier += strongChargeValue;
 
-                text = "강한돌격 ";
+                text = "강한 ";
             }
+            text += "돌격 ";
             //수비자 수비태세 시
             if (defender.defense)
             {
@@ -837,6 +847,7 @@ public class AbilityManager
             { 6, () => addDodge += 5 },
             { 9, () => addDodge -=5 },
             { 10,() => addDodge +=5 },
+            { 12,() => addDodge +=5 },
         };
             //폭풍의 창
             CalculateSpearOfStormDodge(unit, isTeam, isFirstAttack);
@@ -1357,14 +1368,9 @@ public class AbilityManager
         int heroCount = GetHeroUnitList(isTeam, heroId).Count * 3;
         if (heroCount <= 0) return;
 
-        // 해당 유닛의 원본 row 가져오기
-        var row = GoogleSheetLoader.Instance.GetRowUnitData(0);
-
         for (int i = 0; i < heroCount; i++)
         {
-            var newUnit = RogueUnitDataBase.ConvertToUnitDataBase(row);
-
-            newUnit.UniqueId = RogueUnitDataBase.BuildUnitUniqueId(newUnit.branchIdx, newUnit.idx, isTeam);
+            RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(0,isTeam);
 
             units.Insert(0, newUnit);
         }

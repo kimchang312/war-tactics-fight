@@ -14,7 +14,7 @@ public static class WarRelicDatabase
     private static System.Random random = new();
     static WarRelicDatabase()
     {
-        relics.Add(new WarRelic(0, "할인패", 1, "용병단과 상단의 금화 가격이 20% 감소한다.", RelicType.SpecialEffect, () => DiscountCard()));
+        relics.Add(new WarRelic(0, "할인쿠폰", 1, "상단의 금화 가격이 20% 감소한다.", RelicType.SpecialEffect, () => DiscountCard()));
         relics.Add(new WarRelic(1, "연구 예산 지원금", 1, "군사 아카데미의 강화 비용이 20% 감소한다.", RelicType.SpecialEffect, () => SolidAnvil()));
         relics.Add(new WarRelic(2, "인내력의 깃발", 1, "기력이 감소할 때마다 25% 확률로 감소하지 않는다.", RelicType.SpecialEffect, () => FlagOfEndurance()));
         relics.Add(new WarRelic(3, "추가 보급 명령서", 1, "병영에서 유닛 훈련에 요구하는 턴이 1 감소한다. (1 미만으로 내려가지 않음)", RelicType.SpecialEffect, () => ExtraSupplyOrder()));
@@ -33,7 +33,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(15, "수호자의 훈장", 10, "수호 스킬을 가진 아군 유닛의 장갑이 4 증가하고, 공격 받을때 피해를 둘로 나눠서 받는다.", RelicType.ActiveState, () => MedalOfImperialGuard()));
         relics.Add(new WarRelic(16, "헤르메스 신발", 10, "경갑 유닛의 기동력이 8 증가한다.", RelicType.StateBoost, () => VeryLightMilitaryPants()));
         relics.Add(new WarRelic(17, "팔랑크스 전술서", 10, "창병 유닛의 대기병이 50% 증가한다.", RelicType.StateBoost, () => PhalanxTacticsBook()));
-        relics.Add(new WarRelic(18, "정예 기병대 안장", 10, "기병 유닛에게 \"맹진\" 특성을 부여한다. 맹진: 4회 공격마다 돌격을 다시 시전한다.", RelicType.StateBoost, () => EliteCavalrySaddle()));
+        //relics.Add(new WarRelic(18, "정예 기병대 안장", 10, "기병 유닛에게 \"맹진\" 특성을 부여한다. 맹진: 4회 공격마다 돌격을 다시 시전한다.", RelicType.StateBoost, () => EliteCavalrySaddle()));
         relics.Add(new WarRelic(19, "정예 궁병 부대 깃털모자", 10, "궁병의 공격력이 20% 증가하며, 암살 기술에 대한 회피율이 3배 증가한다.", RelicType.ActiveState, () => EliteArcherFeatherHat()));
        
         relics.Add(new WarRelic(20, "민병대 나팔", 10, "희귀도 1 유닛의 체력과 공격력이 15% 증가한다.", RelicType.StateBoost, () => MilitiaHorn()));
@@ -62,11 +62,11 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(41, "파괴공작용 대포", 1, "일반, 엘리트 전투 시작 전에 적의 체력을 10% 감소시킨다.", RelicType.StateBoost, () => CannonForSabotage()));
         relics.Add(new WarRelic(42, "자율 개발 명령서", 1, "획득 시 무작위의 병종 강화 3종을 1단계 강화시킨다.", RelicType.GetEffect, () => AutonomousDevelopmentOrder()));
         relics.Add(new WarRelic(43, "해진 정찰 보고서", 1, "엘리트, 보스 전투에서 아군이 주는 피해가 15% 증가한다.", RelicType.StateBoost, () => EnemyGeneralScoutReport()));
-        relics.Add(new WarRelic(44, "추가 징병 계획서", 1, "용병단의 판매 유닛 슬롯 수가 4 증가한다.", RelicType.SpecialEffect, () => MistakenOrderReceipt()));
+        //relics.Add(new WarRelic(44, "추가 징병 계획서", 1, "용병단의 판매 유닛 슬롯 수가 4 증가한다.", RelicType.SpecialEffect, () => MistakenOrderReceipt()));
         relics.Add(new WarRelic(45, "전술적 단일화 교본", 10, "배치한 유닛의 병종이 한 종류일 경우 유닛의 체력과 공격력이 10% 증가하고, 경갑 유닛의 기동력이 5, 중갑 유닛의 장갑이 5 증가한다.", RelicType.StateBoost, () => TacticalUnificationManual()));
         relics.Add(new WarRelic(46, "기술 비급서", 1, "아군 유닛이 기술로 주는 피해가 20% 증가한다.", RelicType.BattleActive, () => TechnicalManual()));
         relics.Add(new WarRelic(47, "보물지도", 1, "획득 시 다음에 진입한 이벤트 지역이 보물 지역으로 변경된다.", RelicType.GetEffect, () => TreasureMap()));
-        relics.Add(new WarRelic(48, "무지개 열쇠", 1, "한 챕터에 두번, 길이 이어지지 않은 지역으로 이동할 수 있다.", RelicType.SpecialEffect, () => RainbowKey()));
+        //relics.Add(new WarRelic(48, "무지개 열쇠", 1, "한 챕터에 두번, 길이 이어지지 않은 지역으로 이동할 수 있다.", RelicType.SpecialEffect, () => RainbowKey()));
         relics.Add(new WarRelic(49, "재상의 보증서", 1, "금화를 소모할 때, 500금화까지 빌려서 사용할 수 있게된다.", RelicType.SpecialEffect, () => CreditAuthorization()));
         
         relics.Add(new WarRelic(50, "순금 나팔", 10, "금화를 소모할 때 소모한 금화 100당 아군 유닛의 공격력이 1% 증가한다. 소모한 금화량이 저장되고 소지한 금화로 취급되어 관련 효과를 적용받을 수 있다.", RelicType.StateBoost, () => GoldenHorn()));
@@ -94,7 +94,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(70, "선봉대 군화", 1, "아군의 첫 전열 유닛에 한해서 기동력이 3 증가한다.", RelicType.StateBoost, () =>VanguardBoots()));
         relics.Add(new WarRelic(71, "녹슨 쇠말뚝", 1, "아군의 모든 공격마다 장갑을 무시하는 고정 피해 5가 추가된다.", RelicType.BattleActive, () =>RustyIronStake()));
         relics.Add(new WarRelic(72, "수상한 부등변다면체", 10, "전투에 아군을 도와주는 영웅 유닛을 무작위로 하나 소환한다. 단, 10% 확률로 적군에 소환된다.", RelicType.StateBoost, () => SuspiciousScalenePolyhedron()));
-        relics.Add(new WarRelic(73, "뭐든지 들어있는 상자", 1, "모든 유산 중에 하나를 무작위로 얻는다.", RelicType.SpecialEffect, () =>AnythingBox()));
+        relics.Add(new WarRelic(73, "뭐든지 들어있는 상자", 1, "모든 유산 중에 하나를 무작위로 얻는다.", RelicType.GetEffect, () =>AnythingBox()));
         relics.Add(new WarRelic(74, "신성한 문서", 1, "'순교' 기술이 다음 순서 유닛의 체력을 이 유닛의 공격력만큼 증가시킨다.", RelicType.BattleActive, () =>SacredDocument()));
         relics.Add(new WarRelic(75, "푯대", 1, "기동력으로 증가하는 회피율이 2배가 된다.", RelicType.StateBoost, () =>Signpost()));
         relics.Add(new WarRelic(76, "경량 갑옷", 1, "경갑 특성을 지닌 유닛의 회피율이 5% 증가한다.", RelicType.StateBoost, () =>LightWeightArmor()));
@@ -117,7 +117,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(91, "불길한 족쇄", 0, "병영의 훈련 비용이 20% 증가한다.", RelicType.SpecialEffect, () => OminousChains()));
         relics.Add(new WarRelic(92, "맛있는 군용식량", 1, "비 영웅 유닛의 체력과 공격력이 8% 증가한다.", RelicType.StateBoost, () => DeliciousMilitaryRations()));
         relics.Add(new WarRelic(93, "맛있는 특별식", 1, "영웅 유닛의 체력과 공격력이 12% 증가한다.", RelicType.StateBoost, () => DeliciousSpecialMeal()));
-        //94
+        relics.Add(new WarRelic(94, "무쇠 투구", 1, "중갑 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => CastIronHelmet()));
         relics.Add(new WarRelic(95, "전속전진의 신발", 10, "돌격 스킬을 가진 유닛에게 충격 특성을 부여한다. 원래 충격을 가진 유닛은 기동력이 3 증가한다.", RelicType.StateBoost, () => ShoesOfFullSpeedAhead()));
         relics.Add(new WarRelic(96, "장식된 로자리오", 1, "지원 유닛에게 영향받는 아군 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => DecoratedRosary()));
         relics.Add(new WarRelic(97, "비상탈출 교본", 1, "궁병과 지원 유닛이 전열로 진입할 때, 유격의 효과를 발동시킨다. (유닛 당 1회)", RelicType.StateBoost, () => EmergencyEscapeManual()));
@@ -133,13 +133,13 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(106, "제어 횃불", 1, "보스를 처치하면 작열의 피해량이 영구적으로 20 증가한다.", RelicType.StateBoost, () => ControlTorch()));
         relics.Add(new WarRelic(107, "훈장 무더기", 1, "항상 부대 상한이 50% 감소한다. 내 유닛의 체력과 공격력, 대기병이 80% 증가한다.", RelicType.StateBoost, () => PileOfMedals()));
         relics.Add(new WarRelic(108, "애매한 묵시록", 1, "사기가 90 이상이라면 내 유닛의 공격력이 20 증가한다. 사기가 60 이하라면 내 유닛의 공격력이 30 감소한다.", RelicType.StateBoost, () => AmbiguousApocalypse()));
-        relics.Add(new WarRelic(109, "전쟁론", 10, "전투 스테이지를 마칠 때마다, 첫번째 유닛의 병종이 무작위 강화 2개를 얻는다.", RelicType.SpecialEffect, () => TheoryOfWar()));
+        relics.Add(new WarRelic(109, "훈련용 모래주머니", 10, "전투 스테이지를 마칠 때마다, 첫번째 유닛의 병종이 무작위 강화 2개를 얻는다.", RelicType.SpecialEffect, () => TheoTrainingSandbagsryOfWar()));
 
         relics.Add(new WarRelic(110, "대서사시", 10, "영웅 유닛 제한이 2 증가한다. 즉시 영웅 유닛 보상을 획득한다. 찢겨진 명단 전쟁 유산을 얻는다.", RelicType.GetEffect, () => Epic()));
         relics.Add(new WarRelic(111, "멸시의 오브", 1, "모든 선택지에서 희귀도 1 유닛이 등장하지 않는다.", RelicType.SpecialEffect, () => OrbOfContempt()));
         relics.Add(new WarRelic(112, "질긴 채찍", 1, "전투 중, 적 유닛의 대기병 수치가 50% 감소한다.", RelicType.StateBoost, () => ToughWhip()));
         //113
-        //114
+        relics.Add(new WarRelic(114, "병마용", 1, "전투 시작 시, 내 모든 유닛 체력의 합이 1700 이상이면, 금화 200 획득", RelicType.StateBoost, () => TerracottaArmy()));
         relics.Add(new WarRelic(115, "투창용 깃창", 1, "내 모든 창병이 투창 기술을 가진다.", RelicType.StateBoost, () => JavelinForThrowing()));
         relics.Add(new WarRelic(116, "영광의 대가", 50, "사기가 증가하지 않는다.", RelicType.SpecialEffect, () => PriceOfGlory()));
     }
@@ -258,16 +258,16 @@ public static class WarRelicDatabase
         foreach (var unit in units)
         {
             unit.maxHealth += MathF.Round(unit.baseHealth*0.3f);
-            unit.health = unit.maxHealth; // 체력 증가
-            unit.attackDamage +=MathF.Round(unit.baseAttackDamage * 0.3f); // 공격력 증가
+            unit.health = unit.maxHealth;
+            unit.attackDamage +=MathF.Round(unit.baseAttackDamage * 0.3f);
 
-            if (unit.rangedAttack) // 원거리 공격 유닛의 경우
+            if (unit.rangedAttack)
             {
-                unit.range++; // 사거리 증가
+                unit.range++;
             }
         }
 
-        RogueLikeData.Instance.SetAllMyUnits(units); // 변경된 데이터 저장
+        RogueLikeData.Instance.SetAllMyUnits(units);
     }
 
 
@@ -928,7 +928,8 @@ public static class WarRelicDatabase
     //뭐든지 들어있는 상자 73
     private static void AnythingBox()
     {
-
+        RogueLikeData.Instance.GetOwnedRelicById(73).used = true;
+        RelicManager.HandleRandomRelicAllGrades(RelicManager.RelicAction.Acquire);
     }
     //신성한 문서 74
     private static void SacredDocument()
@@ -978,7 +979,6 @@ public static class WarRelicDatabase
     //기이한 조각 79
     private static void StrangePiece()
     {
-
     }
     //합금 박차 80
     private static void AlloySpur()
@@ -1123,7 +1123,11 @@ public static class WarRelicDatabase
             unit.health = unit.maxHealth;
         }
     }
-    // 94
+    //무쇠 투구 94
+    private static void CastIronHelmet()
+    {
+
+    }
 
     //전속전진의 신발 95
     private static void ShoesOfFullSpeedAhead()
@@ -1239,8 +1243,8 @@ public static class WarRelicDatabase
             unit.attackDamage += addAttack;
         }
     }
-    //전쟁론 109
-    private static void TheoryOfWar()
+    //훈련용 모래주머니 109
+    private static void TheoTrainingSandbagsryOfWar()
     {
         var myUnits = RogueLikeData.Instance.GetMyUnits();
         bool isAttack = UnityEngine.Random.value < 0.5f;
@@ -1272,7 +1276,11 @@ public static class WarRelicDatabase
         }
     }
     // 113
-    // 114
+    // 병마용 114
+    private static void TerracottaArmy()
+    {
+
+    }
     //투창용 깃창 115
     private static void JavelinForThrowing()
     {
