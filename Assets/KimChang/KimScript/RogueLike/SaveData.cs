@@ -48,7 +48,7 @@ public class SavePlayerData
 
 public class SaveData
 {
-    private string _filePath= Application.dataPath + "/KimChang/Json/PlayerData.json";
+    private string _filePath= Application.persistentDataPath + "/PlayerData.json";
     private string _jsonData;
 
     public void SaveDataFile()
@@ -122,7 +122,7 @@ public class SaveData
     }
     private void LoadRogueLike()
     {
-        string filePath = Application.dataPath + "/KimChang/Json/PlayerData.json";
+        string filePath = Application.persistentDataPath + "/PlayerData.json";
 
         if (File.Exists(filePath))
         {

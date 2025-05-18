@@ -133,7 +133,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(106, "제어 횃불", 1, "보스를 처치하면 작열의 피해량이 영구적으로 20 증가한다.", RelicType.StateBoost, () => ControlTorch()));
         relics.Add(new WarRelic(107, "훈장 무더기", 1, "항상 부대 상한이 50% 감소한다. 내 유닛의 체력과 공격력, 대기병이 80% 증가한다.", RelicType.StateBoost, () => PileOfMedals()));
         relics.Add(new WarRelic(108, "애매한 묵시록", 1, "사기가 90 이상이라면 내 유닛의 공격력이 20 증가한다. 사기가 60 이하라면 내 유닛의 공격력이 30 감소한다.", RelicType.StateBoost, () => AmbiguousApocalypse()));
-        relics.Add(new WarRelic(109, "전쟁론", 10, "전투 스테이지를 마칠 때마다, 첫번째 유닛의 병종이 무작위 강화 2개를 얻는다.", RelicType.SpecialEffect, () => TheoryOfWar()));
+        relics.Add(new WarRelic(109, "훈련용 모래주머니", 10, "전투 스테이지를 마칠 때마다, 첫번째 유닛의 병종이 무작위 강화 2개를 얻는다.", RelicType.SpecialEffect, () => TheoTrainingSandbagsryOfWar()));
 
         relics.Add(new WarRelic(110, "대서사시", 10, "영웅 유닛 제한이 2 증가한다. 즉시 영웅 유닛 보상을 획득한다. 찢겨진 명단 전쟁 유산을 얻는다.", RelicType.GetEffect, () => Epic()));
         relics.Add(new WarRelic(111, "멸시의 오브", 1, "모든 선택지에서 희귀도 1 유닛이 등장하지 않는다.", RelicType.SpecialEffect, () => OrbOfContempt()));
@@ -1243,8 +1243,8 @@ public static class WarRelicDatabase
             unit.attackDamage += addAttack;
         }
     }
-    //전쟁론 109
-    private static void TheoryOfWar()
+    //훈련용 모래주머니 109
+    private static void TheoTrainingSandbagsryOfWar()
     {
         var myUnits = RogueLikeData.Instance.GetMyUnits();
         bool isAttack = UnityEngine.Random.value < 0.5f;

@@ -397,6 +397,7 @@ public class AutoBattleUI : MonoBehaviour
     public void FightEnd()
     {
         rewardUI.gameObject.SetActive(true);
+        rewardUI.CreateRewardUI();
     }
 
     //능력 창 띄위기
