@@ -165,12 +165,12 @@ public class AbilityManager
 
         int randomIndex = UnityEngine.Random.Range(0, myUnits.Count);
         myUnits[randomIndex].health -= 30;
-        myUnits[randomIndex].health = Mathf.Max(myUnits[randomIndex].health, 0); // 체력 0 밑으로 방지
+        myUnits[randomIndex].health = Mathf.Max(myUnits[randomIndex].health, 0);
         CallDamageText(30, "폭풍우 ", true, false, randomIndex);
 
         int randomI = UnityEngine.Random.Range(0, enemyUnits.Count);
         enemyUnits[randomI].health -= 30;
-        enemyUnits[randomI].health = Mathf.Max(enemyUnits[randomI].health, 0); // 체력 0 밑으로 방지
+        enemyUnits[randomI].health = Mathf.Max(enemyUnits[randomI].health, 0);
         CallDamageText(30, "폭풍우 ", false, false, randomI);
 
         return true;
@@ -181,13 +181,15 @@ public class AbilityManager
     {
         var myUnits = RogueLikeData.Instance.GetMyUnits();
         bool hasRelic = RogueLikeData.Instance.GetOwnedRelicById(2) != null;
-
+        bool isReduce = RelicManager.CheckRelicById(105);
         foreach (var unit in myUnits)
         {
-            if (hasRelic && UnityEngine.Random.value < 0.25f)
+            if (hasRelic && Random.value < 0.25f)
                 continue;
-
-            unit.energy = Math.Max(0, unit.energy - 1);
+            int reduce = 1;
+            if (isReduce && Random.value < 0.8f)
+                reduce *= 2;
+            unit.energy = Math.Max(0, unit.energy - reduce);
         }
     }
 

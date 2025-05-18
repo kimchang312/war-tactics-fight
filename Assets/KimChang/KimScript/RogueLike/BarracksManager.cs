@@ -8,10 +8,16 @@ public class BarracksManager
     public static int GetBarracksCost(RogueUnitDataBase unit)
     {
         int price = unit.unitPrice;
-        if (RogueLikeData.Instance.GetOwnedRelicById(3) !=null)
+        float sale = 1;
+        if (RelicManager.CheckRelicById(3))
         {
-            price =  (int)(price*0.8f); 
+            sale -= 0.2f;
         }
+        if (RelicManager.CheckRelicById(91))
+        {
+            sale += 0.2f;
+        }
+        price = (int)(price * sale);
         return price;
     }
 
@@ -19,7 +25,7 @@ public class BarracksManager
     public static bool UnitTrainning(RogueUnitDataBase unit, int price)
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
-        if (RogueLikeData.Instance.GetOwnedRelicById(49) != null)
+        if (RelicManager.CheckRelicById(49))
         {
             gold += 500;
         }
