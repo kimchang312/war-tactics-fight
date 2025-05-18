@@ -82,7 +82,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      // 맵 씬에 진입했을 때만
      allStages = FindObjectsOfType<StageNodeUI>().ToList();
      InitializeStageLocks();
- }
+     UIManager.Instance.UIUpdateAll();
+    }
 
 private void Start()
     {
