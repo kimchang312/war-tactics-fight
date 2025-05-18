@@ -66,6 +66,8 @@ public class RogueLikeData
     private int battleUnitCount = 0;
 
     private int score = 0;
+
+    private bool clearChapter=false;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -154,7 +156,6 @@ public class RogueLikeData
         }
         else
         {
-            Debug.Log("추가" + unit.unitName);
             myTeam.Add(unit);
         }
         
@@ -492,7 +493,7 @@ public class RogueLikeData
     public void ClearSavedMyUnits()
     {
         savedMyUnits.Clear();
-        savedMyUnits = myUnits;
+        savedMyUnits = myTeam;
     }
 
     public int GetChapter()
@@ -786,5 +787,12 @@ public class RogueLikeData
     {
         this.score = 0;
     }
-
+    public bool GetClearChpater()
+    {
+        return clearChapter;
+    }
+    public void SetClearChapter(bool clearChapter)
+    {
+        this.clearChapter = clearChapter;
+    }
 }

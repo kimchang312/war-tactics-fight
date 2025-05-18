@@ -70,7 +70,7 @@ public class ObjectPool : MonoBehaviour
         }
 
         instance.SetActive(true);
-        instance.transform.SetParent(canvasTransform,transform);
+        instance.transform.SetParent(canvasTransform,false);
         activeAbilitys.Add(instance);
         return instance;
     }
@@ -85,7 +85,7 @@ public class ObjectPool : MonoBehaviour
     public void ReturnAbility(GameObject gameObject)
     {
         gameObject.SetActive(false);
-        gameObject.transform.SetParent(canvasTransform,transform);
+        gameObject.transform.SetParent(canvasTransform,false);
         activeAbilitys.Remove(gameObject);
         abilityPool.Enqueue(gameObject);
 
@@ -195,7 +195,7 @@ public class ObjectPool : MonoBehaviour
             instance = Instantiate(warRelicPrefab,transform);
         }
         instance.SetActive(true);
-        instance.transform.SetParent(canvasTransform, transform);
+        instance.transform.SetParent(canvasTransform, false);
 
         return instance;
     }
@@ -204,7 +204,7 @@ public class ObjectPool : MonoBehaviour
     public void ReturnWarRelic(GameObject gameObject)
     {
         gameObject.SetActive(false);
-        gameObject.transform.SetParent(canvasTransform, transform);
+        gameObject.transform.SetParent(canvasTransform, false);
         warRelicPool.Enqueue(gameObject);
     }
 
@@ -222,7 +222,7 @@ public class ObjectPool : MonoBehaviour
             instance = Instantiate(onlyUnitPrefab, transform);
         }
         instance.SetActive(true);
-        instance.transform.SetParent(canvasTransform, transform);
+        instance.transform.SetParent(canvasTransform, false);
 
         return instance;
     }

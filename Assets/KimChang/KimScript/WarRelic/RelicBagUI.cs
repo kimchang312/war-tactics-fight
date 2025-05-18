@@ -14,14 +14,20 @@ public class NewBehaviourScript : MonoBehaviour
 
     private void Awake()
     {
-         xbtn.onClick.AddListener(()=>gameObject.SetActive(false));
+         xbtn.onClick.AddListener(CloseRelic);
     }
 
     private void OnEnable()
     {
+        foreach (Transform relic in relicBox)
+        {
+            objectPool.ReturnWarRelic(relic.gameObject);
+        }
+
         List<WarRelic> relics = RogueLikeData.Instance.GetAllOwnedRelics();
-        if(cacheData == relics) return;
+        if (cacheData == relics) return;
         cacheData = relics;
+
         foreach (WarRelic relic in relics)
         {
             GameObject obj = objectPool.GetWarRelic();
@@ -34,11 +40,14 @@ public class NewBehaviourScript : MonoBehaviour
 
             itemInfo.isItem = false;
             itemInfo.relicId = relic.id;
-
             explainItem.ItemToolTip = itemToolTip;
 
             obj.transform.SetParent(relicBox, false);
-
         }
+    }
+
+    private void CloseRelic()
+    {
+        gameObject.SetActive(false);
     }
 }

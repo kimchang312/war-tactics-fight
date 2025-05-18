@@ -76,29 +76,40 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
     }
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (!GameManager.Instance.IsPlaceMode) return;
-        var place = GameManager.Instance.PlacePanelComponent;
-        var lineup = GameManager.Instance.LineUpBarComponent;
-
-        switch (PrefabType)
+        if (eventData.button.Equals(PointerEventData.InputButton.Left))
         {
-            case Context.Lineup:
-                // ① 배치판에 추가 → 반환된 순서로 UI 갱신
-                int order = place.AddUnitToBattle(unitData);
+            if (!GameManager.Instance.IsPlaceMode) return;
+            var place = GameManager.Instance.PlacePanelComponent;
+            var lineup = GameManager.Instance.LineUpBarComponent;
 
-                canvasGroup.alpha = 0.5f;
-                canvasGroup.interactable = false;
-                canvasGroup.blocksRaycasts = false;
-                numberTextObject.SetActive(true);
-                numberText.text = order.ToString();
-                break;
+            switch (PrefabType)
+            {
+                case Context.Lineup:
+                    // ① 배치판에 추가 → 반환된 순서로 UI 갱신
+                    int order = place.AddUnitToBattle(unitData);
 
-            case Context.Placed:
-                // ② 배치판에서 제거 → UI 정리 & 라인업 재정렬
-                place.RemoveUnitFromBattle(unitData);
-                break;
+                    canvasGroup.alpha = 0.5f;
+                    canvasGroup.interactable = false;
+                    canvasGroup.blocksRaycasts = false;
+                    numberTextObject.SetActive(true);
+                    numberText.text = order.ToString();
+                    break;
+
+                case Context.Placed:
+                    // ② 배치판에서 제거 → UI 정리 & 라인업 재정렬
+                    place.RemoveUnitFromBattle(unitData);
+                    break;
+            }
+            lineup.UpdateLineupNumbers(place.PlacedUniqueIds);
         }
-        lineup.UpdateLineupNumbers(place.PlacedUniqueIds);
+        else if(eventData.button.Equals(PointerEventData.InputButton.Right))
+        {
+            UnitDetailExplain unitDetail = GameManager.Instance.unitDetail;
+            unitDetail.unit = unitData;
+            unitDetail.gameObject.SetActive(true);            
+
+        }
+
     }
     public void RestoreFromPlaced()
     {

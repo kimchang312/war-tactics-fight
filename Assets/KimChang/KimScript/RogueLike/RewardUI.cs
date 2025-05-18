@@ -52,6 +52,8 @@ public class RewardUI : MonoBehaviour
 
     public void CreateRewardUI()
     {
+        backFrame.SetActive(true);
+
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         bool isGameOver = RewardManager.CheckGameOver();
         if (isGameOver) reward.battleResult = 5;
@@ -60,8 +62,8 @@ public class RewardUI : MonoBehaviour
         resultText.text = reward.battleResult switch
         {
             5 => "전멸",
-            2 => "패배",
-            1 => "무승부",
+            2 => "무승부",
+            1 => "패배",
             _ => resultText.text
         };
 
@@ -77,7 +79,7 @@ public class RewardUI : MonoBehaviour
                 moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"점수: {RogueLikeData.Instance.GetScore()}";
                 goldResult.GetComponentInChildren<TextMeshProUGUI>().text = "  타이틀 화면으로";
                 goldResult.AddComponent<Button>().onClick.AddListener(() => SceneManager.LoadScene("Title"));
-                
+                leaveBtn.gameObject.SetActive(false);
             }
 
             goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {reward.gold}";
@@ -103,13 +105,11 @@ public class RewardUI : MonoBehaviour
 
             retryBtn.gameObject.SetActive(true);
             goTitleBtn.gameObject.SetActive(true);
+            leaveBtn.gameObject.SetActive(false);
             return;
         }
 
         RogueLikeData.Instance.EarnGold(reward.gold);
-        RogueLikeData.Instance.ChangeMorale(reward.morale);
-
-        backFrame.SetActive(true);
     }
 
     private void ResetUI()
@@ -343,7 +343,10 @@ public class RewardUI : MonoBehaviour
         RogueLikeData.Instance.ClearBattleReward();
         new SaveData().SaveDataFile();
         if (SceneManager.GetActiveScene().name != "RLmap")
+        {
+            
             SceneManager.LoadScene("RLmap");
+        }
         else
             gameObject.SetActive(false);
         return;
@@ -351,14 +354,27 @@ public class RewardUI : MonoBehaviour
     private void ClickRetryBtn()
     {
         saveData.DeleteSaveFile();
-        //스테이지 초기화 추가해야함
+        GameManager.Instance.uIGenerator.RegenerateMap();
         SceneManager.LoadScene("RLmap");
     }
     private void ClickGoTitleBtn()
     {
         saveData.DeleteSaveFile();
-        //스테이지 초기화 추가해야함
+        GameManager.Instance.uIGenerator.RegenerateMap();
         SceneManager.LoadScene("Title");
     }
-
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "RLmap")
+        {
+            if (RogueLikeData.Instance.GetClearChpater())
+            {
+                RogueLikeData.Instance.SetClearChapter(false);
+                Debug.Log("보스클");
+                GameManager.Instance.uIGenerator.RegenerateMap();
+            }
+            
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+    }
 }

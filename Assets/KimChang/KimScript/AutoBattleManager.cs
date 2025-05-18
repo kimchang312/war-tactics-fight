@@ -2,11 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Threading.Tasks;
-using Random = UnityEngine.Random;
-using System.Linq;
-using System.IO;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 
 
 public class AutoBattleManager : MonoBehaviour
@@ -359,7 +354,7 @@ public class AutoBattleManager : MonoBehaviour
         }
 
         //로딩창 시작
-        autoBattleUI.ToggleLoadingWindow();
+        //autoBattleUI.ToggleLoadingWindow();
 
         // 유닛 데이터 받아옴
         (myUnits, enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
@@ -387,7 +382,6 @@ public class AutoBattleManager : MonoBehaviour
     //로그라이크 모드일떄 초기화
     private void InitializeRogueLike()
     {
-        autoBattleUI.ToggleLoadingWindow();
         int presetId = RogueLikeData.Instance.GetPresetID();
         if (presetId == -1) return;
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;

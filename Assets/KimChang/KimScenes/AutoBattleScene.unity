@@ -1318,16 +1318,12 @@ MonoBehaviour:
   enemyHpBar: {fileID: 655402675}
   myRangeCount: {fileID: 953292802}
   enemyRangeCount: {fileID: 1640845261}
-  myFirtstUnitParent: {fileID: 0}
-  mySecondUnitParent: {fileID: 0}
-  enemyFirstUnitParent: {fileID: 0}
-  enemySecondUnitParent: {fileID: 0}
   myBackUnitsParent: {fileID: 2063328242}
   enemyBackUnitsParent: {fileID: 964883063}
   loadingWindow: {fileID: 397081219}
   relicBox: {fileID: 96042135}
-  myAbilityBox: {fileID: 0}
-  enemyAbilityBox: {fileID: 0}
+  myAbilityBox: {fileID: 505275314}
+  enemyAbilityBox: {fileID: 411384090}
   itemToolTip: {fileID: 2051229096}
 --- !u!4 &211680953
 Transform:
@@ -2958,14 +2954,14 @@ RectTransform:
   m_GameObject: {fileID: 505275313}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 308014011}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -63, y: -73}
+  m_AnchoredPosition: {x: -69, y: -100}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &505275315

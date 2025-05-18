@@ -25,6 +25,7 @@ public class SavePlayerData
     public BattleRewardData battleReward;
     public int nextUniqueId;
     public int score;
+
     public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds,
         int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
         StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward,int nextUniqueId,int score)
