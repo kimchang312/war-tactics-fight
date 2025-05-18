@@ -36,18 +36,48 @@ public class UIGenerator : MonoBehaviour
         {
             _hasInitialized = true;
 
-            mapGenerator.GeneratePathsNonCrossing();
-            CreateUIMap();
-            LinkUIConnections();
-            DrawAllConnectionLines();
-            //챕터 확인 후 생성 추가하기
-
-            // UI 생성이 완전히 끝났으니 여기서 한 번만 락/언락
-            if (GameManager.Instance != null)
-                GameManager.Instance.InitializeStageLocks();
+            RegenerateMap();
         }
     }
+    /// 외부에서 언제든 호출해서 맵 전체를 지우고 다시 생성합니다.
+    /// - New Game 버튼
+    /// - 보스 클리어 후
+    /// - 게임 재시작
+    public void RegenerateMap()
+    {
+        // 0) 기존 UI 모두 제거
+        ClearUI();
 
+        // 1) 경로 생성
+        mapGenerator.GeneratePathsNonCrossing();
+
+        // 2) 노드 UI 생성
+        CreateUIMap();
+
+        // 3) 노드 연결
+        LinkUIConnections();
+
+        // 4) 연결선 그리기
+        DrawAllConnectionLines();
+
+        // 5) 잠금/언락 초기화
+        if (GameManager.Instance != null)
+            GameManager.Instance.InitializeStageLocks();
+    }
+    private void ClearUI()
+    {
+        // ① StageNodeUI 전부 파괴
+        foreach (var kv in stageUIMap)
+        {
+            if (kv.Value != null)
+                Destroy(kv.Value.gameObject);
+        }
+        stageUIMap.Clear();
+
+        // ② 연결선 전부 파괴
+        for (int i = connectionParent.childCount - 1; i >= 0; i--)
+            Destroy(connectionParent.GetChild(i).gameObject);
+    }
     void CreateUIMap()
     {
         stageUIMap.Clear();
