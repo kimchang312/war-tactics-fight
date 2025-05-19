@@ -350,12 +350,14 @@ public class RogueUnitDataBase
         
         foreach (var unit in myUnits)
         {
+            unit.maxHealth = unit.baseHealth;
             unit.health = unit.maxHealth;
             unit.attackDamage = unit.baseAttackDamage;
             unit.armor = unit.baseArmor;
             unit.mobility = unit.baseMobility;
             unit.range = unit.baseRange;
             unit.antiCavalry = unit.baseAntiCavalry;
+            unit.fStriked =false;
         }
         return myUnits;
     }
@@ -363,7 +365,7 @@ public class RogueUnitDataBase
     public static List<RogueUnitDataBase> GetBaseUnits()
     {
         List<RogueUnitDataBase> units = new();
-        units.Add(UnitLoader.Instance.GetCloneUnitById(0));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(40));
         units.Add(UnitLoader.Instance.GetCloneUnitById(2));
         units.Add(UnitLoader.Instance.GetCloneUnitById(3));
         return units;

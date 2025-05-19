@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using Unity.VisualScripting;
 
 public class GameManager : MonoBehaviour
 {
@@ -84,7 +85,16 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      allStages = FindObjectsOfType<StageNodeUI>().ToList();
      InitializeStageLocks();
      UIManager.Instance.UIUpdateAll();
-     
+        /*
+        Debug.Log(RogueLikeData.Instance.GetClearChpater() +""+ RogueLikeData.Instance.GetChapter());
+        RogueLikeData.Instance.SetClearChapter(true);
+        RogueLikeData.Instance.SetChapter(2);*/
+        if (RogueLikeData.Instance.GetClearChpater())
+        {
+            RogueLikeData.Instance.SetClearChapter(false);
+            if(uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
+            uIGenerator.RegenerateMap();
+        }
     }
 
 private void Start()

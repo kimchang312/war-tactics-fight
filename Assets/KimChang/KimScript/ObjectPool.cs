@@ -133,6 +133,7 @@ public class ObjectPool : MonoBehaviour
     //유닛반환
     public void ReturnBattleUnit(GameObject unitImage)
     {
+        unitImage.name = "Ready";
         unitImage.SetActive(false);
         unitImage.transform.SetParent(canvasTransform, false);
         activeBattleUnits.Remove(unitImage);

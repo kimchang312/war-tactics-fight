@@ -403,7 +403,7 @@
     "resultType": ["Battle", "Gold"],
     "resultForm": ["None", "None"],
     "resultValue": ["1", "0"],
-    "resultCount": ["1150"]
+    "resultCount": ["1", "150"]
   },
   {
     "choiceId": 29,
@@ -710,7 +710,7 @@
     "requireCount": [""],
     "resultType": ["Gold", "Morale"],
     "resultForm": ["None", "None"],
-    "resultValue": [""],
+    "resultValue": ["", ""],
     "resultCount": ["50", "20"]
   },
   {

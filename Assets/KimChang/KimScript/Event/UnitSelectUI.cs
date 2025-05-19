@@ -27,8 +27,10 @@ public class UnitSelectUI : MonoBehaviour
             GameObject selectedUnit = objectPool.GetSelectUnit();
             UIMaker.CreateSelectUnitEnergy(unit, selectedUnit);
             selectedUnit.transform.SetParent(selectUnitParent.transform, false);
+
+            RogueUnitDataBase copy = unit;
             Button btn = selectedUnit.GetComponent<Button>();
-            btn.onClick.AddListener(() => AddSelectedUnits(func, unit));
+            btn.onClick.AddListener(() => AddSelectedUnits(func, copy));
         }
     }
 
