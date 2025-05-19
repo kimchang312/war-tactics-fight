@@ -564,15 +564,6 @@ public class AutoBattleManager : MonoBehaviour
         return false;
     }
     
-    // 유닛 별 고유 ID 생성
-    public static int GenerateUniqueUnitId(int branchIdx, bool isTeam, int unitIdx)
-    {
-        int teamBit = isTeam ? 0 : 1; // 팀 정보 (1 bit)
-        return (teamBit << 31)                     // 팀 비트 (31번째 비트)
-             | (branchIdx << 24)                   // 병종 정보 (7 bits, 24~30번째 비트)
-             | ((globalUnitId++ & 0x3FFF) << 10)   // 글로벌 ID (14 bits, 10~23번째 비트)
-             | (unitIdx & 0x3FF);                  // 유닛 고유 번호 (10 bits, 0~9번째 비트)
-    }
     //기본 데이터 초기화
     private void SetBaseData()
     {
