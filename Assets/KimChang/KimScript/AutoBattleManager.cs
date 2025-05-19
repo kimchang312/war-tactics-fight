@@ -157,7 +157,7 @@ public class AutoBattleManager : MonoBehaviour
         bool isTrun =abilityManager.ProcessOneTurn();
 
         if (isTrun)
-            await Task.Delay(500); // 0.5초 대기
+            await Task.Delay((int)waittingTime); // 0.5초 대기
 
         await Task.Yield();
     }
@@ -167,6 +167,7 @@ public class AutoBattleManager : MonoBehaviour
     {
         bool phaseHadEffect = await phaseHandler(); // 준비 페이즈 결과
 
+        await Task.Delay((int)(waittingTime*0.52f));
         UpdateUnitHp();
 
         if (!ManageUnitDeath() && !(myUnits.Count == 0 || enemyUnits.Count == 0))
@@ -289,7 +290,7 @@ public class AutoBattleManager : MonoBehaviour
         enemyFrontUnit = enemyUnits[0];
 
         return abilityManager.ProcessStartBattle(myUnits, enemyUnits, myFinalDamage, true) 
-            || abilityManager.ProcessStartBattle(enemyUnits, myUnits, enemyFinalDamage, false);
+            | abilityManager.ProcessStartBattle(enemyUnits, myUnits, enemyFinalDamage, false);
     }
     //준비 페이즈
     private bool PreparationPhase()
@@ -299,7 +300,7 @@ public class AutoBattleManager : MonoBehaviour
         enemyFrontUnit = enemyUnits[0];
 
         bool isPreparation =
-            (abilityManager.ProcessPreparationAbility(myUnits, enemyUnits, isFirstAttack, true, myFinalDamage) ||
+            (abilityManager.ProcessPreparationAbility(myUnits, enemyUnits, isFirstAttack, true, myFinalDamage) |
              abilityManager.ProcessPreparationAbility(enemyUnits, myUnits, isFirstAttack, false, enemyFinalDamage));
         return isPreparation;
     }
@@ -385,7 +386,6 @@ public class AutoBattleManager : MonoBehaviour
         int presetId = RogueLikeData.Instance.GetPresetID();
         if (presetId == -1) return;
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
-        StagePreset pre = StagePresetLoader.I.GetByID(presetId);
 
         enemyUnits = GetUnitsById(unitIds);
         myUnits = RogueUnitDataBase.SetMyUnitsNormalize();

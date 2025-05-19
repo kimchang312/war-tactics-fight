@@ -38,6 +38,7 @@ public class UIGenerator : MonoBehaviour
 
             RegenerateMap();
         }
+        
     }
     /// 외부에서 언제든 호출해서 맵 전체를 지우고 다시 생성합니다.
     /// - New Game 버튼
@@ -47,7 +48,8 @@ public class UIGenerator : MonoBehaviour
     {
         // 0) 기존 UI 모두 제거
         ClearUI();
-
+        if(mapGenerator ==null)
+            mapGenerator = FindAnyObjectByType<MapGenerator>();
         // 1) 경로 생성
         mapGenerator.GeneratePathsNonCrossing();
 

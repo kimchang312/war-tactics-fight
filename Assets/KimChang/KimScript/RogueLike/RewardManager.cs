@@ -39,6 +39,7 @@ public static class RewardManager
         var type = RogueLikeData.Instance.GetCurrentStageType();
         if (battleResult == 0 && type ==StageType.Boss && chapter==1)
         {
+            Debug.Log("보스");
             RogueLikeData.Instance.SetChapter(2);
             RogueLikeData.Instance.SetClearChapter(true);
         }

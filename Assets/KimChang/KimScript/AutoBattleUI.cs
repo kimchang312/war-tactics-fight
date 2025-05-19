@@ -95,9 +95,41 @@ public class AutoBattleUI : MonoBehaviour
 
     private IEnumerator DelayedDamageDisplay(float damage, string text, bool team, int unitIndex, float offsetX)
     {
+        Vector2 displayPos = team
+            ? (unitIndex == 0 ? myTeam : GetUnitPosition(unitIndex, !team, offsetX))
+            : (unitIndex == 0 ? enemyTeam : GetUnitPosition(unitIndex, !team, offsetX));
+
         yield return new WaitForSeconds(waittingTime * 0.0005f);
-        ShowDamageInternal(damage, text, team, unitIndex, offsetX);
+
+        ShowDamageInternalWithPosition(damage, text, displayPos);
     }
+    private Vector2 GetUnitPosition(int unitIndex, bool isMyUnit, float offsetX)
+    {
+        GameObject unit = FindUnit(unitIndex, isMyUnit);
+        if (unit == null)
+        {
+            Debug.LogWarning($"유닛을 찾을 수 없음: {unitIndex}, 팀: {isMyUnit}");
+            return Vector2.zero;
+        }
+
+        RectTransform unitRect = unit.GetComponent<RectTransform>();
+        return unitRect.anchoredPosition + new Vector2(offsetX, 0);
+    }
+    private void ShowDamageInternalWithPosition(float damage, string text, Vector2 anchoredPosition)
+    {
+        GameObject damageObj = objectPool.GetDamageText();
+        damageObj.SetActive(true);
+
+        var damagetext = damageObj.GetComponent<TextMeshProUGUI>();
+        damagetext.color = damage >= 0 ? Color.green : Color.red;
+        damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
+
+        RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
+        rectTransform.anchoredPosition = anchoredPosition;
+
+        StartCoroutine(HideAfterDelay(damageObj));
+    }
+
     private void ShowDamageImmediately(float damage, string text, bool team, int unitIndex, float offsetX)
     {
         ShowDamageInternal(damage, text, team, unitIndex, offsetX);
@@ -112,7 +144,6 @@ public class AutoBattleUI : MonoBehaviour
         damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
 
         RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-
         if (team)
         {
             if (unitIndex == 0)
@@ -120,6 +151,7 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 GameObject unit = FindUnit(unitIndex, !team);
+                Debug.Log(unit);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
             }
@@ -131,6 +163,7 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 GameObject unit = FindUnit(unitIndex, !team);
+                Debug.Log(unit);
                 RectTransform unitRect = unit.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
             }
@@ -236,8 +269,6 @@ public class AutoBattleUI : MonoBehaviour
         childImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}SecondUnit");
 
         numberImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}X{rangeUnitCount}");
-
-        //number.transform.SetSiblingIndex(number.transform.parent.childCount - 1);
 
         unit.name = $"{myTeam}RangeUnit";
     }
@@ -396,8 +427,9 @@ public class AutoBattleUI : MonoBehaviour
     private GameObject FindUnit(int unitIndex, bool isMyUnit)
     {
         string unitName = $"{(isMyUnit ? "MyUnit" : "EnemyUnit")}{unitIndex}";
+        Transform parent = unitIndex < 2 ? canvasTransform : (isMyUnit ? myBackUnitsParent : enemyBackUnitsParent);
 
-        foreach (Transform child in canvasTransform)
+        foreach (Transform child in parent)
         {
             if (child.name == unitName && child.gameObject.activeSelf)
             {

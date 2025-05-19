@@ -22,6 +22,8 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private Button rerollBtn;
     [SerializeField] private Button skipBtn;
     [SerializeField] private UnitSelectUI unitSelectUI;
+
+    [SerializeField] private GameObject itemToolTip;
     SaveData saveData = new SaveData();
 
     private void OnEnable()
@@ -242,11 +244,12 @@ public class RewardUI : MonoBehaviour
             RogueLikeData.Instance.AcquireRelic(info.relicId);
             if (info.relicId == 79)
             {
-                unitSelectUI.gameObject.SetActive(true);
-                unitSelectUI.OpenSelectUnitWindow(SkipSelectReward);
+                var myUnits = RogueLikeData.Instance.GetMyTeam();
+                var randomUnit = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
+                randomUnit.endless = true;
             }
         }
-
+        itemToolTip.SetActive(false);
         SkipSelectReward();
     }
 
@@ -330,6 +333,8 @@ public class RewardUI : MonoBehaviour
         info.unitId = -1;
         info.type = type;
         info.isItem = false;
+        ExplainItem exItem = btn.GetComponent<ExplainItem>();
+        exItem.ItemToolTip = itemToolTip;
 
         btn.onClick.RemoveAllListeners();
         btn.onClick.AddListener(() => ClickReward(info));
@@ -366,6 +371,7 @@ public class RewardUI : MonoBehaviour
     {
         if (scene.name == "RLmap")
         {
+
             if (RogueLikeData.Instance.GetClearChpater())
             {
                 RogueLikeData.Instance.SetClearChapter(false);

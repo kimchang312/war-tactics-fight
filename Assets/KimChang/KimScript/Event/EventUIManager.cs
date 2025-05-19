@@ -60,7 +60,8 @@ public class EventUIManager : MonoBehaviour
                 btn.interactable = EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i]);
 
                 int index = i;
-                btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[index]));
+                EventChoiceData choiceData = eventChoiceDatas[index];
+                btn.onClick.AddListener(() => HandleChoice(choiceData));
             }
             else
             {

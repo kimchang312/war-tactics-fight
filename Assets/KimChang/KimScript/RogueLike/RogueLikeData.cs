@@ -340,6 +340,10 @@ public class RogueLikeData
     {
         return currentStageType;
     }    
+    public void SetStageType(StageType type)
+    {
+        currentStageType = type;
+    }
     //현재 골드 가져오기
     public int GetCurrentGold()
     {
