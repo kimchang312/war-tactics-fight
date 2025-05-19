@@ -365,7 +365,7 @@ public class RogueUnitDataBase
     public static List<RogueUnitDataBase> GetBaseUnits()
     {
         List<RogueUnitDataBase> units = new();
-        units.Add(UnitLoader.Instance.GetCloneUnitById(40));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(0));
         units.Add(UnitLoader.Instance.GetCloneUnitById(2));
         units.Add(UnitLoader.Instance.GetCloneUnitById(3));
         return units;

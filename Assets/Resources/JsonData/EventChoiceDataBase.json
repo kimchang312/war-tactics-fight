@@ -710,7 +710,7 @@
     "requireCount": [""],
     "resultType": ["Gold", "Morale"],
     "resultForm": ["None", "None"],
-    "resultValue": ["", ""],
+    "resultValue": ["0", "0"],
     "resultCount": ["50", "20"]
   },
   {
