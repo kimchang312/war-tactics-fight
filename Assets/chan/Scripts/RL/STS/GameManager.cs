@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
     [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
     [SerializeField] private GameObject restPanel;
+    [SerializeField] private RewardUI rewardUI;
     public UIGenerator uIGenerator;
     public UnitDetailExplain unitDetail; 
     public int currentStageX;
@@ -85,7 +86,6 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      allStages = FindObjectsOfType<StageNodeUI>().ToList();
      InitializeStageLocks();
      UIManager.Instance.UIUpdateAll();
-
         if (RogueLikeData.Instance.GetClearChpater())
         {
             SetCurrentStageNull();
@@ -199,11 +199,26 @@ private void Start()
         }
         else if (newStage.stageType == StageType.Event)
         {
+            if (RelicManager.CheckRelicById(47))
+            {
+                var relic = RogueLikeData.Instance.GetOwnedRelicById(47);
+                if (!relic.used)
+                {
+                    relic.used = true;
+                    rewardUI.gameObject.SetActive(true);
+                    rewardUI.CreateTeasureUI();
+                }
+            }
             eventManager.SetActive(true);
         }
         else if (newStage.stageType == StageType.Shop)
         {
             storeManager.SetActive(true);
+        }
+        else if(newStage.stageType == StageType.Treasure)
+        {
+            rewardUI.gameObject.SetActive(true);
+            rewardUI.CreateTeasureUI();
         }
     }
 
