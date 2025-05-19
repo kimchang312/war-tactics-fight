@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class EnemyInfoPanel : MonoBehaviour
 {
@@ -16,6 +17,9 @@ public class EnemyInfoPanel : MonoBehaviour
     public GameObject commanderInfo;
     public TextMeshProUGUI commanderNameText;   // 지휘관 이름
     public TextMeshProUGUI commanderSkillText;  // 지휘관 스킬 이름
+    [Header("버튼")]
+    [SerializeField] private Button placeButton;
+
     public void ShowEnemyInfo(StageType stageType,
                               List<RogueUnitDataBase> enemies,
                               string commanderName /*,
@@ -60,6 +64,7 @@ public class EnemyInfoPanel : MonoBehaviour
     }
     public void OnPlaceButtonClicked()
     {
+        gameObject.SetActive(false);
         GameManager.Instance.TogglePlacePanel(true);
     }
 }

@@ -10,6 +10,9 @@ using UnityEngine.UI;
 public class PlacePanel : MonoBehaviour
 {
     [SerializeField] private Button startBattleButton;   // 전투 시작 버튼
+    [SerializeField] private Button backButton;
+    [SerializeField] private GameObject enemyInfoPanel;
+
     [SerializeField] public TextMeshProUGUI maxUnitCount;
     [SerializeField] public TextMeshProUGUI currentUnitCount;
 
@@ -23,6 +26,8 @@ public class PlacePanel : MonoBehaviour
     private void Awake()
     {
         startBattleButton.onClick.AddListener(OnStartBattleClicked);
+        // 뒤로가기 리스너
+        backButton.onClick.AddListener(OnBackClicked);
         // 최대 배치 가능 수 표시
         int maxUnits = RogueLikeData.Instance.GetMaxUnits();
         maxUnitCount.text = $"/ {maxUnits.ToString()}";
@@ -30,6 +35,13 @@ public class PlacePanel : MonoBehaviour
         UpdateCountTexts();
         // 패널 처음 열릴 때는 항상 초기화
         ClearPlacePanel();
+    }
+    private void OnBackClicked()
+    {
+        // PlacePanel 끄고
+        gameObject.SetActive(false);
+        // EnemyInfoPanel 켜기 (이전 정보 그대로)
+        enemyInfoPanel.SetActive(true);
     }
     public int AddUnitToBattle(RogueUnitDataBase unit)
     {
