@@ -34,6 +34,7 @@ public class RewardUI : MonoBehaviour
 
     public void CreateTeasureUI()
     {
+        backFrame.SetActive(true);
         BattleRewardData reward = new();
         
         int gold, relicGrade;
