@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static RelicManager;
+
 
 public class EventManager
 {
@@ -172,7 +174,7 @@ public class EventManager
                     break;
                 }
             case RequireThing.Relic:
-                if (form == RequireForm.Random) // 특정 등급 유산 존재 여부 검사
+                if (form == RequireForm.Random)
                 {
                     if (!string.IsNullOrEmpty(value))
                     {
@@ -414,15 +416,13 @@ public class EventManager
                         int maxRarity = int.Parse(value);
                         int unitCount = int.Parse(count);
 
-                        // 조건에 맞는 유닛 필터링 후 랜덤 정렬, 원하는 수만큼 선택
                         var candidates = myUnits
                             .Where(unit => unit.rarity <= maxRarity)
                             .OrderBy(_ => UnityEngine.Random.value)
                             .Take(unitCount)
                             .ToList();
 
-                        // 선택된 유닛 제거
-                        var currentUnits = RogueLikeData.Instance.GetMyTeam(); // 새로 가져오기
+                        var currentUnits = RogueLikeData.Instance.GetMyTeam();
                         currentUnits.RemoveAll(unit => candidates.Contains(unit));
                         RogueLikeData.Instance.SetMyTeam(currentUnits);
                         foreach (var unit in candidates)
@@ -433,11 +433,16 @@ public class EventManager
                     }
                     else if(form == RequireForm.Special)
                     {
-                        //82번
                         if (choiceData.choiceId == 82)
                         {
-                            Debug.Log("미구현");
-                            requireLog += "미구현 입니다";
+                            List<RogueUnitDataBase> myTeam = RogueLikeData.Instance.GetMyTeam();
+                            RogueUnitDataBase expensiveUnit = RogueLikeData.Instance
+    .GetMyTeam()
+    .OrderByDescending(unit => unit.unitPrice)
+    .First();
+                            myTeam.Remove(expensiveUnit);
+                            RogueLikeData.Instance.SetMyTeam(myTeam);
+                            requireLog += $"{expensiveUnit.unitName}이 선택되었습니다.";
                         }
                     }
                     else if(form == RequireForm.None)
@@ -501,7 +506,7 @@ public class EventManager
     {
         string resultLog = "";
         bool isBattle= false;
-
+        int battleGrade = 0;
         for (int i = 0; i < choiceData.resultType.Count; i++)
         {
             ResultType type = choiceData.resultType[i];
@@ -647,16 +652,14 @@ public class EventManager
                             int unitCount = int.Parse(count);
                             var (min, max) = ParseRange(value);
 
-                            // 전체 유닛 불러오기
                             var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
-                            // 희귀도 범위 조건에 맞는 유닛 필터링
                             var validUnits = allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList();
 
                             for (int k = 0; k < unitCount && validUnits.Count > 0; k++)
                             {
                                 int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
-                                validUnits.RemoveAt(randIndex); // 중복 방지
+                                validUnits.RemoveAt(randIndex);
                                 RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(validUnits[randIndex].idx);
                                 if (isBattle)
                                 {
@@ -673,7 +676,7 @@ public class EventManager
                         {
                             int unitRarity = int.Parse(value);
                             int unitCount = int.Parse(count);
-                            // 전체 유닛 불러오기
+
                             var allUnits = UnitLoader.Instance.GetAllCachedUnits();
                             List<RogueUnitDataBase> validUnits;
                             if (unitRarity == 4)
@@ -695,11 +698,11 @@ public class EventManager
                                 validUnits = allUnits.Where(u => u.rarity == unitRarity).ToList();
                             }
 
-                            // 희귀도 범위 조건에 맞는 유닛 필터링                            for(int k = 0; k < unitCount; k++)
+                            for(int k = 0; k < unitCount; k++)
                             {
                                 int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
                                 validUnits.RemoveAt(randIndex); // 중복 방지
-                                RogueUnitDataBase newUnit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(validUnits[randIndex].idx));
+                                RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(validUnits[randIndex].idx);
                                 if (isBattle)
                                 {
                                     RogueLikeData.Instance.AddUnitReward(newUnit);
@@ -724,20 +727,18 @@ public class EventManager
                     {
                         int unitRarity = int.Parse(value);
                         int unitCount = int.Parse(count);
-                        // 전체 유닛 불러오기
                         var allUnits = UnitLoader.Instance.GetAllCachedUnits();
                         List<RogueUnitDataBase> validUnits;
-                        var originUnit = selectedUnits[0]; // 희생할 유닛
+                        var originUnit = selectedUnits[0];
                         float chance = originUnit.rarity switch
                         {
                             1 => 0.3f,
                             2 => 0.6f,
                             3 => 1.0f,
-                            _ => 0f // 희귀도 4 이상은 없음
+                            _ => 0f
                         };
                         if (UnityEngine.Random.value < chance)
                         {
-                            // 중복되지 않은 영웅 유닛만 필터링
                             var myUnits = RogueLikeData.Instance.GetMyTeam();
                             var myUnitIdxSet = new HashSet<int>(myUnits.Select(u => u.idx));
 
@@ -802,10 +803,8 @@ public class EventManager
                         int unitCount = int.Parse(count);
                         var myUnits = RogueLikeData.Instance.GetMyTeam();
 
-                        // rarity < 4 조건을 만족하는 유닛 필터링
                         var candidates = myUnits.Where(u => u.rarity < 4).ToList();
 
-                        // 무작위로 unitCount개 뽑기 (중복 없이)
                         var changeUnits = candidates
                             .OrderBy(_ => UnityEngine.Random.value)
                             .Take(changeCount)
@@ -826,19 +825,19 @@ public class EventManager
 
                         switch (randEffect)
                         {
-                            case 0: // 일반 등급 전쟁 유산
+                            case 0:
                                 {
                                     var relic = RelicManager.HandleRandomRelic(grade: 1, RelicManager.RelicAction.Acquire);
                                     resultLog += $"- 일반 등급 전쟁 유산 '{relic?.name}'을 획득했습니다.\n";
                                     break;
                                 }
-                            case 1: // 저주 등급 전쟁 유산
+                            case 1:
                                 {
                                     var relic = RelicManager.HandleRandomRelic(grade: 0, RelicManager.RelicAction.Acquire);
                                     resultLog += $"- 저주 등급 전쟁 유산 '{relic?.name}'을 획득했습니다.\n";
                                     break;
                                 }
-                            case 2: // 무작위 유닛 전직
+                            case 2:
                                 {
                                     var myUnits = RogueLikeData.Instance.GetMyTeam();
                                     if (myUnits.Count > 0)
@@ -854,7 +853,7 @@ public class EventManager
                                     }
                                     break;
                                 }
-                            case 3: // 무작위 유닛 기력을 1로
+                            case 3:
                                 {
                                     var myUnits = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy > 1).ToList();
                                     if (myUnits.Count > 0)
@@ -865,7 +864,7 @@ public class EventManager
                                     }
                                     break;
                                 }
-                            case 4: // 무작위 희귀도 1~3 유닛 획득
+                            case 4:
                                 {
                                     var (min, max) = ParseRange("1~3");
 
@@ -887,19 +886,19 @@ public class EventManager
                                     resultLog += "- 무작위 병종이 강화되었습니다.\n";
                                     break;
                                 }
-                            case 6: // 사기 회복(최대)
+                            case 6:
                                 {
                                     RogueLikeData.Instance.SetMorale(100);
                                     resultLog += "- 사기가 최대치로 회복되었습니다.\n";
                                     break;
                                 }
-                            case 7: // 사기 -25
+                            case 7:
                                 {
                                     int morale = RogueLikeData.Instance.ChangeMorale(25);
                                     resultLog += $" 사기가 {morale} 감소했습니다.\n";
                                     break;
                                 }
-                            case 8: // 금화(중) 획득
+                            case 8:
                                 {
                                     int getGold = RogueLikeData.Instance.AddGoldByEventChapter(150);
                                     resultLog += $"- 금화 {getGold}를 획득했습니다.\n";
@@ -912,7 +911,6 @@ public class EventManager
                         var unit = selectedUnits[0];
                         int rarity = unit.rarity;
 
-                        // 희생 유닛 제거
                         var myUnits = RogueLikeData.Instance.GetMyTeam();
                         int index = myUnits.IndexOf(unit);
 
@@ -920,19 +918,19 @@ public class EventManager
                         {
                             case 1:
                                 {
-                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(50); // 소
+                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(50);
                                     resultLog += $"'{unit.unitName}'을(를) 희생하여 금화 {getGold}를 획득했습니다.\n";
                                     break;
                                 }
                             case 2:
                                 {
-                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(150); // 중
+                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(150);
                                     resultLog += $"'{unit.unitName}'을(를) 희생하여 금화 {getGold}를 획득했습니다.\n";
                                     break;
                                 }
                             case 3:
                                 {
-                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(150); // 중
+                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(150);
                                     var relic = RelicManager.HandleRandomRelic(grade: 1, RelicManager.RelicAction.Acquire);
                                     resultLog += $"'{unit.unitName}'을(를) 희생하여 금화 {getGold}와 전쟁 유산 '{relic?.name}'을 획득했습니다.\n";
                                     break;
@@ -947,7 +945,16 @@ public class EventManager
                     }
                     else if(choiceData.choiceId == 37)
                     {
-                        Debug.Log("미구현");
+                        if(UnityEngine.Random.value < 0.5f)
+                        {
+                            WarRelic relic = RelicManager.HandleRandomRelic(5, RelicManager.RelicAction.Acquire);
+                            resultLog += $"'{relic.name}을 획득했습니다.\n";
+                        }
+                        else
+                        {
+                            battleGrade = 5;
+                            isBattle = true;
+                        }
                     }
                     break;
 
@@ -955,8 +962,25 @@ public class EventManager
                     resultLog += "- 아무 일도 일어나지 않았다\n";
                     break;
                 case ResultType.Battle:
-                    isBattle = true;
-                    break;
+                    {
+                        battleGrade = int.Parse(value);
+                        if(form == ResultForm.Special)
+                        {
+                            if (choiceData.choiceId == 16 && UnityEngine.Random.value < 0.5f)
+                            {
+                                resultLog += "- 아무 일도 일어나지 않았다\n";
+                                break;
+                            }
+                            else if (choiceData.choiceId == 108)
+                            {
+                                RogueLikeData.Instance.SetCurrentStage(15, 1, StageType.Boss);
+                                battleGrade = 20;
+                            }
+                        }
+
+                        isBattle = true;
+                        break;
+                    }
                 case ResultType.Training:
                     {
                         for (int k = 0; k < choiceData.resultValue.Count; k++)
@@ -1002,20 +1026,20 @@ public class EventManager
                     resultLog += "- 알 수 없는 보상\n";
                     break;
             }
-
-            if(isBattle) break;
         }
-        if(isBattle) return "전투다! 미구현";
+        if (isBattle)
+        {
+            SetPresetIdByGrade(battleGrade);
+            SceneManager.LoadScene("AutoBattleScene");
+        }
         return resultLog;
     }
-    //우승 유무
+
     private static bool IsUnitVictory(RogueUnitDataBase unit)
     {
-        // 기동력 12 이상이면 무조건 승리
         if (unit.mobility >= 12f)
             return true;
 
-        // 기동력 × 9% 확률
         float winChance = unit.mobility * 0.09f;
         return UnityEngine.Random.value < winChance;
     }
@@ -1076,5 +1100,50 @@ public class EventManager
     }
     return null;
 }
+
+    private static void SetPresetIdByGrade(int grade)
+    {
+        int chapter = RogueLikeData.Instance.GetChapter();
+        int level = RogueLikeData.Instance.GetCurrentStageX();
+
+        string targetStageType = "normal";
+        switch (grade) 
+        {
+            case 1:
+                {
+                    RogueLikeData.Instance.SetStageType(StageType.Combat);
+                    targetStageType = "normal";
+                }
+                break;
+            case 5:
+                {
+                    RogueLikeData.Instance.SetStageType(StageType.Elite);
+                    targetStageType = "elite";
+                }
+                break;
+            case 20:
+                {
+                    RogueLikeData.Instance.SetCurrentStage(15,1,StageType.Boss);
+                    targetStageType = "boss";
+                }
+                break;
+        }
+
+        if (targetStageType == null) return;
+
+        List<StagePreset> filtered = StagePresetLoader.I.presets
+            .Where(p => p.Chapter == chapter && p.StageType == targetStageType)
+            .ToList();
+
+        if (grade == 1)
+        {
+            filtered = filtered.Where(p => p.Level == level).ToList();
+        }
+
+        if (filtered.Count == 0) return;
+        StagePreset stage =  filtered[UnityEngine.Random.Range(0, filtered.Count)];
+        RogueLikeData.Instance.SetPresetID(stage.PresetID);
+    }
+
 
 }

@@ -25,9 +25,6 @@ public class NewBehaviourScript : MonoBehaviour
         }
 
         List<WarRelic> relics = RogueLikeData.Instance.GetAllOwnedRelics();
-        if (cacheData == relics) return;
-        cacheData = relics;
-
         foreach (WarRelic relic in relics)
         {
             GameObject obj = objectPool.GetWarRelic();

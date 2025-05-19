@@ -586,11 +586,10 @@ public class AbilityManager
         if (target == null)
         {
             int minHealthIndex = CalculateMinHealthIndex(defenders);
-            if (minHealthIndex == -1) return; // 유효한 대상이 없으면 루프 종료
+            if (minHealthIndex == -1) return;
 
             float damage = MathF.Round(attacker.attackDamage * 2 * finalDamage);
             defenders[minHealthIndex].health -= damage;
-
             CallDamageText(damage, "선제타격 ", !isTeam, false, minHealthIndex);
         }
         else

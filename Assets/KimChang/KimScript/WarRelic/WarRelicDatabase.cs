@@ -17,7 +17,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(0, "할인쿠폰", 1, "상단의 금화 가격이 20% 감소한다.", RelicType.SpecialEffect, () => DiscountCard()));
         relics.Add(new WarRelic(1, "연구 예산 지원금", 1, "군사 아카데미의 강화 비용이 20% 감소한다.", RelicType.SpecialEffect, () => SolidAnvil()));
         relics.Add(new WarRelic(2, "인내력의 깃발", 1, "기력이 감소할 때마다 25% 확률로 감소하지 않는다.", RelicType.SpecialEffect, () => FlagOfEndurance()));
-        relics.Add(new WarRelic(3, "추가 보급 명령서", 1, "병영에서 유닛 훈련에 요구하는 턴이 1 감소한다. (1 미만으로 내려가지 않음)", RelicType.SpecialEffect, () => ExtraSupplyOrder()));
+        relics.Add(new WarRelic(3, "훈련 지휘봉", 1, "병영의 훈련 비용이 20% 감소한다.", RelicType.SpecialEffect, () => ExtraSupplyOrder()));
         relics.Add(new WarRelic(4, "도금 망원경", 1, "아군 궁병 중 가장 앞에 있는 궁병에 한해서 사거리가 1 증가한다.", RelicType.StateBoost, () => GoldPlatedTelescope()));
         relics.Add(new WarRelic(5, "행운의 금화 주머니", 1, "얻는 금화량이 15% 증가한다.", RelicType.SpecialEffect, () => LuckyCoinPouch()));
         relics.Add(new WarRelic(6, "전설의 도굴꾼의 삽", 1, "다음에 전쟁 유산 보상을 얻을때 전설 전쟁 유산이 확정으로 등장한다. 보스에선 적용되지 않는다. 전설 전쟁 유산을 얻은 이후 이 유산은 소멸한다.", RelicType.SpecialEffect, () => LegendaryDiggerShovel()));
@@ -25,8 +25,8 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(8, "순금 검", 1, "소유 중인 금화 100당 아군 유닛의 공격력이 1% 증가한다.", RelicType.StateBoost, () => GoldenSword()));
         relics.Add(new WarRelic(9, "예리한 양날도끼", 10, "적과 아군이 받는 피해가 각 30% / 10% 증가한다.", RelicType.StateBoost, () => SharpDoubleAxe()));
        
-        relics.Add(new WarRelic(10, "광기의 깃발", 10, "적이 받는 피해가 20% 증가하고, 아군 유닛의 장갑이 1 감소한다. (0 미만으로 내려가지 않음)", RelicType.StateBoost, () => FlagOfMadness()));
-        relics.Add(new WarRelic(11, "혼돈의 깃발", 10, "아군의 배치가 무작위 순서로 배치된다. 아군 유닛의 체력과 공격력이 30% 증가하고, 아군 궁병의 사거리가 1 증가한다.", RelicType.StateBoost, () => FlagOfChaos()));
+        relics.Add(new WarRelic(10, "광전사의 갑옷", 10, "적이 받는 피해가 20% 증가하고, 아군 유닛의 장갑이 1 감소한다. (0 미만으로 내려가지 않음)", RelicType.StateBoost, () => FlagOfMadness()));
+        relics.Add(new WarRelic(11, "용기의 버섯", 10, "아군의 배치가 무작위 순서로 배치된다. 아군 유닛의 체력과 공격력이 30% 증가하고, 아군 궁병의 사거리가 1 증가한다.", RelicType.StateBoost, () => FlagOfChaos()));
         relics.Add(new WarRelic(12, "위대한 지휘관의 훈장", 10, "배치된 유닛들의 이름 중에 중복되는 이름이 없다면 부대 상한이 3 증가하며, 체력과 공격력이 20% 증가한다.", RelicType.StateBoost, () => MedalOfGreatCommander()));
         relics.Add(new WarRelic(13, "유연성의 부적", 10, "가진 유닛 병종의 종류가 늘어날 시 아군 유닛의 체력과 공격력이 6% 증가한다. 모든 병종의 유닛을 각 둘 이상 소유했다면, 모든 강화의 단계가 1단계 상승한다.", RelicType.StateBoost, () => AmuletOfFlexibility()));
         relics.Add(new WarRelic(14, "가시 갑옷", 10, "중갑을 특성을 가진 아군 유닛에게 가시 특성을 부여한다. 원래 가시를 가진 유닛은 장갑이 2 증가한다.", RelicType.StateBoost, () => ReactiveThornArmor()));
@@ -71,7 +71,7 @@ public static class WarRelicDatabase
         
         relics.Add(new WarRelic(50, "순금 나팔", 10, "금화를 소모할 때 소모한 금화 100당 아군 유닛의 공격력이 1% 증가한다. 소모한 금화량이 저장되고 소지한 금화로 취급되어 관련 효과를 적용받을 수 있다.", RelicType.StateBoost, () => GoldenHorn()));
         //relics.Add(new WarRelic(51, "두꺼운 전술 교범", 1, "군사 아카데미에서 강화할 수 있는 선택지가 하나 더 추가된다.", RelicType.SpecialEffect, () => ThickTacticalManual()));
-        relics.Add(new WarRelic(52, "탐험가의 나침반", 1, "보상으로 전쟁 유산을 선택할 때 선택지를 하나 더 추가한다.", RelicType.SpecialEffect, () => ExplorerCompass()));
+        //relics.Add(new WarRelic(52, "탐험가의 나침반", 1, "보상으로 전쟁 유산을 선택할 때 선택지를 하나 더 추가한다.", RelicType.SpecialEffect, () => ExplorerCompass()));
         relics.Add(new WarRelic(53, "불운의 황금 동전", 10, "적 유닛이 받는 피해가 50% 증가한다. 단, 이 전쟁 유산을 획득할 때 75% 확률로 랜덤한 다른 전설 전쟁 유산으로 대체된다. ", RelicType.StateBoost, () => GoldenCoinOfUnLuck()));
         relics.Add(new WarRelic(54, "저주 인형", 1, "아군 유닛 사망 시 전열 적 유닛에게 사망한 아군 유닛 체력의 10%만큼 피해를 준다.", RelicType.BattleActive, () => CurseDoll()));
         relics.Add(new WarRelic(55, "혼돈의 주사위", 20, "아군 유닛들의 체력, 공격력이 매 전투마다 최소 60%에서 최대 200%까지 무작위로 분배된다.", RelicType.StateBoost, () => ChaosDice()));
@@ -113,13 +113,13 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(88, "로열 스트레이트 플러시", 1, "2개 이하의 병종을 사용하여 부대를 구성하면 유닛 공격력이 15% 증가한다.", RelicType.StateBoost, () => RoyalStraightFlush()));
         relics.Add(new WarRelic(89, "찢겨진 명단", 0, "부대 상한이 2 감소한다.", RelicType.SpecialEffect, () => TornList()));
         
-        relics.Add(new WarRelic(90, "깨진 거울", 0, "희귀도 3 유닛과 전설 전쟁 유산이 등장할 확률이 10% 감소한다.", RelicType.SpecialEffect, () => BrokenMirror()));
+        //relics.Add(new WarRelic(90, "깨진 거울", 0, "희귀도 3 유닛과 전설 전쟁 유산이 등장할 확률이 10% 감소한다.", RelicType.SpecialEffect, () => BrokenMirror()));
         relics.Add(new WarRelic(91, "불길한 족쇄", 0, "병영의 훈련 비용이 20% 증가한다.", RelicType.SpecialEffect, () => OminousChains()));
         relics.Add(new WarRelic(92, "맛있는 군용식량", 1, "비 영웅 유닛의 체력과 공격력이 8% 증가한다.", RelicType.StateBoost, () => DeliciousMilitaryRations()));
         relics.Add(new WarRelic(93, "맛있는 특별식", 1, "영웅 유닛의 체력과 공격력이 12% 증가한다.", RelicType.StateBoost, () => DeliciousSpecialMeal()));
         relics.Add(new WarRelic(94, "무쇠 투구", 1, "중갑 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => CastIronHelmet()));
         relics.Add(new WarRelic(95, "전속전진의 신발", 10, "돌격 스킬을 가진 유닛에게 충격 특성을 부여한다. 원래 충격을 가진 유닛은 기동력이 3 증가한다.", RelicType.StateBoost, () => ShoesOfFullSpeedAhead()));
-        relics.Add(new WarRelic(96, "장식된 로자리오", 1, "지원 유닛에게 영향받는 아군 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => DecoratedRosary()));
+        //relics.Add(new WarRelic(96, "장식된 로자리오", 1, "지원 유닛에게 영향받는 아군 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => DecoratedRosary()));
         //relics.Add(new WarRelic(97, "비상탈출 교본", 1, "궁병과 지원 유닛이 전열로 진입할 때, 유격의 효과를 발동시킨다. (유닛 당 1회)", RelicType.StateBoost, () => EmergencyEscapeManual()));
 
         //relics.Add(new WarRelic(99, "욕망의 항아리", 1, "매 정비턴이 시작될 때, 금화 a 획득, 사기 b 감소", RelicType.SpecialEffect, () => JarOfDesire()));
@@ -130,7 +130,7 @@ public static class WarRelicDatabase
         //relics.Add(new WarRelic(103, "흑요석 심장", 1, "전투 종료 후, 기력이 최대인 ", RelicType.SpecialEffect, () => ObsidianHeart()));
         //relics.Add(new WarRelic(104, "긍지의 양날도끼", 1, "전투 시작 시, 플레이어와 상대의 무작위 유닛 2개가 앞으로 나온다.먼저 2번째 유닛이 죽은 부대 유닛의 공격력이 10% 감소한다. ", RelicType.ActiveState, () => DoubleEdgedAxeOfPride()));
         relics.Add(new WarRelic(105, "저주받은 갑옷", 10, "내 유닛이 받는 피해가 항상 40% 감소한다. 내 유닛이 항상 80%의 확률로 기력 소모가 2배가 된다.", RelicType.StateBoost, () => CursedArmor()));
-        relics.Add(new WarRelic(106, "제어 횃불", 1, "보스를 처치하면 작열의 피해량이 영구적으로 20 증가한다.", RelicType.StateBoost, () => ControlTorch()));
+        //relics.Add(new WarRelic(106, "제어 횃불", 1, "보스를 처치하면 작열의 피해량이 영구적으로 20 증가한다.", RelicType.StateBoost, () => ControlTorch()));
         relics.Add(new WarRelic(107, "훈장 무더기", 1, "항상 부대 상한이 50% 감소한다. 내 유닛의 체력과 공격력, 대기병이 80% 증가한다.", RelicType.StateBoost, () => PileOfMedals()));
         relics.Add(new WarRelic(108, "애매한 묵시록", 1, "사기가 90 이상이라면 내 유닛의 공격력이 20 증가한다. 사기가 60 이하라면 내 유닛의 공격력이 30 감소한다.", RelicType.StateBoost, () => AmbiguousApocalypse()));
         relics.Add(new WarRelic(109, "훈련용 모래주머니", 10, "전투 스테이지를 마칠 때마다, 첫번째 유닛의 병종이 무작위 강화 2개를 얻는다.", RelicType.SpecialEffect, () => TheoTrainingSandbagsryOfWar()));
