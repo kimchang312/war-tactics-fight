@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     public bool IsPlaceMode { get; private set; }
-    
+    public bool _hasInitialized = false;
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
@@ -85,12 +85,10 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      allStages = FindObjectsOfType<StageNodeUI>().ToList();
      InitializeStageLocks();
      UIManager.Instance.UIUpdateAll();
-        /*
-        Debug.Log(RogueLikeData.Instance.GetClearChpater() +""+ RogueLikeData.Instance.GetChapter());
-        RogueLikeData.Instance.SetClearChapter(true);
-        RogueLikeData.Instance.SetChapter(2);*/
+
         if (RogueLikeData.Instance.GetClearChpater())
         {
+            SetCurrentStageNull();
             RogueLikeData.Instance.SetClearChapter(false);
             if(uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             uIGenerator.RegenerateMap();
@@ -278,5 +276,9 @@ private void Start()
         PlacePanel.SetActive(false);
         restPanel.SetActive(false);
         IsPlaceMode = false;
+    }
+    public void SetCurrentStageNull()
+    {
+        currentStage = null;
     }
 }
