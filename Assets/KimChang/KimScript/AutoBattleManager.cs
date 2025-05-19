@@ -2,11 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Threading.Tasks;
-using Random = UnityEngine.Random;
-using System.Linq;
-using System.IO;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 
 
 public class AutoBattleManager : MonoBehaviour
@@ -359,7 +354,7 @@ public class AutoBattleManager : MonoBehaviour
         }
 
         //로딩창 시작
-        autoBattleUI.ToggleLoadingWindow();
+        //autoBattleUI.ToggleLoadingWindow();
 
         // 유닛 데이터 받아옴
         (myUnits, enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
@@ -387,7 +382,6 @@ public class AutoBattleManager : MonoBehaviour
     //로그라이크 모드일떄 초기화
     private void InitializeRogueLike()
     {
-        autoBattleUI.ToggleLoadingWindow();
         int presetId = RogueLikeData.Instance.GetPresetID();
         if (presetId == -1) return;
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
@@ -473,7 +467,7 @@ public class AutoBattleManager : MonoBehaviour
     private async Task<bool> HandlePreparation()
     {
         UpdateUnitUI();
-        bool result = PreparationPhase(); // 이미 전투 처리됨
+        bool result = PreparationPhase();
         await Task.Yield();
         return result;
     }
@@ -570,15 +564,6 @@ public class AutoBattleManager : MonoBehaviour
         return false;
     }
     
-    // 유닛 별 고유 ID 생성
-    public static int GenerateUniqueUnitId(int branchIdx, bool isTeam, int unitIdx)
-    {
-        int teamBit = isTeam ? 0 : 1; // 팀 정보 (1 bit)
-        return (teamBit << 31)                     // 팀 비트 (31번째 비트)
-             | (branchIdx << 24)                   // 병종 정보 (7 bits, 24~30번째 비트)
-             | ((globalUnitId++ & 0x3FFF) << 10)   // 글로벌 ID (14 bits, 10~23번째 비트)
-             | (unitIdx & 0x3FF);                  // 유닛 고유 번호 (10 bits, 0~9번째 비트)
-    }
     //기본 데이터 초기화
     private void SetBaseData()
     {

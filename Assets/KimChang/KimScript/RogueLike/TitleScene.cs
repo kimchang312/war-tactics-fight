@@ -34,11 +34,7 @@ public class TitleScene : MonoBehaviour
     private void GoRogueLike()
     {
         SaveData saveData = new SaveData();
-        saveData.DeleteSaveFile();
-        List<RogueUnitDataBase> units= RogueUnitDataBase.GetBaseUnits();
-        RogueLikeData.Instance.SetMyTeam(units);
-        RogueLikeData.Instance.SetAllMyUnits(units);
-        saveData.SaveDataFile();
+        saveData.ResetGameData();
         SceneManager.LoadScene("RLmap");
     }
     private void LoadRogueLike()
@@ -50,9 +46,9 @@ public class TitleScene : MonoBehaviour
     private void QuitGame()
     {
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;  // 에디터에서 중지
+        UnityEditor.EditorApplication.isPlaying = false;
 #else
-    Application.Quit();  // 빌드된 게임 종료
+    Application.Quit();
 #endif
     }
 

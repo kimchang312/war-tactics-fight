@@ -30,11 +30,6 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject myRangeCount;             
     [SerializeField] private GameObject enemyRangeCount;
 
-    [SerializeField] private Transform myFirtstUnitParent;
-    [SerializeField] private Transform mySecondUnitParent;
-    [SerializeField] private Transform enemyFirstUnitParent;
-    [SerializeField] private Transform enemySecondUnitParent;
-
     [SerializeField] private Transform myBackUnitsParent;
     [SerializeField] private Transform enemyBackUnitsParent;
 
@@ -56,6 +51,7 @@ public class AutoBattleUI : MonoBehaviour
 
     private void Start()
     {
+        ToggleLoadingWindow();
         ResetUIActive();
         
         myHpBar.interactable = false;

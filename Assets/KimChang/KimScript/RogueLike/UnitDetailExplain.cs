@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using TMPro;
-using UnityEditor.Playables;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,16 +34,21 @@ public class UnitDetailExplain : MonoBehaviour
 
     private void Awake()
     {
-        xBtn.onClick.AddListener(()=>gameObject.SetActive(false));
+        xBtn.onClick.AddListener(ClickXBtn);
     }
 
     private void OnEnable()
     {
+        // 기존 특성/기술 오브젝트 정리
+        foreach (var unit in objectPool.GetActiveAbilitys())
+        {
+            objectPool.ReturnAbility(unit);
+        }
         if (cacheData == unit) return;
 
         nameText.text = unit.unitName;
-        tagText.text =$"태그: {unit.tag}";
-        rarityText.text = $"희귀도: {unit.rarity}"; 
+        tagText.text = $"태그: {unit.tag}";
+        rarityText.text = $"희귀도: {unit.rarity}";
         energyText.text = $"현재 기력: {unit.energy}";
         healthText.text = $"체력: {unit.maxHealth}";
         armorText.text = $"장갑: {unit.armor}";
@@ -56,11 +58,15 @@ public class UnitDetailExplain : MonoBehaviour
         anitText.text = $"대기병: {unit.antiCavalry}";
         maxEnergyText.text = $"기력: {unit.maxEnergy}";
         unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/{unit.unitImg}");
+
         var boolAttributes = unit.GetType().GetFields()
-            .Where(f => f.FieldType == typeof(bool))
-            .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
+            .Where(f => f.FieldType == typeof(bool) && (bool)f.GetValue(unit))
+            .Select(f => new { Name = f.Name });
+
         foreach (var attr in boolAttributes)
         {
+            if (attr.Name == "alive" || attr.Name == "fStriked") continue;
+
             GameObject ability = objectPool.GetAbility();
             ItemInformation itemInfo = ability.GetComponent<ItemInformation>();
             ExplainItem explainItem = ability.GetComponent<ExplainItem>();
@@ -69,43 +75,21 @@ public class UnitDetailExplain : MonoBehaviour
             img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
             itemInfo.isItem = false;
 
-            // 이름 설정
-            itemInfo.isItem = false;
             int? idx = GameTextData.GetIdxFromString(attr.Name);
-            if (attr.Name == "defense")
-            {
-                itemInfo.abilityId = 129;
-            }
-            else if (idx.HasValue)
-            {
-                itemInfo.abilityId = idx.Value;
-            }
-            else if (int.TryParse(attr.Name, out int parsedId))
-            {
-                itemInfo.abilityId = parsedId;
-            }
-            else
-            {
-                Debug.LogWarning($"abilityId 파싱 실패: {attr.Name}");
-                itemInfo.abilityId = -1; // 혹은 예외 처리 또는 기본값 지정
-            }
+            itemInfo.abilityId = attr.Name == "defense" ? 129 : idx ?? -1;
 
             explainItem.ItemToolTip = itemToolTip;
-            Transform abilityBox = idx<128 ?  traitBox: skillBox;
 
+            Transform abilityBox = idx < 128 ? traitBox : skillBox;
             ability.transform.SetParent(abilityBox, false);
         }
+
+        transform.SetAsLastSibling();
     }
-    private void OnDisable()
+
+    private void ClickXBtn()
     {
-        foreach (GameObject ability in traitBox)
-        {
-            objectPool.ReturnAbility(ability);
-        }
-        foreach (GameObject ability in skillBox)
-        {
-            objectPool.ReturnAbility(ability);
-        }
+        gameObject.SetActive(false);
     }
 
 }

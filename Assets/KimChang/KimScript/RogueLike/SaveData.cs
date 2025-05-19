@@ -25,6 +25,7 @@ public class SavePlayerData
     public BattleRewardData battleReward;
     public int nextUniqueId;
     public int score;
+
     public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds,
         int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
         StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward,int nextUniqueId,int score)
@@ -75,7 +76,7 @@ public class SaveData
         _filePath = Application.persistentDataPath + "/PlayerData.json";
         try
         {
-            string jsonData = File.ReadAllText(_filePath); // 파일에서 읽기
+            string jsonData = File.ReadAllText(_filePath);
             SavePlayerData savePlayerData = JsonUtility.FromJson<SavePlayerData>(jsonData);
 
             List<RogueUnitDataBase> myUnits = new(savePlayerData.myUnits);
@@ -92,8 +93,6 @@ public class SaveData
             RogueLikeData.Instance.SetLoadData(savePlayerData.eventIds,savePlayerData.currentGold, savePlayerData.spentGold,
                 savePlayerData.playerMorale, savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,
                 savePlayerData.currentStageType, savePlayerData.sariStack, savePlayerData.battleReward,savePlayerData.nextUniqueId,savePlayerData.score);
-
-            Debug.Log("데이터 로드 성공!");
         }
         catch (Exception ex)
         {
@@ -109,32 +108,20 @@ public class SaveData
             if (File.Exists(_filePath))
             {
                 File.Delete(_filePath);
-                Debug.Log("저장 파일 삭제 성공!");
             }
-            else
-            {
-                Debug.LogWarning("삭제할 저장 파일이 없습니다.");
-            }
+
         }
         catch (Exception ex)
         {
             Debug.LogError($"저장 파일 삭제 실패: {ex.Message}");
         }
     }
-    private void LoadRogueLike()
+    //데이터 삭제하고 다시 로드
+    public void ResetGameData()
     {
-        string filePath = Application.persistentDataPath + "/PlayerData.json";
-
-        if (File.Exists(filePath))
-        {
-            LoadData();
-            SceneManager.LoadScene("RLmap");
-        }
-        else
-        {
-            Debug.LogWarning("로드할 데이터가 없습니다.");
-            // 필요하면 사용자 알림 UI 추가
-            // e.g., ShowPopup("저장된 데이터가 없습니다.");
-        }
+        DeleteSaveFile();
+        RogueLikeData.Instance.ResetToDefault();
+        SaveDataFile();
+        LoadData();
     }
 }

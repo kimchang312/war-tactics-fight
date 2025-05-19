@@ -40,8 +40,15 @@ public static class RewardManager
         if (battleResult == 0 && type ==StageType.Boss && chapter==1)
         {
             RogueLikeData.Instance.SetChapter(2);
+            RogueLikeData.Instance.SetClearChapter(true);
+        }
+        else if (battleResult == 0 && type == StageType.Boss && chapter == 2)
+        {
+            RogueLikeData.Instance.SetChapter(3);
+            RogueLikeData.Instance.SetClearChapter(true);
         }
         int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
+        RogueLikeData.Instance.ChangeMorale(morale);
         reward.morale += morale;
         int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
         int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold);
@@ -88,21 +95,21 @@ public static class RewardManager
         {
             if (result == 0)
                 addMorale += 15;
-            else if (result == 2)
+            else if (result == 1)
                 reduceMorale -= 55;
         }
         else if (type == StageType.Elite)
         {
             if (result == 0)
             addMorale += 20;
-            else if (result ==2)
+            else if (result ==1)
                 reduceMorale -= 150;
         }
         else if (type == StageType.Boss)
         {
             if (result == 0)
                 addMorale += 35;
-            else if (result == 2)
+            else if (result == 1)
                 reduceMorale -= 150;
         }//유산 33
         if (RelicManager.CheckRelicById(33)) addMorale = (int)(reduceMorale * 1.2);

@@ -20,7 +20,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
     [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
     [SerializeField] private GameObject restPanel;
-
+    public UIGenerator uIGenerator;
+    public UnitDetailExplain unitDetail; 
     public int currentStageX;
     public int currentStageY;
     public StageType currentStageType;
