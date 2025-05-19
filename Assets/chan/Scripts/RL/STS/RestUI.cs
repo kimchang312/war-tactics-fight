@@ -29,8 +29,6 @@ public class RestUI : MonoBehaviour
 
     public void Hide()
     {
-        panelCG.interactable = false;
-        panelCG.blocksRaycasts = false;
         gameObject.SetActive(false);
         UIManager.Instance.UIUpdateAll();
         Debug.Log("[RestUI] Hide() 호출됨");
@@ -57,13 +55,22 @@ public class RestUI : MonoBehaviour
         var myUnits = RogueLikeData.Instance.GetMyUnits();
         Debug.Log("휴식");
         //부대 전체 유닛의 기력을 2만큼 회복
-        for (int i = 0; i < myUnits.Count; i++)
+        foreach (var unit in myUnits)
         {
-            var unit = myUnits[i];
             unit.energy = Mathf.Min(unit.maxEnergy, unit.energy + 2);
         }
+        var lineupBar = FindObjectOfType<LineUpBar>();
+        if (lineupBar != null)
+        {
+            // contentParent 아래에 있는 모든 UnitUIPrefab
+            var unitUIs = lineupBar.contentParent.GetComponentsInChildren<UnitUIPrefab>();
+            foreach (var ui in unitUIs)
+            {
+                // 각 프리팹이 가지고 있는 unitData 로 다시 SetupEnergy
+                ui.SetupEnergy(ui.unitData);
+            }
+        }
 
-    UIManager.Instance.UpdateEnergyDisplay();
-    Hide();
+        Hide();
     }
 }

@@ -83,6 +83,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      allStages = FindObjectsOfType<StageNodeUI>().ToList();
      InitializeStageLocks();
      UIManager.Instance.UIUpdateAll();
+     
     }
 
 private void Start()
@@ -184,6 +185,7 @@ private void Start()
         {
             // 기존 restUI.Show() 대신
             restPanel.SetActive(true);
+
             return;
         }
         else if (newStage.stageType == StageType.Event)
@@ -234,7 +236,7 @@ private void Start()
         foreach (var nxt in currentStage.connectedStages)
             nxt.UnlockStage();
 
-        
+
     }
     private List<RogueUnitDataBase> LoadEnemyUnits(int presetID)
     {

@@ -8,14 +8,14 @@ public class UpgradeUI : MonoBehaviour
 {
     [SerializeField] private RectTransform optionContainer;
     [SerializeField] private GameObject optionButtonPrefab;
+    [SerializeField] private Button rerollButton;
+    //[SerializeField] private TextMeshProUGUI nameText;
+    //[SerializeField] private TextMeshProUGUI costText;
 
-    [SerializeField] private TextMeshProUGUI nameText;
-    [SerializeField] private TextMeshProUGUI costText;
-    
     // 내부 클래스: 이제 Level / Cost 는 생성자 인자로 한 번만 계산
-    private class UpgradeOption
+    public class UpgradeOption
     {
-        private static readonly string[] UnitTypeNames = 
+        public static readonly string[] UnitTypeNames = 
         {
         "창병", "전사", "궁병", "중보병",
         "암살자", "경기병", "중기병", "지원"
@@ -46,10 +46,17 @@ public class UpgradeUI : MonoBehaviour
 
     private List<UpgradeOption> _currentChoices;
 
+    private void Awake()
+    {
+        // 리롤 버튼 리스너 등록
+        rerollButton.onClick.RemoveAllListeners();
+        rerollButton.onClick.AddListener(OnRerollClicked);
+    }
 
     private void Start()
     {
         ShowRandomChoices();
+        UpdateRerollButton();
     }
 
     private void ShowRandomChoices()
@@ -87,7 +94,20 @@ public class UpgradeUI : MonoBehaviour
         {
             var go = Instantiate(optionButtonPrefab, optionContainer);
             var btn = go.GetComponent<Button>();
-
+            var iconImage = go.GetComponent<Image>();
+            if (iconImage != null)
+            {
+                string spriteName = UpgradeOption.UnitTypeNames[opt.unitType];
+                Debug.Log(spriteName);
+                string path = opt.isAttack
+                    ? $"UpgradeIcons/Upgrade_{spriteName}_aggressive"
+                : $"UpgradeIcons/Upgrade_{spriteName}_defensive";
+                var sprite = Resources.Load<Sprite>(path);
+                if (sprite != null)
+                iconImage.sprite = sprite;
+                else
+                    Debug.LogWarning($"[UpgradeUI] 스프라이트 못찾음: UpgradeIcons/{spriteName}"); 
+            }
             var nameTxt = go.transform.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
             var costTxt = go.transform.Find("UpgradeCost")?.GetComponent<TextMeshProUGUI>();
             nameTxt.text = opt.upgradeName;
@@ -97,6 +117,7 @@ public class UpgradeUI : MonoBehaviour
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => OnOptionClicked(opt));
         }
+        UpdateRerollButton();
     }
 
     private void OnOptionClicked(UpgradeOption opt)
@@ -116,5 +137,25 @@ public class UpgradeUI : MonoBehaviour
         // 3) UI 갱신
         ShowRandomChoices();
         UIManager.Instance.UIUpdateAll();
+    }
+    private void OnRerollClicked()
+    {
+        int rr = RogueLikeData.Instance.GetRerollChance();
+        if (rr <= 0)
+        {
+            Debug.Log("리롤 횟수가 없습니다.");
+            return;
+        }
+
+        // 리롤 차감
+        RogueLikeData.Instance.SetRerollChance(rr - 1);
+        ShowRandomChoices();        // 옵션만 갱신
+        UIManager.Instance.UIUpdateAll();
+    }
+
+    private void UpdateRerollButton()
+    {
+        // 남은 리롤이 1 이상일 때만 활성화
+        rerollButton.interactable = RogueLikeData.Instance.GetRerollChance() > 0;
     }
 }
