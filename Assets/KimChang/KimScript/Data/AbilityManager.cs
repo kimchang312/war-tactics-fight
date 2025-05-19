@@ -8,34 +8,32 @@ using Random = UnityEngine.Random;
 
 public class AbilityManager
 {
-    private float heavyArmorValue = 15.0f;                //중갑 피해 감소
-    private float myBluntWeaponValue = 15.0f;             //둔기 추가 피해
-    private float enemyBluntWeaponValue = 15.0f;             //둔기 추가 피해
-    private float throwSpearValue = 50.0f;              //투창 추가 피해
-    private float overwhelmValue = 1.0f;                //위압 기동력 고정
-    private float strongChargeValue = 0.5f;             //강한 돌진 값
-    private float defenseValue = 15.0f;                 //수비태세 값
-    private float slaughterValue = 10.0f;               //도살 추가 피해
-    private float assassinationValue = 2.0f;            //암살 배율
-    private float drainHealValue = 20.0f;               //착취 회복량
-    private float drainGainAttackValue = 10.0f;         //착취 공격력 증가량
-    private float suppressionValue = 1.1f;                 //제압 데미지
-    private float thornsDamageValue = 10.0f;                      //가시 데미지
-    private float fireDamageValue = 10.0f;                       //작열 데미지
-    private float bloodSuckingValue = 1.2f;                       //흡혈 회복량
-    private float martyrdomValue = 1.2f;                          //순교 상승량
-    private float mybindingAttackDamage = 5;                        //결속 추가 공격력
+    private float heavyArmorValue = 15.0f;               
+    private float myBluntWeaponValue = 15.0f;            
+    private float enemyBluntWeaponValue = 15.0f;             
+    private float throwSpearValue = 50.0f;            
+    private float overwhelmValue = 1.0f;           
+    private float strongChargeValue = 0.5f;        
+    private float defenseValue = 15.0f;          
+    private float slaughterValue = 10.0f;
+    private float assassinationValue = 2.0f; 
+    private float drainHealValue = 20.0f;     
+    private float drainGainAttackValue = 10.0f;        
+    private float suppressionValue = 1.1f;           
+    private float thornsDamageValue = 10.0f;            
+    private float fireDamageValue = 10.0f;                    
+    private float bloodSuckingValue = 1.2f;                
+    private float martyrdomValue = 1.2f;
+    private float mybindingAttackDamage = 5;                  
     private float enemybindingAttackDamage = 5;
     private float moraleMultiplier = 0f;
-    private int plunderGold = 20;                           //약탈 골드
+    private int plunderGold = 20;                     
 
     private AutoBattleUI autoBattleUI;
 
-    //영웅 유닛 id, 유무
     Dictionary<int, List<RogueUnitDataBase>> myHeroUnits = new();
     Dictionary<int, List<RogueUnitDataBase>> enemyHeroUnits = new();
 
-    //지휘관 효과
     public void ProcessCommenderEffect()
     {
         int presetId = RogueLikeData.Instance.GetPresetID();
@@ -88,7 +86,6 @@ public class AbilityManager
                 break;
         }
     }
-    //현재 맵에 따른 효과
     public void CalculateFieldEffect()
     {
         int fieldId = RogueLikeData.Instance.GetFieldId();
@@ -142,20 +139,17 @@ public class AbilityManager
                 
         }
 
-        //지휘관 효과
         ProcessCommenderEffect();
     }
     
     public bool ProcessOneTurn()
     {
         bool isTurnEffect;
-        //맵 효과
         isTurnEffect = CalculateStromMap();
 
         return isTurnEffect;
     }
 
-    // 폭풍우 맵 효과: 아군/적군 무작위 유닛 각각 체력 30 감소
     private bool CalculateStromMap()
     {
         int fieldId= RogueLikeData.Instance.GetFieldId();
@@ -581,7 +575,7 @@ public class AbilityManager
                 CalculateDamageFirstStrike(attacker,defenders,finalDamage,isTeam,ref use);
             }
         }
-        // 암살단장(Assassination Leader, idx == 58)이 있을 경우 선제 타격 4회 실행
+
         use |= ExecuteAssassinationLeaderStrike(isTeam, defenders, finalDamage);
         return use;
     }

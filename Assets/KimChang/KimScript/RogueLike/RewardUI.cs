@@ -70,19 +70,18 @@ public class RewardUI : MonoBehaviour
         if (reward.battleResult == 0)
         {
             goldResult.SetActive(true);
-
+            goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {reward.gold}";
             int chapter = RogueLikeData.Instance.GetChapter();
             var type = RogueLikeData.Instance.GetCurrentStageType();
-            if(chapter==2 && type== StageType.Boss)
+            if(chapter==3 && type== StageType.Boss)
             {
                 resultText.text = "정복";
                 moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"점수: {RogueLikeData.Instance.GetScore()}";
                 goldResult.GetComponentInChildren<TextMeshProUGUI>().text = "  타이틀 화면으로";
                 goldResult.AddComponent<Button>().onClick.AddListener(() => SceneManager.LoadScene("Title"));
+                goldResult.transform.SetAsLastSibling();
                 leaveBtn.gameObject.SetActive(false);
             }
-
-            goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {reward.gold}";
 
             if (HasUnitReward(reward))
             {
@@ -353,13 +352,13 @@ public class RewardUI : MonoBehaviour
     }
     private void ClickRetryBtn()
     {
-        saveData.DeleteSaveFile();
+        saveData.ResetGameData();
         GameManager.Instance.uIGenerator.RegenerateMap();
         SceneManager.LoadScene("RLmap");
     }
     private void ClickGoTitleBtn()
     {
-        saveData.DeleteSaveFile();
+        saveData.ResetGameData();
         GameManager.Instance.uIGenerator.RegenerateMap();
         SceneManager.LoadScene("Title");
     }

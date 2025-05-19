@@ -467,7 +467,7 @@ public class AutoBattleManager : MonoBehaviour
     private async Task<bool> HandlePreparation()
     {
         UpdateUnitUI();
-        bool result = PreparationPhase(); // 이미 전투 처리됨
+        bool result = PreparationPhase();
         await Task.Yield();
         return result;
     }

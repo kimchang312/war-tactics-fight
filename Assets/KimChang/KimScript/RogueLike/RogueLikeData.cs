@@ -795,4 +795,34 @@ public class RogueLikeData
     {
         this.clearChapter = clearChapter;
     }
+    public void ResetToDefault()
+    {
+        // 유닛 초기화: 기본 유닛 로드
+        var baseUnits = RogueUnitDataBase.GetBaseUnits();
+        SetMyTeam(baseUnits);
+        SetAllMyUnits(baseUnits);
+
+        // 유물 초기화
+        ResetOwnedRelics();
+
+        // 스테이지 위치 초기화
+        currentStageX = 1;
+        currentStageY = 0;
+        currentStageType = StageType.Combat;
+
+        // 챕터 및 전투 수치 초기화
+        chapter = 1;
+        currentGold = 0;
+        spentGold = 0;
+        playerMorale = 50;
+        sariStack = 0;
+        nextUnitUniqueId = 0;
+
+        // 이벤트 초기화
+        encounteredEvent.Clear();
+
+        // 데미지 배율 초기화
+        ResetFinalDamage();
+    }
+
 }

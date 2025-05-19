@@ -42,6 +42,11 @@ public static class RewardManager
             RogueLikeData.Instance.SetChapter(2);
             RogueLikeData.Instance.SetClearChapter(true);
         }
+        else if (battleResult == 0 && type == StageType.Boss && chapter == 2)
+        {
+            RogueLikeData.Instance.SetChapter(3);
+            RogueLikeData.Instance.SetClearChapter(true);
+        }
         int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
         RogueLikeData.Instance.ChangeMorale(morale);
         reward.morale += morale;

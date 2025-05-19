@@ -1353,6 +1353,7 @@ MonoBehaviour:
   mapCanvas: {fileID: 972372224}
   enemyInfoPanel: {fileID: 1480139111}
   restPanel: {fileID: 137505607}
+  uIGenerator: {fileID: 2073471113}
   unitDetail: {fileID: 1855116624}
   currentStageX: 0
   currentStageY: 0

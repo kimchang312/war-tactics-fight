@@ -107,7 +107,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(82, "반응 갑옷", 1, "유닛의 공격력이 장갑에 비례해 증가한다.", RelicType.StateBoost, () =>ReactiveArmor()));
         relics.Add(new WarRelic(83, "창술 교범", 1, "수비 태세의 패널티가 사라지며, 수비 태세 기술을 가지고 있는 유닛의 체력이 20 증가한다.", RelicType.ActiveState, () =>SpearManual()));
         relics.Add(new WarRelic(84, "치유석", 1, "치유량이 30% 증가한다.", RelicType.BattleActive, () =>HealingStone()));
-        relics.Add(new WarRelic(85, "정예병 모집서", 1, "희귀도 1 유닛의 등장 확률이 15% 감소한다.", RelicType.SpecialEffect, () =>EliteRecruitment()));
+        //relics.Add(new WarRelic(85, "정예병 모집서", 1, "희귀도 1 유닛의 등장 확률이 15% 감소한다.", RelicType.SpecialEffect, () =>EliteRecruitment()));
         relics.Add(new WarRelic(86, "커다란 짐수레", 1, "부대 상한보다 3개 더 적은 유닛을 사용하여 전투 승리 시, 얻는 금화 +100%", RelicType.SpecialEffect, () => LargeCart()));
         relics.Add(new WarRelic(87, "파이브 오브 어 카인드", 1, "5개 이상의 서로 다른 병종을 사용하여 부대를 구성하면 유닛 체력이 15% 증가한다.", RelicType.StateBoost, () => FiveOfAKind()));
         relics.Add(new WarRelic(88, "로열 스트레이트 플러시", 1, "2개 이하의 병종을 사용하여 부대를 구성하면 유닛 공격력이 15% 증가한다.", RelicType.StateBoost, () => RoyalStraightFlush()));
@@ -120,7 +120,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(94, "무쇠 투구", 1, "중갑 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => CastIronHelmet()));
         relics.Add(new WarRelic(95, "전속전진의 신발", 10, "돌격 스킬을 가진 유닛에게 충격 특성을 부여한다. 원래 충격을 가진 유닛은 기동력이 3 증가한다.", RelicType.StateBoost, () => ShoesOfFullSpeedAhead()));
         relics.Add(new WarRelic(96, "장식된 로자리오", 1, "지원 유닛에게 영향받는 아군 유닛의 장갑이 3 증가한다.", RelicType.StateBoost, () => DecoratedRosary()));
-        relics.Add(new WarRelic(97, "비상탈출 교본", 1, "궁병과 지원 유닛이 전열로 진입할 때, 유격의 효과를 발동시킨다. (유닛 당 1회)", RelicType.StateBoost, () => EmergencyEscapeManual()));
+        //relics.Add(new WarRelic(97, "비상탈출 교본", 1, "궁병과 지원 유닛이 전열로 진입할 때, 유격의 효과를 발동시킨다. (유닛 당 1회)", RelicType.StateBoost, () => EmergencyEscapeManual()));
 
         //relics.Add(new WarRelic(99, "욕망의 항아리", 1, "매 정비턴이 시작될 때, 금화 a 획득, 사기 b 감소", RelicType.SpecialEffect, () => JarOfDesire()));
         
