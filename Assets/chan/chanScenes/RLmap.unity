@@ -4545,7 +4545,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &528897187
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10793,6 +10793,7 @@ MonoBehaviour:
   commanderInfo: {fileID: 2107377440}
   commanderNameText: {fileID: 1161169076}
   commanderSkillText: {fileID: 140672097}
+  placeButton: {fileID: 1780986239}
 --- !u!1 &1497975701
 GameObject:
   m_ObjectHideFlags: 0
@@ -14342,6 +14343,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startBattleButton: {fileID: 1573445490}
+  backButton: {fileID: 1848147136}
+  enemyInfoPanel: {fileID: 1480139111}
   maxUnitCount: {fileID: 498415975}
   currentUnitCount: {fileID: 534568298}
   battleUnitPrefab: {fileID: 6891974015797885169, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
