@@ -23,22 +23,18 @@ public class UIGenerator : MonoBehaviour
     // key: "level_row" -> value: StageNodeUI 인스턴스
     private Dictionary<string, StageNodeUI> stageUIMap = new Dictionary<string, StageNodeUI>();
 
-    
-
-    private bool _hasInitialized = false;
-    
 
 
     private void Start()
     {
 
-        if (!_hasInitialized)
+        if (!GameManager.Instance._hasInitialized)
         {
-            _hasInitialized = true;
+            GameManager.Instance._hasInitialized = true;
 
             RegenerateMap();
         }
-        
+
     }
     /// 외부에서 언제든 호출해서 맵 전체를 지우고 다시 생성합니다.
     /// - New Game 버튼
