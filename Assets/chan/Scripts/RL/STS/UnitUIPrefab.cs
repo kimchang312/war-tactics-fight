@@ -35,8 +35,9 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null)
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
-    }
 
+    }
+    
     public void SetupIMG(RogueUnitDataBase unit,Context ctx, int uniqueId)
     {
         unitData = unit;
@@ -50,6 +51,7 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
         canvasGroup.interactable = true;
         canvasGroup.blocksRaycasts = true;
         numberTextObject.SetActive(false);
+
     }
     public void SetupEnergy(RogueUnitDataBase unit)
     {

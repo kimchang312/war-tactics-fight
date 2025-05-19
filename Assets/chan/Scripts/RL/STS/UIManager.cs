@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,7 +14,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI moraleText;
     public TextMeshProUGUI rerollText;
 
-
+    private Dictionary<int, UnitUIPrefab> _unitUIs = new();
     private void Awake()
     {
         if (Instance == null)
@@ -30,6 +32,7 @@ public class UIManager : MonoBehaviour
     {
         UIUpdateAll();
     }
+
 
     public void UIUpdateAll()
     {
@@ -56,8 +59,4 @@ public class UIManager : MonoBehaviour
         rerollText.text = r.ToString(); ;
     }
 
-    public void UpdateEnergyDisplay()
-    {
-
-    }
 }
