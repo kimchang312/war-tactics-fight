@@ -69,10 +69,11 @@ public class TopBar : MonoBehaviour
 
     private void SaveAndGoTitle()
     {
-        Debug.Log(" 게임 저장 중");
+   
+        Debug.Log("💾 게임 저장 중...");
         //저장하는 함수
 
-        Debug.Log("타이틀 씬으로 이동 중");
+        Debug.Log("🏁 타이틀 씬으로 이동 중...");
         UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // 씬 이름이 정확해야 함
     }
 }
