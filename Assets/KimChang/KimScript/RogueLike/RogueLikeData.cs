@@ -801,11 +801,7 @@ public class RogueLikeData
     }
     public void ResetToDefault()
     {
-        // 유닛 초기화: 기본 유닛 로드
-        var baseUnits = RogueUnitDataBase.GetBaseUnits();
-        SetMyTeam(baseUnits);
-        SetAllMyUnits(baseUnits);
-
+        
         // 유물 초기화
         ResetOwnedRelics();
 
@@ -821,7 +817,14 @@ public class RogueLikeData
         playerMorale = 50;
         sariStack = 0;
         nextUnitUniqueId = 0;
-
+        // 유닛 초기화: 기본 유닛 로드
+        var baseUnits = RogueUnitDataBase.GetBaseUnits();
+        SetMyTeam(baseUnits);
+        SetAllMyUnits(baseUnits);
+        foreach (var unit in baseUnits)
+        {
+            Debug.Log(unit.UniqueId + unit.unitName);
+        }
         // 이벤트 초기화
         encounteredEvent.Clear();
 
