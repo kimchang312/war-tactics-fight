@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
     [SerializeField] private GameObject restPanel;
     [SerializeField] private RewardUI rewardUI;
+    [SerializeField] private GameObject loadingPanel;
     public UIGenerator uIGenerator;
     public UnitDetailExplain unitDetail; 
     public int currentStageX;
@@ -236,6 +237,7 @@ private void Start()
     public void InitializeStageLocks()
     {
         mapCanvas.SetActive(true);
+        loadingPanel.SetActive(false);
         // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
         var all = FindObjectsOfType<StageNodeUI>().ToList();
         // ② 일단 전부 잠급니다
@@ -286,6 +288,7 @@ private void Start()
     
     public void HideAllPanels()
     {
+        loadingPanel.SetActive(true);
         mapCanvas.SetActive(false);
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
@@ -295,5 +298,10 @@ private void Start()
     public void SetCurrentStageNull()
     {
         currentStage = null;
+    }
+
+    public void CloseLoading()
+    {
+        loadingPanel.SetActive(false);
     }
 }

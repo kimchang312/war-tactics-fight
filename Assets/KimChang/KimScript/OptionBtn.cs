@@ -15,8 +15,6 @@ public class OptionBtn : MonoBehaviour
     [SerializeField] private MoveDamageUI moveDamageUI;
     [SerializeField] private MoveAbilityUI moveAbilityUI;
 
-    public PlayerData playerData;
-
     private bool isPaused=false;
 
     private float animationSpeed = 1f;
@@ -33,26 +31,19 @@ public class OptionBtn : MonoBehaviour
 
     private void OnDestroy()
     {
-        // 이벤트 등록 해제 (메모리 누수 방지)
         gameSpeedToggle.onValueChanged.RemoveListener(OnToggleChanged);
-
-
-        // PlayerData 싱글톤 인스턴스를 연결
-        playerData = PlayerData.Instance;
-
     }
 
-
-    // 옵션 창을 토글하는 함수
     private void ToggleOptionWindow()
     {
+        Debug.Log("stop");
         if (isPaused)
         {
-            ResumeGame(); // 게임 재개
+            ResumeGame();
         }
         else
         {
-            PauseGame(); // 게임 멈춤
+            PauseGame();
         }
     }
 
@@ -60,22 +51,17 @@ public class OptionBtn : MonoBehaviour
     // 게임을 멈추는 함수
     private void PauseGame()
     {
-        Debug.Log("멈춰");
+        optionWindow.transform.SetAsLastSibling();
 
-        int siblingCount = optionWindow.transform.parent.childCount; // 형제 개수 확인
-        optionWindow.transform.SetSiblingIndex(siblingCount - 1);
-
-        optionWindow.SetActive(true); // 옵션 창 활성화
-        Time.timeScale = 0f;         // 게임 멈춤
-        isPaused = true;             // 멈춤 상태 설정
+        optionWindow.SetActive(true);
+        Time.timeScale = 0f;
+        isPaused = true;
     }
 
 
     // 게임을 재개하는 함수
     private void ResumeGame()
     {
-        Debug.Log("재시작");
-
         optionWindow.SetActive(false); // 옵션 창 비활성화
         Time.timeScale = 1f;          // 게임 재개
         isPaused = false;             // 멈춤 상태 해제
@@ -86,10 +72,8 @@ public class OptionBtn : MonoBehaviour
     {
         if (isPaused)
         {
-
             Time.timeScale = 1f; // 게임 속도 초기화
-            playerData.ResetPlayerData();
-            SceneManager.LoadScene("Main");
+            SceneManager.LoadScene("Title");
         }
     }
 
@@ -101,13 +85,10 @@ public class OptionBtn : MonoBehaviour
             animationSpeed = 0.5f;
 
             ManageTimeSpeed();
-
-
         }
         else
         {
-            animationSpeed = 1f;
-
+            animationSpeed = 2f;
             ManageTimeSpeed();
         }
     }

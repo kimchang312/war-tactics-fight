@@ -22,7 +22,7 @@ public class AbilityManager
     private float suppressionValue = 1.1f;           
     private float thornsDamageValue = 10.0f;            
     private float fireDamageValue = 10.0f;                    
-    private float bloodSuckingValue = 1.2f;                
+    private float bloodSuckingValue = 0.2f;                
     private float martyrdomValue = 1.2f;
     private float mybindingAttackDamage = 5;                  
     private float enemybindingAttackDamage = 5;
@@ -135,8 +135,7 @@ public class AbilityManager
                         if (unit.rangedAttack) unit.attackDamage -= 0.1f * unit.baseAttackDamage; 
                     }
                     break;
-                }
-                
+                }   
         }
 
         ProcessCommenderEffect();
@@ -298,7 +297,6 @@ public class AbilityManager
             damage = (damage - reduceDamage) * finalDamage;
 
             float normalDamage = MathF.Round(damage);
-
             //충격
             if (isFirstAttack && frontAttaker.charge && frontAttaker.impact)
             {                
@@ -372,10 +370,12 @@ public class AbilityManager
                 // 흡혈
                 if (frontAttaker.lifeDrain)
                 {
-                    float heal = HealHealth(frontAttaker, Mathf.Min(Mathf.Round(frontAttaker.health+(normalDamage * bloodSuckingValue)), frontAttaker.maxHealth));
+                    float healValue = Mathf.Round(normalDamage * bloodSuckingValue);
+                    float heal = HealHealth(frontAttaker, Mathf.Min((frontAttaker.health+ healValue), frontAttaker.maxHealth));
+                       
                     frontAttaker.health = heal;
 
-                    CallDamageText(-heal, "흡혈 ", isTeam, false);
+                    CallDamageText(-healValue, "흡혈 ", isTeam, false);
                 }
 
                 //추적자
@@ -518,6 +518,8 @@ public class AbilityManager
         CalculateTheUnsealedOne(deadDefenders.Count, isTeam);
         //불굴의 방패
         CalculateIndomitableShieldDead(attackers, deadAttackers, isTeam);
+        //사리유산
+        CalculateSariRelic(attackers[0], isTeam, isFrontDefendrDead);
         //넝마떼기
         RelicManager.SurvivorOfRag(attackers, isTeam);
 
@@ -1649,7 +1651,15 @@ public class AbilityManager
         autoBattleUI.ShowDamage(MathF.Round(damage), text, !team, isAttack,unitIndex);
     }
 
-    
+    //사리유산
+    private void CalculateSariRelic(RogueUnitDataBase attacker, bool isTeam, bool isDefenderDead)
+    {
+        if (!isTeam) return;
+        if(attacker.idx ==63 && isDefenderDead && RelicManager.CheckRelicById(78))
+        {
+            RogueLikeData.Instance.AddSariStack(1);
+        }
+    }
 
 
 

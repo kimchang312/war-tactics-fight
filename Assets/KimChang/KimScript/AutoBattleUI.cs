@@ -31,27 +31,41 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject enemyRangeCount;
 
     [SerializeField] private Transform myBackUnitsParent;
-    [SerializeField] private Transform enemyBackUnitsParent;
-
-    [SerializeField] private GameObject loadingWindow;     
+    [SerializeField] private Transform enemyBackUnitsParent;  
 
     [SerializeField] private GameObject relicBox;
     [SerializeField] private Transform myAbilityBox;
     [SerializeField] private Transform enemyAbilityBox;
 
-    [SerializeField] private GameObject itemToolTip;    
-
+    [SerializeField] private GameObject itemToolTip;
+    [SerializeField] private Image background;
     private Vector3 myTeam = new(270, 280, 0);               
     private Vector3 enemyTeam = new(-270, 280, 0);          
 
     private float waittingTime = 500f;
 
-    private Dictionary<int, GameObject> myUnitCache = new();
-    private Dictionary<int, GameObject> enemyUnitCache = new();
-
     private void Start()
     {
-        ToggleLoadingWindow();
+        int fieldId = RogueLikeData.Instance.GetFieldId();
+        switch (fieldId) 
+        {
+            case 2:
+                {
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Forest");
+                    break;
+                }
+            case 3:
+                {
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Mountain");
+                    break;
+                }
+            case 4:
+                {
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Swampland");
+                    break;
+                }
+        }
+
         ResetUIActive();
         
         myHpBar.interactable = false;
@@ -285,6 +299,7 @@ public class AutoBattleUI : MonoBehaviour
             Transform parent = isMyUnit ? myBackUnitsParent : enemyBackUnitsParent;
 
             GameObject unitImage = objectPool.GetBattleUnit();
+            unitImage.transform.localScale = isMyUnit? new(1,1,1) : new(-1,1,1);
             Transform childUnit = unitImage.transform.GetChild(0);
             RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
             Image unitFrame = childUnit.GetComponent<Image>();
@@ -467,6 +482,7 @@ public class AutoBattleUI : MonoBehaviour
 
         for (int i = 0; i < warRelics.Count; i++)
         {
+            if (warRelics[i].used) return;
             GameObject relicObject = objectPool.GetWarRelic();
             ItemInformation itemInfo = relicObject.GetComponent<ItemInformation>();
             ExplainItem explainItem = relicObject.GetComponent<ExplainItem>();
@@ -482,35 +498,6 @@ public class AutoBattleUI : MonoBehaviour
             relicObject.transform.SetParent(relicBox.transform, false);
 
         }
-    }
-
-    //로딩창 간단하게 구현
-    public void ToggleLoadingWindow()
-    {
-        loadingWindow.SetActive(!loadingWindow.activeSelf);
-    }
-
-    //테스트 화면으로
-    private void ClickGoTestBtn()
-    {
-        SceneManager.LoadScene("Upgrade");
-    }
-
-    //보상 창 열기+ 통계,점수,승패 창 닫기 
-    private void OpenRewardWindow()
-    {
-        SceneManager.LoadScene("RLmap");
-        /*
-        staticsWindow.SetActive(false);
-        endWindow.SetActive(false);
-        staticsToggleBtn.gameObject.SetActive(false);
-
-        rewardWindow.SetActive(true);*/
-    }
-    //보상 창 닫기
-    private void CloseRewardWindow()
-    {
-        rewardUI.gameObject.SetActive(false);
     }
 
     //ui 활성화 비활성화 초기화

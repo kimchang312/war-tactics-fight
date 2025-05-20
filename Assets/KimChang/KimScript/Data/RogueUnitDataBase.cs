@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 
 [System.Serializable]
@@ -329,19 +330,39 @@ public class RogueUnitDataBase
     //희귀도에 따른 무작위 유닛 획득
     public static RogueUnitDataBase GetRandomUnitByRarity(int rarity)
     {
-        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
+        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
+        List<RogueUnitDataBase> allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
-        var filtered = allUnits.Where(u => u.rarity == rarity).ToList();
+        List<RogueUnitDataBase> filtered;
+
+        if (rarity == 4)
+        {
+            HashSet<int> myUnitIds = myUnits
+                .Where(u => u.rarity == 4)
+                .Select(u => u.idx)
+                .ToHashSet();
+
+            filtered = allUnits
+                .Where(u => u.rarity == 4 && !myUnitIds.Contains(u.idx))
+                .ToList();
+        }
+        else
+        {
+            filtered = allUnits
+                .Where(u => u.rarity == rarity)
+                .ToList();
+        }
 
         if (filtered.Count == 0)
             return null;
 
         int idx = UnityEngine.Random.Range(0, filtered.Count);
-        var selected = filtered[idx];
-        RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);
-        //selected.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
+        RogueUnitDataBase selected = filtered[idx];
 
-        return selected;
+        // 실제 유닛 복사체 생성
+        RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);
+
+        return unit;
     }
     //내 유닛 정상화
     public static List<RogueUnitDataBase> SetMyUnitsNormalize()
@@ -365,7 +386,7 @@ public class RogueUnitDataBase
     public static List<RogueUnitDataBase> GetBaseUnits()
     {
         List<RogueUnitDataBase> units = new();
-        units.Add(UnitLoader.Instance.GetCloneUnitById(40));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(0));
         units.Add(UnitLoader.Instance.GetCloneUnitById(2));
         units.Add(UnitLoader.Instance.GetCloneUnitById(3));
         return units;

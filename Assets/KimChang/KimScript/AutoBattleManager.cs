@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Threading.Tasks;
+using System.Collections;
 
 
 public class AutoBattleManager : MonoBehaviour
 {
-    [SerializeField] private AutoBattleUI autoBattleUI;       //UI 관리 스크립트
+    [SerializeField] private AutoBattleUI autoBattleUI;
     private AbilityManager abilityManager = new AbilityManager();
     
     private float waittingTime = 500;
@@ -17,8 +18,6 @@ public class AutoBattleManager : MonoBehaviour
     List<RogueUnitDataBase> enemyDeathUnits = new();
     RogueUnitDataBase myFrontUnit;
     RogueUnitDataBase enemyFrontUnit;
-
-    private static int globalUnitId = 0;
 
     bool isFirstAttack = true;
     private enum BattleState
@@ -372,8 +371,6 @@ public class AutoBattleManager : MonoBehaviour
         //스탯 유산 실행
         ProcessRelic();
 
-        //로딩창 종료
-        autoBattleUI.ToggleLoadingWindow();
         //유닛 생성
         UpdateUnitUI();
 
@@ -407,7 +404,7 @@ public class AutoBattleManager : MonoBehaviour
         UpdateUnitUI();
         
         //로딩창 종료
-        autoBattleUI.ToggleLoadingWindow();
+        GameManager.Instance.CloseLoading();
 
         currentState = BattleState.Check;
     }
@@ -531,39 +528,48 @@ public class AutoBattleManager : MonoBehaviour
         else
         {
             currentState = BattleState.End;
+
             foreach (var unit in enemyDeathUnits)
             {
                 RogueLikeData.Instance.AddScore((int)unit.maxHealth);
             }
+
             RewardManager.AddBattleRewardByStage(result, myDeathUnits, enemyDeathUnits);
-
-            autoBattleUI.FightEnd();
-
             UpdateUnitCount();
-
             UpdateUnitHp();
 
-            RogueLikeData.Instance.SetFieldId(0);
-
-            RogueLikeData.Instance.ClearBuffDeBuff();
-
-            RogueLikeData.Instance.SetBattleUnitCount(0);
-
-            //전투 종료 시 유산
-            WarRelic relic = RogueLikeData.Instance.GetOwnedRelicById(109);
-            if (relic != null)
-            {
-                relic.Execute();
-            }
-
-            SaveData saveData = new SaveData();
-            saveData.SaveDataBattaleEnd(myUnits, myDeathUnits);
+            // 0.5초 뒤에 실행되도록 코루틴 시작
+            StartCoroutine(DelayedBattleEnd(result));
 
             return true;
         }
         return false;
     }
-    
+
+    // 전투 종료 처리 코루틴
+    private IEnumerator DelayedBattleEnd(int result)
+    {
+        yield return new WaitForSeconds(waittingTime*0.001f);
+
+        autoBattleUI.FightEnd();
+
+        RogueLikeData.Instance.SetFieldId(0);
+        RogueLikeData.Instance.ClearBuffDeBuff();
+        RogueLikeData.Instance.SetBattleUnitCount(0);
+
+        WarRelic relic = RogueLikeData.Instance.GetOwnedRelicById(109);
+        if (relic != null) relic.Execute();
+
+        if (RelicManager.CheckRelicById(78) && result == 0)
+        {
+            RogueLikeData.Instance.AddSariStack(3);
+        }
+
+        SaveData saveData = new SaveData();
+        saveData.SaveDataBattaleEnd(myUnits, myDeathUnits);
+    }
+
+
     //기본 데이터 초기화
     private void SetBaseData()
     {
