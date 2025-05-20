@@ -1,12 +1,5 @@
 using System.Collections.Generic;
-public class GameTextEntry
-{
-    public string[] Names;       
-    public string[] Descriptions; 
 
-    public string GetName(int lang) => lang >= 0 && lang < Names.Length ? Names[lang] : "";
-    public string GetDesc(int lang) => lang >= 0 && lang < Descriptions.Length ? Descriptions[lang] : "";
-}
 public class GameTextData
 {
     // 데이터 맵
@@ -152,8 +145,8 @@ public class GameTextData
         { 142, (new[] { "도전", "Challenge", "" }, new[] { "가장 체력이 낮은 상대 후열 유닛을 끌고 온다.", "", "" }) },
         { 143, (new[] { "연막", "SmokeScreen", "" }, new[] { "내 다음 유닛의 회피율을 증가시킨다.", "", "" }) },
         
-        { 150, (new[] { "전쟁 유산", "", "" }, new string[0]) },
-        { 151, (new[] { "전술", "", "" }, new string[0]) },
+        { 150, (new[] { "보유 전쟁 유산", "", "" }, new string[0]) },
+        { 151, (new[] { "전술 개량 현황", "", "" }, new string[0]) },
         { 152, (new[] { "전술 개량", "", "" }, new string[0]) },
         { 160, (new[] { "사기", "Morale", "" }, new[] { "전투에서 승리할 때마다 증가. 사기가 높으면 유닛이 강해지고 낮으면 약해진다. 사기가 10 이하가 되면 유닛이 탈영할 수 있고, 0이 되면 원정에 실패한다.", "", "" }) },
         { 170, (new[] { "휴식", "Rest", "" }, new[] { "부대 전체 유닛의 기력을 2만큼 회복시킵니다.", "", "" }) },
@@ -193,7 +186,7 @@ public class GameTextData
         if (dataMap.TryGetValue(idx, out var values))
         {
             string name = language >= 0 && language < values.Names.Length ? values.Names[language] : "Invalid language index.";
-            string description = language >= 0 && language < values.Descriptions.Length ? values.Descriptions[language] : "No description available.";
+            string description = language >= 0 && language < values.Descriptions.Length ? values.Descriptions[language] : "";
             return (name, description);
         }
         return ("Invalid index.", "Invalid index.");

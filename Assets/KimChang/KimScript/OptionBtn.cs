@@ -88,7 +88,7 @@ public class OptionBtn : MonoBehaviour
         }
         else
         {
-            animationSpeed = 1f;
+            animationSpeed = 2f;
             ManageTimeSpeed();
         }
     }
