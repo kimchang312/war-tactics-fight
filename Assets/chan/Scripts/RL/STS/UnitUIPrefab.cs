@@ -88,6 +88,13 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
             switch (PrefabType)
             {
                 case Context.Lineup:
+
+                    if (place.PlacedUniqueIds.Count >= RogueLikeData.Instance.GetMaxUnits())
+                    {
+                        Debug.Log("⚠️ 최대 배치 수에 도달했습니다.");
+                        return;
+                    }
+
                     // ① 배치판에 추가 → 반환된 순서로 UI 갱신
                     int order = place.AddUnitToBattle(unitData);
 
