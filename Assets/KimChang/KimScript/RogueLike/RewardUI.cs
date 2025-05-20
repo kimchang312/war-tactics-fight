@@ -45,7 +45,7 @@ public class RewardUI : MonoBehaviour
         resultText.text = "전리품";
         goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {gold}";
         RogueLikeData.Instance.EarnGold(gold);
-
+        RogueLikeData.Instance.SetBattleReward(reward);
         relicResult.onClick.AddListener(()=>OpenReward(false));
         goldResult.SetActive(true);
         relicResult.gameObject.SetActive(true);
@@ -245,15 +245,26 @@ public class RewardUI : MonoBehaviour
             RogueLikeData.Instance.AcquireRelic(info.relicId);
             if (info.relicId == 79)
             {
-                var myUnits = RogueLikeData.Instance.GetMyTeam();
-                var randomUnit = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
-                randomUnit.endless = true;
+                Debug.Log("기이한 조각");
+                unitSelectUI.gameObject.SetActive(true);
+                unitSelectUI.OpenSelectUnitWindow(SelectUnitEndless);
+                return;
             }
         }
         itemToolTip.SetActive(false);
         SkipSelectReward();
     }
 
+    private void SelectUnitEndless()
+    {
+        List<RogueUnitDataBase> units = RogueLikeData.Instance.GetSelectedUnits();
+        foreach (var unit in units)
+        {
+            unit.endless = true;
+        }
+        RogueLikeData.Instance.ClearSelectedUnis();
+        SkipSelectReward();
+    }
     private void RerollReward()
     {
         int reroll = RogueLikeData.Instance.GetRerollChance();
@@ -349,7 +360,6 @@ public class RewardUI : MonoBehaviour
         new SaveData().SaveDataFile();
         if (SceneManager.GetActiveScene().name != "RLmap")
         {
-            
             SceneManager.LoadScene("RLmap");
         }
         else
@@ -372,7 +382,6 @@ public class RewardUI : MonoBehaviour
     {
         if (scene.name == "RLmap")
         {
-
             if (RogueLikeData.Instance.GetClearChpater())
             {
                 RogueLikeData.Instance.SetClearChapter(false);

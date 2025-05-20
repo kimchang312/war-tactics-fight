@@ -32,7 +32,7 @@ public class BarracksManager
         if (gold > price)
         {
             RogueLikeData.Instance.ReduceGold(price);
-            RogueLikeData.Instance.AddMyTeam(unit);
+            RogueLikeData.Instance.AddMyUnis(unit);
             return true;
         }
         return false;

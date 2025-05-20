@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 public class AutoBattleManager : MonoBehaviour
 {
-    [SerializeField] private AutoBattleUI autoBattleUI;       //UI 관리 스크립트
+    [SerializeField] private AutoBattleUI autoBattleUI;
     private AbilityManager abilityManager = new AbilityManager();
     
     private float waittingTime = 500;
@@ -17,8 +17,6 @@ public class AutoBattleManager : MonoBehaviour
     List<RogueUnitDataBase> enemyDeathUnits = new();
     RogueUnitDataBase myFrontUnit;
     RogueUnitDataBase enemyFrontUnit;
-
-    private static int globalUnitId = 0;
 
     bool isFirstAttack = true;
     private enum BattleState
@@ -372,8 +370,6 @@ public class AutoBattleManager : MonoBehaviour
         //스탯 유산 실행
         ProcessRelic();
 
-        //로딩창 종료
-        autoBattleUI.ToggleLoadingWindow();
         //유닛 생성
         UpdateUnitUI();
 
@@ -407,7 +403,7 @@ public class AutoBattleManager : MonoBehaviour
         UpdateUnitUI();
         
         //로딩창 종료
-        autoBattleUI.ToggleLoadingWindow();
+        GameManager.Instance.CloseLoading();
 
         currentState = BattleState.Check;
     }

@@ -613,7 +613,7 @@ public class EventManager
                             {
                                 RogueLikeData.Instance.AddMyUnis(selectedUnits[0]);
                                 var relic =RelicManager.HandleRandomRelic(10,RelicAction.Acquire);
-                                resultLog += $"- 결투에 승리해 전쟁유사 {relic.name} 획득";
+                                resultLog += $"- 결투에 승리해 전쟁유산 {relic.name} 획득";
                             }
                             else
                             {
@@ -689,7 +689,8 @@ public class EventManager
                                     .ToList();
                                 if (validUnits.Count == 0)
                                 {
-                                    resultLog += $"모든 영웅유닛을 보유하고 있습니다.";
+                                    WarRelic relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
+                                    resultLog += $"모든 영웅유닛을 보유하고 있습니다. 전쟁유산 {relic.name} 획득";
                                     break;
                                 }
                             }

@@ -80,6 +80,7 @@ public class EventUIManager : MonoBehaviour
             int index = choiceData.requireForm.IndexOf(RequireForm.Select);
             int count = int.TryParse(choiceData.requireCount[index], out var parsed) ? parsed : 0;
             selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+            Debug.Log(selectedUnits.Count);
             if (selectedUnits == null || selectedUnits.Count < count)
             {
                 OpenSelectdUnit(choiceData);
