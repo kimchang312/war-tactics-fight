@@ -1,4 +1,3 @@
-using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,9 +9,6 @@ public class RestUI : MonoBehaviour
     public Button restButton;      // 휴식 버튼
 
     private CanvasGroup panelCG;
-
-    [SerializeField] private Image blackFadeImage;
-    [SerializeField] private float fadeDuration = 0.5f;
 
     private void Awake()
     {
@@ -43,8 +39,7 @@ public class RestUI : MonoBehaviour
         Debug.Log("훈련");
         //다음 전술 개량의 비용을 0으로
         RogueLikeData.Instance.SetIsFreeUpgrade();
-        FadeOutAndHide();
-      
+        Hide();
     }
 
     private void OnParty()
@@ -52,13 +47,12 @@ public class RestUI : MonoBehaviour
         Debug.Log("연회");
         //부대 전체의 사기를 30만큼 회복
         RogueLikeData.Instance.ChangeMorale(30);
-        FadeOutAndHide();
-      
+        Hide();
     }
     private void OnRest()
     {
 
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         Debug.Log("휴식");
         //부대 전체 유닛의 기력을 2만큼 회복
         foreach (var unit in myUnits)
@@ -76,18 +70,7 @@ public class RestUI : MonoBehaviour
                 ui.SetupEnergy(ui.unitData);
             }
         }
-        FadeOutAndHide();
-       
-    }
-    private void FadeOutAndHide()
-    {
-        blackFadeImage.gameObject.SetActive(true); // 혹시 꺼져있다면
 
-        blackFadeImage.color = new Color(0, 0, 0, 0); // 초기화
-        blackFadeImage.DOFade(1f, fadeDuration).OnComplete(() =>
-        {
-            Hide();
-            blackFadeImage.color = new Color(0, 0, 0, 0); // 다음을 위해 초기화
-        });
+        Hide();
     }
 }
