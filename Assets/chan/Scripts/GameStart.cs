@@ -7,9 +7,9 @@ public class GameStart : MonoBehaviour
 {
    public void LoadMainScene()
     {
-        // ¸ŞÀÎ ¾ÀÀ¸·Î µ¹¾Æ°¡±â Àü¿¡ PlayerData ÃÊ±âÈ­
+        // ë©”ì¸ ì”¬ìœ¼ë¡œ ëŒì•„ê°€ê¸° ì „ì— PlayerData ì´ˆê¸°í™”
         PlayerData.Instance.ResetPlayerData();
-        SceneManager.LoadScene("Main");
+        SceneManager.LoadScene("RLmap");
     }
 
     public void LoadUiScene()

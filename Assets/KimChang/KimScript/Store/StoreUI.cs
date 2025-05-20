@@ -8,12 +8,15 @@ using UnityEngine.UI;
 public class StoreUI : MonoBehaviour
 {
     [SerializeField] private Button leaveBtn;
-    [SerializeField] private Transform unitParent;
-    [SerializeField] private Transform relicParent;
-    [SerializeField] private Transform itemParent;
-    [SerializeField] private Transform rerollObject;
+    [SerializeField] private Transform unitParent, relicParent, itemParent, rerollObject;
     [SerializeField] private UnitSelectUI unitSelectUI;
 
+    private List<StoreItemData> cachedUnitItems;
+    private List<List<RogueUnitDataBase>> cachedUnitPackages;
+    private List<StoreItemData> cachedRelicItems;
+    private List<int> cachedRelicIds;
+    private List<StoreItemData> cachedItemItems;
+    private StoreItemData cachedRerollItem;
 
     private void OnEnable()
     {
@@ -24,55 +27,121 @@ public class StoreUI : MonoBehaviour
         ShowRerollUI();
     }
 
+    private void RestUI()
+    {
+        leaveBtn.onClick.AddListener(CloseStore);
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
+        unitSelectUI.gameObject.SetActive(false);
+    }
+
+    private void CloseStore() => gameObject.SetActive(false);
+
+    private float GetSaleRatio() => RogueLikeData.Instance.GetOwnedRelicById(0) != null ? 0.8f : 1f;
+
+    private int CalculateDiscountedPrice(StoreItemData item)
+    {
+        int cost =  (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
+        float sale = 1;
+        sale += RelicManager.CheckRelicById(0) ? 0.2f : 0;
+        sale += RelicManager.CheckRelicById(58) ? -0.2f : 0;
+        cost = (int)(cost * sale);
+        return cost;
+    }
+
     private void ShowUnitUI()
     {
-        var items = StoreManager.GetRandomUnitItems();
-        for (int i = 0; i < items.Count; i++)
+        cachedUnitItems = StoreManager.GetRandomUnitItems();
+        cachedUnitPackages = new();
+
+        for (int i = 0; i < cachedUnitItems.Count; i++)
         {
-            var child = unitParent.GetChild(i);
-            var units = FilterAndSelectUnits(items[i]);
-            var price = CalculateUnitPackagePrice(units, items[i]);
-            SetUnitPackageUI(child, items[i], units, price);
+            var item = cachedUnitItems[i];
+            var units = FilterAndSelectUnits(item);
+            cachedUnitPackages.Add(units);
+            int price = CalculateUnitPackagePrice(units, item);
+            SetUnitPackageUI(unitParent.GetChild(i), item, units, price);
         }
     }
 
     private void ShowRelicUI()
     {
-        var items = StoreManager.GetRandomRelicItems();
-        HashSet<int> usedIds = new();
-        Debug.Log(items.Count);
-        for (int i = 0; i < items.Count; i++)
-        {
-            int grade = int.Parse(items[i].value);
-            var candidates = RelicManager.GetAvailableRelicIds(grade, RelicManager.RelicAction.Acquire)
-                                         .Where(id => !usedIds.Contains(id)).ToList();
+        cachedRelicItems = StoreManager.GetRandomRelicItems();
+        cachedRelicIds = new();
 
+        for (int i = 0; i < cachedRelicItems.Count; i++)
+        {
+            int grade = int.Parse(cachedRelicItems[i].value);
+            var candidates = RelicManager.GetAvailableRelicIds(grade, RelicManager.RelicAction.Acquire)
+                                         .Where(id => !cachedRelicIds.Contains(id)).ToList();
             if (candidates.Count == 0) continue;
 
             int relicId = candidates[UnityEngine.Random.Range(0, candidates.Count)];
-            usedIds.Add(relicId);
-            int cost = (int)(items[i].price * StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
-            SetRelicUI(relicParent.GetChild(i), items[i], relicId, cost);
+            cachedRelicIds.Add(relicId);
+            int cost = CalculateDiscountedPrice(cachedRelicItems[i]);
+            SetRelicUI(relicParent.GetChild(i), cachedRelicItems[i], relicId, cost);
         }
     }
 
     private void ShowItemUI()
     {
-        var items = StoreManager.GetRandomEnergyMoraleItems();
-        for (int i = 0; i < items.Count; i++)
+        cachedItemItems = StoreManager.GetRandomEnergyMoraleItems();
+
+        for (int i = 0; i < cachedItemItems.Count; i++)
         {
-            int cost = (int)(items[i].price * StoreManager.GetRandomBetweenValue(items[i].priceRateMin, items[i].priceRateMax));
-            string path = $"ItemImages/Item{items[i].itemId}";
-            SetStoreSlotUI(itemParent.GetChild(i), items[i], cost, path, () => PurChaseItem(itemParent.GetChild(i).GetComponent<Button>(), items[i], cost));
+            int cost = CalculateDiscountedPrice(cachedItemItems[i]);
+            string path = $"ItemImages/Item{cachedItemItems[i].itemId}";
+            SetStoreSlotUI(itemParent.GetChild(i), cachedItemItems[i], cost, path, () => PurChaseItem(itemParent.GetChild(i).GetComponent<Button>(), cachedItemItems[i], cost));
         }
     }
 
     private void ShowRerollUI()
     {
-        var item = StoreManager.GetRandomDiceItem()[0];
-        int cost = (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
-        string path = "ItemImages/Item60";
-        SetStoreSlotUI(rerollObject, item, cost, path, null, int.Parse(item.value));
+        cachedRerollItem = StoreManager.GetRandomDiceItem()[0];
+        int cost = CalculateDiscountedPrice(cachedRerollItem);
+        SetStoreSlotUI(rerollObject, cachedRerollItem, cost, "ItemImages/Item60", null, int.Parse(cachedRerollItem.value));
+    }
+
+    private void RefreshStorePrices()
+    {
+        for (int i = 0; i < cachedUnitItems.Count; i++)
+        {
+            int price = CalculateUnitPackagePrice(cachedUnitPackages[i], cachedUnitItems[i]);
+            price = (int)(price * GetSaleRatio());
+
+            var slot = unitParent.GetChild(i);
+            SetImageAndPrice(slot, $"UnitImages/{cachedUnitPackages[i][0].unitImg}", price);
+            SetItemInformation(slot, cachedUnitItems[i], price, cachedUnitPackages[i]);
+
+            SetButtonState(slot.GetComponent<Button>(), price); // 골드 부족 시 버튼 비활성화
+        }
+
+        for (int i = 0; i < cachedRelicItems.Count; i++)
+        {
+            int price = CalculateDiscountedPrice(cachedRelicItems[i]);
+
+            var slot = relicParent.GetChild(i);
+            SetImageAndPrice(slot, $"KIcon/WarRelic/{cachedRelicIds[i]}", price);
+            SetItemInformation(slot, cachedRelicItems[i], price, null, cachedRelicIds[i]);
+
+            SetButtonState(slot.GetComponent<Button>(), price);
+        }
+
+        for (int i = 0; i < cachedItemItems.Count; i++)
+        {
+            int cost = CalculateDiscountedPrice(cachedItemItems[i]);
+
+            var slot = itemParent.GetChild(i);
+            SetImageAndPrice(slot, $"ItemImages/Item{cachedItemItems[i].itemId}", cost);
+            SetItemInformation(slot, cachedItemItems[i], cost);
+
+            SetButtonState(slot.GetComponent<Button>(), cost);
+        }
+
+        int rerollCost = CalculateDiscountedPrice(cachedRerollItem);
+        SetImageAndPrice(rerollObject, "ItemImages/Item60", rerollCost);
+        SetItemInformation(rerollObject, cachedRerollItem, rerollCost, null, -1, int.Parse(cachedRerollItem.value));
+
+        SetButtonState(rerollObject.GetComponent<Button>(), rerollCost);
     }
 
     private void SetUnitPackageUI(Transform child, StoreItemData item, List<RogueUnitDataBase> units, int price)
@@ -123,7 +192,7 @@ public class StoreUI : MonoBehaviour
 
     private List<RogueUnitDataBase> FilterAndSelectUnits(StoreItemData item)
     {
-        var allUnits = GoogleSheetLoader.Instance.GetAllUnitsAsObject();
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
         List<RogueUnitDataBase> filtered = item.form switch
         {
             "Rarity" => EventManager.ParseRange(item.value) is var (min, max) ? allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList() : new(),
@@ -149,21 +218,13 @@ public class StoreUI : MonoBehaviour
         return (int)(total * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
     }
 
-    private void RestUI()
-    {
-        leaveBtn.onClick.AddListener(CloseStore);
-        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
-        unitSelectUI.gameObject.SetActive(false);
-    }
-
-    private void CloseStore()
-    {
-        gameObject.SetActive(false);
-    }
-
     private bool SetButtonState(Button btn, int price)
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
+        if (RogueLikeData.Instance.GetOwnedRelicById(49) != null)
+        {
+            gold += 500;
+        }
         btn.interactable = gold >= price;
         return btn.interactable;
     }
@@ -172,7 +233,10 @@ public class StoreUI : MonoBehaviour
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
         if (gold < cost) return false;
-        RogueLikeData.Instance.SetCurrentGold(gold - cost);
+        RogueLikeData.Instance.ReduceGold(cost);
+        //데이터 저장
+        SaveData saveData = new();
+        saveData.SaveDataFile();
         return true;
     }
 
@@ -185,6 +249,7 @@ public class StoreUI : MonoBehaviour
     private void SetItemInformation(Transform child, StoreItemData storeItemData, int price, List<RogueUnitDataBase> units = null, int relicId = -1, int rerollCount = 0)
     {
         ItemInformation itemInformation = child.GetComponent<ItemInformation>();
+        itemInformation.isItem = true;
         itemInformation.item = storeItemData;
         itemInformation.price = price;
         if (units != null) itemInformation.units = units;
@@ -205,9 +270,13 @@ public class StoreUI : MonoBehaviour
     private void PurchaseRelic(Button btn, int relicId, int price)
     {
         if (!SpendGold(price)) return;
+
         RogueLikeData.Instance.AcquireRelic(relicId);
         btn.transform.GetChild(2).gameObject.SetActive(true);
         btn.interactable = false;
+
+        // UI 그대로 두고 가격만 다시 계산
+        RefreshStorePrices();
     }
 
     private void PurChaseItem(Button btn, StoreItemData item, int price)
@@ -220,8 +289,7 @@ public class StoreUI : MonoBehaviour
                 ApplyEnergyItem(item, btn);
                 break;
             case "Morale":
-                int morale = RogueLikeData.Instance.GetMorale();
-                RogueLikeData.Instance.SetMorale(Math.Min(100, morale + int.Parse(item.value)));
+                RogueLikeData.Instance.ChangeMorale(int.Parse(item.value));
                 break;
         }
 

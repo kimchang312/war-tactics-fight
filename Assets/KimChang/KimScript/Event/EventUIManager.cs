@@ -14,7 +14,6 @@ public class EventUIManager : MonoBehaviour
 
     [SerializeField] private UnitSelectUI unitSelectUI;       //유닛 선택 창
 
-    [SerializeField] private TextMeshProUGUI selectTitle;       //선택창 글자
     [SerializeField] private ObjectPool objectPool;
 
     private void Awake()
@@ -29,8 +28,7 @@ public class EventUIManager : MonoBehaviour
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
 
         EventData eventData = EventManager.GetRandomEvent();
-        //테스트
-        eventData = EventManager.GetEventById(21);
+
         List<EventChoiceData> eventChoiceDatas = new();
         
         foreach (int choiceId in eventData.choiceIds)
@@ -62,7 +60,8 @@ public class EventUIManager : MonoBehaviour
                 btn.interactable = EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i]);
 
                 int index = i;
-                btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[index]));
+                EventChoiceData choiceData = eventChoiceDatas[index];
+                btn.onClick.AddListener(() => HandleChoice(choiceData));
             }
             else
             {
@@ -107,6 +106,10 @@ public class EventUIManager : MonoBehaviour
         ResetButtonUI();
         //이벤트 추가
         RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);
+        //저장
+        SaveData saveData = new();
+        saveData.SaveDataFile();
+
         leaveBtn.gameObject.SetActive(true);
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)

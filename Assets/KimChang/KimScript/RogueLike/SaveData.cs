@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static RogueLikeData;
 
 [System.Serializable]
@@ -21,10 +22,13 @@ public class SavePlayerData
     public StageType currentStageType;
     public UnitUpgrade[] unitUpgrades; 
     public int sariStack;
-    
+    public BattleRewardData battleReward;
+    public int nextUniqueId;
+    public int score;
+
     public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds,
         int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
-        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack)
+        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward,int nextUniqueId,int score)
     {
         this.id = id;
         this.myUnits = myUnits;
@@ -39,46 +43,48 @@ public class SavePlayerData
         this.currentStageType = currentStageType;
         this.unitUpgrades = unitUpgrades;
         this.sariStack = sariStack;
+        this.battleReward = battleReward;
+        this.nextUniqueId = nextUniqueId;
+        this.score = score;
     }
 }
 
 public class SaveData
 {
-    private string _filePath= Application.dataPath + "/KimChang/Json/PlayerData.json";
+    private string _filePath;
     private string _jsonData;
 
     public void SaveDataFile()
     {
-        SavePlayerData savePlayerData = RogueLikeData.Instance.GetRogueLikeData();
+        _filePath = Application.persistentDataPath + "/PlayerData.json";
 
-        // 데이터를 JSON 문자열로 직렬화
+        SavePlayerData savePlayerData = RogueLikeData.Instance.GetRogueLikeData();
         _jsonData = JsonUtility.ToJson(savePlayerData);
-       // Debug.Log(savePlayerData.myUnits[0].unitName);
         File.WriteAllText(_filePath, _jsonData);
     }
     
     public void SaveDataBattaleEnd(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
-        SavePlayerData savePlayerData = RogueLikeData.Instance.GetBattleEndRogueLikeData(units, deadUnits);
+        _filePath = Application.persistentDataPath + "/PlayerData.json";
 
-        // 데이터를 JSON 문자열로 직렬화
+        SavePlayerData savePlayerData = RogueLikeData.Instance.GetBattleEndRogueLikeData(units, deadUnits);
         _jsonData = JsonUtility.ToJson(savePlayerData);
-        // Debug.Log(savePlayerData.myUnits[0].unitName);
         File.WriteAllText(_filePath, _jsonData);
     }
     public void LoadData()
     {
+        _filePath = Application.persistentDataPath + "/PlayerData.json";
         try
         {
-            // JSON 문자열을 객체로 역직렬화
-            string jsonData = File.ReadAllText(_filePath); // 파일에서 읽기
+            string jsonData = File.ReadAllText(_filePath);
             SavePlayerData savePlayerData = JsonUtility.FromJson<SavePlayerData>(jsonData);
 
-            // 1. 내 유닛 전부 수정하기
             List<RogueUnitDataBase> myUnits = new(savePlayerData.myUnits);
-            RogueLikeData.Instance.SetAllMyUnits(myUnits);
-
-            // 2. 유물 정보 업데이트하기 (relicIds를 Dictionary로 변환)
+            RogueLikeData.Instance.SetMyTeam(myUnits);
+            foreach (var unit in myUnits)
+            {
+                unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
+            }
             foreach (var id in savePlayerData.relicIds)
             {
                 RogueLikeData.Instance.AcquireRelic(id);
@@ -86,9 +92,7 @@ public class SaveData
 
             RogueLikeData.Instance.SetLoadData(savePlayerData.eventIds,savePlayerData.currentGold, savePlayerData.spentGold,
                 savePlayerData.playerMorale, savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,
-                savePlayerData.currentStageType, savePlayerData.sariStack);
-
-            Debug.Log("데이터 로드 성공!");
+                savePlayerData.currentStageType, savePlayerData.sariStack, savePlayerData.battleReward,savePlayerData.nextUniqueId,savePlayerData.score);
         }
         catch (Exception ex)
         {
@@ -96,4 +100,28 @@ public class SaveData
         }
     }
 
+    public void DeleteSaveFile()
+    {
+        _filePath = Application.persistentDataPath + "/PlayerData.json";
+        try
+        {
+            if (File.Exists(_filePath))
+            {
+                File.Delete(_filePath);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"저장 파일 삭제 실패: {ex.Message}");
+        }
+    }
+    //데이터 삭제하고 다시 로드
+    public void ResetGameData()
+    {
+        DeleteSaveFile();
+        RogueLikeData.Instance.ResetToDefault();
+        SaveDataFile();
+        LoadData();
+    }
 }

@@ -1,10 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Jobs.LowLevel.Unsafe;
+using UnityEditor;
 
 public enum StageType
 {
-    Unknown,
+    Unknown,  // 스테이지 첫 진입시 조건에 사용
     Combat,   // 전투
     Elite,    // 엘리트 (하층부에서는 배치 안 됨)
     Event,    // 이벤트
@@ -21,6 +23,7 @@ public class StageNode
     public StageType stageType;
     public Color stageColor; // 스테이지 색상
     public List<StageNode> connectedNodes; // 다음 레벨과 연결된 노드 목록
+    public int presetID;
 
     public StageNode(int level, int row, StageType stageType)
     {
@@ -50,19 +53,37 @@ public class MapGenerator : MonoBehaviour
     private Dictionary<string, StageNode> nodeDict = new Dictionary<string, StageNode>();
     public Dictionary<string, StageNode> NodeDictionary { get { return nodeDict; } }
 
-    
 
-    void Start()
+    // ─── Combat/Elite/Boss 에 맞춰 presetID 선정 함수 ─────────────────
+    private int PickPresetID(int level, StageType stageType)
     {
-        // 보스 스테이지 제외 일반 경로 생성
-        GeneratePathsNonCrossing();
+        int chapter = RogueLikeData.Instance.GetChapter();
+
+        // StageType → JSON 문자열 매핑
+        string jsonType = stageType switch
+        {
+            StageType.Combat => "normal",
+            StageType.Elite => "elite",
+            StageType.Boss => "boss",
+            _ => null
+        };
+        if (jsonType == null)
+            return -1;
+
+        // JSON에서 후보 리스트 가져오기
+        var candidates = StagePresetLoader.I.GetPresets(chapter, level, jsonType);
+        if (candidates == null || candidates.Count == 0)
+        {
+            Debug.LogWarning($"[{chapter}-{level}-{jsonType}] 후보 프리셋이 없습니다.");
+            return -1;
+        }
+
+        // Combat, Elite, Boss 모두 후보 중 랜덤 선택
+        int idx = UnityEngine.Random.Range(0, candidates.Count);
+        return candidates[idx].PresetID;
     }
 
-    /// <summary>
-    /// 보스 스테이지를 제외한 일반 스테이지(레벨 0~totalLevels-2)의 경로를 생성합니다.
-    /// 각 레벨마다 totalPaths개의 행 값을 비내림차순으로 결정하며,
-    /// 규칙에 따라 생성합니다.
-    /// </summary>
+    
     public void GeneratePathsNonCrossing()
     {
         int normalLevels = totalLevels - 1; // 보스 스테이지 제외
@@ -276,6 +297,11 @@ public class MapGenerator : MonoBehaviour
                     }
                     StageNode node = new StageNode(lvl, row, type);
                     nodeDict[key] = node;
+                    // ① StagePresetLoader.I 가 준비되어 있는지 확인
+                    if (StagePresetLoader.I != null)
+                    node.presetID = PickPresetID(lvl + 1, type);
+                    else
+                    Debug.LogWarning("[MapGenerator] StagePresetLoader.I is null; presetID skipped");
                 }
             }
         }
@@ -302,6 +328,7 @@ public class MapGenerator : MonoBehaviour
         // 3) 보스 스테이지 생성 및 연결
         // 보스 스테이지는 전체 레벨 중 마지막(레벨 = normalLevels, 즉 totalLevels-1)에서 단일 노드로 생성합니다.
         StageNode bossNode = new StageNode(normalLevels, 3, StageType.Boss); // 여기서 row 3(예: D열) 고정
+        bossNode.presetID = PickPresetID(normalLevels, StageType.Boss);
         string bossKey = normalLevels + "_3";
         nodeDict[bossKey] = bossNode;
 

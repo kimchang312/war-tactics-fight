@@ -1,9 +1,6 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
+
 
 [System.Serializable]
 public class RogueUnitDataBase 
@@ -86,7 +83,7 @@ public class RogueUnitDataBase
     public int maxEnergy;       //최대 기력
     public bool alive;         // 생존 유무 (기본값 true)
     public bool fStriked;      // 선제 타격 사용 유무
-    public int UniqueId { get; set; } // 유닛 고유 ID, 기본값 -1로 설정
+    public int UniqueId; // 유닛 고유 ID, 기본값 -1로 설정
 
     public Dictionary<int, BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
 
@@ -242,9 +239,6 @@ public class RogueUnitDataBase
         bool healing = rowData[38] == "TRUE";
         bool lifeDrain = rowData[39] == "TRUE";
 
-        // 빈칸
-        //string blink = "빈";
-
         // 추가 능력치
         bool charge = rowData[41] == "TRUE";
         bool defense = rowData[42] == "TRUE";
@@ -275,7 +269,26 @@ public class RogueUnitDataBase
             maxHealth,maxEnergy, true, false, UniqueId, effectDictionary
         );
     }
-    public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam)
+    // 새로운 복사본을 만드는 메서드
+    public RogueUnitDataBase Clone()
+    {
+        // 이 객체의 복사본을 새로 생성
+        return new RogueUnitDataBase(
+            this.idx, this.unitName, this.unitBranch, this.branchIdx, this.unitId, this.unitExplain, this.unitImg, this.unitFaction, this.factionIdx,
+            this.tag, this.tagIdx, this.unitPrice, this.rarity,
+            this.health, this.armor, this.attackDamage, this.mobility, this.range, this.antiCavalry, this.energy,
+            this.baseHealth, this.baseArmor, this.baseAttackDamage, this.baseMobility, this.baseRange, this.baseAntiCavalry, this.baseEnergy,
+            this.lightArmor, this.heavyArmor, this.rangedAttack, this.bluntWeapon, this.pierce, this.agility,
+            this.strongCharge, this.perfectAccuracy, this.slaughter, this.bindingForce, this.bravery, this.suppression,
+            this.plunder, this.doubleShot, this.scorching, this.thorns, this.endless, this.impact, this.healing,
+            this.lifeDrain, this.charge, this.defense, this.throwSpear, this.guerrilla, this.guard, this.assassination,
+            this.drain, this.overwhelm, this.martyrdom, this.wounding, this.vengeance, this.counter, this.firstStrike,
+            this.challenge, this.smokeScreen, this.maxHealth, this.maxEnergy, this.alive, this.fStriked, this.UniqueId,
+            new Dictionary<int, BuffDebuffData>(this.effectDictionary) // 효과 딕셔너리도 복사
+        );
+    }
+
+    public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam=true)
     {
         int serial = RogueLikeData.Instance.GetNextUnitUniqueId();
         int teamBit = isTeam ? 0 : 1;
@@ -296,27 +309,66 @@ public class RogueUnitDataBase
     }
     public static RogueUnitDataBase RandomUnitReForm(RogueUnitDataBase unit)
     {
-        // 희귀도 4 이상은 전직 불가
         if (unit.rarity >= 4) return unit;
 
-        // 전직 희귀도 결정
         int newRarity = RollPromotion(unit.rarity);
 
         // 새로운 희귀도의 유닛 중 랜덤 선택
-        var pool = GoogleSheetLoader.Instance.GetAllUnitsAsObject()
+        var pool = UnitLoader.Instance.GetAllCachedUnits()
                      .Where(u => u.rarity == newRarity)
                      .ToList();
 
         if (pool.Count == 0) return null;
 
         var picked = pool[UnityEngine.Random.Range(0, pool.Count)];
-        var row = GoogleSheetLoader.Instance.GetRowUnitData(picked.idx);
-        if (row == null) return null;
+        if (picked == null) return null;
 
-        RogueUnitDataBase recreated = ConvertToUnitDataBase(row); // 완전히 새 인스턴스 생성
+        RogueUnitDataBase recreated = UnitLoader.Instance.GetCloneUnitById(picked.idx);
         return recreated;
     }
+    //희귀도에 따른 무작위 유닛 획득
+    public static RogueUnitDataBase GetRandomUnitByRarity(int rarity)
+    {
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
+        var filtered = allUnits.Where(u => u.rarity == rarity).ToList();
 
+        if (filtered.Count == 0)
+            return null;
+
+        int idx = UnityEngine.Random.Range(0, filtered.Count);
+        var selected = filtered[idx];
+        RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);
+        //selected.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
+
+        return selected;
+    }
+    //내 유닛 정상화
+    public static List<RogueUnitDataBase> SetMyUnitsNormalize()
+    {
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        
+        foreach (var unit in myUnits)
+        {
+            unit.maxHealth = unit.baseHealth;
+            unit.health = unit.maxHealth;
+            unit.attackDamage = unit.baseAttackDamage;
+            unit.armor = unit.baseArmor;
+            unit.mobility = unit.baseMobility;
+            unit.range = unit.baseRange;
+            unit.antiCavalry = unit.baseAntiCavalry;
+            unit.fStriked =false;
+        }
+        return myUnits;
+    }
+
+    public static List<RogueUnitDataBase> GetBaseUnits()
+    {
+        List<RogueUnitDataBase> units = new();
+        units.Add(UnitLoader.Instance.GetCloneUnitById(40));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(2));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(3));
+        return units;
+    }
 
 }

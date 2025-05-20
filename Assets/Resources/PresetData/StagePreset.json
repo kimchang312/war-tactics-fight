@@ -1,0 +1,1205 @@
+[
+  {
+    "PresetID": 1,
+    "Chapter": 1,
+    "Level": 1,
+    "StageType": "normal",
+    "Value": 150,
+    "UnitList": [
+      2
+    ],
+    "UnitCount": 1,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 2,
+    "Chapter": 1,
+    "Level": 1,
+    "StageType": "normal",
+    "Value": 120,
+    "UnitList": [
+      1
+    ],
+    "UnitCount": 1,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 3,
+    "Chapter": 1,
+    "Level": 2,
+    "StageType": "normal",
+    "Value": 220,
+    "UnitList": [
+      29,
+      3
+    ],
+    "UnitCount": 2,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 4,
+    "Chapter": 1,
+    "Level": 2,
+    "StageType": "normal",
+    "Value": 250,
+    "UnitList": [
+      1,
+      4
+    ],
+    "UnitCount": 2,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 5,
+    "Chapter": 1,
+    "Level": 3,
+    "StageType": "normal",
+    "Value": 190,
+    "UnitList": [
+      12
+    ],
+    "UnitCount": 1,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 6,
+    "Chapter": 1,
+    "Level": 3,
+    "StageType": "normal",
+    "Value": 180,
+    "UnitList": [
+      8
+    ],
+    "UnitCount": 1,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 7,
+    "Chapter": 1,
+    "Level": 4,
+    "StageType": "normal",
+    "Value": 250,
+    "UnitList": [
+      2,
+      3
+    ],
+    "UnitCount": 2,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 8,
+    "Chapter": 1,
+    "Level": 4,
+    "StageType": "normal",
+    "Value": 250,
+    "UnitList": [
+      2,
+      3
+    ],
+    "UnitCount": 2,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 9,
+    "Chapter": 1,
+    "Level": 5,
+    "StageType": "normal",
+    "Value": 310,
+    "UnitList": [
+      0,
+      29,
+      0
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 10,
+    "Chapter": 1,
+    "Level": 5,
+    "StageType": "normal",
+    "Value": 290,
+    "UnitList": [
+      5,
+      3
+    ],
+    "UnitCount": 2,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 11,
+    "Chapter": 1,
+    "Level": 6,
+    "StageType": "normal",
+    "Value": 285,
+    "UnitList": [
+      7,
+      29
+    ],
+    "UnitCount": 2,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 12,
+    "Chapter": 1,
+    "Level": 6,
+    "StageType": "normal",
+    "Value": 285,
+    "UnitList": [
+      7,
+      29
+    ],
+    "UnitCount": 2,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 13,
+    "Chapter": 1,
+    "Level": 7,
+    "StageType": "normal",
+    "Value": 425,
+    "UnitList": [
+      14,
+      4,
+      3
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 14,
+    "Chapter": 1,
+    "Level": 7,
+    "StageType": "normal",
+    "Value": 445,
+    "UnitList": [
+      26,
+      33,
+      33
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 15,
+    "Chapter": 1,
+    "Level": 9,
+    "StageType": "normal",
+    "Value": 415,
+    "UnitList": [
+      6,
+      47,
+      3
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 16,
+    "Chapter": 1,
+    "Level": 9,
+    "StageType": "normal",
+    "Value": 455,
+    "UnitList": [
+      27,
+      2,
+      2
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 17,
+    "Chapter": 1,
+    "Level": 10,
+    "StageType": "normal",
+    "Value": 440,
+    "UnitList": [
+      29,
+      29,
+      3,
+      3
+    ],
+    "UnitCount": 4,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 18,
+    "Chapter": 1,
+    "Level": 10,
+    "StageType": "normal",
+    "Value": 480,
+    "UnitList": [
+      17,
+      0,
+      28
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 19,
+    "Chapter": 1,
+    "Level": 11,
+    "StageType": "normal",
+    "Value": 450,
+    "UnitList": [
+      24,
+      4,
+      3
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 20,
+    "Chapter": 1,
+    "Level": 11,
+    "StageType": "normal",
+    "Value": 630,
+    "UnitList": [
+      22,
+      22,
+      8
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 21,
+    "Chapter": 1,
+    "Level": 12,
+    "StageType": "normal",
+    "Value": 560,
+    "UnitList": [
+      31,
+      40,
+      29
+    ],
+    "UnitCount": 3,
+    "Faction": "heptarchy",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 22,
+    "Chapter": 1,
+    "Level": 12,
+    "StageType": "normal",
+    "Value": 570,
+    "UnitList": [
+      7,
+      1,
+      7,
+      1
+    ],
+    "UnitCount": 4,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 23,
+    "Chapter": 1,
+    "Level": 13,
+    "StageType": "normal",
+    "Value": 630,
+    "UnitList": [
+      22,
+      22,
+      8
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 24,
+    "Chapter": 1,
+    "Level": 13,
+    "StageType": "normal",
+    "Value": 645,
+    "UnitList": [
+      8,
+      9,
+      9,
+      9
+    ],
+    "UnitCount": 4,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 25,
+    "Chapter": 2,
+    "Level": 1,
+    "StageType": "normal",
+    "Value": 805,
+    "UnitList": [
+      17,
+      16,
+      18,
+      18
+    ],
+    "UnitCount": 4,
+    "Faction": "divinitas",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 26,
+    "Chapter": 2,
+    "Level": 1,
+    "StageType": "normal",
+    "Value": 810,
+    "UnitList": [
+      11,
+      11,
+      13,
+      4,
+      4
+    ],
+    "UnitCount": 5,
+    "Faction": "empire",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 27,
+    "Chapter": 2,
+    "Level": 2,
+    "StageType": "normal",
+    "Value": 815,
+    "UnitList": [
+      8,
+      3,
+      3,
+      0,
+      29,
+      3,
+      29
+    ],
+    "UnitCount": 7,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 28,
+    "Chapter": 2,
+    "Level": 2,
+    "StageType": "normal",
+    "Value": 810,
+    "UnitList": [
+      22,
+      22,
+      22,
+      23
+    ],
+    "UnitCount": 4,
+    "Faction": "heptarchy",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 29,
+    "Chapter": 2,
+    "Level": 3,
+    "StageType": "normal",
+    "Value": 910,
+    "UnitList": [
+      31,
+      7,
+      31,
+      7,
+      2
+    ],
+    "UnitCount": 5,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 30,
+    "Chapter": 2,
+    "Level": 3,
+    "StageType": "normal",
+    "Value": 985,
+    "UnitList": [
+      10,
+      47,
+      34,
+      10,
+      47
+    ],
+    "UnitCount": 5,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 31,
+    "Chapter": 2,
+    "Level": 4,
+    "StageType": "normal",
+    "Value": 955,
+    "UnitList": [
+      12,
+      12,
+      14,
+      12,
+      12
+    ],
+    "UnitCount": 5,
+    "Faction": "empire",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 32,
+    "Chapter": 2,
+    "Level": 4,
+    "StageType": "normal",
+    "Value": 1045,
+    "UnitList": [
+      49,
+      7,
+      5,
+      7,
+      7,
+      23
+    ],
+    "UnitCount": 6,
+    "Faction": "heptarchy",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 33,
+    "Chapter": 2,
+    "Level": 5,
+    "StageType": "normal",
+    "Value": 1080,
+    "UnitList": [
+      11,
+      1,
+      29,
+      11,
+      11,
+      29,
+      1,
+      29
+    ],
+    "UnitCount": 8,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 34,
+    "Chapter": 2,
+    "Level": 5,
+    "StageType": "normal",
+    "Value": 1115,
+    "UnitList": [
+      13,
+      35,
+      34,
+      13,
+      47,
+      4,
+      34
+    ],
+    "UnitCount": 7,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 35,
+    "Chapter": 2,
+    "Level": 6,
+    "StageType": "normal",
+    "Value": 1450,
+    "UnitList": [
+      20,
+      18,
+      18,
+      20,
+      18,
+      18
+    ],
+    "UnitCount": 6,
+    "Faction": "divinitas",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 36,
+    "Chapter": 2,
+    "Level": 6,
+    "StageType": "normal",
+    "Value": 1470,
+    "UnitList": [
+      21,
+      21,
+      23,
+      23,
+      21,
+      23,
+      23,
+      21,
+      23,
+      23
+    ],
+    "UnitCount": 10,
+    "Faction": "heptarchy",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 37,
+    "Chapter": 2,
+    "Level": 7,
+    "StageType": "normal",
+    "Value": 1430,
+    "UnitList": [
+      49,
+      45,
+      47,
+      45,
+      45
+    ],
+    "UnitCount": 5,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 38,
+    "Chapter": 2,
+    "Level": 7,
+    "StageType": "normal",
+    "Value": 1330,
+    "UnitList": [
+      10,
+      33,
+      33,
+      26,
+      33,
+      33,
+      26,
+      33
+    ],
+    "UnitCount": 8,
+    "Faction": "mixed",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 39,
+    "Chapter": 2,
+    "Level": 9,
+    "StageType": "normal",
+    "Value": 1580,
+    "UnitList": [
+      14,
+      48,
+      49,
+      14,
+      14,
+      14,
+      48,
+      14
+    ],
+    "UnitCount": 8,
+    "Faction": "divinitas",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 40,
+    "Chapter": 2,
+    "Level": 9,
+    "StageType": "normal",
+    "Value": 1540,
+    "UnitList": [
+      25,
+      24,
+      23,
+      23,
+      23,
+      25,
+      22
+    ],
+    "UnitCount": 7,
+    "Faction": "heptarchy",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 41,
+    "Chapter": 2,
+    "Level": 10,
+    "StageType": "normal",
+    "Value": 1740,
+    "UnitList": [
+      12,
+      11,
+      27,
+      12,
+      12,
+      11,
+      12,
+      27,
+      12,
+      11
+    ],
+    "UnitCount": 10,
+    "Faction": "empire",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 42,
+    "Chapter": 2,
+    "Level": 10,
+    "StageType": "normal",
+    "Value": 1775,
+    "UnitList": [
+      17,
+      17,
+      35,
+      18,
+      17,
+      35,
+      18,
+      17,
+      17
+    ],
+    "UnitCount": 9,
+    "Faction": "mixed",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 43,
+    "Chapter": 2,
+    "Level": 11,
+    "StageType": "normal",
+    "Value": 1845,
+    "UnitList": [
+      7,
+      37,
+      7,
+      34,
+      34,
+      37,
+      4,
+      6,
+      37,
+      4,
+      34
+    ],
+    "UnitCount": 11,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 44,
+    "Chapter": 2,
+    "Level": 11,
+    "StageType": "normal",
+    "Value": 2090,
+    "UnitList": [
+      27,
+      9,
+      9,
+      27,
+      8,
+      27,
+      9,
+      27,
+      9,
+      8,
+      9,
+      27,
+      8
+    ],
+    "UnitCount": 13,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 45,
+    "Chapter": 2,
+    "Level": 12,
+    "StageType": "normal",
+    "Value": 2190,
+    "UnitList": [
+      22,
+      40,
+      25,
+      22,
+      21,
+      22,
+      21,
+      22,
+      21,
+      40
+    ],
+    "UnitCount": 10,
+    "Faction": "heptarchy",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 46,
+    "Chapter": 2,
+    "Level": 12,
+    "StageType": "normal",
+    "Value": 2120,
+    "UnitList": [
+      6,
+      4,
+      4,
+      5,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      6,
+      6,
+      10
+    ],
+    "UnitCount": 13,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 47,
+    "Chapter": 2,
+    "Level": 13,
+    "StageType": "normal",
+    "Value": 2415,
+    "UnitList": [
+      13,
+      47,
+      3,
+      13,
+      47,
+      45,
+      15,
+      47,
+      15,
+      47,
+      3
+    ],
+    "UnitCount": 11,
+    "Faction": "empire",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 48,
+    "Chapter": 2,
+    "Level": 13,
+    "StageType": "normal",
+    "Value": 2370,
+    "UnitList": [
+      8,
+      8,
+      34,
+      34,
+      8,
+      9,
+      4,
+      49,
+      8,
+      8,
+      49,
+      8,
+      9,
+      4
+    ],
+    "UnitCount": 14,
+    "Faction": "null",
+    "Commander": "",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 49,
+    "Chapter": 1,
+    "Level": null,
+    "StageType": "elite",
+    "Value": 545,
+    "UnitList": [
+      40,
+      32,
+      3
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "파괴자 슬래시",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 50,
+    "Chapter": 1,
+    "Level": null,
+    "StageType": "elite",
+    "Value": 505,
+    "UnitList": [
+      31,
+      12,
+      3
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "맹진 레논",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 51,
+    "Chapter": 1,
+    "Level": null,
+    "StageType": "elite",
+    "Value": 610,
+    "UnitList": [
+      43,
+      7,
+      44
+    ],
+    "UnitCount": 3,
+    "Faction": "null",
+    "Commander": "회오리 헨드릭스",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 52,
+    "Chapter": 1,
+    "Level": null,
+    "StageType": "elite",
+    "Value": 570,
+    "UnitList": [
+      19,
+      20
+    ],
+    "UnitCount": 2,
+    "Faction": "divinitas",
+    "Commander": "망령 커트",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 53,
+    "Chapter": 2,
+    "Level": null,
+    "StageType": "elite",
+    "Value": 1820,
+    "UnitList": [
+      27,
+      39,
+      37,
+      39,
+      28,
+      36,
+      27,
+      39,
+      36
+    ],
+    "UnitCount": 9,
+    "Faction": "null",
+    "Commander": "요새 프레디",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 54,
+    "Chapter": 2,
+    "Level": null,
+    "StageType": "elite",
+    "Value": 1895,
+    "UnitList": [
+      15,
+      12,
+      50,
+      31,
+      15,
+      12,
+      47
+    ],
+    "UnitCount": 7,
+    "Faction": "empire",
+    "Commander": "용광로 잰더",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 55,
+    "Chapter": 2,
+    "Level": null,
+    "StageType": "elite",
+    "Value": 1690,
+    "UnitList": [
+      46,
+      46,
+      51,
+      46,
+      4,
+      4,
+      46
+    ],
+    "UnitCount": 7,
+    "Faction": "null",
+    "Commander": "멸시 액슬",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 56,
+    "Chapter": 2,
+    "Level": null,
+    "StageType": "elite",
+    "Value": 2310,
+    "UnitList": [
+      41,
+      48,
+      28,
+      18,
+      23,
+      43,
+      38,
+      16,
+      25,
+      17,
+      22
+    ],
+    "UnitCount": 11,
+    "Faction": "null",
+    "Commander": "혼돈 페이지",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 57,
+    "Chapter": 1,
+    "Level": null,
+    "StageType": "boss",
+    "Value": 975,
+    "UnitList": [
+      43,
+      22,
+      22,
+      23,
+      21
+    ],
+    "UnitCount": 5,
+    "Faction": "heptarchy",
+    "Commander": "흡혈귀 라자루스",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 58,
+    "Chapter": 1,
+    "Level": null,
+    "StageType": "boss",
+    "Value": 895,
+    "UnitList": [
+      49,
+      37,
+      18,
+      36
+    ],
+    "UnitCount": 4,
+    "Faction": "divinitas",
+    "Commander": "눈보라 호쉬",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 59,
+    "Chapter": 1,
+    "Level": null,
+    "StageType": "boss",
+    "Value": 940,
+    "UnitList": [
+      41,
+      15,
+      33,
+      33
+    ],
+    "UnitCount": 4,
+    "Faction": "empire",
+    "Commander": "악몽 벨페고르",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 60,
+    "Chapter": 2,
+    "Level": null,
+    "StageType": "boss",
+    "Value": 2105,
+    "UnitList": [
+      46,
+      20,
+      19,
+      44,
+      20,
+      19,
+      44,
+      44
+    ],
+    "UnitCount": 8,
+    "Faction": "divinitas",
+    "Commander": "집념 아마록",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 61,
+    "Chapter": 2,
+    "Level": null,
+    "StageType": "boss",
+    "Value": 2065,
+    "UnitList": [
+      20,
+      18,
+      18,
+      20,
+      36,
+      18,
+      20,
+      18
+    ],
+    "UnitCount": 8,
+    "Faction": "divinitas",
+    "Commander": "재앙 시리온",
+    "Commander ID": null,
+    "Desciption": null
+  },
+  {
+    "PresetID": 62,
+    "Chapter": 2,
+    "Level": null,
+    "StageType": "boss",
+    "Value": 1645,
+    "UnitList": [
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      60
+    ],
+    "UnitCount": 10,
+    "Faction": "null",
+    "Commander": "잊힌 전설 슈타인",
+    "Commander ID": null,
+    "Desciption": null
+  }
+]
