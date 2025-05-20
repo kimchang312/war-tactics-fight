@@ -46,7 +46,7 @@ public class RogueLikeData
     private float myFinalDamage = 1;
     private float enemyFinalDamage = 1;
 
-    private UnitUpgrade[] upgradeValues = new UnitUpgrade[8];
+    private UnitUpgrade[] upgradeValues = new UnitUpgrade[9];
 
     private int sariStack = 0;
 
@@ -467,6 +467,10 @@ public class RogueLikeData
     {
         return sariStack;
     }
+    public void AddSariStack(int add)
+    {
+        sariStack += add;
+    }
     //사리 스택 변경
     public void SetSariStack(int stack)
     {
@@ -822,10 +826,7 @@ public class RogueLikeData
         var baseUnits = RogueUnitDataBase.GetBaseUnits();
         SetMyTeam(baseUnits);
         SetAllMyUnits(baseUnits);
-        foreach (var unit in baseUnits)
-        {
-            Debug.Log(unit.UniqueId + unit.unitName);
-        }
+
         // 이벤트 초기화
         encounteredEvent.Clear();
 

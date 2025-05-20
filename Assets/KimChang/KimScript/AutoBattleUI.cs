@@ -44,9 +44,6 @@ public class AutoBattleUI : MonoBehaviour
 
     private float waittingTime = 500f;
 
-    private Dictionary<int, GameObject> myUnitCache = new();
-    private Dictionary<int, GameObject> enemyUnitCache = new();
-
     private void Start()
     {
         int fieldId = RogueLikeData.Instance.GetFieldId();
@@ -485,6 +482,7 @@ public class AutoBattleUI : MonoBehaviour
 
         for (int i = 0; i < warRelics.Count; i++)
         {
+            if (warRelics[i].used) return;
             GameObject relicObject = objectPool.GetWarRelic();
             ItemInformation itemInfo = relicObject.GetComponent<ItemInformation>();
             ExplainItem explainItem = relicObject.GetComponent<ExplainItem>();
@@ -500,29 +498,6 @@ public class AutoBattleUI : MonoBehaviour
             relicObject.transform.SetParent(relicBox.transform, false);
 
         }
-    }
-
-    //테스트 화면으로
-    private void ClickGoTestBtn()
-    {
-        SceneManager.LoadScene("Upgrade");
-    }
-
-    //보상 창 열기+ 통계,점수,승패 창 닫기 
-    private void OpenRewardWindow()
-    {
-        SceneManager.LoadScene("RLmap");
-        /*
-        staticsWindow.SetActive(false);
-        endWindow.SetActive(false);
-        staticsToggleBtn.gameObject.SetActive(false);
-
-        rewardWindow.SetActive(true);*/
-    }
-    //보상 창 닫기
-    private void CloseRewardWindow()
-    {
-        rewardUI.gameObject.SetActive(false);
     }
 
     //ui 활성화 비활성화 초기화
