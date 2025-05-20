@@ -25,9 +25,6 @@ public class LineUpBar : MonoBehaviour
         for (int i = 0; i < units.Count; i++)
         {
             var u = units[i];
-
-            u.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
-
             var go = Instantiate(unitUIPrefab, contentParent);
             var ui = go.GetComponent<UnitUIPrefab>();
             ui.SetupIMG(u,Context.Lineup,u.UniqueId);

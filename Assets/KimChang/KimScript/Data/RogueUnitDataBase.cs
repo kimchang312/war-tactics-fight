@@ -83,7 +83,7 @@ public class RogueUnitDataBase
     public int maxEnergy;       //최대 기력
     public bool alive;         // 생존 유무 (기본값 true)
     public bool fStriked;      // 선제 타격 사용 유무
-    public int UniqueId { get; set; } // 유닛 고유 ID, 기본값 -1로 설정
+    public int UniqueId; // 유닛 고유 ID, 기본값 -1로 설정
 
     public Dictionary<int, BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
 
@@ -173,7 +173,7 @@ public class RogueUnitDataBase
         this.maxEnergy = maxEnergy;
         this.alive = alive;
         this.fStriked = fStriked;
-        this.UniqueId = BuildUnitUniqueId(branchIdx,idx);
+        this.UniqueId = uniqueId;
         this.effectDictionary = effectDictionary??new Dictionary<int, BuffDebuffData>();
     }
     public static RogueUnitDataBase ConvertToUnitDataBase(List<string> rowData,bool isTeam=true)
@@ -339,7 +339,7 @@ public class RogueUnitDataBase
         int idx = UnityEngine.Random.Range(0, filtered.Count);
         var selected = filtered[idx];
         RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);
-        selected.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
+        //selected.UniqueId = RogueLikeData.Instance.GetNextUnitUniqueId();
 
         return selected;
     }

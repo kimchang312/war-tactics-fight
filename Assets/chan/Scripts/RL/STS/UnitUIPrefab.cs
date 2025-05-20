@@ -42,7 +42,8 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
     {
         unitData = unit;
         unitId = unit.idx;
-        this.uniqueId = uniqueId;
+        this.uniqueId = unit.UniqueId;
+        Debug.Log(unit.UniqueId);
         PrefabType = ctx;
         
         unitImage.sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");     // data에 sprite 프로퍼티가 있다고 가정                                                 
