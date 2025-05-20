@@ -28,10 +28,10 @@ public class RogueLikeData
     private List<RogueUnitDataBase> myUnits = new();
     private List<RogueUnitDataBase> enemyUnits = new();
     private List<RogueUnitDataBase> savedMyUnits = new();
-    private List<RogueUnitDataBase> selectedUnits = new(); //유닛 선택 화면에서 선택된 유닛들
+    private List<RogueUnitDataBase> selectedUnits = new();
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
-    private Dictionary<RelicType, HashSet<int>> relicIdsByType = new(); // 추가된 중복 체크용 HashSet
+    private Dictionary<RelicType, HashSet<int>> relicIdsByType = new();
     private Dictionary<int, int> encounteredEvent = new();
     private int currentStageX = 1;
     private int currentStageY = 0;
@@ -77,7 +77,7 @@ public class RogueLikeData
         foreach (RelicType type in Enum.GetValues(typeof(RelicType)))
         {
             relicsByType[type] = new List<WarRelic>();
-            relicIdsByType[type] = new HashSet<int>(); // 중복 검사용 HashSet 초기화
+            relicIdsByType[type] = new HashSet<int>();
         }
         for (int i = 0; i < upgradeValues.Length; i++)
             upgradeValues[i] = new UnitUpgrade();
@@ -97,19 +97,20 @@ public class RogueLikeData
     {
         // 저장용 복사 리스트 생성 (깊은 복사하지 않고 원본 savedMyUnits를 수정)
         List<RogueUnitDataBase> savedCopy = new(savedMyUnits);
+
         // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
         foreach (var unit in units.Concat(deadUnits))
         {
             var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
             if (savedUnit == null) continue;
-
+            
             if (unit.energy < 1)
             {
-                savedCopy.Remove(savedUnit); // 기력이 0이면 제거
+                savedCopy.Remove(savedUnit);
             }
             else
             {
-                savedUnit.energy = unit.energy; // 기력 갱신
+                savedUnit.energy = unit.energy;
             }
         }
 
@@ -132,6 +133,8 @@ public class RogueLikeData
             score
         );
         myTeam = savedCopy;
+        
+        savedMyUnits.Clear();
         return data;
     }
 
@@ -143,7 +146,6 @@ public class RogueLikeData
     //내 유닛 하나 추가
     public void AddMyUnis(RogueUnitDataBase unit)
     {
-        
         int heroCount = 0;
         int maxHeroCount = GetMaxHero();
         foreach(var one in myTeam)
@@ -192,7 +194,7 @@ public class RogueLikeData
                 }
 
                 relicsByType[relic.type].Add(relic);
-                relicIdsByType[relic.type].Add(relicId); // 중복 관리 HashSet에도 추가
+                relicIdsByType[relic.type].Add(relicId);
 
                 //획득 시 발동
                 if (relic.type == RelicType.GetEffect)
@@ -553,7 +555,10 @@ public class RogueLikeData
     {
         selectedUnits = units;
     }
-    
+    public void ClearSelectedUnis()
+    {
+        selectedUnits.Clear();
+    }
     public int GetFieldId()
     {
         return fieldId;
@@ -760,10 +765,6 @@ public class RogueLikeData
     public List<RogueUnitDataBase> GetMyTeam()
     {
         return myTeam;
-    }
-    public void AddMyTeam(RogueUnitDataBase unit)
-    {
-        myTeam.Add(unit);
     }
     public void SetMyTeam(List<RogueUnitDataBase> units)
     {

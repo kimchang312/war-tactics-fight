@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class ItemInformation : MonoBehaviour
 {
-    //디테일한 설명
-    public bool isDetail = false;
-
     //아이템
     public bool isItem = true;
 

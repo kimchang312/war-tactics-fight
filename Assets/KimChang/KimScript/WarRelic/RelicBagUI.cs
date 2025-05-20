@@ -19,13 +19,13 @@ public class NewBehaviourScript : MonoBehaviour
 
     private void OnEnable()
     {
-        foreach (Transform relic in relicBox)
+        for (int i = relicBox.childCount - 1; i >= 0; i--)
         {
+            Transform relic = relicBox.GetChild(i);
             objectPool.ReturnWarRelic(relic.gameObject);
         }
 
         List<WarRelic> relics = RogueLikeData.Instance.GetAllOwnedRelics();
-        Debug.Log(relics.Count);
         foreach (WarRelic relic in relics)
         {
             GameObject obj = objectPool.GetWarRelic();
@@ -42,7 +42,6 @@ public class NewBehaviourScript : MonoBehaviour
 
             obj.transform.SetParent(relicBox, false);
         }
-        Debug.Log(relicBox.transform.childCount);
     }
 
     private void CloseRelic()
