@@ -142,6 +142,7 @@ private void Start()
             if (clickedStage.level == 0)
             {
                 Debug.Log(" → 첫 이동 허용 (레벨 1)");
+                changemorale();
                 SetCurrentStage(clickedStage);
                 return;
             }
@@ -156,6 +157,7 @@ private void Start()
         Debug.Log($" → 현재 스테이지({currentStage.level}) 와 clicked({clickedStage.level}) 연결 여부: {isConnected}");
         if (isConnected)
         {
+            changemorale();
             SetCurrentStage(clickedStage);
         }
         else
@@ -327,6 +329,7 @@ private void Start()
         loadingPanel.SetActive(false);
     }
 
+
     public void CloseAllUI()
     {
         eventManager.SetActive(false);
@@ -350,4 +353,24 @@ private void Start()
         var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
         panel.ShowEnemyInfo(type, enemies, cmdName/*, cmdSkill*/);
     }
+
+    private void changemorale()
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+        if (morale >= 70)
+        {
+            RogueLikeData.Instance.ChangeMorale(-10);
+            Debug.Log($"📉 사기가 70 이상이므로 -10 감소 → 현재 사기: {RogueLikeData.Instance.GetMorale()}");
+
+            // 사기 텍스트 UI 업데이트
+            UIManager.Instance.UpdateMorale();
+        }
+    }
+    public void UpdateAllUI()
+    {
+        lineUpBar.MakeUnitList();
+        UIManager.Instance.UIUpdateAll();
+    }
+
+
 }
