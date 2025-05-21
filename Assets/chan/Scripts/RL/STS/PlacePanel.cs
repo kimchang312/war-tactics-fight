@@ -123,6 +123,11 @@ public class PlacePanel : MonoBehaviour
      // 현재UnitCountText를 placedUnits.Count로 갱신
      private void UpdateCountTexts()
      {
-         currentUnitCount.text = placedUnits.Count.ToString();
-     }
+        int count = placedUnits.Count;
+        currentUnitCount.text = count.ToString();
+
+        // 👉 유닛이 하나 이상 있어야 전투 시작 가능
+        startBattleButton.interactable = count > 0;
+
+    }
 }

@@ -13,6 +13,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI goldText;
     public TextMeshProUGUI moraleText;
     public TextMeshProUGUI rerollText;
+    public TextMeshProUGUI chapterText;
 
     private Dictionary<int, UnitUIPrefab> _unitUIs = new();
     private void Awake()
@@ -58,5 +59,8 @@ public class UIManager : MonoBehaviour
         int r = RogueLikeData.Instance.GetRerollChance();
         rerollText.text = r.ToString(); ;
     }
-
+    public void UpdateChapter(int chapter)
+    {
+        chapterText.text = $"Chapter {chapter}";
+    }
 }
