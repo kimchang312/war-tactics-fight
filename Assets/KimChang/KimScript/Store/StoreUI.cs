@@ -232,7 +232,8 @@ public class StoreUI : MonoBehaviour
     private bool SpendGold(int cost)
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
-        if (gold < cost) return false;
+        int lental = RelicManager.CheckRelicById(49)?500:0;
+        if (gold+ lental < cost) return false;
         RogueLikeData.Instance.ReduceGold(cost);
         //데이터 저장
         SaveData saveData = new();

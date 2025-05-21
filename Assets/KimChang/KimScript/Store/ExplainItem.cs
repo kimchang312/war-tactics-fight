@@ -66,7 +66,27 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         );
 
         Vector2 offset = new Vector2(110, -110);
-        tooltipRect.anchoredPosition = mousePosition + offset;
+        Vector2 desiredPosition = mousePosition + offset;
+
+        // 툴팁의 크기와 캔버스 크기 가져오기
+        Vector2 tooltipSize = tooltipRect.sizeDelta;
+        RectTransform canvasRect = canvas.transform as RectTransform;
+
+        float canvasWidth = canvasRect.rect.width;
+        float canvasHeight = canvasRect.rect.height;
+
+        // 제한 영역 계산
+        float minX = -canvasWidth / 2 + tooltipSize.x / 2;
+        float maxX = canvasWidth / 2 - tooltipSize.x / 2;
+        float minY = -canvasHeight / 2 + tooltipSize.y / 2;
+        float maxY = canvasHeight / 2 - tooltipSize.y / 2;
+
+        // 위치 조정
+        desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
+        desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
+
+        tooltipRect.anchoredPosition = desiredPosition;
+
 
         TextMeshProUGUI textComponent = ItemToolTip.transform.GetChild(ItemToolTip.transform.childCount - 1)
             .GetComponent<TextMeshProUGUI>();

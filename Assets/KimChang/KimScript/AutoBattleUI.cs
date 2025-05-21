@@ -266,6 +266,7 @@ public class AutoBattleUI : MonoBehaviour
         numberImg.color = new Color(1, 1, 1, 1);
 
         GameObject unit = objectPool.GetBattleUnit();
+        unit.transform.localScale = isMyTeam ? new Vector2(1,1): new Vector2(-1,1);
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = position;
 

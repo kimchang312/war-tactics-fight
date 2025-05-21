@@ -12,12 +12,14 @@ public class UpgradeStateUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI swaorDeffenseText;
     [SerializeField] private TextMeshProUGUI bowAttackText;
     [SerializeField] private TextMeshProUGUI bowDeffenseText;
+    [SerializeField] private TextMeshProUGUI heavyAttackText;
+    [SerializeField] private TextMeshProUGUI heavyDeffenseText;
     [SerializeField] private TextMeshProUGUI assasinAttackText;
     [SerializeField] private TextMeshProUGUI assasinDeffenseText;
     [SerializeField] private TextMeshProUGUI lightAttackText;
     [SerializeField] private TextMeshProUGUI lightDeffenseText;
-    [SerializeField] private TextMeshProUGUI heavyAttackText;
-    [SerializeField] private TextMeshProUGUI heavyDeffenseText;
+    [SerializeField] private TextMeshProUGUI heavyCAttackText;
+    [SerializeField] private TextMeshProUGUI heavyCDeffenseText;
     [SerializeField] private TextMeshProUGUI supAttackText;
     [SerializeField] private TextMeshProUGUI supDeffenseText;
 
@@ -46,17 +48,20 @@ public class UpgradeStateUI : MonoBehaviour
         bowAttackText.text = upgrades[2].attackLevel.ToString();
         bowDeffenseText.text = upgrades[2].defenseLevel.ToString();
 
-        assasinAttackText.text = upgrades[3].attackLevel.ToString();
-        assasinDeffenseText.text = upgrades[3].defenseLevel.ToString();
+        heavyAttackText.text = upgrades[3].attackLevel.ToString();
+        heavyDeffenseText.text = upgrades[3].defenseLevel.ToString();
 
-        lightAttackText.text = upgrades[4].attackLevel.ToString();
-        lightDeffenseText.text = upgrades[4].defenseLevel.ToString();
+        assasinAttackText.text = upgrades[4].attackLevel.ToString();
+        assasinDeffenseText.text = upgrades[4].defenseLevel.ToString();
 
-        heavyAttackText.text = upgrades[5].attackLevel.ToString();
-        heavyDeffenseText.text = upgrades[5].defenseLevel.ToString();
+        lightAttackText.text = upgrades[5].attackLevel.ToString();
+        lightDeffenseText.text = upgrades[5].defenseLevel.ToString();
 
-        supAttackText.text = upgrades[6].attackLevel.ToString();
-        supDeffenseText.text = upgrades[6].defenseLevel.ToString();
+        heavyCAttackText.text = upgrades[6].attackLevel.ToString();
+        heavyCDeffenseText.text = upgrades[6].defenseLevel.ToString();
+
+        supAttackText.text = upgrades[7].attackLevel.ToString();
+        supDeffenseText.text = upgrades[7].defenseLevel.ToString();
     }
 
 

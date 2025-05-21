@@ -356,10 +356,9 @@ public class RogueUnitDataBase
         if (filtered.Count == 0)
             return null;
 
-        int idx = UnityEngine.Random.Range(0, filtered.Count);
+        int idx = Random.Range(0, filtered.Count);
         RogueUnitDataBase selected = filtered[idx];
 
-        // 실제 유닛 복사체 생성
         RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);
 
         return unit;

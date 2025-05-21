@@ -361,7 +361,7 @@ public class RogueLikeData
     //골드 감소
     public void ReduceGold(int gold)
     {
-        bool hasLoanRelic = RogueLikeData.Instance.GetOwnedRelicById(49) != null;
+        bool hasLoanRelic = RelicManager.CheckRelicById(49);
         int minGold = hasLoanRelic ? -500 : 0;
 
         int availableGold = currentGold - gold;
@@ -476,14 +476,6 @@ public class RogueLikeData
     {
         sariStack =stack;
     }
-    /*
-    public void Clear()
-    {
-        myUnits.Clear();
-        enemyUnits.Clear();
-        ResetOwnedRelics();
-    }
-    */
     //만난 이벤트 반환
     public Dictionary<int,int> GetEncounteredEvent()
     {
@@ -617,6 +609,9 @@ public class RogueLikeData
     }
     public int GetCostTable(int level)
     {
+        float sale = 1;
+        if (RelicManager.CheckRelicById(1)) sale -= 0.2f;
+
         return costTable[level];
     }
 
@@ -682,8 +677,8 @@ public class RogueLikeData
                 isSale += RelicManager.CheckRelicById(58) ? -0.2f : 0;
 
                 int cost = costTable[currentLevel];
-
-                if (currentGold < cost)
+                int lental = RelicManager.CheckRelicById(49) ? 500 : 0;
+                if (currentGold + lental < cost)
                     return; // 금화 부족
 
                 // 금화 차감
