@@ -26,7 +26,6 @@ public class EventManager
         return candidates[idx];
     }
 
-    // 현재 진행 가능한 이벤트인지 확인
     public static bool CanAppear(EventData eventData)
     {
         int currentChapter = RogueLikeData.Instance.GetChapter();
@@ -66,7 +65,6 @@ public class EventManager
         return true;
     }
 
-    //등장 조건 확인
     private static bool CheckRequireCondition(RequireThing thing, RequireForm form, string value,string count)
     {
         switch (thing)
@@ -198,7 +196,7 @@ public class EventManager
                 else if (form == RequireForm.None) // 특정 id 유산이 없어야 true
                 {
                     int relicId = int.Parse(count);
-                    return !RogueLikeData.Instance.GetAllOwnedRelics().Exists(relic => relic.id == relicId);
+                    return !RelicManager.CheckRelicById(relicId);
                 }
                 break;
             case RequireThing.Energy:

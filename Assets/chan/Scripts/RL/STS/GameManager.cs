@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject restPanel;
     [SerializeField] private RewardUI rewardUI;
     [SerializeField] private GameObject loadingPanel;
+    public GameObject itemToolTip;
     public UIGenerator uIGenerator;
     public UnitDetailExplain unitDetail; 
     public int currentStageX;
@@ -208,6 +209,7 @@ private void Start()
                     relic.used = true;
                     rewardUI.gameObject.SetActive(true);
                     rewardUI.CreateTeasureUI();
+                    return;
                 }
             }
             eventManager.SetActive(true);

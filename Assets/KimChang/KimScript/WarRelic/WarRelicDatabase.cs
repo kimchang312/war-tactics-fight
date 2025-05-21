@@ -17,7 +17,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(0, "할인쿠폰", 1, "상단의 금화 가격이 20% 감소한다.", RelicType.SpecialEffect, () => DiscountCard()));
         relics.Add(new WarRelic(1, "연구 예산 지원금", 1, "군사 아카데미의 강화 비용이 20% 감소한다.", RelicType.SpecialEffect, () => SolidAnvil()));
         relics.Add(new WarRelic(2, "인내력의 깃발", 1, "기력이 감소할 때마다 25% 확률로 감소하지 않는다.", RelicType.SpecialEffect, () => FlagOfEndurance()));
-        relics.Add(new WarRelic(3, "훈련 지휘봉", 1, "병영의 훈련 비용이 20% 감소한다.", RelicType.SpecialEffect, () => ExtraSupplyOrder()));
+        //relics.Add(new WarRelic(3, "훈련 지휘봉", 1, "병영의 훈련 비용이 20% 감소한다.", RelicType.SpecialEffect, () => ExtraSupplyOrder()));
         relics.Add(new WarRelic(4, "도금 망원경", 1, "아군 궁병 중 가장 앞에 있는 궁병에 한해서 사거리가 1 증가한다.", RelicType.StateBoost, () => GoldPlatedTelescope()));
         relics.Add(new WarRelic(5, "행운의 금화 주머니", 1, "얻는 금화량이 15% 증가한다.", RelicType.SpecialEffect, () => LuckyCoinPouch()));
         relics.Add(new WarRelic(6, "전설의 도굴꾼의 삽", 1, "다음에 전쟁 유산 보상을 얻을때 전설 전쟁 유산이 확정으로 등장한다. 보스에선 적용되지 않는다. 전설 전쟁 유산을 얻은 이후 이 유산은 소멸한다.", RelicType.SpecialEffect, () => LegendaryDiggerShovel()));
@@ -55,7 +55,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(35, "정복자의 인장", 10, "엘리트 전투 승리 시에 전쟁 유산 보상이 한번 더 등장한다.", RelicType.SpecialEffect, () => ConquerorOfSeal()));
         relics.Add(new WarRelic(36, "맹인전사의 안대", 10, "적의 배치 정보가 모두 숨겨져 알 수 없게 되지만, 아군 유닛의 체력과 공격력이 20%, 아군 궁병의 사거리가 1 증가하고, 부대 상한이 3 증가한다.", RelicType.ActiveState, () => BlindWarriorEyepatch()));
         relics.Add(new WarRelic(37, "덧댐 장갑판", 1, "모든 아군 유닛의 장갑 1 증가.", RelicType.StateBoost, () => ReinforcedArmorPlate()));
-        relics.Add(new WarRelic(38, "장식된 단검", 1, "모든 아군 유닛의 공격력 일정배수 10% 증가.", RelicType.StateBoost, () => DecoratedDagger()));
+        relics.Add(new WarRelic(38, "장식된 단검", 1, "아군 유닛의 공격력이 10% 증가한다.", RelicType.StateBoost, () => DecoratedDagger()));
         relics.Add(new WarRelic(39, "전쟁나팔", 1, "보스 전투에 진입할 때 사기가 15 증가한다.", RelicType.StateBoost, () => WarHorn()));
         
         relics.Add(new WarRelic(40, "누군가의 무료 배식권", 1, "상단에 진입할 때 모든 아군 유닛의 기력이 1 회복한다.", RelicType.SpecialEffect, () => FreeMealTicket()));
@@ -65,7 +65,7 @@ public static class WarRelicDatabase
         //relics.Add(new WarRelic(44, "추가 징병 계획서", 1, "용병단의 판매 유닛 슬롯 수가 4 증가한다.", RelicType.SpecialEffect, () => MistakenOrderReceipt()));
         relics.Add(new WarRelic(45, "전술적 단일화 교본", 10, "배치한 유닛의 병종이 한 종류일 경우 유닛의 체력과 공격력이 10% 증가하고, 경갑 유닛의 기동력이 5, 중갑 유닛의 장갑이 5 증가한다.", RelicType.StateBoost, () => TacticalUnificationManual()));
         relics.Add(new WarRelic(46, "기술 비급서", 1, "아군 유닛이 기술로 주는 피해가 20% 증가한다.", RelicType.BattleActive, () => TechnicalManual()));
-        relics.Add(new WarRelic(47, "보물지도", 1, "획득 시 다음에 진입한 이벤트 지역이 보물 지역으로 변경된다.", RelicType.GetEffect, () => TreasureMap()));
+        relics.Add(new WarRelic(47, "보물지도", 1, "획득 시 다음에 진입한 이벤트 지역이 보물 지역으로 변경된다.", RelicType.SpecialEffect, () => TreasureMap()));
         //relics.Add(new WarRelic(48, "무지개 열쇠", 1, "한 챕터에 두번, 길이 이어지지 않은 지역으로 이동할 수 있다.", RelicType.SpecialEffect, () => RainbowKey()));
         relics.Add(new WarRelic(49, "재상의 보증서", 1, "금화를 소모할 때, 500금화까지 빌려서 사용할 수 있게된다.", RelicType.SpecialEffect, () => CreditAuthorization()));
         

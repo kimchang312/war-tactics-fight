@@ -288,7 +288,6 @@ public class RewardUI : MonoBehaviour
     {
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
-        //if (info.isItem) return;       
         switch (info.type)
         {
             case RewardType.UnitGrade: reward.unitGrade.RemoveAt(0); break;
@@ -385,7 +384,6 @@ public class RewardUI : MonoBehaviour
             if (RogueLikeData.Instance.GetClearChpater())
             {
                 RogueLikeData.Instance.SetClearChapter(false);
-                Debug.Log("보스클");
                 GameManager.Instance.uIGenerator.RegenerateMap();
             }
             

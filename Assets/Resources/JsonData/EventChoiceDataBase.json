@@ -790,7 +790,7 @@
     "resultDescription": "선택한 병사 전직, 사기 -5 이벤트 반복",
     "requireThing": ["Morale", "Unit"],
     "requireForm": ["None", "Select"],
-    "requireValue": ["", ""],
+    "requireValue": ["0", "3"],
     "requireCount": ["5", "1"],
     "resultType": ["Change", "Special"],
     "resultForm": ["Select", "Special"],
@@ -1140,7 +1140,7 @@
     "resultDescription": "다음 전투에서 '평원' 전장 효과 적용, 사기 -20, 골드 - 100",
     "requireThing": ["Morale", "Gold"],
     "requireForm": ["None", "None"],
-    "requireValue": [""],
+    "requireValue": ["0", "0"],
     "requireCount": ["20100"],
     "resultType": ["Field"],
     "resultForm": ["None"],
@@ -1859,7 +1859,7 @@
     "resultType": ["Relic"],
     "resultForm": ["Special"],
     "resultValue": ["10", "0"],
-    "resultCount": ["1"]
+    "resultCount": ["1", "1"]
   },
   {
     "choiceId": 133,
