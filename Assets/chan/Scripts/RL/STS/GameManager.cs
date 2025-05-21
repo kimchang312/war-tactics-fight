@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject restPanel;
     [SerializeField] private RewardUI rewardUI;
     [SerializeField] private GameObject loadingPanel;
+    [SerializeField] private RectTransform mapPanel;
     public UIGenerator uIGenerator;
     public UnitDetailExplain unitDetail; 
     public int currentStageX;
@@ -87,11 +88,21 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      allStages = FindObjectsOfType<StageNodeUI>().ToList();
      InitializeStageLocks();
      UIManager.Instance.UIUpdateAll();
+
+     
+        
+
         if (RogueLikeData.Instance.GetClearChpater())
         {
             SetCurrentStageNull();
             RogueLikeData.Instance.SetClearChapter(false);
-            if(uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
+            Vector2 pos = mapPanel.anchoredPosition;
+            pos.x = 0f;
+            mapPanel.anchoredPosition = pos;
+            Debug.Log("✅ mapPanel의 PosX를 0으로 초기화");
+            // 🔽 챕터 텍스트 업데이트
+            UIManager.Instance.UpdateChapter(RogueLikeData.Instance.GetChapter());
+            if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             uIGenerator.RegenerateMap();
         }
     }
