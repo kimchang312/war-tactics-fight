@@ -298,7 +298,7 @@ public class AutoBattleUI : MonoBehaviour
 
             string unitTeam = isMyUnit ? "My" : "Enemy";
             Transform parent = isMyUnit ? myBackUnitsParent : enemyBackUnitsParent;
-
+            Debug.Log(i + units[i].unitName);
             GameObject unitImage = objectPool.GetBattleUnit();
             unitImage.transform.localScale = isMyUnit? new(1,1,1) : new(-1,1,1);
             Transform childUnit = unitImage.transform.GetChild(0);

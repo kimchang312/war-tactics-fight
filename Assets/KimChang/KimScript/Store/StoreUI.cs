@@ -274,9 +274,9 @@ public class StoreUI : MonoBehaviour
     private void PurchaseUnitPackage(Button btn, List<RogueUnitDataBase> units, int price)
     {
         if (!SpendGold(price)) return;
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         myUnits.AddRange(units);
-        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+        RogueLikeData.Instance.SetMyTeam(myUnits);
         btn.transform.GetChild(2).gameObject.SetActive(true);
         btn.interactable = false;
     }
@@ -330,7 +330,7 @@ public class StoreUI : MonoBehaviour
         else if (item.form == "Random")
         {
             int amount = int.Parse(item.value);
-            var units = RogueLikeData.Instance.GetMyUnits().Where(u => u.energy < u.maxEnergy).ToList();
+            var units = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy < u.maxEnergy).ToList();
             if (units.Count == 0) return;
 
             for (int i = 0; i < units.Count; i++)
@@ -344,5 +344,9 @@ public class StoreUI : MonoBehaviour
                 units[i].energy = Math.Min(units[i].maxEnergy, units[i].energy + amount);
             }
         }
+    }
+    private void OnDisable()
+    {
+        GameManager.Instance.UpdateAllUI();
     }
 }
