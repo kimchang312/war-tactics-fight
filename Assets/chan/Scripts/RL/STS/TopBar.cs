@@ -72,7 +72,8 @@ public class TopBar : MonoBehaviour
    
         Debug.Log("💾 게임 저장 중...");
         //저장하는 함수
-
+        // ✅ 옵션 패널 끄기
+        optionPanel?.SetActive(false);
         Debug.Log("🏁 타이틀 씬으로 이동 중...");
         UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // 씬 이름이 정확해야 함
     }

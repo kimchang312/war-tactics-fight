@@ -80,7 +80,8 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
     {
         if (eventData.button.Equals(PointerEventData.InputButton.Left))
         {
-            if (!GameManager.Instance.IsPlaceMode) return;
+            if (!GameManager.Instance.IsPlaceMode || !GameManager.Instance.PlacePanelComponent.gameObject.activeSelf) 
+                return;
             var place = GameManager.Instance.PlacePanelComponent;
             var lineup = GameManager.Instance.LineUpBarComponent;
 
