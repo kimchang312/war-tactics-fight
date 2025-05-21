@@ -368,26 +368,13 @@ public class RewardUI : MonoBehaviour
     private void ClickRetryBtn()
     {
         saveData.ResetGameData();
-        GameManager.Instance.uIGenerator.RegenerateMap();
+        RogueLikeData.Instance.SetResetMap(true);
         SceneManager.LoadScene("RLmap");
     }
     private void ClickGoTitleBtn()
     {
         saveData.ResetGameData();
-        GameManager.Instance.uIGenerator.RegenerateMap();
+        RogueLikeData.Instance.SetResetMap(true);
         SceneManager.LoadScene("Title");
-    }
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if (scene.name == "RLmap")
-        {
-            if (RogueLikeData.Instance.GetClearChpater())
-            {
-                RogueLikeData.Instance.SetClearChapter(false);
-                GameManager.Instance.uIGenerator.RegenerateMap();
-            }
-            
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-        }
     }
 }

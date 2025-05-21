@@ -500,7 +500,7 @@ public class EventManager
         }
     }
     //선택시 보상 획득
-    public static string ApplyChoiceResult(EventChoiceData choiceData,List<RogueUnitDataBase> selectedUnits)
+    public static (string,bool) ApplyChoiceResult(EventChoiceData choiceData,List<RogueUnitDataBase> selectedUnits)
     {
         string resultLog = "";
         bool isBattle= false;
@@ -1029,9 +1029,9 @@ public class EventManager
         if (isBattle)
         {
             SetPresetIdByGrade(battleGrade);
-            SceneManager.LoadScene("AutoBattleScene");
+            GameManager.Instance.OpenBattlePanel();
         }
-        return resultLog;
+        return (resultLog,isBattle);
     }
 
     private static bool IsUnitVictory(RogueUnitDataBase unit)

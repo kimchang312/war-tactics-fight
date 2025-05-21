@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,6 +7,14 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 {
     public GameObject ItemToolTip;
     [SerializeField] private GameObject unitPackageToolTip;
+    private static readonly Dictionary<int, string> gradeText = new() 
+    {
+        {0,"저주" },
+        {1,"일반" },
+        {10,"전설" },
+        {20,"보스" },
+        {50,"고유" },
+    };
 
     public void OnPointerEnter(PointerEventData eventData)
     {
