@@ -66,5 +66,6 @@ public class EnemyInfoPanel : MonoBehaviour
     {
         gameObject.SetActive(false);
         GameManager.Instance.TogglePlacePanel(true);
+        GameManager.Instance.PlacePanelComponent.UpdateMaxUnitText();
     }
 }
