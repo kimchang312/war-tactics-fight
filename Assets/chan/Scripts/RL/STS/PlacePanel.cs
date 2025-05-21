@@ -28,9 +28,7 @@ public class PlacePanel : MonoBehaviour
         startBattleButton.onClick.AddListener(OnStartBattleClicked);
         // 뒤로가기 리스너
         backButton.onClick.AddListener(OnBackClicked);
-        // 최대 배치 가능 수 표시
-        int maxUnits = RogueLikeData.Instance.GetMaxUnits();
-        maxUnitCount.text = $"/ {maxUnits.ToString()}";
+
         // 현재 배치 수 초기화
         UpdateCountTexts();
         // 패널 처음 열릴 때는 항상 초기화
@@ -123,6 +121,17 @@ public class PlacePanel : MonoBehaviour
      // 현재UnitCountText를 placedUnits.Count로 갱신
      private void UpdateCountTexts()
      {
-         currentUnitCount.text = placedUnits.Count.ToString();
-     }
+        int count = placedUnits.Count;
+        currentUnitCount.text = count.ToString();
+
+        // 👉 유닛이 하나 이상 있어야 전투 시작 가능
+        startBattleButton.interactable = count > 0;
+
+    }
+    public void UpdateMaxUnitText()
+    {
+        // 최대 배치 가능 수 표시
+        int maxUnits = RogueLikeData.Instance.GetMaxUnits();
+        maxUnitCount.text = $"/ {maxUnits.ToString()}";
+    }
 }
