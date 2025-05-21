@@ -39,7 +39,6 @@ public static class RewardManager
         var type = RogueLikeData.Instance.GetCurrentStageType();
         if (battleResult == 0 && type ==StageType.Boss && chapter==1)
         {
-            Debug.Log("보스");
             RogueLikeData.Instance.SetChapter(2);
             RogueLikeData.Instance.SetClearChapter(true);
         }
@@ -63,7 +62,10 @@ public static class RewardManager
         reward.gold += gold;
         int grade = stageTypeGrade.TryGetValue(type,out var val)? val: 0;
         reward.unitGrade.Add(grade);
-        reward.relicGrade.Add(grade);
+        if(type == StageType.Elite || type == StageType.Boss)
+        {
+            reward.relicGrade.Add(grade);
+        }
 
         RelicManager.ConquerorSeal(ref reward,type,grade);
     }
