@@ -58,7 +58,7 @@ public class BGMManager : MonoBehaviour
     {
         switch (scene.name)
         {
-            case "MainMenuScene":
+            case "Title":
                 PlayBGM("MainMenu");
                 break;
             case "RLmap":

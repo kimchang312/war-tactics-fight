@@ -57,9 +57,10 @@ public class StoreUI : MonoBehaviour
         {
             var item = cachedUnitItems[i];
             var units = FilterAndSelectUnits(item);
+            Transform child = unitParent.GetChild(i);
             cachedUnitPackages.Add(units);
             int price = CalculateUnitPackagePrice(units, item);
-            SetUnitPackageUI(unitParent.GetChild(i), item, units, price);
+            SetUnitPackageUI(child, item, units, price);
         }
     }
 
@@ -70,15 +71,17 @@ public class StoreUI : MonoBehaviour
 
         for (int i = 0; i < cachedRelicItems.Count; i++)
         {
-            int grade = int.Parse(cachedRelicItems[i].value);
+            StoreItemData item = cachedRelicItems[i];
+            Transform child = relicParent.GetChild(i);
+            int grade = int.Parse(item.value);
             var candidates = RelicManager.GetAvailableRelicIds(grade, RelicManager.RelicAction.Acquire)
                                          .Where(id => !cachedRelicIds.Contains(id)).ToList();
             if (candidates.Count == 0) continue;
 
             int relicId = candidates[UnityEngine.Random.Range(0, candidates.Count)];
             cachedRelicIds.Add(relicId);
-            int cost = CalculateDiscountedPrice(cachedRelicItems[i]);
-            SetRelicUI(relicParent.GetChild(i), cachedRelicItems[i], relicId, cost);
+            int cost = CalculateDiscountedPrice(item);
+            SetRelicUI(child, item, relicId, cost);
         }
     }
 
@@ -88,9 +91,12 @@ public class StoreUI : MonoBehaviour
 
         for (int i = 0; i < cachedItemItems.Count; i++)
         {
-            int cost = CalculateDiscountedPrice(cachedItemItems[i]);
-            string path = $"ItemImages/Item{cachedItemItems[i].itemId}";
-            SetStoreSlotUI(itemParent.GetChild(i), cachedItemItems[i], cost, path, () => PurChaseItem(itemParent.GetChild(i).GetComponent<Button>(), cachedItemItems[i], cost));
+            StoreItemData item = cachedItemItems[i];
+            Transform child = itemParent.GetChild(i);
+            Button btn = child.GetComponent<Button>();
+            int cost = CalculateDiscountedPrice(item);
+            string path = $"ItemImages/Item{item.itemId}";
+            SetStoreSlotUI(child, item, cost, path, () => PurChaseItem(btn, item, cost));
         }
     }
 
@@ -105,34 +111,39 @@ public class StoreUI : MonoBehaviour
     {
         for (int i = 0; i < cachedUnitItems.Count; i++)
         {
-            int price = CalculateUnitPackagePrice(cachedUnitPackages[i], cachedUnitItems[i]);
+            StoreItemData item = cachedUnitItems[i];
+            List<RogueUnitDataBase> units = cachedUnitPackages[i];
+            int price = CalculateUnitPackagePrice(units, item);
             price = (int)(price * GetSaleRatio());
 
             var slot = unitParent.GetChild(i);
-            SetImageAndPrice(slot, $"UnitImages/{cachedUnitPackages[i][0].unitImg}", price);
-            SetItemInformation(slot, cachedUnitItems[i], price, cachedUnitPackages[i]);
+            SetImageAndPrice(slot, $"UnitImages/{units[0].unitImg}", price);
+            SetItemInformation(slot, item, price, units);
 
-            SetButtonState(slot.GetComponent<Button>(), price); // 골드 부족 시 버튼 비활성화
+            SetButtonState(slot.GetComponent<Button>(), price);
         }
 
         for (int i = 0; i < cachedRelicItems.Count; i++)
         {
-            int price = CalculateDiscountedPrice(cachedRelicItems[i]);
+            StoreItemData item = cachedRelicItems[i];
+            int relicId = cachedRelicIds[i];
+            int price = CalculateDiscountedPrice(item);
 
             var slot = relicParent.GetChild(i);
-            SetImageAndPrice(slot, $"KIcon/WarRelic/{cachedRelicIds[i]}", price);
-            SetItemInformation(slot, cachedRelicItems[i], price, null, cachedRelicIds[i]);
+            SetImageAndPrice(slot, $"KIcon/WarRelic/{relicId}", price);
+            SetItemInformation(slot, item, price, null, relicId);
 
             SetButtonState(slot.GetComponent<Button>(), price);
         }
 
         for (int i = 0; i < cachedItemItems.Count; i++)
         {
-            int cost = CalculateDiscountedPrice(cachedItemItems[i]);
+            StoreItemData item = cachedItemItems[i];
+            int cost = CalculateDiscountedPrice(item);
 
             var slot = itemParent.GetChild(i);
-            SetImageAndPrice(slot, $"ItemImages/Item{cachedItemItems[i].itemId}", cost);
-            SetItemInformation(slot, cachedItemItems[i], cost);
+            SetImageAndPrice(slot, $"ItemImages/Item{item.itemId}", cost);
+            SetItemInformation(slot, item, cost);
 
             SetButtonState(slot.GetComponent<Button>(), cost);
         }
@@ -153,6 +164,7 @@ public class StoreUI : MonoBehaviour
         var packageCost = child.GetChild(0);
         var packageCount = packageCost.GetChild(0);
         var packageName = packageCount.GetChild(0);
+        child.GetChild(2).gameObject.SetActive(false);
         packageCount.GetComponent<TextMeshProUGUI>().text = $" X{item.count}";
         packageName.GetComponent<TextMeshProUGUI>().text = item.itemName;
 
@@ -169,6 +181,7 @@ public class StoreUI : MonoBehaviour
         SetImageAndPrice(child, imgChannel, price);
         SetItemInformation(child, item, price, null, relicId);
 
+        child.GetChild(2).gameObject.SetActive(false);
         var btn = child.GetComponent<Button>();
         if (!SetButtonState(btn, price)) return;
 
@@ -182,6 +195,7 @@ public class StoreUI : MonoBehaviour
         SetImageAndPrice(child, spritePath, cost);
         SetItemInformation(child, item, cost, null, -1, rerollCount);
 
+        child.GetChild(2).gameObject.SetActive(false);
         var btn = child.GetComponent<Button>();
         if (!SetButtonState(btn, cost)) return;
 
@@ -235,7 +249,6 @@ public class StoreUI : MonoBehaviour
         int lental = RelicManager.CheckRelicById(49)?500:0;
         if (gold+ lental < cost) return false;
         RogueLikeData.Instance.ReduceGold(cost);
-        //데이터 저장
         SaveData saveData = new();
         saveData.SaveDataFile();
         return true;
@@ -276,7 +289,6 @@ public class StoreUI : MonoBehaviour
         btn.transform.GetChild(2).gameObject.SetActive(true);
         btn.interactable = false;
 
-        // UI 그대로 두고 가격만 다시 계산
         RefreshStorePrices();
     }
 
@@ -291,6 +303,9 @@ public class StoreUI : MonoBehaviour
                 break;
             case "Morale":
                 RogueLikeData.Instance.ChangeMorale(int.Parse(item.value));
+                break;
+            case "Reroll":
+                RogueLikeData.Instance.AddRerollChange(item.count);
                 break;
         }
 

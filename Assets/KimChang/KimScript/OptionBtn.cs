@@ -36,7 +36,6 @@ public class OptionBtn : MonoBehaviour
 
     private void ToggleOptionWindow()
     {
-        Debug.Log("stop");
         if (isPaused)
         {
             ResumeGame();
@@ -72,7 +71,11 @@ public class OptionBtn : MonoBehaviour
     {
         if (isPaused)
         {
+            SaveData saveData = new SaveData();
             Time.timeScale = 1f; // 게임 속도 초기화
+            saveData.ResetGameData();
+            GameManager.Instance.SetCurrentStageNull();
+            RogueLikeData.Instance.SetResetMap(true);
             SceneManager.LoadScene("Title");
         }
     }

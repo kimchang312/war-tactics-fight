@@ -89,11 +89,11 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
      // 맵 씬에 진입했을 때만
      allStages = FindObjectsOfType<StageNodeUI>().ToList();
-     InitializeStageLocks();
-     UIManager.Instance.UIUpdateAll();
 
-     
-        
+     UIManager.Instance.UIUpdateAll();
+        InitializeStageLocks();
+
+
 
         if (RogueLikeData.Instance.GetClearChpater())
         {
@@ -108,6 +108,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             uIGenerator.RegenerateMap();
         }
+        else if (RogueLikeData.Instance.GetResetMap())
+        {
+            SetCurrentStageNull();
+            if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
+            RogueLikeData.Instance.SetResetMap(false);
+            uIGenerator.RegenerateMap();
+        }
+        
     }
 
 private void Start()
@@ -242,7 +250,6 @@ private void Start()
 
 
     /// 플레이어 마커를 해당 스테이지 UI 위치로 이동시킵니다.
-
     private void MovePlayerMarkerTo(StageNodeUI target)
     {
         if (playerMarker == null)
@@ -321,6 +328,32 @@ private void Start()
     {
         loadingPanel.SetActive(false);
     }
+
+
+    public void CloseAllUI()
+    {
+        eventManager.SetActive(false);
+        storeManager.SetActive(false);
+        unitDetail.gameObject.SetActive(false);
+
+    }
+
+    public void OpenBattlePanel()
+    {
+        int presetId = RogueLikeData.Instance.GetPresetID();
+        StageType type = RogueLikeData.Instance.GetCurrentStageType();
+        enemyInfoPanel.SetActive(true);
+        var enemies = LoadEnemyUnits(presetId);
+        var preset = StagePresetLoader.I.GetByID(presetId);
+
+        string cmdName = preset.Commander ?? "";
+        /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
+                          ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
+                          : "";*/
+        var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
+        panel.ShowEnemyInfo(type, enemies, cmdName/*, cmdSkill*/);
+    }
+
     private void changemorale()
     {
         int morale = RogueLikeData.Instance.GetMorale();
@@ -338,5 +371,6 @@ private void Start()
         lineUpBar.MakeUnitList();
         UIManager.Instance.UIUpdateAll();
     }
+
 
 }
