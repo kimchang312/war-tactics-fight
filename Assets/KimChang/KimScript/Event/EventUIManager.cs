@@ -6,13 +6,13 @@ using UnityEngine.UI;
 
 public class EventUIManager : MonoBehaviour
 {
-    [SerializeField] private Image eventImage;                  //이벤트 이미지
-    [SerializeField] private TextMeshProUGUI eventNameText;        //이벤트 제목
-    [SerializeField] private TextMeshProUGUI eventDescriptionText;  //이벤트 설명
-    [SerializeField] private Transform choiceBtns;             //선택지 버튼 부모
-    [SerializeField] private Button leaveBtn;                   //떠나기
+    [SerializeField] private Image eventImage;
+    [SerializeField] private TextMeshProUGUI eventNameText;
+    [SerializeField] private TextMeshProUGUI eventDescriptionText;
+    [SerializeField] private Transform choiceBtns;
+    [SerializeField] private Button leaveBtn;
 
-    [SerializeField] private UnitSelectUI unitSelectUI;       //유닛 선택 창
+    [SerializeField] private UnitSelectUI unitSelectUI;
 
     [SerializeField] private ObjectPool objectPool;
 
@@ -80,17 +80,15 @@ public class EventUIManager : MonoBehaviour
             int index = choiceData.requireForm.IndexOf(RequireForm.Select);
             int count = int.TryParse(choiceData.requireCount[index], out var parsed) ? parsed : 0;
             selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
-            Debug.Log(selectedUnits.Count);
             if (selectedUnits == null || selectedUnits.Count < count)
             {
                 OpenSelectdUnit(choiceData);
                 return;
             }
-
         }
         EventManager.ReduceRequire(choiceData);
-        string resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
-        eventDescriptionText.text = resultText;
+        (string, bool) resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
+        eventDescriptionText.text = resultText.Item1;
         //만약 56~57 이라면
         if ((choiceData.choiceId >= 56 && choiceData.choiceId <= 57))
         {
@@ -105,12 +103,10 @@ public class EventUIManager : MonoBehaviour
         } 
 
         ResetButtonUI();
-        //이벤트 추가
         RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);
-        //저장
         SaveData saveData = new();
         saveData.SaveDataFile();
-
+        if(resultText.Item2) gameObject.SetActive(false);
         leaveBtn.gameObject.SetActive(true);
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)
@@ -169,5 +165,8 @@ public class EventUIManager : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
-
+    private void OnDisable()
+    {
+        GameManager.Instance.UpdateAllUI();
+    }
 }

@@ -59,12 +59,12 @@ public static class StoreManager
         return result;
     }
 
-
-    // 예시용 함수들: 외부에서 사용할 수 있도록 필터 조건을 넘겨 간결하게 호출 가능
-
     public static List<StoreItemData> GetRandomEnergyMoraleItems()
     {
-        return GetFilteredItems(item => item.itemId >= 30 && item.itemId <= 33, 3);
+        return GetFilteredItems(
+        item => (item.itemId >= 0 && item.itemId <= 9) || (item.itemId >= 30 && item.itemId <= 33),
+        3
+    );
     }
 
     public static List<StoreItemData> GetRandomDiceItem()

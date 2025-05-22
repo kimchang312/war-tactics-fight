@@ -22,16 +22,18 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private Button rerollBtn;
     [SerializeField] private Button skipBtn;
     [SerializeField] private UnitSelectUI unitSelectUI;
+    //[SerializeField] private GameObject endingWindow;
 
     [SerializeField] private GameObject itemToolTip;
     SaveData saveData = new SaveData();
 
+    private bool isEnd=false;
     private void OnEnable()
     {
         ResetUI();
         transform.SetAsLastSibling();
     }
-
+  
     public void CreateTeasureUI()
     {
         backFrame.SetActive(true);
@@ -69,7 +71,6 @@ public class RewardUI : MonoBehaviour
             1 => "패배",
             _ => resultText.text
         };
-
         if (reward.battleResult == 0)
         {
             goldResult.SetActive(true);
@@ -78,6 +79,7 @@ public class RewardUI : MonoBehaviour
             var type = RogueLikeData.Instance.GetCurrentStageType();
             if(chapter==3 && type== StageType.Boss)
             {
+                //endingWindow.SetActive(true);
                 resultText.text = "정복";
                 moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"점수: {RogueLikeData.Instance.GetScore()}";
                 goldResult.GetComponentInChildren<TextMeshProUGUI>().text = "  타이틀 화면으로";
@@ -127,7 +129,7 @@ public class RewardUI : MonoBehaviour
         rewardSelectObj.SetActive(false);
         retryBtn.gameObject.SetActive(false);
         goTitleBtn.gameObject.SetActive(false);
-
+        //endingWindow.SetActive(false);
         foreach (Transform child in selectRewards.transform)
             child.gameObject.SetActive(false);
 
@@ -368,26 +370,17 @@ public class RewardUI : MonoBehaviour
     private void ClickRetryBtn()
     {
         saveData.ResetGameData();
-        GameManager.Instance.uIGenerator.RegenerateMap();
+        RogueLikeData.Instance.SetResetMap(true);
         SceneManager.LoadScene("RLmap");
     }
     private void ClickGoTitleBtn()
     {
         saveData.ResetGameData();
-        GameManager.Instance.uIGenerator.RegenerateMap();
+        RogueLikeData.Instance.SetResetMap(true);
         SceneManager.LoadScene("Title");
     }
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    private void OnDisable()
     {
-        if (scene.name == "RLmap")
-        {
-            if (RogueLikeData.Instance.GetClearChpater())
-            {
-                RogueLikeData.Instance.SetClearChapter(false);
-                GameManager.Instance.uIGenerator.RegenerateMap();
-            }
-            
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-        }
+        RogueLikeData.Instance.ClearBattleReward();
     }
 }

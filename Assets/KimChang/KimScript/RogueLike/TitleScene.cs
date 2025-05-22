@@ -35,6 +35,11 @@ public class TitleScene : MonoBehaviour
     {
         SaveData saveData = new SaveData();
         saveData.ResetGameData();
+        RogueLikeData.Instance.SetResetMap(true);
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetCurrentStageNull();
+        }
         SceneManager.LoadScene("RLmap");
     }
     private void LoadRogueLike()

@@ -40,7 +40,7 @@ public class RogueLikeData
 
     private StageType currentStageType = StageType.Combat;
 
-    private int currentGold = 0;
+    private int currentGold = 150;
     private int playerMorale = 50;
     private int spentGold = 0;
     private float myFinalDamage = 1;
@@ -58,7 +58,7 @@ public class RogueLikeData
     //전투 추가 보상
     private BattleRewardData battleReward = new();
 
-    private int rerollChance = 0;
+    private int rerollChance = 2;
 
     public bool isFreeUpgrade =false;
 
@@ -68,6 +68,7 @@ public class RogueLikeData
     private int score = 0;
 
     private bool clearChapter=false;
+    private bool resetMap =false;
     // 생성자에서 초기화
     private RogueLikeData()
     {
@@ -158,6 +159,10 @@ public class RogueLikeData
         }
         else
         {
+            if(unit.idx == 63)
+            {
+                AcquireRelic(78);
+            }
             myTeam.Add(unit);
         }
         
@@ -724,6 +729,7 @@ public class RogueLikeData
         if (RelicManager.CheckRelicById(66)) addMax += 1;
         if (RelicManager.CheckRelicById(67)) addMax += 3;
         if (RelicManager.CheckRelicById(89)) addMax -= 2;
+        addMax += 5 * (chapter-1);
         maxCount = maxCount +addMax;
         if (RelicManager.CheckRelicById(107)) maxCount /= 2;
 
@@ -812,11 +818,14 @@ public class RogueLikeData
 
         // 챕터 및 전투 수치 초기화
         chapter = 1;
-        currentGold = 0;
+        currentGold = 150;
         spentGold = 0;
         playerMorale = 50;
         sariStack = 0;
         nextUnitUniqueId = 0;
+        rerollChance = 2;
+        score = 0;
+        upgradeValues = new UnitUpgrade[9];
         // 유닛 초기화: 기본 유닛 로드
         var baseUnits = RogueUnitDataBase.GetBaseUnits();
         SetMyTeam(baseUnits);
@@ -827,6 +836,15 @@ public class RogueLikeData
 
         // 데미지 배율 초기화
         ResetFinalDamage();
+    }
+
+    public bool GetResetMap()
+    {
+        return resetMap;
+    }
+    public void SetResetMap(bool resetMap)
+    {
+        this.resetMap = resetMap;
     }
 
 }

@@ -1137,7 +1137,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC120\uD0DD\uC644\uB8CC"
+  m_text: "\uB5A0\uB09C\uB2E4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9ec4b9453b8c73e4f8d68a13b54cfdbe, type: 2}
   m_sharedMaterial: {fileID: 7296648134193590559, guid: 9ec4b9453b8c73e4f8d68a13b54cfdbe, type: 2}
@@ -2142,6 +2142,7 @@ MonoBehaviour:
   rerollBtn: {fileID: 7218373398571712454}
   skipBtn: {fileID: 8974010392443145422}
   unitSelectUI: {fileID: 3972879801592090867}
+  itemToolTip: {fileID: 0}
 --- !u!1 &5756892776121294488
 GameObject:
   m_ObjectHideFlags: 0
@@ -2538,7 +2539,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB118\uAE30\uAE30\n"
+  m_text: "\uBC84\uB9AC\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9ec4b9453b8c73e4f8d68a13b54cfdbe, type: 2}
   m_sharedMaterial: {fileID: 7296648134193590559, guid: 9ec4b9453b8c73e4f8d68a13b54cfdbe, type: 2}
@@ -4043,7 +4044,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDetail: 0
   isItem: 0
   item:
     itemId: 0
@@ -4197,7 +4197,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDetail: 0
   isItem: 0
   item:
     itemId: 0
