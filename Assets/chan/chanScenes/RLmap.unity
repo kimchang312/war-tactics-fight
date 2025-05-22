@@ -1598,7 +1598,7 @@ MonoBehaviour:
   rewardUI: {fileID: 54003937}
   loadingPanel: {fileID: 596356319}
   itemToolTip: {fileID: 312884149}
-  mapPanel: {fileID: 0}
+  mapPanel: {fileID: 713579220}
   uIGenerator: {fileID: 2073471113}
   unitDetail: {fileID: 1855116624}
   currentStageX: 0
@@ -1606,6 +1606,7 @@ MonoBehaviour:
   currentStageType: 0
   playerMarkerPosition: {x: 0, y: 0, z: 0}
   _hasInitialized: 0
+  shouldRefreshUpgradeUI: 0
   playerMarker: {fileID: 1095627011}
   restUI: {fileID: 0}
   lockedColor: {r: 1, g: 1, b: 1, a: 1}
