@@ -139,8 +139,8 @@ public static class RewardManager
         Dictionary<int, int> rarityWeights = grade switch
         {
             1 => new() { { 1, 60 }, { 2, 37 }, { 3, 3 }, { 4, 0 } },
-            5 => new() { { 1, 50 }, { 2, 40 }, { 3, 10 }, { 4, 0 } },
-            10 => new() { { 1, 0 }, { 2, 50 }, { 3, 45 }, { 4, 5 } },
+            5 => new() { { 1, 40 }, { 2, 35 }, { 3, 15 }, { 4, 10 } },
+            10 => new() { { 1, 0 }, { 2, 40}, { 3, 40 }, { 4, 20 } },
             _ => new() { { 1, 100 } }
         };
 
@@ -188,7 +188,7 @@ public static class RewardManager
     {
         int morale = RogueLikeData.Instance.GetMorale();
         if (morale < 1) return true;
-        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyUnits();
+        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
             if (unit.energy > 0) return false; 

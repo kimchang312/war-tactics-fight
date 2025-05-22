@@ -1598,7 +1598,7 @@ MonoBehaviour:
   rewardUI: {fileID: 54003937}
   loadingPanel: {fileID: 596356319}
   itemToolTip: {fileID: 312884149}
-  mapPanel: {fileID: 0}
+  mapPanel: {fileID: 713579220}
   uIGenerator: {fileID: 2073471113}
   unitDetail: {fileID: 1855116624}
   currentStageX: 0

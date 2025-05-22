@@ -74,7 +74,6 @@ public class GameManager : MonoBehaviour
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
 
-        await GoogleSheetLoader.Instance.LoadUnitSheetData();
         SaveData save = new();
         save.LoadData();
         EventManager.LoadEventData();
@@ -91,7 +90,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
         // 맵 씬에 진입했을 때만
         allStages = FindObjectsOfType<StageNodeUI>().ToList();
-
+        HideAllPanels();
      UIManager.Instance.UIUpdateAll();
         InitializeStageLocks();
 

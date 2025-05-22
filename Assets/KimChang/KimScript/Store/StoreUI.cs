@@ -219,7 +219,7 @@ public class StoreUI : MonoBehaviour
         for (int i = 0; i < item.count; i++)
         {
             int idx = UnityEngine.Random.Range(0, filtered.Count);
-            var unit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(idx));
+            var unit = UnitLoader.Instance.GetCloneUnitById(idx);
             unit.energy = Math.Max(1, (int)((unit.energy * item.price) * 0.01f));
             result.Add(unit);
         }
@@ -228,7 +228,9 @@ public class StoreUI : MonoBehaviour
 
     private int CalculateUnitPackagePrice(List<RogueUnitDataBase> units, StoreItemData item)
     {
+        Debug.Log(units.Count + " " + units[0].unitPrice);
         int total = units.Sum(u => u.unitPrice);
+        Debug.Log(total);
         return (int)(total * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
     }
 
