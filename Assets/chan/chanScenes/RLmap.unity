@@ -1606,6 +1606,7 @@ MonoBehaviour:
   currentStageType: 0
   playerMarkerPosition: {x: 0, y: 0, z: 0}
   _hasInitialized: 0
+  shouldRefreshUpgradeUI: 0
   playerMarker: {fileID: 1095627011}
   restUI: {fileID: 0}
   lockedColor: {r: 1, g: 1, b: 1, a: 1}
