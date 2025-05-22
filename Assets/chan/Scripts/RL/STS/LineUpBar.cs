@@ -18,6 +18,8 @@ public class LineUpBar : MonoBehaviour
     }
     public void MakeUnitList()
     {
+        foreach (Transform child in contentParent)
+            Destroy(child.gameObject);
         // 데이터 꺼내오기
         var units = RogueLikeData.Instance.GetMyTeam();
 

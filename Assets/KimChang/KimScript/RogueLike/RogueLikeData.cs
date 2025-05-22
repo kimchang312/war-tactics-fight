@@ -159,6 +159,10 @@ public class RogueLikeData
         }
         else
         {
+            if(unit.idx == 63)
+            {
+                AcquireRelic(78);
+            }
             myTeam.Add(unit);
         }
         

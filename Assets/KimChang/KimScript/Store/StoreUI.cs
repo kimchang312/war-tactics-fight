@@ -219,7 +219,7 @@ public class StoreUI : MonoBehaviour
         for (int i = 0; i < item.count; i++)
         {
             int idx = UnityEngine.Random.Range(0, filtered.Count);
-            var unit = RogueUnitDataBase.ConvertToUnitDataBase(GoogleSheetLoader.Instance.GetRowUnitData(idx));
+            var unit = UnitLoader.Instance.GetCloneUnitById(idx);
             unit.energy = Math.Max(1, (int)((unit.energy * item.price) * 0.01f));
             result.Add(unit);
         }
@@ -228,7 +228,9 @@ public class StoreUI : MonoBehaviour
 
     private int CalculateUnitPackagePrice(List<RogueUnitDataBase> units, StoreItemData item)
     {
+        Debug.Log(units.Count + " " + units[0].unitPrice);
         int total = units.Sum(u => u.unitPrice);
+        Debug.Log(total);
         return (int)(total * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
     }
 
@@ -274,9 +276,9 @@ public class StoreUI : MonoBehaviour
     private void PurchaseUnitPackage(Button btn, List<RogueUnitDataBase> units, int price)
     {
         if (!SpendGold(price)) return;
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         myUnits.AddRange(units);
-        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+        RogueLikeData.Instance.SetMyTeam(myUnits);
         btn.transform.GetChild(2).gameObject.SetActive(true);
         btn.interactable = false;
     }
@@ -330,7 +332,7 @@ public class StoreUI : MonoBehaviour
         else if (item.form == "Random")
         {
             int amount = int.Parse(item.value);
-            var units = RogueLikeData.Instance.GetMyUnits().Where(u => u.energy < u.maxEnergy).ToList();
+            var units = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy < u.maxEnergy).ToList();
             if (units.Count == 0) return;
 
             for (int i = 0; i < units.Count; i++)
@@ -344,5 +346,9 @@ public class StoreUI : MonoBehaviour
                 units[i].energy = Math.Min(units[i].maxEnergy, units[i].energy + amount);
             }
         }
+    }
+    private void OnDisable()
+    {
+        GameManager.Instance.UpdateAllUI();
     }
 }

@@ -74,7 +74,6 @@ public class GameManager : MonoBehaviour
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
 
-        await GoogleSheetLoader.Instance.LoadUnitSheetData();
         SaveData save = new();
         save.LoadData();
         EventManager.LoadEventData();
@@ -87,9 +86,11 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      if (scene.name != "RLmap")
         return;
 
-     // 맵 씬에 진입했을 때만
-     allStages = FindObjectsOfType<StageNodeUI>().ToList();
+        CloseAllUI();
 
+        // 맵 씬에 진입했을 때만
+        allStages = FindObjectsOfType<StageNodeUI>().ToList();
+        HideAllPanels();
      UIManager.Instance.UIUpdateAll();
         InitializeStageLocks();
 
@@ -114,6 +115,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             RogueLikeData.Instance.SetResetMap(false);
             uIGenerator.RegenerateMap();
+            UpdateAllUI();
         }
         
     }
@@ -335,7 +337,9 @@ private void Start()
         eventManager.SetActive(false);
         storeManager.SetActive(false);
         unitDetail.gameObject.SetActive(false);
-
+        restPanel.SetActive(false);
+        enemyInfoPanel.SetActive(false);
+        rewardUI.gameObject.SetActive(false);
     }
 
     public void OpenBattlePanel()

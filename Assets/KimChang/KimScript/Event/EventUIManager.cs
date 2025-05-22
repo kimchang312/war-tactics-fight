@@ -165,5 +165,8 @@ public class EventUIManager : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
-
+    private void OnDisable()
+    {
+        GameManager.Instance.UpdateAllUI();
+    }
 }
