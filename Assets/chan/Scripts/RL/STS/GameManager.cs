@@ -40,6 +40,7 @@ public class GameManager : MonoBehaviour
 
     public bool IsPlaceMode { get; private set; }
     public bool _hasInitialized = false;
+    public bool shouldRefreshUpgradeUI = false;
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
@@ -108,6 +109,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             uIGenerator.RegenerateMap();
         }
+        // 전투 끝나고 돌아왔을 경우만 갱신 요청
+        GameManager.Instance.shouldRefreshUpgradeUI = true;
     }
 
 private void Start()

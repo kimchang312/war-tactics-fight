@@ -36,7 +36,19 @@ public class TopBar : MonoBehaviour
         academyPanel?.SetActive(false);
 
         relicsToggleButton?.onClick.AddListener(() => ToggleOnly(ownedRelicsPanel));
-        upgradeToggleButton?.onClick.AddListener(() => ToggleOnly(upgradePanel));
+        upgradeToggleButton?.onClick.AddListener(() => {
+            ToggleOnly(upgradePanel);
+
+            if (upgradePanel.activeSelf && GameManager.Instance.shouldRefreshUpgradeUI)
+            {
+                var upgradeUI = upgradePanel.GetComponent<UpgradeUI>();
+                if (upgradeUI != null)
+                {
+                    upgradeUI.ShowRandomChoices();
+                    GameManager.Instance.shouldRefreshUpgradeUI = false;
+                }
+            }
+        });
         upgradeStatusButton?.onClick.AddListener(() => ToggleOnly(upgradeStatusPanel));
         academyToggleButton?.onClick.AddListener(() => ToggleOnly(academyPanel));
         // 닫기 버튼에도 같은 토글 메서드 연결

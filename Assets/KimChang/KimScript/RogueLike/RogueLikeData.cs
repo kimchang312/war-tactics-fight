@@ -60,7 +60,7 @@ public class RogueLikeData
 
     private int rerollChance = 0;
 
-    private bool isFreeUpgrade =false;
+    public bool isFreeUpgrade =false;
 
     //실제 전투에 배치된 유닛 수
     private int battleUnitCount = 0;

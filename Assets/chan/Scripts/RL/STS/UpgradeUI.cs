@@ -25,7 +25,8 @@ public class UpgradeUI : MonoBehaviour
         public bool isAttack;
         public int currentLevel;
         public int nextLevel;
-        public int cost;
+        public int cost; // 보여지는 비용
+        public int originalCost; // 실제 적용되는 업그레이드 비용
         public string upgradeName;
         public string upgradeCost;
 
@@ -36,6 +37,7 @@ public class UpgradeUI : MonoBehaviour
             this.currentLevel = currentLevel;
             this.nextLevel = currentLevel + 1;
             this.cost = cost;
+            this.originalCost = cost;
 
             var typeName = UnitTypeNames[unitType];
             var upgradeType = isAttack ? "공격" : "방어";
@@ -59,7 +61,7 @@ public class UpgradeUI : MonoBehaviour
         UpdateRerollButton();
     }
 
-    private void ShowRandomChoices()
+    public void ShowRandomChoices()
     {
         // 1) 후보 리스트 다시 구성할 때, 매번 GetUpgrade 호출
         var options = new List<UpgradeOption>();
@@ -85,6 +87,15 @@ public class UpgradeUI : MonoBehaviour
             .OrderBy(_ => Random.value)
             .Take(3)
             .ToList();
+        // 무료업그레이드 라면
+        if (RogueLikeData.Instance.isFreeUpgrade == true)
+        {
+            foreach (var opt in _currentChoices)
+            {
+                opt.cost = 0;
+                opt.upgradeCost = "0";
+            }
+        }
 
         // 4) UI 갱신
         foreach (Transform t in optionContainer)
@@ -123,19 +134,49 @@ public class UpgradeUI : MonoBehaviour
     private void OnOptionClicked(UpgradeOption opt)
     {
         int cost = opt.cost;
-        int currentGold = RogueLikeData.Instance.GetCurrentGold();
-        if (currentGold < cost)
+        if (cost > 0)
         {
-            // 골드 부족 시 아무 동작 없이 즉시 리턴
-            Debug.Log("골드가 부족합니다.");
-            return;
+            int currentGold = RogueLikeData.Instance.GetCurrentGold();
+            if (currentGold < cost)
+            {
+                Debug.Log("골드가 부족합니다.");
+                return;
+            }
         }
 
         // 2) 강화 수행 (isPurchase=false 로 내부 중복 차감 방지)
         RogueLikeData.Instance.IncreaseUpgrade(opt.unitType, opt.isAttack, true);
 
+        // 버튼 찾기: 현재 선택된 opt와 동일한 버튼 찾아서 비활성화
+        foreach (Transform child in optionContainer)
+        {
+            var nameTxt = child.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
+            var costTxt = child.Find("UpgradeCost")?.GetComponent<TextMeshProUGUI>();
+            var btn = child.GetComponent<Button>();
+
+            if (btn != null && btn.interactable && nameTxt.text != opt.upgradeName)
+            {
+                var matched = _currentChoices.FirstOrDefault(o => o.upgradeName == nameTxt.text);
+                if (matched != null && matched.cost == 0)
+                {
+                    matched.cost = matched.originalCost;
+                    matched.upgradeCost = matched.originalCost.ToString();
+                    costTxt.text = matched.upgradeCost;
+                }
+            }
+        }
+        foreach (Transform child in optionContainer)
+        {
+            var nameTxt = child.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
+            if (nameTxt != null && nameTxt.text == opt.upgradeName)
+            {
+                var btn = child.GetComponent<Button>();
+                if (btn != null)
+                    btn.interactable = false;
+                break;
+            }
+        }
         // 3) UI 갱신
-        ShowRandomChoices();
         UIManager.Instance.UIUpdateAll();
     }
     private void OnRerollClicked()
