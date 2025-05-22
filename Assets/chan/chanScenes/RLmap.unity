@@ -16292,6 +16292,10 @@ PrefabInstance:
       value: 146
       objectReference: {fileID: 0}
     - target: {fileID: 1281087862747196878, guid: 2a5295f387b8898448466aa170be423d, type: 3}
+      propertyPath: branchText
+      value: 
+      objectReference: {fileID: 394282284}
+    - target: {fileID: 1281087862747196878, guid: 2a5295f387b8898448466aa170be423d, type: 3}
       propertyPath: objectPool
       value: 
       objectReference: {fileID: 1978038991}
