@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -7,6 +8,7 @@ public class UnitDetailExplain : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI tagText;
+    [SerializeField] private TextMeshProUGUI branchText;
     [SerializeField] private TextMeshProUGUI rarityText;
     [SerializeField] private TextMeshProUGUI energyText;
     //[SerializeField] private TextMeshProUGUI unitExplainText;
@@ -31,7 +33,18 @@ public class UnitDetailExplain : MonoBehaviour
     public RogueUnitDataBase unit;
     private RogueUnitDataBase cacheData;
 
-
+    private readonly Dictionary<int, string> branchName = new Dictionary<int, string>()
+    {
+        {0,"창병" },
+        {1,"전사" },
+        {2,"궁병" },
+        {3,"중보병" },
+        {4,"암살자" },
+        {5,"경기병" },
+        {6,"중기병" },
+        {7,"지원" },
+        {8,"영웅" }
+    };
     private void Awake()
     {
         xBtn.onClick.AddListener(ClickXBtn);
@@ -48,6 +61,7 @@ public class UnitDetailExplain : MonoBehaviour
 
         nameText.text = unit.unitName;
         tagText.text = $"태그: {unit.tag}";
+        branchText.text = $"병종: {branchName[unit.branchIdx]}";
         rarityText.text = $"희귀도: {unit.rarity}";
         energyText.text = $"현재 기력: {unit.energy}";
         healthText.text = $"체력: {unit.maxHealth}";

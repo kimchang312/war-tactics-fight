@@ -11,7 +11,7 @@ public class NewBehaviourScript : MonoBehaviour
     [SerializeField] private Button xbtn;
 
     private List<WarRelic> cacheData;
-
+    
     private void Awake()
     {
          xbtn.onClick.AddListener(CloseRelic);

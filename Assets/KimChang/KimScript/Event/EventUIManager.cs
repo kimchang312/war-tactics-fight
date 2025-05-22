@@ -113,7 +113,8 @@ public class EventUIManager : MonoBehaviour
     {
         List<RogueUnitDataBase> myUnits =RogueLikeData.Instance.GetMyUnits();
         List<RogueUnitDataBase> selectUnits = new();
-        for(int i =0; i< choiceData.requireForm.Count; i++)
+        int requiredCount = choiceData.requireForm.Count;
+        for (int i =0; i< choiceData.requireForm.Count; i++)
         {
             if (choiceData.requireForm[i] != RequireForm.Select) continue;
             switch (choiceData.requireThing[i])
@@ -141,7 +142,7 @@ public class EventUIManager : MonoBehaviour
             }
         }
         unitSelectUI.gameObject.SetActive(true);
-        unitSelectUI.OpenSelectUnitWindow(()=>HandleChoice(choiceData),selectUnits);
+        unitSelectUI.OpenSelectUnitWindow(()=>HandleChoice(choiceData),selectUnits,requiredCount);
     }
 
     //전체 초기화

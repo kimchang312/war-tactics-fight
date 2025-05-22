@@ -207,19 +207,37 @@ public class StoreUI : MonoBehaviour
     private List<RogueUnitDataBase> FilterAndSelectUnits(StoreItemData item)
     {
         var allUnits = UnitLoader.Instance.GetAllCachedUnits();
+
         List<RogueUnitDataBase> filtered = item.form switch
         {
-            "Rarity" => EventManager.ParseRange(item.value) is var (min, max) ? allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList() : new(),
-            "Branch" => int.TryParse(item.value, out var b) ? allUnits.Where(u => u.branchIdx == b).ToList() : new(),
-            "Tag" => int.TryParse(item.value, out var t) ? allUnits.Where(u => u.tagIdx == t).ToList() : new(),
+            "Rarity" => item.value.Contains("~")
+                ? EventManager.ParseRange(item.value) is var (min, max)
+                    ? allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList()
+                    : new()
+                : int.TryParse(item.value, out var exact)
+                    ? allUnits.Where(u => u.rarity == exact).ToList()
+                    : new(),
+
+            "Branch" => int.TryParse(item.value, out var b)
+                ? allUnits.Where(u => u.branchIdx == b).ToList()
+                : new(),
+
+            "Tag" => int.TryParse(item.value, out var t)
+                ? allUnits.Where(u => u.tagIdx == t).ToList()
+                : new(),
+
             _ => new()
         };
-
+        
         List<RogueUnitDataBase> result = new();
         for (int i = 0; i < item.count; i++)
         {
-            int idx = UnityEngine.Random.Range(0, filtered.Count);
-            var unit = UnitLoader.Instance.GetCloneUnitById(idx);
+            if (filtered.Count == 0) break;
+
+            int rand = UnityEngine.Random.Range(0, filtered.Count);
+            RogueUnitDataBase baseUnit = filtered[rand];
+            RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(baseUnit.idx);
+
             unit.energy = Math.Max(1, (int)((unit.energy * item.price) * 0.01f));
             result.Add(unit);
         }
@@ -228,9 +246,7 @@ public class StoreUI : MonoBehaviour
 
     private int CalculateUnitPackagePrice(List<RogueUnitDataBase> units, StoreItemData item)
     {
-        Debug.Log(units.Count + " " + units[0].unitPrice);
         int total = units.Sum(u => u.unitPrice);
-        Debug.Log(total);
         return (int)(total * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
     }
 
@@ -322,12 +338,22 @@ public class StoreUI : MonoBehaviour
             var selected = RogueLikeData.Instance.GetSelectedUnits();
             if (selected == null || selected.Count < item.count)
             {
+                var canSelectUnits = RogueLikeData.Instance.GetMyUnits()
+                .Where(u => u.energy < u.maxEnergy)
+                .ToList();
+
+            if (canSelectUnits.Count < item.count)
+                return;
+
                 unitSelectUI.gameObject.SetActive(true);
-                unitSelectUI.OpenSelectUnitWindow(() => PurChaseItem(btn, item, int.Parse(item.price.ToString())));
+                unitSelectUI.OpenSelectUnitWindow(() => PurChaseItem(btn, item, int.Parse(item.price.ToString())),null,item.count);
                 return;
             }
             foreach (var unit in selected)
+            {
                 unit.energy = Math.Min(unit.maxEnergy, unit.energy + int.Parse(item.value));
+            }
+
         }
         else if (item.form == "Random")
         {

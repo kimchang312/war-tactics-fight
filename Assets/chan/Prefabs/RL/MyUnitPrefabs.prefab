@@ -201,8 +201,79 @@ MonoBehaviour:
   energyText: {fileID: 6911676212104947843}
   unitNumbering: {fileID: 2290540363334881218}
   placeOrder: {fileID: 5913437058363414193}
+  PrefabType: 0
   numberTextObject: {fileID: 4471907609147974051}
   numberText: {fileID: 5913437058363414193}
+  unitId: 0
+  uniqueId: 0
+  unitData:
+    idx: 0
+    unitName: 
+    unitBranch: 
+    branchIdx: 0
+    unitId: 
+    unitExplain: 
+    unitImg: 
+    unitFaction: 
+    factionIdx: 0
+    tag: 
+    tagIdx: 0
+    unitPrice: 0
+    rarity: 0
+    baseHealth: 0
+    baseArmor: 0
+    baseAttackDamage: 0
+    baseMobility: 0
+    baseRange: 0
+    baseAntiCavalry: 0
+    baseEnergy: 0
+    health: 0
+    armor: 0
+    attackDamage: 0
+    mobility: 0
+    range: 0
+    antiCavalry: 0
+    energy: 0
+    lightArmor: 0
+    heavyArmor: 0
+    rangedAttack: 0
+    bluntWeapon: 0
+    pierce: 0
+    agility: 0
+    strongCharge: 0
+    perfectAccuracy: 0
+    slaughter: 0
+    bindingForce: 0
+    bravery: 0
+    suppression: 0
+    plunder: 0
+    doubleShot: 0
+    scorching: 0
+    thorns: 0
+    endless: 0
+    impact: 0
+    healing: 0
+    lifeDrain: 0
+    charge: 0
+    defense: 0
+    throwSpear: 0
+    guerrilla: 0
+    guard: 0
+    assassination: 0
+    drain: 0
+    overwhelm: 0
+    martyrdom: 0
+    wounding: 0
+    vengeance: 0
+    counter: 0
+    firstStrike: 0
+    challenge: 0
+    smokeScreen: 0
+    maxHealth: 0
+    maxEnergy: 0
+    alive: 0
+    fStriked: 0
+    UniqueId: 0
 --- !u!1 &4301364976155505636
 GameObject:
   m_ObjectHideFlags: 0

@@ -807,16 +807,12 @@ public class RogueLikeData
     }
     public void ResetToDefault()
     {
-        
-        // 유물 초기화
         ResetOwnedRelics();
 
-        // 스테이지 위치 초기화
         currentStageX = 1;
         currentStageY = 0;
         currentStageType = StageType.Combat;
 
-        // 챕터 및 전투 수치 초기화
         chapter = 1;
         currentGold = 150;
         spentGold = 0;
@@ -826,15 +822,12 @@ public class RogueLikeData
         rerollChance = 2;
         score = 0;
         upgradeValues = new UnitUpgrade[9];
-        // 유닛 초기화: 기본 유닛 로드
         var baseUnits = RogueUnitDataBase.GetBaseUnits();
         SetMyTeam(baseUnits);
         SetAllMyUnits(baseUnits);
 
-        // 이벤트 초기화
         encounteredEvent.Clear();
 
-        // 데미지 배율 초기화
         ResetFinalDamage();
     }
 
