@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using DG.Tweening;
 
 [RequireComponent(typeof(CanvasGroup), typeof(Button), typeof(Image))]
 public class StageNodeUI : MonoBehaviour, IPointerClickHandler
@@ -39,12 +40,17 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private int presetID;
     public int PresetID => presetID;
 
+    private GameObject effectObject;
+    private Tween pulseTween;
+
     private void Awake()
     {
         // 컴포넌트가 무조건 붙어 있으므로 GetComponent로 캐시
-        canvasGroup = GetComponent<CanvasGroup>();
-        button = GetComponent<Button>();
-        image = GetComponent<Image>();
+        CacheComponents();
+
+        effectObject = transform.Find("SelectableEffect")?.gameObject;
+        if (effectObject != null)
+            effectObject.SetActive(false);
     }
 
     private void OnEnable()
@@ -109,6 +115,7 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
             canvasGroup.interactable = false;
         }
         if (button != null) button.interactable = false;
+        StopSelectableEffect(); // 🔽 효과 중지
     }
 
     
@@ -123,6 +130,7 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
             canvasGroup.interactable = true;
         }
         if (button != null) button.interactable = true;
+        PlaySelectableEffect(); // 🔽 효과 시작
     }
 
 
@@ -131,5 +139,26 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public bool IsConnectedTo(StageNodeUI other)
     {
         return connectedStages.Contains(other);
+    }
+
+    // ✅ 선택 가능 효과 시작
+    public void PlaySelectableEffect()
+    {
+        transform.localScale = Vector3.one;
+
+        pulseTween?.Kill();
+        pulseTween = transform
+            .DOScale(1.1f, 0.6f)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutSine)
+            .SetId(this);
+    }
+
+    // ✅ 선택 효과 제거
+    public void StopSelectableEffect()
+    {
+        pulseTween?.Kill();
+        pulseTween = null;
+        transform.localScale = Vector3.one;
     }
 }

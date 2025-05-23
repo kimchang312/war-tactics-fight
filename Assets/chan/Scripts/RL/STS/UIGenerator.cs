@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class UIGenerator : MonoBehaviour
 {
@@ -71,19 +72,10 @@ public class UIGenerator : MonoBehaviour
         {
             var child = mapPanel.GetChild(i);
             var isMarker = child.gameObject.GetComponent<PlayerMarkerTag>() != null;
-
-            Debug.Log($"🧹 ClearUI: {(isMarker ? "KEEP" : "DESTROY")} {child.name}");
-            if (child.name == "PlayerMarker")
+            if (DOTween.IsTweening(child))
             {
-                Debug.Log("✅ PlayerMarker 이름으로 보호됨");
-                continue;
+                DOTween.Kill(child, true);  // true: 완전히 제거
             }
-            if (isMarker)
-            {
-                Debug.Log($"✅ 마커 유지됨: {child.name}, activeSelf={child.gameObject.activeSelf}, parent={child.parent.name}");
-                continue;
-            }
-
             Destroy(child.gameObject);
         }
 

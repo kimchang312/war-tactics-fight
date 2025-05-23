@@ -104,7 +104,15 @@ public class StoreUI : MonoBehaviour
     {
         cachedRerollItem = StoreManager.GetRandomDiceItem()[0];
         int cost = CalculateDiscountedPrice(cachedRerollItem);
-        SetStoreSlotUI(rerollObject, cachedRerollItem, cost, "ItemImages/Item60", null, int.Parse(cachedRerollItem.value));
+        //SetStoreSlotUI(rerollObject, cachedRerollItem, cost, "ItemImages/Item60", null, int.Parse(cachedRerollItem.value));
+        SetStoreSlotUI(
+        rerollObject,
+        cachedRerollItem,
+        cost,
+        "ItemImages/Item60",
+        () => PurChaseItem(rerollObject.GetComponent<Button>(), cachedRerollItem, cost),
+        int.Parse(cachedRerollItem.value)
+    );
     }
 
     private void RefreshStorePrices()
@@ -323,7 +331,9 @@ public class StoreUI : MonoBehaviour
                 RogueLikeData.Instance.ChangeMorale(int.Parse(item.value));
                 break;
             case "Reroll":
-                RogueLikeData.Instance.AddRerollChange(item.count);
+                RogueLikeData.Instance.AddReroll(item.count);
+                Debug.Log($"🟢 리롤 획득 → 현재 리롤 수: {RogueLikeData.Instance.GetRerollChance()}");
+                UIManager.Instance.UpdateReroll();
                 break;
         }
 

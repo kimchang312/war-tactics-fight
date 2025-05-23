@@ -144,8 +144,17 @@ public class UpgradeUI : MonoBehaviour
             }
         }
 
+        // 기존 레벨 확인
+        int before = RogueLikeData.Instance.GetUpgrade(opt.unitType, opt.isAttack);
+        Debug.Log($"🛠️ 업그레이드 전: {UpgradeOption.UnitTypeNames[opt.unitType]} {(opt.isAttack ? "공격" : "방어")} 레벨 {before}");
+
         // 2) 강화 수행 (isPurchase=false 로 내부 중복 차감 방지)
         RogueLikeData.Instance.IncreaseUpgrade(opt.unitType, opt.isAttack, true);
+
+        // 이후 레벨 확인
+        int after = RogueLikeData.Instance.GetUpgrade(opt.unitType, opt.isAttack);
+        Debug.Log($"✅ 업그레이드 후: {UpgradeOption.UnitTypeNames[opt.unitType]} {(opt.isAttack ? "공격" : "방어")} 레벨 {after}");
+
 
         // 버튼 찾기: 현재 선택된 opt와 동일한 버튼 찾아서 비활성화
         foreach (Transform child in optionContainer)
