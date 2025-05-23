@@ -564,7 +564,6 @@ public class AutoBattleManager : MonoBehaviour
         {
             RogueLikeData.Instance.AddSariStack(3);
         }
-
         SaveData saveData = new SaveData();
         saveData.SaveDataBattaleEnd(myUnits, myDeathUnits);
     }

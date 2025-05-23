@@ -381,6 +381,22 @@ public class RogueUnitDataBase
         }
         return myUnits;
     }
+    public static void SetMyTeamNoramlize()
+    {
+        var myTeam = RogueLikeData.Instance.GetMyTeam();
+        foreach (var unit in myTeam)
+        {
+            unit.maxHealth = unit.baseHealth;
+            unit.health = unit.maxHealth;
+            unit.attackDamage= unit.baseAttackDamage;
+            unit.armor = unit.baseArmor;
+            unit.mobility= unit.baseMobility;
+            unit.range = unit.baseRange;
+            unit.antiCavalry= unit.baseAntiCavalry;
+            unit.fStriked = false;
+        }
+
+    }
 
     public static List<RogueUnitDataBase> GetBaseUnits()
     {

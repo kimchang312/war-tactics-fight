@@ -411,11 +411,24 @@ public class EventManager
                     else if (form == RequireForm.Random)
                     {
                         var myUnits = RogueLikeData.Instance.GetMyTeam();
-                        int maxRarity = int.Parse(value);
                         int unitCount = int.Parse(count);
 
+                        int minRarity, maxRarity;
+
+                        if (value.Contains("~"))
+                        {
+                            var split = value.Split('~');
+                            minRarity = int.Parse(split[0]);
+                            maxRarity = int.Parse(split[1]);
+                        }
+                        else
+                        {
+                            minRarity = 1;
+                            maxRarity = int.Parse(value);
+                        }
+
                         var candidates = myUnits
-                            .Where(unit => unit.rarity <= maxRarity)
+                            .Where(unit => unit.rarity >= minRarity && unit.rarity <= maxRarity)
                             .OrderBy(_ => UnityEngine.Random.value)
                             .Take(unitCount)
                             .ToList();
@@ -423,6 +436,7 @@ public class EventManager
                         var currentUnits = RogueLikeData.Instance.GetMyTeam();
                         currentUnits.RemoveAll(unit => candidates.Contains(unit));
                         RogueLikeData.Instance.SetMyTeam(currentUnits);
+
                         foreach (var unit in candidates)
                         {
                             RogueLikeData.Instance.AddSelectedUnits(unit);
