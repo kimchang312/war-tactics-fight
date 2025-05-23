@@ -10,19 +10,33 @@ public class UnitSelectUI : MonoBehaviour
     [SerializeField] private GameObject selectUnitParent;
     [SerializeField] private ObjectPool objectPool;
 
+    private Action onSelectAction;
+    private int requireCount = 1;
+    private List<RogueUnitDataBase> availableUnits;
+
     private void Awake()
     {
         gameObject.SetActive(false);
     }
 
-    public void OpenSelectUnitWindow(Action func, List<RogueUnitDataBase> selectUnits = null)
+    public void OpenSelectUnitWindow(Action func, List<RogueUnitDataBase> selectUnits = null, int requiredCount = 1)
     {
+        onSelectAction = func;
+        requireCount = requiredCount;
+
         objectPool.ReturnSelectUnit(selectUnitParent);
 
-        selectUnits ??= RogueLikeData.Instance.GetMyTeam();
+        availableUnits = selectUnits ?? RogueLikeData.Instance.GetMyTeam();
 
-        // 3. 유닛 UI 생성
-        foreach (var unit in selectUnits)
+        var selected = RogueLikeData.Instance.GetSelectedUnits();
+        if (selected != null && selected.Count >= requireCount)
+        {
+            onSelectAction?.Invoke();
+            gameObject.SetActive(false);
+            return;
+        }
+
+        foreach (var unit in availableUnits)
         {
             GameObject selectedUnit = objectPool.GetSelectUnit();
             UIMaker.CreateSelectUnitEnergy(unit, selectedUnit);
@@ -30,16 +44,24 @@ public class UnitSelectUI : MonoBehaviour
 
             RogueUnitDataBase copy = unit;
             Button btn = selectedUnit.GetComponent<Button>();
-            btn.onClick.AddListener(() => AddSelectedUnits(func, copy));
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() => AddSelectedUnits(copy));
+        }
+
+        gameObject.SetActive(true);
+    }
+
+    private void AddSelectedUnits(RogueUnitDataBase unit)
+    {
+        if (RogueLikeData.Instance.GetSelectedUnits().Contains(unit))
+            return;
+
+        RogueLikeData.Instance.AddSelectedUnits(unit);
+
+        if (RogueLikeData.Instance.GetSelectedUnits().Count >= requireCount)
+        {
+            gameObject.SetActive(false);
+            onSelectAction?.Invoke();
         }
     }
-
-
-    private void AddSelectedUnits(Action func,RogueUnitDataBase unit)
-    {
-        RogueLikeData.Instance.AddSelectedUnits(unit);
-        gameObject.SetActive(false);
-        func();
-    }
-
 }

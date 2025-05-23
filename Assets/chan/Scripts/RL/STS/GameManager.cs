@@ -110,6 +110,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             uIGenerator.RegenerateMap();
         }
+        else if (RogueLikeData.Instance.GetResetMap())
+        {
+            SetCurrentStageNull();
+            if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
+            RogueLikeData.Instance.SetResetMap(false);
+            uIGenerator.RegenerateMap();
+        }
+
         // 전투 끝나고 돌아왔을 경우만 갱신 요청
         GameManager.Instance.shouldRefreshUpgradeUI = true;
 

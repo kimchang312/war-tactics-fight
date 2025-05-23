@@ -365,11 +365,7 @@ public class AutoBattleUI : MonoBehaviour
 
             itemInfo.isItem = false;
             int? idx = GameTextData.GetIdxFromString(attr.Name);
-            if (attr.Name == "defense")
-            {
-                itemInfo.abilityId = 129;
-            }
-            else if (idx.HasValue)
+            if (idx.HasValue)
             {
                 itemInfo.abilityId = idx.Value;
             }

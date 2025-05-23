@@ -635,12 +635,11 @@ public class EventManager
                     {
                         int unitId = int.Parse(value);
                         int unitCount = int.Parse(count);
-                        var row = GoogleSheetLoader.Instance.GetRowUnitData(unitId);
                         for (int k = 0; k < unitCount; k++)
                         {
-                            RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(row);
+                            RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(unitId);
                             RogueLikeData.Instance.AddMyUnis(unit);
-                            resultLog += $"- {row[1]}이(가) 추가되었습니다.";
+                            resultLog += $"- {unit.unitName}이(가) 추가되었습니다.";
                         }
                     }
                     else if (form == ResultForm.Random)
@@ -700,7 +699,7 @@ public class EventManager
                             for(int k = 0; k < unitCount; k++)
                             {
                                 int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
-                                validUnits.RemoveAt(randIndex); // 중복 방지
+                                validUnits.RemoveAt(randIndex);
                                 RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(validUnits[randIndex].idx);
                                 if (isBattle)
                                 {
@@ -1019,6 +1018,7 @@ public class EventManager
                     {
                         int fieldId = int.Parse(value);
                         RogueLikeData.Instance.SetFieldId(fieldId);
+                        resultLog += "다음 전장이 변경되었습니다.";
                     }
                     break;
                 default:

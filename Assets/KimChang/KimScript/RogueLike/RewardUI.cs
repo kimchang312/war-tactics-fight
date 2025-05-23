@@ -22,8 +22,8 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private Button rerollBtn;
     [SerializeField] private Button skipBtn;
     [SerializeField] private UnitSelectUI unitSelectUI;
-    //[SerializeField] private GameObject endingWindow;
-
+    [SerializeField] private GameObject endingWindow;
+    [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private GameObject itemToolTip;
     SaveData saveData = new SaveData();
 
@@ -33,7 +33,15 @@ public class RewardUI : MonoBehaviour
         ResetUI();
         transform.SetAsLastSibling();
     }
-  
+    private void Update()
+    {
+        if (!isEnd) return;
+        if (Input.GetKeyUp(KeyCode.Escape))
+        {
+            GameManager.Instance.SetCurrentStageNull();
+            SceneManager.LoadScene("Title");
+        }
+    }
     public void CreateTeasureUI()
     {
         backFrame.SetActive(true);
@@ -79,13 +87,9 @@ public class RewardUI : MonoBehaviour
             var type = RogueLikeData.Instance.GetCurrentStageType();
             if(chapter==3 && type== StageType.Boss)
             {
-                //endingWindow.SetActive(true);
-                resultText.text = "정복";
-                moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"점수: {RogueLikeData.Instance.GetScore()}";
-                goldResult.GetComponentInChildren<TextMeshProUGUI>().text = "  타이틀 화면으로";
-                goldResult.AddComponent<Button>().onClick.AddListener(() => SceneManager.LoadScene("Title"));
-                goldResult.transform.SetAsLastSibling();
-                leaveBtn.gameObject.SetActive(false);
+                endingWindow.SetActive(true);
+                isEnd =true;
+                scoreText.text = $"점수: {RogueLikeData.Instance.GetScore()}";
             }
 
             if (HasUnitReward(reward))
@@ -129,7 +133,7 @@ public class RewardUI : MonoBehaviour
         rewardSelectObj.SetActive(false);
         retryBtn.gameObject.SetActive(false);
         goTitleBtn.gameObject.SetActive(false);
-        //endingWindow.SetActive(false);
+        endingWindow?.SetActive(false);
         foreach (Transform child in selectRewards.transform)
             child.gameObject.SetActive(false);
 
@@ -247,9 +251,8 @@ public class RewardUI : MonoBehaviour
             RogueLikeData.Instance.AcquireRelic(info.relicId);
             if (info.relicId == 79)
             {
-                Debug.Log("기이한 조각");
                 unitSelectUI.gameObject.SetActive(true);
-                unitSelectUI.OpenSelectUnitWindow(SelectUnitEndless);
+                unitSelectUI.OpenSelectUnitWindow(SelectUnitEndless, null, 1);
                 return;
             }
         }

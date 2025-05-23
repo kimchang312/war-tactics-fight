@@ -106,7 +106,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         {
             var relic = WarRelicDatabase.GetRelicById(info.relicId);
             if (relic != null)
-                textComponent.text = $"{relic.name}\n{relic.tooltip}";
+                textComponent.text = $"{relic.name}+ ${gradeText[relic.grade]}\n{relic.tooltip}";
             else
                 textComponent.text = "유산 정보를 찾을 수 없습니다.";
         }
