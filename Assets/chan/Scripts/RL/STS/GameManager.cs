@@ -97,6 +97,16 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      UIManager.Instance.UIUpdateAll();
         InitializeStageLocks();
 
+        if (playerMarker == null)
+        {
+            Debug.Log("🔄 playerMarker null → 새로 생성");
+            uIGenerator.EnsurePlayerMarker();  // ← 프리팹에서 다시 생성
+        }
+        // 마커 위치도 복원
+        if (playerMarker != null && currentStage != null)
+        {
+            MovePlayerMarkerTo(currentStage);
+        }
 
 
         if (RogueLikeData.Instance.GetClearChpater())
@@ -302,6 +312,7 @@ private void Start()
         enemyInfoPanel.SetActive(false); //250515 적 정보 패널 false
         PlacePanel.SetActive(false);
         currentStage.UnlockStage();
+        currentStage.StopSelectableEffect();
         foreach (var nxt in currentStage.connectedStages)
             nxt.UnlockStage();
 
