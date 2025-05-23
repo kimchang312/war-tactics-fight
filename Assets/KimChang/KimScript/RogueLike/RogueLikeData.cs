@@ -584,6 +584,10 @@ public class RogueLikeData
     {
         battleReward.rerollChance += addReroll;
     }
+    public void AddReroll(int addReroll)
+    {
+        rerollChance += addReroll;
+    }
     public void AddRelicReward(int setRelicId)
     {
         battleReward.relicIds.Add(setRelicId);

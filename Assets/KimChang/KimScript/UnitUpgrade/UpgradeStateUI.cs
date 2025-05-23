@@ -35,9 +35,11 @@ public class UpgradeStateUI : MonoBehaviour
     private void OnEnable()
     {
         UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
+        /* 전술개량 업그레이드 후 바로 ui 반영하기 위해서 주석처리.
+         * 캐시데이터는 받아놓고 실시간 업데이트가 안됌.
         if (cacheData == upgrades) return;
 
-        cacheData = upgrades;
+        cacheData = upgrades;*/
 
         spearAttackText.text = upgrades[0].attackLevel.ToString();
         spearDeffenseText.text = upgrades[0].defenseLevel.ToString();

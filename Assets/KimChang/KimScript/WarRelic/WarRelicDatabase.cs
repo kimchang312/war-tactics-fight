@@ -28,7 +28,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(10, "광전사의 갑옷", 10, "적이 받는 피해가 20% 증가하고, 아군 유닛의 장갑이 1 감소한다. (0 미만으로 내려가지 않음)", RelicType.StateBoost, () => FlagOfMadness()));
         relics.Add(new WarRelic(11, "용기의 버섯", 10, "아군의 배치가 무작위 순서로 배치된다. 아군 유닛의 체력과 공격력이 30% 증가하고, 아군 궁병의 사거리가 1 증가한다.", RelicType.StateBoost, () => FlagOfChaos()));
         relics.Add(new WarRelic(12, "위대한 지휘관의 훈장", 10, "배치된 유닛들의 이름 중에 중복되는 이름이 없다면 부대 상한이 3 증가하며, 체력과 공격력이 20% 증가한다.", RelicType.StateBoost, () => MedalOfGreatCommander()));
-        relics.Add(new WarRelic(13, "유연성의 부적", 10, "가진 유닛 병종의 종류가 늘어날 시 아군 유닛의 체력과 공격력이 6% 증가한다. 모든 병종의 유닛을 각 둘 이상 소유했다면, 모든 강화의 단계가 1단계 상승한다.", RelicType.StateBoost, () => AmuletOfFlexibility()));
+        relics.Add(new WarRelic(13, "체스판", 10, "가진 유닛 병종의 종류가 늘어날 시 아군 유닛의 체력과 공격력이 6% 증가한다. 모든 병종의 유닛을 각 둘 이상 소유했다면, 모든 강화의 단계가 1단계 상승한다.", RelicType.StateBoost, () => AmuletOfFlexibility()));
         relics.Add(new WarRelic(14, "가시 갑옷", 10, "중갑을 특성을 가진 아군 유닛에게 가시 특성을 부여한다. 원래 가시를 가진 유닛은 장갑이 2 증가한다.", RelicType.StateBoost, () => ReactiveThornArmor()));
         relics.Add(new WarRelic(15, "수호자의 훈장", 10, "수호 스킬을 가진 아군 유닛의 장갑이 4 증가하고, 공격 받을때 피해를 둘로 나눠서 받는다.", RelicType.ActiveState, () => MedalOfImperialGuard()));
         relics.Add(new WarRelic(16, "헤르메스 신발", 10, "경갑 유닛의 기동력이 8 증가한다.", RelicType.StateBoost, () => VeryLightMilitaryPants()));

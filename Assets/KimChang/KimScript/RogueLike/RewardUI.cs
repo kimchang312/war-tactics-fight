@@ -104,7 +104,7 @@ public class RewardUI : MonoBehaviour
                 relicResult.gameObject.SetActive(true);
             }
 
-            RogueLikeData.Instance.AddRerollChange(reward.rerollChance);
+            RogueLikeData.Instance.AddReroll(reward.rerollChance);
         }
         else if (isGameOver)
         {
