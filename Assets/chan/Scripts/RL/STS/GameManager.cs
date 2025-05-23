@@ -44,7 +44,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
-    public RectTransform playerMarker;
+    [SerializeField] public GameObject playerMarkerPrefab; // ✅ 에디터에서 연결
+    public RectTransform playerMarker { get; set; }  // 생성 후 보관
 
     [Header("Rest Event")]
     public RestUI restUI;   // 에디터에서 할당
@@ -80,6 +81,7 @@ public class GameManager : MonoBehaviour
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
         UnitLoader.Instance.LoadUnitsFromJson();
+        
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -238,11 +240,12 @@ private void Start()
         {
             storeManager.SetActive(true);
         }
-        else if(newStage.stageType == StageType.Treasure)
+        else if (newStage.stageType == StageType.Treasure)
         {
             rewardUI.gameObject.SetActive(true);
             rewardUI.CreateTeasureUI();
         }
+        Debug.Log($"📌 SetCurrentStage: {newStage.level}_{newStage.row}");
     }
 
 
@@ -250,11 +253,22 @@ private void Start()
     private void MovePlayerMarkerTo(StageNodeUI target)
     {
         if (playerMarker == null)
+        {
+            Debug.Log("marker null");
             return;
-        RectTransform rt = target.GetComponent<RectTransform>();
-        playerMarker.anchoredPosition = rt.anchoredPosition;
-    }
+        }
 
+        RectTransform rt = target.GetComponent<RectTransform>();
+        Debug.Log($"📍 마커 이동 → {rt.anchoredPosition}");
+        playerMarker.anchoredPosition = rt.anchoredPosition;
+        // ✅ 첫 이동 시 마커를 활성화
+        if (!playerMarker.gameObject.activeSelf)
+        {
+            playerMarker.gameObject.SetActive(true);
+            Debug.Log("🟢 PlayerMarker 첫 활성화됨");
+        }
+
+    }
     public void InitializeStageLocks()
     {
         mapCanvas.SetActive(true);
