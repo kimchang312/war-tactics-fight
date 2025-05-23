@@ -19,6 +19,8 @@ public class EnemyInfoPanel : MonoBehaviour
     public TextMeshProUGUI commanderSkillText;  // 지휘관 스킬 이름
     [Header("버튼")]
     [SerializeField] private Button placeButton;
+    [Header("맹인 효과")]
+    [SerializeField] private GameObject blindText;
 
     public void ShowEnemyInfo(StageType stageType,
                               List<RogueUnitDataBase> enemies,
@@ -26,6 +28,30 @@ public class EnemyInfoPanel : MonoBehaviour
                              string commanderSkill*/)
     
         {
+        // 👉 맹인 유산 확인
+        if (RelicManager.CheckRelicById(36))
+        {
+            // 모든 기존 UI 비활성화
+            battleTypeText.gameObject.SetActive(false);
+            commanderInfo.SetActive(false);
+            unitCountText.gameObject.SetActive(false);
+            enemyContainer.gameObject.SetActive(false);
+            placeButton.gameObject.SetActive(false);
+
+            blindText.SetActive(true);
+            blindText.GetComponent<TextMeshProUGUI>().text = "맹인전사의 안대 보유 효과로 적 정보가 표시되지 않습니다.";
+            gameObject.SetActive(true);
+            return;
+        }
+
+        // ✨ 평소처럼 UI 표시
+        blindText.SetActive(false);
+        battleTypeText.gameObject.SetActive(true);
+        commanderInfo.SetActive(true);
+        unitCountText.gameObject.SetActive(true);
+        enemyContainer.gameObject.SetActive(true);
+        placeButton.gameObject.SetActive(true);
+
         // 1) 전투 타입 문구
         switch (stageType)
         {
