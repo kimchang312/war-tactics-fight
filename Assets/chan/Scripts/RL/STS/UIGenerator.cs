@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class UIGenerator : MonoBehaviour
 {
@@ -61,20 +62,35 @@ public class UIGenerator : MonoBehaviour
         // 5) 잠금/언락 초기화
         if (GameManager.Instance != null)
             GameManager.Instance.InitializeStageLocks();
+        EnsurePlayerMarker();
     }
     private void ClearUI()
     {
-        // ① StageNodeUI 전부 파괴
-        foreach (var kv in stageUIMap)
+        // mapPanel 하위의 모든 자식 오브젝트 검사
+        for (int i = mapPanel.childCount - 1; i >= 0; i--)
         {
-            if (kv.Value != null)
-                Destroy(kv.Value.gameObject);
+            var child = mapPanel.GetChild(i);
+            var isMarker = child.gameObject.GetComponent<PlayerMarkerTag>() != null;
+
+            Debug.Log($"🧹 ClearUI: {(isMarker ? "KEEP" : "DESTROY")} {child.name}");
+            if (child.name == "PlayerMarker")
+            {
+                Debug.Log("✅ PlayerMarker 이름으로 보호됨");
+                continue;
+            }
+            if (isMarker)
+            {
+                Debug.Log($"✅ 마커 유지됨: {child.name}, activeSelf={child.gameObject.activeSelf}, parent={child.parent.name}");
+                continue;
+            }
+
+            Destroy(child.gameObject);
         }
-        stageUIMap.Clear();
 
         // ② 연결선 전부 파괴
         for (int i = connectionParent.childCount - 1; i >= 0; i--)
             Destroy(connectionParent.GetChild(i).gameObject);
+        
     }
     void CreateUIMap()
     {
@@ -173,5 +189,23 @@ public class UIGenerator : MonoBehaviour
         rt.sizeDelta = new Vector2(dir.magnitude, lineThickness);
         rt.anchoredPosition = a + dir * 0.5f;
         rt.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
+    }
+    public void EnsurePlayerMarker()
+    {
+        if (GameManager.Instance.playerMarker != null) return;
+
+        var prefab = GameManager.Instance.playerMarkerPrefab;
+        var markerGO = Instantiate(prefab, mapPanel);
+        var markerRT = markerGO.GetComponent<RectTransform>();
+
+        markerRT.SetAsLastSibling();
+        markerRT.anchoredPosition = Vector2.zero; // 기본 위치 (후에 SetCurrentStage에서 이동)
+
+        GameManager.Instance.playerMarker = markerRT;
+
+        // ✅ 생성 직후 비활성화
+        markerRT.gameObject.SetActive(false);
+
+        Debug.Log("✅ PlayerMarker 프리팹 생성 및 mapPanel에 부착됨");
     }
 }
