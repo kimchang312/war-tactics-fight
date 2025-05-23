@@ -134,7 +134,7 @@ public class RogueLikeData
             score
         );
         myTeam = savedCopy;
-        
+        RogueUnitDataBase.SetMyTeamNoramlize();
         savedMyUnits.Clear();
         return data;
     }

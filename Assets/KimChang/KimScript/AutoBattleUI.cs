@@ -353,7 +353,7 @@ public class AutoBattleUI : MonoBehaviour
 
         foreach (var attr in boolAttributes)
         {
-            if (!attr.Value || attr.Name == "rangedAttack" || attr.Name == "alive")
+            if (!attr.Value || attr.Name == "rangedAttack" || attr.Name == "alive" || attr.Name == "fStriked")
                 continue;
 
             GameObject iconImage = objectPool.GetAbility();

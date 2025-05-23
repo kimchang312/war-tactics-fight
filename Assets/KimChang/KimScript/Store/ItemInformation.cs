@@ -19,7 +19,9 @@ public class ItemInformation : MonoBehaviour
     public RewardType type = RewardType.None;
     public int unitId = -1;
     public int abilityId = -1;
-
+    
+    public bool isUpgrade =false;
+    public int upgradeId =-1;
 }
 public enum RewardType
 {

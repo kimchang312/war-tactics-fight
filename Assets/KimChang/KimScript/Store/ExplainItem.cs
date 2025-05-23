@@ -76,21 +76,18 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         Vector2 offset = new Vector2(110, -110);
         Vector2 desiredPosition = mousePosition + offset;
-
-        // 툴팁의 크기와 캔버스 크기 가져오기
+        
         Vector2 tooltipSize = tooltipRect.sizeDelta;
         RectTransform canvasRect = canvas.transform as RectTransform;
 
         float canvasWidth = canvasRect.rect.width;
         float canvasHeight = canvasRect.rect.height;
 
-        // 제한 영역 계산
         float minX = -canvasWidth / 2 + tooltipSize.x / 2;
         float maxX = canvasWidth / 2 - tooltipSize.x / 2;
         float minY = -canvasHeight / 2 + tooltipSize.y / 2;
         float maxY = canvasHeight / 2 - tooltipSize.y / 2;
 
-        // 위치 조정
         desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
         desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
 
@@ -106,7 +103,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         {
             var relic = WarRelicDatabase.GetRelicById(info.relicId);
             if (relic != null)
-                textComponent.text = $"{relic.name}+ ${gradeText[relic.grade]}\n{relic.tooltip}";
+                textComponent.text = $"{relic.name} {gradeText[relic.grade]}\n{relic.tooltip}";
             else
                 textComponent.text = "유산 정보를 찾을 수 없습니다.";
         }
@@ -120,6 +117,31 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             {
                 textComponent.text = $"주사위\n리롤을 {int.Parse(item.value)}회 추가한다";
             }
+        }
+        else if (info.isUpgrade)
+        {
+            var (name, description, addOne,addTwo) = GameTextData.GetLocalizedTextFull(info.upgradeId);
+            int branch = info.upgradeId % 180;
+            string branchName = branch switch
+            {
+                0 => "창병",
+                1 => "전사",
+                2 => "궁병",
+                3 => "중보병",
+                4 => "암살자",
+                5 => "경기병",
+                6 => "중기병",
+                7 => "지원",
+                _ => "",
+            };
+            UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
+            int attackValue = upgrades[branch].attackLevel * 10;
+            int defenseValue = upgrades[branch].defenseLevel *10;
+            string attackFull = "";
+            string defenseFull = "";
+            if (upgrades[branch].attackLevel >4) attackFull = description;
+            if (upgrades[branch].defenseLevel > 4) defenseFull = addTwo;
+            textComponent.text = $"{branchName}의 추가 능력치\n{name} +{attackValue}%          {addOne} +{defenseValue}%\n{attackFull}           {defenseFull}";
         }
         else
         {
