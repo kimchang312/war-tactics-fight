@@ -94,7 +94,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 맵 씬에 진입했을 때만
         allStages = FindObjectsOfType<StageNodeUI>().ToList();
         HideAllPanels();
-     UIManager.Instance.UIUpdateAll();
+        UIManager.Instance.UIUpdateAll();
         InitializeStageLocks();
 
         if (playerMarker == null)
@@ -236,7 +236,7 @@ private void Start()
         {
             // 기존 restUI.Show() 대신
             restPanel.SetActive(true);
-
+            currentStage?.StopSelectableEffect();
             return;
         }
         else if (newStage.stageType == StageType.Event)
@@ -252,17 +252,21 @@ private void Start()
                     return;
                 }
             }
+            currentStage?.StopSelectableEffect();
             eventManager.SetActive(true);
         }
         else if (newStage.stageType == StageType.Shop)
         {
             storeManager.SetActive(true);
+            currentStage?.StopSelectableEffect();
         }
         else if (newStage.stageType == StageType.Treasure)
         {
             rewardUI.gameObject.SetActive(true);
+            currentStage?.StopSelectableEffect();
             rewardUI.CreateTeasureUI();
         }
+        
         Debug.Log($"📌 SetCurrentStage: {newStage.level}_{newStage.row}");
     }
 
