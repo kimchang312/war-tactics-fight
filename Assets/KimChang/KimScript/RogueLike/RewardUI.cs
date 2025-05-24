@@ -61,7 +61,7 @@ public class RewardUI : MonoBehaviour
         goldResult.SetActive(true);
         relicResult.gameObject.SetActive(true);
 
-        leaveBtn.onClick.AddListener(() => gameObject.SetActive(false));
+        leaveBtn.onClick.AddListener(LeaveReward);
     }
 
     public void CreateRewardUI()

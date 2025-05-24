@@ -150,7 +150,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &401947079427090947
 Transform:
   m_ObjectHideFlags: 0
@@ -187,7 +187,6 @@ MonoBehaviour:
   choiceBtns: {fileID: 1161953798662853454}
   leaveBtn: {fileID: 2616369920424506360}
   unitSelectUI: {fileID: 0}
-  selectTitle: {fileID: 0}
   objectPool: {fileID: 0}
 --- !u!1 &829456842860053668
 GameObject:
@@ -1144,7 +1143,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 593.2295, y: -201.00519}
+  m_AnchoredPosition: {x: 593.2295, y: -89}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5110576410945453095

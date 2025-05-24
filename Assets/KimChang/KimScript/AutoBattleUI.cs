@@ -165,9 +165,12 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 GameObject unit = FindUnit(unitIndex, !team);
-                Debug.Log(unit);
-                RectTransform unitRect = unit.GetComponent<RectTransform>();
-                rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                if (unit != null)
+                {
+                    RectTransform unitRect = unit.GetComponent<RectTransform>();
+                    rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                } 
+                
             }
         }
         else
@@ -177,9 +180,12 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 GameObject unit = FindUnit(unitIndex, !team);
-                Debug.Log(unit);
-                RectTransform unitRect = unit.GetComponent<RectTransform>();
-                rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                if(unit != null)
+                {
+                    RectTransform unitRect = unit.GetComponent<RectTransform>();
+                    rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                }
+                
             }
         }
 

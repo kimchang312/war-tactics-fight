@@ -141,23 +141,26 @@ public class RogueLikeData
     {
         int heroCount = 0;
         int maxHeroCount = GetMaxHero();
-        foreach(var one in myTeam)
+        if(unit.branchIdx == 8)
         {
-            if(one.branchIdx==8) heroCount++;
-        }
-        if(heroCount >= maxHeroCount)
-        {
-            RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
-        }
-        else
-        {
-            if(unit.idx == 63)
+            foreach (var one in myTeam)
             {
-                AcquireRelic(78);
+                if (one.branchIdx == 8) heroCount++;
             }
-            myTeam.Add(unit);
+            if (heroCount >= maxHeroCount)
+            {
+                RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
+                return;
+            }
+            else
+            {
+                if (unit.idx == 63)
+                {
+                    AcquireRelic(78);
+                }
+            }
         }
-        
+        myTeam.Add(unit);
     }
 
     //상대 유닛 전부 수정하기

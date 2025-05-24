@@ -86,7 +86,7 @@ public class GameTextData
         { 104, (new[] { "사거리", "Range", "射程" },  new[] { "유닛의 공격 가능 범위.\n 사거리가 2이상이라면 후열에서도 공격 가능하다.", "", "" },new string[0], new string[0])},
         { 105, (new[] { "대기병", "Anti Calvary", "対騎兵" },  new[] { "적이 기병일 때 추가 피해량.", "", "" },new string[0], new string[0])},
         { 106, (new[] { "회피", "Dodge", "回避" }, new[] { "적의 공격을 피할 확률.", "", "" },new string[0], new string[0])},
-        { 107, (new[] { "기력", "Energy", "" }, new[]{"기력. 전투에 참가할 때마다 1 감소. 0이 되면 유닛이 영구적으로 사망한다."},new string[0], new string[0])},
+        { 107, (new[] { "기력", "Energy", "" }, new[]{"기력. 전투에 참가할 때마다 1 감소. 0이 되면 유닛이 영구적으로 사망한다.\n단, 영웅 유닛은 제외"},new string[0], new string[0])},
         { 108, (new[] { "희귀도", "Rarity", "" }, new[] { "높을 수록 획득 난도가 높다.", "", "" },new string[0], new string[0])},
 
 

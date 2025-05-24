@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -177,6 +176,7 @@ public class AbilityManager
         bool isReduce = RelicManager.CheckRelicById(105);
         foreach (var unit in myUnits)
         {
+            if (unit.branchIdx == 8) continue;
             if (hasRelic && Random.value < 0.25f)
                 continue;
             int reduce = 1;
@@ -897,7 +897,7 @@ public class AbilityManager
             int id = 2, type = 0, rank = 1, duration = -1;
             for (int i = 1; i < units.Count; i++)
             {
-                if(units[i].health>0)
+                if(units[i].health>0 && !units[i].effectDictionary.ContainsKey(id))
                 {
                     units[i].effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
                 }

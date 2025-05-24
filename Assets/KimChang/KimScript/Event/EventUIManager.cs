@@ -19,8 +19,6 @@ public class EventUIManager : MonoBehaviour
     private void Awake()
     {
         ResetUI();
-        
-        //gameObject.SetActive(false);
     }
     private void OnEnable()
     {
