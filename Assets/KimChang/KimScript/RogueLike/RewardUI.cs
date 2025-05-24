@@ -38,6 +38,7 @@ public class RewardUI : MonoBehaviour
         if (!isEnd) return;
         if (Input.GetKeyUp(KeyCode.Escape))
         {
+            RogueLikeData.Instance.ClearBattleReward();
             GameManager.Instance.SetCurrentStageNull();
             SceneManager.LoadScene("Title");
         }
@@ -372,12 +373,14 @@ public class RewardUI : MonoBehaviour
     }
     private void ClickRetryBtn()
     {
+        RogueLikeData.Instance.ClearBattleReward();
         saveData.ResetGameData();
         RogueLikeData.Instance.SetResetMap(true);
         SceneManager.LoadScene("RLmap");
     }
     private void ClickGoTitleBtn()
     {
+        RogueLikeData.Instance.ClearBattleReward();
         saveData.ResetGameData();
         RogueLikeData.Instance.SetResetMap(true);
         SceneManager.LoadScene("Title");
@@ -386,4 +389,5 @@ public class RewardUI : MonoBehaviour
     {
         RogueLikeData.Instance.ClearBattleReward();
     }
+
 }

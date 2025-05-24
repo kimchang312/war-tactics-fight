@@ -52,7 +52,7 @@ public class EventUIManager : MonoBehaviour
             if (i < eventChoiceDatas.Count)
             {
                 child.SetActive(true);
-                child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText;
+                child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText + eventChoiceDatas[i].resultDescription;
 
                 Button btn = child.GetComponent<Button>();
                 btn.onClick.RemoveAllListeners();

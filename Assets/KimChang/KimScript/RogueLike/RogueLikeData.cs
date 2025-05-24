@@ -52,24 +52,20 @@ public class RogueLikeData
 
     private int[] costTable = { 100, 150, 200, 250, 300 };
 
-    //현재 필드 id 전투 종료 후 0으로 1~5
     private int fieldId = 0;
 
-    //전투 추가 보상
     private BattleRewardData battleReward = new();
 
     private int rerollChance = 2;
 
     public bool isFreeUpgrade =false;
 
-    //실제 전투에 배치된 유닛 수
     private int battleUnitCount = 0;
 
     private int score = 0;
 
     private bool clearChapter=false;
     private bool resetMap =false;
-    // 생성자에서 초기화
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
@@ -83,7 +79,6 @@ public class RogueLikeData
         for (int i = 0; i < upgradeValues.Length; i++)
             upgradeValues[i] = new UnitUpgrade();
     }
-    //내 데이터 전부 반환
     public SavePlayerData GetRogueLikeData()
     {
         SavePlayerData data = new(0, myUnits, relicIdsByType.Values
@@ -93,13 +88,10 @@ public class RogueLikeData
                                     upgradeValues, sariStack,battleReward, nextUnitUniqueId,score);
         return data;
     }
-    // 보유한 유닛 기력만 재설정 해서 반환
     public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
-        // 저장용 복사 리스트 생성 (깊은 복사하지 않고 원본 savedMyUnits를 수정)
         List<RogueUnitDataBase> savedCopy = new(savedMyUnits);
 
-        // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
         foreach (var unit in units.Concat(deadUnits))
         {
             var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
@@ -134,7 +126,7 @@ public class RogueLikeData
             score
         );
         myTeam = savedCopy;
-        RogueUnitDataBase.SetMyTeamNoramlize();
+        //RogueUnitDataBase.SetMyTeamNoramlize();
         savedMyUnits.Clear();
         return data;
     }
@@ -500,7 +492,10 @@ public class RogueLikeData
     public void ClearSavedMyUnits()
     {
         savedMyUnits.Clear();
-        savedMyUnits = myTeam;
+        foreach (var unit in myTeam)
+        {
+            savedMyUnits.Add(unit.Clone());
+        }
     }
 
     public int GetChapter()

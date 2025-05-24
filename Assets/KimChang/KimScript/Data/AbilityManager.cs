@@ -1275,7 +1275,7 @@ public class AbilityManager
     // 노인 기사 효과 적용 (랜덤 특성 획득)
     private void CalculateOldKnight(RogueUnitDataBase unit,bool isFrontDefenderDead)
     {
-        if (unit.idx != 60 || !isFrontDefenderDead || unit.health <= 0) return; // 생존 중인 노인 기사만 적용
+        if (unit.idx != 60 || !isFrontDefenderDead || unit.health <= 0) return;
 
         HashSet<string> excludedTraits = new()
     {
@@ -1300,8 +1300,6 @@ public class AbilityManager
         FieldInfo selectedTrait = availableTraits[UnityEngine.Random.Range(0, availableTraits.Count)];
 
         selectedTrait.SetValue(unit, true);
-
-        availableTraits.Remove(selectedTrait);
     }
     //미치광이 전투 시작 시
     private bool CalculateManiac(List<RogueUnitDataBase> defenders,bool isTeam)

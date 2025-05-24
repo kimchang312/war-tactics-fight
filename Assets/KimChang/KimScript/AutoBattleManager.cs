@@ -64,9 +64,6 @@ public class AutoBattleManager : MonoBehaviour
             case BattleState.None:
                 isProcessing = false;
                 break;
-            /*case BattleState.Enter:
-                HandleEnter();
-                break;*/
             case BattleState.Check:
                 await HandleCheck();
                 break;
@@ -113,7 +110,7 @@ public class AutoBattleManager : MonoBehaviour
                 RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,true);
                 RogueUnitDataBase savedUnit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,true);
                 myUnits.Add(unit);
-                //기본 유닛 데이터 따로 저장
+
                 RogueLikeData.Instance.AddSavedMyUnits(savedUnit);
             }
         }

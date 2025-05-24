@@ -831,7 +831,7 @@ public class EventManager
                     }
                     break;
                 case ResultType.Special:
-                    if (choiceData.choiceId == 1)
+                    if (choiceData.choiceId == 3)
                     {
                         int randEffect = UnityEngine.Random.Range(0, 9);
 

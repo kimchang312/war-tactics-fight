@@ -6,22 +6,20 @@ using UnityEngine;
 [System.Serializable]
 public class RogueUnitDataBase 
 {
-    // 기본 정보
-    public int idx;            // 유닛의 고유 인덱스
-    public string unitName;    // 유닛 이름
-    public string unitBranch;  // 병종 이름
-    public int branchIdx;      // 병종 인덱스
-    public string unitId;       // 유닛 아이디
-    public string unitExplain;  // 유닛 설명
-    public string unitImg;     // 유닛 이미지 ID
-    public string unitFaction; // 유닛이 속한 진영
-    public int factionIdx;     // 진영 인덱스
-    public string tag;      // 유닛 태그
+    public int idx;
+    public string unitName; 
+    public string unitBranch;
+    public int branchIdx; 
+    public string unitId;      
+    public string unitExplain;  
+    public string unitImg;   
+    public string unitFaction; 
+    public int factionIdx;   
+    public string tag;    
     public int tagIdx;
-    public int unitPrice;      // 유닛 가격
-    public int rarity;         // 희귀도
+    public int unitPrice;     
+    public int rarity;        
 
-    // 기본 스탯      
     public float baseHealth;
     public float baseArmor;
     public float baseAttackDamage;
@@ -30,65 +28,60 @@ public class RogueUnitDataBase
     public float baseAntiCavalry;
     public int baseEnergy;
 
-    // 스탯 정보
-    public float health;       // 유닛 체력
-    public float armor;        // 유닛 장갑
-    public float attackDamage; // 공격력
-    public float mobility;     // 기동성
-    public float range;        // 사거리
-    public float antiCavalry;  // 대기병 능력
-    public int energy;       // 기력
+    public float health;       
+    public float armor;       
+    public float attackDamage; 
+    public float mobility;    
+    public float range;       
+    public float antiCavalry;  
+    public int energy; 
 
-    // 특성
-    public bool lightArmor;     // 경갑 
-    public bool heavyArmor;     // 중갑 
-    public bool rangedAttack;   // 원거리 공격 
-    public bool bluntWeapon;    // 둔기 
-    public bool pierce;         // 관통 
-    public bool agility;        // 날쌤 
-    public bool strongCharge;   // 강한 돌격 
-    public bool perfectAccuracy;// 필중 
-    public bool slaughter;      // 도살
-    public bool bindingForce;     // 결속
-    public bool bravery;        // 용맹
-    public bool suppression;    // 제압
-    public bool plunder;        // 약탈
-    public bool doubleShot;      // 연발
-    public bool scorching;        // 작열
-    public bool thorns;         // 가시
-    public bool endless;       // 무한
-    public bool impact;         // 충격
-    public bool healing;           // 치유
-    public bool lifeDrain;   // 흡혈
 
-    //public string blink = "빈"; // 빈칸
+    public bool lightArmor; 
+    public bool heavyArmor;   
+    public bool rangedAttack;  
+    public bool bluntWeapon;  
+    public bool pierce; 
+    public bool agility;   
+    public bool strongCharge;   
+    public bool perfectAccuracy;
+    public bool slaughter;      
+    public bool bindingForce;    
+    public bool bravery;        
+    public bool suppression;   
+    public bool plunder;        
+    public bool doubleShot;     
+    public bool scorching;
+    public bool thorns;
+    public bool endless;
+    public bool impact;
+    public bool healing;
+    public bool lifeDrain;
 
-    // 추가적인 능력치
-    public bool charge;         // 돌격
-    public bool defense;        // 수비 태세
-    public bool throwSpear;     // 투창
-    public bool guerrilla;      // 유격
-    public bool guard;          // 수호
-    public bool assassination;  // 암살
-    public bool drain;          // 착취
-    public bool overwhelm;      // 위압
-    public bool martyrdom;      // 순교
-    public bool wounding;           // 상흔
-    public bool vengeance;        // 복수
-    public bool counter;        // 반격
-    public bool firstStrike;        // 선제 타격
-    public bool challenge;      // 도전
-    public bool smokeScreen;      // 연막
+    public bool charge;
+    public bool defense;
+    public bool throwSpear;
+    public bool guerrilla;
+    public bool guard;
+    public bool assassination;
+    public bool drain;
+    public bool overwhelm;
+    public bool martyrdom;
+    public bool wounding;
+    public bool vengeance;
+    public bool counter;
+    public bool firstStrike;
+    public bool challenge;
+    public bool smokeScreen;
 
-    public float maxHealth;    // 유닛 최대 체력 ==health
-    public int maxEnergy;       //최대 기력
-    public bool alive;         // 생존 유무 (기본값 true)
-    public bool fStriked;      // 선제 타격 사용 유무
-    public int UniqueId; // 유닛 고유 ID, 기본값 -1로 설정
+    public float maxHealth;
+    public int maxEnergy;
+    public bool alive;
+    public bool fStriked;
+    public int UniqueId;
 
     public Dictionary<int, BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
 
-    // 생성자
     public RogueUnitDataBase(
     int idx, string unitName, string unitBranch, int branchIdx,string unitId,
     string unitExplain, string unitImg,
@@ -118,7 +111,7 @@ public class RogueUnitDataBase
         this.tagIdx = tagIdx;
         this.unitPrice = unitPrice;
         this.rarity = rarity;
-        //기본 스탯
+
         this.baseHealth = health;
         this.baseArmor = armor;
         this.baseAttackDamage = attackDamage;
@@ -184,20 +177,20 @@ public class RogueUnitDataBase
         int idx, branchIdx, factionIdx, tagIdx, unitPrice, rarity,energy, maxEnergy, baseEnergy;
         float health, armor, attackDamage, mobility, range, antiCavalry, maxHealth, baseHealth, baseArmor, baseAttackDamage, baseMobility, baseRange, baseAntiCavalry;
 
-        int.TryParse(rowData[0], out idx); // idx
-        int.TryParse(rowData[3], out branchIdx); // branchIdx
-        int.TryParse(rowData[8], out factionIdx); // factionIdx
-        int.TryParse(rowData[10], out tagIdx); // tagIdx
-        int.TryParse(rowData[11], out unitPrice); // unitPrice
-        int.TryParse(rowData[12], out rarity); // rarity
-        int.TryParse(rowData[19], out energy); // energy
+        int.TryParse(rowData[0], out idx);
+        int.TryParse(rowData[3], out branchIdx);
+        int.TryParse(rowData[8], out factionIdx);
+        int.TryParse(rowData[10], out tagIdx);
+        int.TryParse(rowData[11], out unitPrice);
+        int.TryParse(rowData[12], out rarity);
+        int.TryParse(rowData[19], out energy);
 
-        float.TryParse(rowData[13], out health); // health
-        float.TryParse(rowData[14], out armor); // armor
-        float.TryParse(rowData[15], out attackDamage); // attackDamage
-        float.TryParse(rowData[16], out mobility); // mobility
-        float.TryParse(rowData[17], out range); // range
-        float.TryParse(rowData[18], out antiCavalry); // antiCavalry
+        float.TryParse(rowData[13], out health);
+        float.TryParse(rowData[14], out armor);
+        float.TryParse(rowData[15], out attackDamage);
+        float.TryParse(rowData[16], out mobility);
+        float.TryParse(rowData[17], out range);
+        float.TryParse(rowData[18], out antiCavalry);
 
         baseHealth = health;
         baseArmor = armor;
@@ -206,19 +199,17 @@ public class RogueUnitDataBase
         baseRange = range;
         baseAntiCavalry = antiCavalry;
         baseEnergy = energy;
-        maxHealth = health; // 최대 체력은 기본적으로 health와 동일
+        maxHealth = health;
         maxEnergy = energy;
 
-        // 문자열 데이터 파싱
-        string unitName = rowData[1]; // 유닛 이름
-        string unitBranch = rowData[2]; // 병종 이름
-        string unitId = rowData[4]; // 유닛 ID
-        string unitExplain = rowData[5]; // 유닛 설명
-        string unitImg = rowData[6]; // 유닛 이미지
+        string unitName = rowData[1];
+        string unitBranch = rowData[2];
+        string unitId = rowData[4];
+        string unitExplain = rowData[5];
+        string unitImg = rowData[6];
         string unitFaction = rowData[7];
-        string tag = rowData[9]; // 태그 정보
+        string tag = rowData[9];
 
-        // 특성 및 기술 불리언 값 파싱
         bool lightArmor = rowData[20] == "TRUE";
         bool heavyArmor = rowData[21] == "TRUE";
         bool rangedAttack = rowData[22] == "TRUE";
@@ -240,7 +231,6 @@ public class RogueUnitDataBase
         bool healing = rowData[38] == "TRUE";
         bool lifeDrain = rowData[39] == "TRUE";
 
-        // 추가 능력치
         bool charge = rowData[41] == "TRUE";
         bool defense = rowData[42] == "TRUE";
         bool throwSpear = rowData[43] == "TRUE";
@@ -270,10 +260,8 @@ public class RogueUnitDataBase
             maxHealth,maxEnergy, true, false, UniqueId, effectDictionary
         );
     }
-    // 새로운 복사본을 만드는 메서드
     public RogueUnitDataBase Clone()
     {
-        // 이 객체의 복사본을 새로 생성
         return new RogueUnitDataBase(
             this.idx, this.unitName, this.unitBranch, this.branchIdx, this.unitId, this.unitExplain, this.unitImg, this.unitFaction, this.factionIdx,
             this.tag, this.tagIdx, this.unitPrice, this.rarity,
@@ -285,7 +273,7 @@ public class RogueUnitDataBase
             this.lifeDrain, this.charge, this.defense, this.throwSpear, this.guerrilla, this.guard, this.assassination,
             this.drain, this.overwhelm, this.martyrdom, this.wounding, this.vengeance, this.counter, this.firstStrike,
             this.challenge, this.smokeScreen, this.maxHealth, this.maxEnergy, this.alive, this.fStriked, this.UniqueId,
-            new Dictionary<int, BuffDebuffData>(this.effectDictionary) // 효과 딕셔너리도 복사
+            new Dictionary<int, BuffDebuffData>(this.effectDictionary) 
         );
     }
 
@@ -295,8 +283,6 @@ public class RogueUnitDataBase
         int teamBit = isTeam ? 0 : 1;
         return (teamBit << 31) | (branchIdx << 24) | ((serial & 0x3FFF) << 10) | (unitIdx & 0x3FF);
     }
-
-    //전직 확률
     public static int RollPromotion(int rarity)
     {
         float rand = UnityEngine.Random.value;
@@ -314,7 +300,6 @@ public class RogueUnitDataBase
 
         int newRarity = RollPromotion(unit.rarity);
 
-        // 새로운 희귀도의 유닛 중 랜덤 선택
         var pool = UnitLoader.Instance.GetAllCachedUnits()
                      .Where(u => u.rarity == newRarity)
                      .ToList();
@@ -327,7 +312,6 @@ public class RogueUnitDataBase
         RogueUnitDataBase recreated = UnitLoader.Instance.GetCloneUnitById(picked.idx);
         return recreated;
     }
-    //희귀도에 따른 무작위 유닛 획득
     public static RogueUnitDataBase GetRandomUnitByRarity(int rarity)
     {
         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
@@ -363,7 +347,6 @@ public class RogueUnitDataBase
 
         return unit;
     }
-    //내 유닛 정상화
     public static List<RogueUnitDataBase> SetMyUnitsNormalize()
     {
         var myUnits = RogueLikeData.Instance.GetMyUnits();
@@ -395,7 +378,6 @@ public class RogueUnitDataBase
             unit.antiCavalry= unit.baseAntiCavalry;
             unit.fStriked = false;
         }
-
     }
 
     public static List<RogueUnitDataBase> GetBaseUnits()
