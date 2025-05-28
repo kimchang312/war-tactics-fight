@@ -114,13 +114,12 @@ public static class RewardManager
                 addMorale += 35;
             else if (result == 1)
                 reduceMorale -= 150;
-        }//유산 33
+        }
         if (RelicManager.CheckRelicById(33)) addMorale = (int)(reduceMorale * 1.2);
-        //유산 56
         if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
         if (RelicManager.CheckRelicById(59) && type ==StageType.Boss) 
         {
-            var myUnits =RogueLikeData.Instance.GetMyUnits();
+            List<RogueUnitDataBase> myUnits =RogueLikeData.Instance.GetMyUnits();
             foreach (var unit in myUnits)
             {
                 unit.energy = unit.maxEnergy;

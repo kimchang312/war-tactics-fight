@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -109,7 +108,7 @@ public class EventUIManager : MonoBehaviour
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)
     {
-        List<RogueUnitDataBase> myUnits =RogueLikeData.Instance.GetMyUnits();
+        List<RogueUnitDataBase> myUnits =RogueLikeData.Instance.GetMyTeam();
         List<RogueUnitDataBase> selectUnits = new();
         int requiredCount = choiceData.requireForm.Count;
         for (int i =0; i< choiceData.requireForm.Count; i++)

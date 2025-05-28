@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using static RelicManager;
 
 
@@ -347,7 +346,7 @@ public class EventManager
                 case RequireThing.Energy:
                     if(form == RequireForm.Select)
                     {
-                        var selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+                        List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
                         foreach(var unit  in selectedUnits)
                         {
                             if (string.IsNullOrEmpty(value)) 
@@ -369,7 +368,7 @@ public class EventManager
                     }
                     else if (form == RequireForm.Random)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyTeam();
+                        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
                         int energy = int.Parse(value);
                         int unitCount = int.Parse(value);
 
@@ -399,9 +398,14 @@ public class EventManager
                 case RequireThing.Unit:
                     if(form == RequireForm.Select)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyTeam();
-                        var selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
-                        myUnits.RemoveAll(selectedUnits.Contains);
+                        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
+                        List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+                        foreach (var unit in myUnits)
+                        {
+                            Debug.Log(unit.unitName + unit.UniqueId + selectedUnits[0].unitName + selectedUnits[0].UniqueId);
+                        }
+                        myUnits.RemoveAll(unit => selectedUnits.Any(selectedUnit => selectedUnit.UniqueId == unit.UniqueId));
+                        Debug.Log(myUnits.Count);
                         RogueLikeData.Instance.SetMyTeam(myUnits);
                         foreach(var unit in selectedUnits)
                         {
@@ -427,14 +431,14 @@ public class EventManager
                             maxRarity = int.Parse(value);
                         }
 
-                        var candidates = myUnits
+                        List<RogueUnitDataBase> candidates = myUnits
                             .Where(unit => unit.rarity >= minRarity && unit.rarity <= maxRarity)
                             .OrderBy(_ => UnityEngine.Random.value)
                             .Take(unitCount)
                             .ToList();
 
-                        var currentUnits = RogueLikeData.Instance.GetMyTeam();
-                        currentUnits.RemoveAll(unit => candidates.Contains(unit));
+                        List<RogueUnitDataBase> currentUnits = RogueLikeData.Instance.GetMyTeam();
+                        currentUnits.RemoveAll(unit => candidates.Any(candidate => candidate.UniqueId == unit.UniqueId));
                         RogueLikeData.Instance.SetMyTeam(currentUnits);
 
                         foreach (var unit in candidates)
@@ -459,10 +463,10 @@ public class EventManager
                     }
                     else if(form == RequireForm.None)
                     {
-                        var myUnits = RogueLikeData.Instance.GetMyTeam();
+                        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
                         int rarity = int.Parse(value);
                         var candidates = myUnits.Where(unit=>unit.rarity==rarity);
-                        myUnits.RemoveAll(candidates.Contains);
+                        myUnits.RemoveAll(unit=> candidates.Any(candidate => candidate.UniqueId == unit.UniqueId));
                         foreach(var unit in candidates)
                         {
                             RogueLikeData.Instance.AddSelectedUnits(unit);

@@ -345,10 +345,10 @@ public class StoreUI : MonoBehaviour
     {
         if (item.form == "Select")
         {
-            var selected = RogueLikeData.Instance.GetSelectedUnits();
+            List<RogueUnitDataBase> selected = RogueLikeData.Instance.GetSelectedUnits();
             if (selected == null || selected.Count < item.count)
             {
-                var canSelectUnits = RogueLikeData.Instance.GetMyUnits()
+                List<RogueUnitDataBase> canSelectUnits = RogueLikeData.Instance.GetMyTeam()
                 .Where(u => u.energy < u.maxEnergy)
                 .ToList();
 
@@ -368,7 +368,7 @@ public class StoreUI : MonoBehaviour
         else if (item.form == "Random")
         {
             int amount = int.Parse(item.value);
-            var units = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy < u.maxEnergy).ToList();
+            List<RogueUnitDataBase> units = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy < u.maxEnergy).ToList();
             if (units.Count == 0) return;
 
             for (int i = 0; i < units.Count; i++)
