@@ -16,6 +16,7 @@ public class TitleScene : MonoBehaviour
         UnitLoader.Instance.LoadUnitsFromJson();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
+        QuestManager.LoadQuestData();
         string filePath = Application.persistentDataPath + "/PlayerData.json";
         if (File.Exists(filePath))
         {
@@ -29,6 +30,7 @@ public class TitleScene : MonoBehaviour
 
         newGameBtn.onClick.AddListener(GoRogueLike);
         exitBtn.onClick.AddListener(QuitGame);
+
     }
 
     private void GoRogueLike()

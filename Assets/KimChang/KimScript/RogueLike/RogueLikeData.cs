@@ -22,9 +22,7 @@ public class RogueLikeData
     private int maxUnits = 5;
     private int maxHero = 2;
     
-    //실제 보유한 유닛
     private List<RogueUnitDataBase> myTeam = new();
-    //전투에 사용되는 유닛
     private List<RogueUnitDataBase> myUnits = new();
     private List<RogueUnitDataBase> enemyUnits = new();
     private List<RogueUnitDataBase> savedMyUnits = new();
@@ -33,6 +31,8 @@ public class RogueLikeData
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new();
     private Dictionary<int, int> encounteredEvent = new();
+    //퀘스트의 상태 id, 완료 여부 퀘스트 수락시 false 퀘스트 취소되면 배열삭제
+    private Dictionary<int, QuestClass> questState = new();
     private int currentStageX = 1;
     private int currentStageY = 0;
     private int chapter = 1;
@@ -126,7 +126,6 @@ public class RogueLikeData
             score
         );
         myTeam = savedCopy;
-        //RogueUnitDataBase.SetMyTeamNoramlize();
         savedMyUnits.Clear();
         return data;
     }
@@ -143,23 +142,28 @@ public class RogueLikeData
         int maxHeroCount = GetMaxHero();
         if(unit.branchIdx == 8)
         {
-            foreach (var one in myTeam)
+            for (int i = 0; i < myTeam.Count; i++)
             {
-                if (one.branchIdx == 8) heroCount++;
-            }
-            if (heroCount >= maxHeroCount)
-            {
-                RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
-                return;
-            }
-            else
-            {
-                if (unit.idx == 63)
+                if (myTeam[i].branchIdx == 8)
                 {
-                    AcquireRelic(78);
+                    heroCount++;
+                    if (heroCount >= maxHeroCount)
+                    {
+                        RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
+                        return;
+                    }
                 }
             }
+            if (unit.idx == 63)
+            {
+                AcquireRelic(78);
+            }
+            else if (unit.idx == 59)
+            {
+                //AddQuest(unit.idx);
+            }
         }
+       
         myTeam.Add(unit);
     }
 
@@ -841,5 +845,17 @@ public class RogueLikeData
     {
         this.resetMap = resetMap;
     }
+
+    //퀘스트 추가
+    public Dictionary<int, QuestClass> GetQuestList()
+    {
+        return questState;
+    }
+    public void AddQuest(QuestClass q)
+    {
+        questState[q.id] = q;
+    }
+    
+
 
 }
