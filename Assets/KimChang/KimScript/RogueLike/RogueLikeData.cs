@@ -81,7 +81,7 @@ public class RogueLikeData
     }
     public SavePlayerData GetRogueLikeData()
     {
-        SavePlayerData data = new(0, myUnits, relicIdsByType.Values
+        SavePlayerData data = new(0, myUnits, relicsByType.Values
                                     .SelectMany(hashSet => hashSet)
                                     .ToList(),encounteredEvent.Values.ToList(),
                                     currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,
@@ -110,7 +110,7 @@ public class RogueLikeData
         SavePlayerData data = new(
             0,
             savedCopy,
-            relicIdsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            relicsByType.Values.SelectMany(hashSet => hashSet).ToList(),
             encounteredEvent.Values.ToList(),
             currentGold,
             spentGold,
@@ -856,6 +856,20 @@ public class RogueLikeData
         questState[q.id] = q;
     }
     
-
+    //유산 저장 데이터로 초기화
+    public void SetRelicBySaveData(List<WarRelic> warRelics)
+    {
+        foreach (RelicType type in Enum.GetValues(typeof(RelicType)))
+        {
+            relicsByType[type] = new List<WarRelic>();
+            relicIdsByType[type] = new HashSet<int>();
+        }
+        // warRelics를 타입별로 분류해서 추가
+        foreach (WarRelic relic in warRelics)
+        {
+            relicsByType[relic.type].Add(relic);
+            relicIdsByType[relic.type].Add(relic.id);
+        }
+    }
 
 }

@@ -510,7 +510,7 @@ public class EventManager
                             reduceMorale += 0.2f;
                         }
                         int moraleCount = (int)(int.Parse(count)*reduceMorale);
-                        moraleCount = RogueLikeData.Instance.ChangeMorale(moraleCount);
+                        moraleCount = RogueLikeData.Instance.ChangeMorale(-moraleCount);
                         requireLog += $"사기가 {moraleCount}만큼 감소했습니다.\n";
                     }
                     break;

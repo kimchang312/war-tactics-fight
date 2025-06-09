@@ -63,23 +63,7 @@ public class AbilityManager
                 break;
             case StageType.Boss:
                 ReduceUnitEngery();
-                if (RelicManager.CheckRelicById(39)) morale += 15;
-                break;
-            case StageType.Rest:
-                break;
-            case StageType.Unknown:
-                break;
-            case StageType.Treasure:
-                break;
-            case StageType.Shop:
-                if (RelicManager.CheckRelicById(40))
-                {
-                    var myUnits = RogueLikeData.Instance.GetMyUnits();
-                    foreach (var unit in myUnits)
-                    {
-                        unit.energy = Math.Min(unit.maxEnergy, unit.energy + 1);
-                    }
-                }
+                if (RelicManager.CheckRelicById(39)) RogueLikeData.Instance.ChangeMorale(15);
                 break;
             default:
                 break;
