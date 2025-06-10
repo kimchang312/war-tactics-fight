@@ -492,7 +492,7 @@ public class EventManager
                     if(choiceData.choiceId == 27)
                     {
                         RogueLikeData.Instance.SetCurrentGold(0);
-                        requireLog = "모든 금화를 잃었습니다.";
+                        requireLog = "모든 금화를 잃었습니다.\n";
                     }
                     else if(form == RequireForm.None)
                     {
@@ -511,7 +511,7 @@ public class EventManager
                         }
                         int moraleCount = (int)(int.Parse(count)*reduceMorale);
                         moraleCount = RogueLikeData.Instance.ChangeMorale(-moraleCount);
-                        requireLog += $"사기가 {moraleCount}만큼 감소했습니다.\n";
+                        requireLog += $"사기가 {-moraleCount}만큼 감소했습니다.\n";
                     }
                     break;
             }
@@ -911,7 +911,7 @@ public class EventManager
                             case 7:
                                 {
                                     int morale = RogueLikeData.Instance.ChangeMorale(25);
-                                    resultLog += $" 사기가 {morale} 감소했습니다.\n";
+                                    resultLog += $" 사기가 {-morale} 감소했습니다.\n";
                                     break;
                                 }
                             case 8:

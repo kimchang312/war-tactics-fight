@@ -186,6 +186,7 @@ public class RelicManager
     {
         if (reward.battleResult != 0) return;
         if (type != StageType.Elite) return;
+        if(!RelicManager.CheckRelicById(35)) return;
         reward.relicGrade.Add(grade);
     }
 

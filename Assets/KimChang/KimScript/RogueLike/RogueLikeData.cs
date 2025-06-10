@@ -406,21 +406,26 @@ public class RogueLikeData
     // 사기 증감 통합 함수
     public int ChangeMorale(int value)
     {
-        int morale;
+        int morale= value;
         if (value >= 0)
         {
             if (RelicManager.CheckRelicById(116)) return 0;
-            // 증가: 최대 100 제한
-            morale= Math.Min(100, playerMorale + value);
-            playerMorale = morale;
+            if(playerMorale + value >100)
+            {
+                morale = 100 - playerMorale;
+            }
+            playerMorale += morale;
         }
         else
         {
             // 감소: 유산 33 보유 시 20% 감소량 완화
             float reductionModifier = GetOwnedRelicById(33) == null ? 1f : 0.8f;
-            int reduced = (int)(-value * reductionModifier);
-            morale = Math.Max(0, playerMorale - reduced);
-            playerMorale = morale;
+            int reduced = (int)(value * reductionModifier);
+            if (playerMorale + reduced < 0)
+            {
+                morale = playerMorale;                
+            }
+            playerMorale -= morale;
         }
         return morale;
     }
