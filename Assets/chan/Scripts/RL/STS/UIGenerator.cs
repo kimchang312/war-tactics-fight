@@ -65,6 +65,36 @@ public class UIGenerator : MonoBehaviour
             GameManager.Instance.InitializeStageLocks();
         EnsurePlayerMarker();
     }
+    /*public void RegenerateMapFromSave(StageSaveData savedData)
+    {
+        mapGenerator.ClearNodes();
+        mapGenerator.NodeDictionary.Clear();
+
+        StageNode current = new()
+        {
+            level = savedData.level,
+            row = savedData.row,
+            stageType = Enum.Parse<StageType>(savedData.stageType)
+        };
+        string key = $"{current.level}_{current.row}";
+        mapGenerator.NodeDictionary.Add(key, current);
+
+        foreach (var conn in savedData.connections)
+        {
+            StageNode next = new()
+            {
+                level = conn.level,
+                row = conn.row,
+                stageType = StageType.Combat // 또는 저장 필요
+            };
+            mapGenerator.NodeDictionary.Add($"{next.level}_{next.row}", next);
+            current.connectedNodes.Add(next);
+        }
+
+        uIGenerator.RegenerateMap();
+        GameManager.Instance.currentStage = current;
+    }*/
+
     private void ClearUI()
     {
         // mapPanel 하위의 모든 자식 오브젝트 검사

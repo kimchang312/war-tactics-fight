@@ -24,8 +24,7 @@ public class EnemyInfoPanel : MonoBehaviour
 
     public void ShowEnemyInfo(StageType stageType,
                               List<RogueUnitDataBase> enemies,
-                              string commanderName /*,
-                             string commanderSkill*/)
+                              string commanderName )
     
         {
         // 👉 맹인 유산 확인
@@ -66,7 +65,7 @@ public class EnemyInfoPanel : MonoBehaviour
         if (hasCommander)
         {
             commanderNameText.text = commanderName;
-            //commanderSkillText.text = commanderSkill;
+            commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
         }
         // 2) 기존 표시 지우기
         foreach (Transform child in enemyContainer)
