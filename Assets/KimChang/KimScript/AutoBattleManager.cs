@@ -42,6 +42,8 @@ public class AutoBattleManager : MonoBehaviour
     private float myFinalDamage = 0;
     private float enemyFinalDamage = 0;
 
+    private bool isTest=false;
+
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private void Start()
     {
@@ -50,6 +52,7 @@ public class AutoBattleManager : MonoBehaviour
 
         if (autoBattleUI == null)
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
+        if (isTest) return;
         currentState = BattleState.None;
         InitializeRogueLike();
     }
@@ -93,42 +96,7 @@ public class AutoBattleManager : MonoBehaviour
         }
     }
 
-    //유닛 id를 바탕으로 유닛 데이터 저장
-    private async Task<(List<RogueUnitDataBase>, List<RogueUnitDataBase>)> GetUnits(List<int> myUnitIds, List<int> enemyUnitIds)
-    {
-        // Google Sheet에서 전체 유닛 데이터를 로드
 
-        await GoogleSheetLoader.Instance.LoadUnitSheetData();
-       
-        // 내 유닛 ID들을 기반으로 유닛을 가져와서 myUnits에 저장
-        foreach (int unitId in myUnitIds)
-        {
-            List<string> rowData = GoogleSheetLoader.Instance.GetRowUnitData(unitId);
-
-            if (rowData != null)
-            {
-                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,true);
-                RogueUnitDataBase savedUnit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,true);
-                myUnits.Add(unit);
-
-                RogueLikeData.Instance.AddSavedMyUnits(savedUnit);
-            }
-        }
-
-        // 적의 유닛 ID들을 기반으로 유닛을 가져와서 enemyUnits에 저장
-        foreach (int unitId in enemyUnitIds)
-        {
-            List<string> rowData = GoogleSheetLoader.Instance.GetRowUnitData(unitId);
-            if (rowData != null)
-            {
-                RogueUnitDataBase unit = RogueUnitDataBase.ConvertToUnitDataBase(rowData,false);
-                enemyUnits.Add(unit);
-            }
-            
-        }
-
-        return (myUnits, enemyUnits);
-    }
     //유닛 id를 기반으로 유닛 생성
     private List<RogueUnitDataBase> GetUnitsById(List<int> unitIds)
     {
@@ -143,9 +111,10 @@ public class AutoBattleManager : MonoBehaviour
 
 
     //유닛 데이터 받고 전투 시작
-    public async Task StartBattle(List<int> _myUnitIds, List<int> _enemyUnitIds)
+    public void StartBattle(List<int> _myUnitIds, List<int> _enemyUnitIds)
     {
-        await InitializeBattle(_myUnitIds, _enemyUnitIds);
+        SetTest();
+        InitializeBattle(_myUnitIds, _enemyUnitIds);
     }
 
     private async Task HandleOneTurn()
@@ -343,18 +312,16 @@ public class AutoBattleManager : MonoBehaviour
     }
    
     //유닛 데이터 초기화
-    private async Task InitializeBattle(List<int> _myUnitIds, List<int> _enemyUnitIds)
+    private void InitializeBattle(List<int> _myUnitIds, List<int> _enemyUnitIds)
     {
         if (autoBattleUI == null)
         {
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
         }
 
-        //로딩창 시작
-        //autoBattleUI.ToggleLoadingWindow();
-
         // 유닛 데이터 받아옴
-        (myUnits, enemyUnits) = await GetUnits(_myUnitIds, _enemyUnitIds);
+        myUnits = GetUnitsById(_myUnitIds);
+        enemyUnits = GetUnitsById(_enemyUnitIds);
 
         isFirstAttack = true;
 
@@ -362,8 +329,8 @@ public class AutoBattleManager : MonoBehaviour
         SetBaseData();
 
         //데이터 저장
-        SaveData saveData = new SaveData();
-        saveData.SaveDataFile();
+        //SaveData saveData = new SaveData();
+        //saveData.SaveDataFile();
 
         //스탯 유산 실행
         ProcessRelic();
@@ -371,8 +338,9 @@ public class AutoBattleManager : MonoBehaviour
         //유닛 생성
         UpdateUnitUI();
 
-        // 상태를 Preparation으로 설정
-        currentState = BattleState.Enter;
+        currentState = BattleState.Check;
+
+        Debug.Log(currentState);
     }
     //로그라이크 모드일떄 초기화
     private void InitializeRogueLike()
@@ -406,16 +374,11 @@ public class AutoBattleManager : MonoBehaviour
         currentState = BattleState.Check;
     }
 
-    /*전투 스테이지 입장
-    private void HandleEnter()
-    {
-        ProcessEnter();
-        currentState = BattleState.Check;
-        isProcessing = false;
-    }*/
     // 확인 단계 처리 (전투 시작 전에 필요한 확인 작업 수행)
     private async Task HandleCheck()
     {
+        Debug.Log("check");
+
         //맵 효과
         abilityManager.CalculateFieldEffect();
         
@@ -444,6 +407,7 @@ public class AutoBattleManager : MonoBehaviour
     // 시작 단계 처리 (전투 시작을 위한 초기화)
     private async Task<bool> HandleStart()
     {
+        Debug.Log("start");
         bool result = StartBattlePhase();
 
         await Task.Yield();
@@ -590,7 +554,10 @@ public class AutoBattleManager : MonoBehaviour
         autoBattleUI.CreateWarRelic();
     }
     
-    
+    private void SetTest()
+    {
+        isTest = true;
+    }
 
 }
 

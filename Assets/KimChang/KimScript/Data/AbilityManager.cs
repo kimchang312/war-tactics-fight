@@ -285,16 +285,17 @@ public class AbilityManager
             if (isFirstAttack && frontAttaker.charge && frontAttaker.impact)
             {                
                 RogueUnitDataBase target = CalculateBackAttack(defenders);
-                if (target==null)
+                if (target==null && defenders.Count > 1)
                 {
-                    foreach (var unit in defenders)
+                    for(int k=1; k < defenders.Count; k++)
                     {
-                        if (unit.health > 0)
+                        if (defenders[k].health > 0)
                         {
-                            target = unit;
+                            target = defenders[k];
                             break;
                         }
                     }
+                    
                     float impactDamage = MathF.Round(normalDamage * (1 - target.armor / (target.armor + 10)));
                     target.health -= impactDamage;
 
@@ -536,18 +537,20 @@ public class AbilityManager
                 frontAttacker.health = MathF.Min(frontAttacker.maxHealth, heal + frontAttacker.health);
                 frontAttacker.attackDamage += drainGainAttackValue;
             }
-            //노인기사
-            CalculateOldKnight(frontAttacker, isFrontDefendrDead);
-            //
             if (isFrontDefendrDead)
             {
+                //돌격대장
+                CalculateAssaultLeader(attackers, isTeam);
+                //노인기사
+                CalculateOldKnight(frontAttacker, isFrontDefendrDead);
                 //약탈
                 CalculatePlunder(frontAttacker, isTeam);
-                //무한
-                CalculateEndLess(frontAttacker, isTeam);
-                //돌격대장
-                CalculateAssaultLeader(attackers,isTeam);
             }
+        }
+        if (isFrontDefendrDead)
+        {
+            //무한
+            CalculateEndLess(frontAttacker, isTeam);
         }
     }
     //선제 타격

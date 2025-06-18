@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -20,7 +21,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     {
         if (ItemToolTip == null)
         {
-            ItemToolTip = FindInactiveObject("ItemToolTip");
+            ItemToolTip = GameManager.Instance.itemToolTip;
         }
         if (unitPackageToolTip == null)
         {
@@ -64,38 +65,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             return;
 
         }
-
-        RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
-        Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvas.transform as RectTransform,
-            Input.mousePosition,
-            canvas.worldCamera,
-            out var mousePosition
-        );
-
-        Vector2 offset = new Vector2(110, -110);
-        Vector2 desiredPosition = mousePosition + offset;
-        
-        Vector2 tooltipSize = tooltipRect.sizeDelta;
-        RectTransform canvasRect = canvas.transform as RectTransform;
-
-        float canvasWidth = canvasRect.rect.width;
-        float canvasHeight = canvasRect.rect.height;
-
-        float minX = -canvasWidth / 2 + tooltipSize.x / 2;
-        float maxX = canvasWidth / 2 - tooltipSize.x / 2;
-        float minY = -canvasHeight / 2 + tooltipSize.y / 2;
-        float maxY = canvasHeight / 2 - tooltipSize.y / 2;
-
-        desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
-        desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
-
-        tooltipRect.anchoredPosition = desiredPosition;
-
-
-        TextMeshProUGUI textComponent = ItemToolTip.transform.GetChild(ItemToolTip.transform.childCount - 1)
-            .GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI textComponent = ItemToolTip.GetComponentInChildren<TextMeshProUGUI>();
 
         textComponent.text = "설정되지 않은 아이템";
 
@@ -120,7 +90,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
         else if (info.isUpgrade)
         {
-            var (name, description, addOne,addTwo) = GameTextData.GetLocalizedTextFull(info.upgradeId);
+            var (name, description, addOne, addTwo) = GameTextData.GetLocalizedTextFull(info.upgradeId);
             int branch = info.upgradeId % 180;
             string branchName = branch switch
             {
@@ -136,10 +106,10 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             };
             UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
             int attackValue = upgrades[branch].attackLevel * 10;
-            int defenseValue = upgrades[branch].defenseLevel *10;
+            int defenseValue = upgrades[branch].defenseLevel * 10;
             string attackFull = "";
             string defenseFull = "";
-            if (upgrades[branch].attackLevel >4) attackFull = description;
+            if (upgrades[branch].attackLevel > 4) attackFull = description;
             if (upgrades[branch].defenseLevel > 4) defenseFull = addTwo;
             textComponent.text = $"{branchName}의 추가 능력치\n{name} +{attackValue}%          {addOne} +{defenseValue}%\n{attackFull}           {defenseFull}";
         }
@@ -150,11 +120,40 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
                 var (name, description) = GameTextData.GetLocalizedText(info.abilityId);
                 textComponent.text = $"{name}\n{description}";
             }
-            else if(info.unitId > -1)
+            else if (info.unitId > -1)
             {
                 return;
             }
         }
+        RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
+        Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvas.transform as RectTransform,
+            Input.mousePosition,
+            canvas.worldCamera,
+            out var mousePosition
+        );
+
+        Vector2 offset = new Vector2(20, -100);
+        Vector2 desiredPosition = mousePosition + offset;
+        
+        Vector2 tooltipSize = tooltipRect.sizeDelta;
+        RectTransform canvasRect = canvas.transform as RectTransform;
+
+        float canvasWidth = canvasRect.rect.width;
+        float canvasHeight = canvasRect.rect.height;
+
+        float minX = -canvasWidth / 2 + tooltipSize.x / 2;
+        float maxX = canvasWidth / 2 - tooltipSize.x / 2;
+        float minY = -canvasHeight / 2 + tooltipSize.y / 2;
+        float maxY = canvasHeight / 2 - tooltipSize.y / 2;
+
+        desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
+        desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
+
+        tooltipRect.anchoredPosition = desiredPosition;
+
+        Canvas.ForceUpdateCanvases(); // ← 꼭 추가!
 
         ItemToolTip.SetActive(true);
         unitPackageToolTip.SetActive(false);

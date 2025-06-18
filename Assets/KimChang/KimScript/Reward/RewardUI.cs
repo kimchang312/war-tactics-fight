@@ -7,6 +7,7 @@ using System;
 
 public class RewardUI : MonoBehaviour
 {
+    [SerializeField] private Image backgroundImg;
     [SerializeField] private GameObject backFrame;
     [SerializeField] private TextMeshProUGUI resultText;
     [SerializeField] private GameObject goldResult;
@@ -25,6 +26,7 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private GameObject endingWindow;
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private GameObject itemToolTip;
+    [SerializeField] private Image teasureBox;
     SaveData saveData = new SaveData();
 
     private bool isEnd=false;
@@ -43,9 +45,20 @@ public class RewardUI : MonoBehaviour
             SceneManager.LoadScene("Title");
         }
     }
+    public void SetActiveTeasureBox()
+    {
+        teasureBox.gameObject.SetActive(true);
+        CloseTeasureBox();
+        Button btn = teasureBox.GetComponent<Button>();
+        btn.onClick.RemoveAllListeners();
+        btn.onClick.AddListener(CreateTeasureUI);
+    }
     public void CreateTeasureUI()
     {
-        backFrame.SetActive(true);
+        AbleBackground();
+        OpenTeasureBox();
+
+        AbleRewardWindow();
         BattleRewardData reward = new();
         
         int gold, relicGrade;
@@ -66,7 +79,10 @@ public class RewardUI : MonoBehaviour
 
     public void CreateRewardUI()
     {
-        backFrame.SetActive(true);
+        DisableBackground();
+        teasureBox.gameObject.SetActive(false);
+
+        AbleRewardWindow();
 
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         bool isGameOver = RewardManager.CheckGameOver();
@@ -123,7 +139,7 @@ public class RewardUI : MonoBehaviour
 
     private void ResetUI()
     {
-        backFrame.SetActive(false);
+        DisableRewardWindow();
         goldResult.SetActive(false);
         moraleResult.SetActive(false);
         unitResult.onClick.RemoveAllListeners();
@@ -213,7 +229,7 @@ public class RewardUI : MonoBehaviour
 
         if (!HasUnitReward(reward) && !HasRelicReward(reward))
         {
-            backFrame.SetActive(true);
+            AbleRewardWindow();
             rewardSelectObj.SetActive(false);
             unitResult.gameObject.SetActive(false);
             relicResult.gameObject.SetActive(false);
@@ -234,7 +250,7 @@ public class RewardUI : MonoBehaviour
         rewardSelectObj.SetActive(true);
         rerollBtn.gameObject.SetActive(true);
         skipBtn.gameObject.SetActive(true);
-        backFrame.SetActive(false);
+        DisableRewardWindow();
     }
 
 
@@ -310,7 +326,7 @@ public class RewardUI : MonoBehaviour
         }
         else
         {
-            backFrame.SetActive(true);
+            AbleRewardWindow();
             rewardSelectObj.SetActive(false);
             unitResult.gameObject.SetActive(false);
             relicResult.gameObject.SetActive(false);
@@ -389,5 +405,35 @@ public class RewardUI : MonoBehaviour
     {
         RogueLikeData.Instance.ClearBattleReward();
     }
+    private void CloseTeasureBox()
+    {
+        teasureBox.sprite = SpriteCacheManager.GetSprite("KIcon/TeasureClose");
+    }
+    private void OpenTeasureBox()
+    {
+        teasureBox.sprite = SpriteCacheManager.GetSprite("KIcon/TeasuerOpen");
+    }
 
+    private void AbleBackground()
+    {
+        var color = backgroundImg.color;
+        color.a = 1;
+        backgroundImg.color = color;
+    }
+    private void DisableBackground()
+    {
+        var color = backgroundImg.color;
+        color.a = 0.5f;
+        backgroundImg.color = color;
+    }
+    private void AbleRewardWindow()
+    {
+        backFrame.transform.parent?.gameObject.SetActive(true);
+        backFrame.SetActive(true);
+    }
+    private void DisableRewardWindow()
+    {
+        backFrame.transform.parent?.gameObject.SetActive(false);
+        backFrame.SetActive(false);
+    }
 }
