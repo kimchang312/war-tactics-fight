@@ -146,9 +146,51 @@ public class UpgradeManager
             }
         }
     }
+    private const int ClassCount = 8;
 
+    // affinity[attacker][defender] = 배율
+    private static float[,] affinity = new float[ClassCount, ClassCount]
+    {
+        // Defender → Spearman, Warrior, Archer, HeavyInfantry, Assassin, LightCavalry, HeavyCavalry, Support
+        // Spearman
+        { 0f,   0f,  0f,  0f,  0f,  0.4f,  0.4f,  0f },
+        // Warrior
+        { 0.25f, 0f, 0.2f, 0f, 0f, 0f, 0f, 0f },
+        // Archer
+        { 0f, 0f, 0f, -0.4f, 0f, 0f, -0.4f, 0f },
+        // HeavyInfantry
+        { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f },
+        // Assassin
+        { 0f, 0f, 0.4f, -0.2f, 0f, 0f, -0.2f, 0.4f },
+        // LightCavalry
+        { -0.2f, 0.1f, 0.25f, 0f, 0f, 0f, 0f, 0f },
+        // HeavyCavalry
+        { -0.2f, 0.1f, 0f, 0.4f, 0f, 0f, 0f, 0f },
+        // Support
+        { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f }
+    };
+    public static float[,] GetAffinity()
+    {
+        return affinity;
+    }
+    // 공격자와 방어자의 병종 인덱스를 입력받아 상성 배율 반환
+    public static float GetAffinityMultiplier(int attackerClass, int defenderClass)
+    {
+        if (attackerClass < 0 || attackerClass >= ClassCount ||
+            defenderClass < 0 || defenderClass >= ClassCount)
+            return 0f;
+
+        return affinity[attackerClass, defenderClass];
+    }
+    public static void SetAffinityMultiplier(int attackerClass, int defenderClass, float multiplier)
+    {
+        if (attackerClass < 0 || attackerClass >= ClassCount ||
+            defenderClass < 0 || defenderClass >= ClassCount)
+            return;
+
+        affinity[attackerClass, defenderClass] = multiplier;
+    }
 }
-
 [System.Serializable]
 public class UnitUpgrade
 {

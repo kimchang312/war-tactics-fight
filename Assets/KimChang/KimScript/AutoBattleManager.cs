@@ -244,9 +244,9 @@ public class AutoBattleManager : MonoBehaviour
     }
 
     //전투 전 발동
-    private void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage)
+    private void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam)
     {
-        abilityManager.ProcessBeforeBattle(units, defenders, isTeam, finalDamage, autoBattleUI);
+        abilityManager.ProcessBeforeBattle(units, defenders, isTeam, autoBattleUI);
     }
     //전투 당 한번
     private bool StartBattlePhase()
@@ -377,13 +377,11 @@ public class AutoBattleManager : MonoBehaviour
     // 확인 단계 처리 (전투 시작 전에 필요한 확인 작업 수행)
     private async Task HandleCheck()
     {
-        Debug.Log("check");
-
         //맵 효과
         abilityManager.CalculateFieldEffect();
         
-        ProcessBeforeBattle(myUnits, enemyUnits, true, myFinalDamage);
-        ProcessBeforeBattle(enemyUnits, myUnits, false, enemyFinalDamage);
+        ProcessBeforeBattle(myUnits, enemyUnits, true);
+        ProcessBeforeBattle(enemyUnits, myUnits, false);
 
         //유산
         if (RelicManager.CheckRelicById(114))
@@ -407,7 +405,6 @@ public class AutoBattleManager : MonoBehaviour
     // 시작 단계 처리 (전투 시작을 위한 초기화)
     private async Task<bool> HandleStart()
     {
-        Debug.Log("start");
         bool result = StartBattlePhase();
 
         await Task.Yield();
@@ -417,13 +414,13 @@ public class AutoBattleManager : MonoBehaviour
     // 애니메이션 단계 처리 (전투 중 원하는 타이밍에 실행)
     private async Task HandleAnimation()
     {
-        Debug.Log("애니메이션 실행");
         await Task.Yield(); // 입력된 시간만큼 대기
         currentState = BattleState.Preparation;
     }
     // 준비 페이즈 관리
     private async Task<bool> HandlePreparation()
     {
+        abilityManager.SetMultipleDamage(myFrontUnit,enemyFrontUnit,ref myFinalDamage, ref enemyFinalDamage);
         UpdateUnitUI();
         bool result = PreparationPhase();
         await Task.Yield();
@@ -546,9 +543,6 @@ public class AutoBattleManager : MonoBehaviour
     {
         //스탯 유산 적용
         RelicManager.RunStateRelic();
-
-        myFinalDamage = RogueLikeData.Instance.GetMyMultipleDamage();
-        enemyFinalDamage = RogueLikeData.Instance.GetEnemyMultipleDamage();
 
         //유산 이미지 생성
         autoBattleUI.CreateWarRelic();

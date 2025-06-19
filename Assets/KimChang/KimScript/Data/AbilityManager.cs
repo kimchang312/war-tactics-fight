@@ -171,7 +171,7 @@ public class AbilityManager
     }
 
     //전투 전 발동(패시브)
-    public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage,AutoBattleUI _autoBattleUI)
+    public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam,AutoBattleUI _autoBattleUI)
     {
         autoBattleUI = _autoBattleUI;
 
@@ -295,8 +295,10 @@ public class AbilityManager
                             break;
                         }
                     }
-                    
                     float impactDamage = MathF.Round(normalDamage * (1 - target.armor / (target.armor + 10)));
+
+                    impactDamage = ChangeBackMultiple(frontAttaker,frontDefender,target,impactDamage);
+
                     target.health -= impactDamage;
 
                     CallDamageText(impactDamage, "충격 ", !isTeam, true, 1);
@@ -578,6 +580,9 @@ public class AbilityManager
             if (minHealthIndex == -1) return;
 
             float damage = MathF.Round(attacker.attackDamage * 2 * finalDamage);
+
+            damage = ChangeBackMultiple(attacker, defenders[0], defenders[minHealthIndex], damage);
+
             defenders[minHealthIndex].health -= damage;
             CallDamageText(damage, "선제타격 ", !isTeam, false, minHealthIndex);
         }
@@ -660,6 +665,8 @@ public class AbilityManager
                     return;
                 }
             }
+
+            damage = ChangeBackMultiple(attacker, defenders[0], defenders[minHealthIndex],damage);
 
             defenders[minHealthIndex].health -= damage;
 
@@ -931,7 +938,10 @@ public class AbilityManager
         unit.health -= damage;
 
         burningEffect.Duration--;
-
+        if(burningEffect.Duration == 0)
+        {
+            unit.effectDictionary.Remove(burningId);
+        }
         CallDamageText(damage, "작열 ", isTeam, false);
     }
     // 치유
@@ -1004,6 +1014,7 @@ public class AbilityManager
                 continue;
 
             float damage = attacker.attackDamage * finalDamage;
+            damage = ChangeBackMultiple(attackers[0], defenders[0], defenders[0], damage, attacker);
 
             for (int k = 0; k < 2; k++)
             {
@@ -1646,7 +1657,35 @@ public class AbilityManager
         }
     }
 
+    public void SetMultipleDamage(RogueUnitDataBase myFront,RogueUnitDataBase enemyFront,ref float myFinalDamage,ref float enemyFinalDamage)
+    {
+        myFinalDamage = RogueLikeData.Instance.GetMyMultipleDamage();
+        enemyFinalDamage = RogueLikeData.Instance.GetEnemyMultipleDamage();
 
+        myFinalDamage += UpgradeManager.GetAffinityMultiplier(myFront.branchIdx, enemyFront.branchIdx);
+        enemyFinalDamage += UpgradeManager.GetAffinityMultiplier(enemyFront.branchIdx, myFront.branchIdx);
+    }
 
-
+    private float ChangeBackMultiple(RogueUnitDataBase frontAttacker,RogueUnitDataBase frontDeffender, RogueUnitDataBase target,float damage,RogueUnitDataBase backattacker=null)
+    {
+        if(backattacker == null)
+        {
+            float baseMultiple = UpgradeManager.GetAffinityMultiplier(frontAttacker.branchIdx, frontDeffender.branchIdx);
+            float backMultiple = UpgradeManager.GetAffinityMultiplier(frontAttacker.branchIdx, target.branchIdx);
+            if (baseMultiple != backMultiple)
+            {
+                damage = (damage / (1 + baseMultiple)) * (1 + backMultiple);
+            }
+        }
+        else
+        {
+            float baseMultiple = UpgradeManager.GetAffinityMultiplier(frontAttacker.branchIdx, frontDeffender.branchIdx);
+            float backMultiple = UpgradeManager.GetAffinityMultiplier(backattacker.branchIdx, frontDeffender.branchIdx);
+            if (baseMultiple != backMultiple)
+            {
+                damage = (damage / (1 + baseMultiple)) * (1 + backMultiple);
+            }
+        }
+        return damage;
+    }
 }

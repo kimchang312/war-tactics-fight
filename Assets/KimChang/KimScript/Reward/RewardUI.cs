@@ -27,6 +27,7 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private GameObject itemToolTip;
     [SerializeField] private Image teasureBox;
+    [SerializeField] private Button teasureBtn;
     SaveData saveData = new SaveData();
 
     private bool isEnd=false;
@@ -49,12 +50,12 @@ public class RewardUI : MonoBehaviour
     {
         teasureBox.gameObject.SetActive(true);
         CloseTeasureBox();
-        Button btn = teasureBox.GetComponent<Button>();
-        btn.onClick.RemoveAllListeners();
-        btn.onClick.AddListener(CreateTeasureUI);
+        teasureBtn.onClick.RemoveAllListeners();
+        teasureBtn.onClick.AddListener(CreateTeasureUI);
     }
     public void CreateTeasureUI()
     {
+        teasureBtn.onClick.RemoveAllListeners();
         AbleBackground();
         OpenTeasureBox();
 

@@ -14,7 +14,7 @@ public class OptionBtn : MonoBehaviour
     [SerializeField] private AutoBattleUI autoBattleUI;
     [SerializeField] private MoveDamageUI moveDamageUI;
     [SerializeField] private MoveAbilityUI moveAbilityUI;
-
+    [SerializeField] private Button goTest;
     private bool isPaused=false;
 
     private float animationSpeed = 1f;
@@ -27,13 +27,24 @@ public class OptionBtn : MonoBehaviour
         goTitle.onClick.AddListener(Movetitle);
 
         gameSpeedToggle.onValueChanged.AddListener(OnToggleChanged);
+        goTest.onClick.AddListener(GoTestMode);
     }
 
     private void OnDestroy()
     {
         gameSpeedToggle.onValueChanged.RemoveListener(OnToggleChanged);
     }
-
+    private void GoTestMode()
+    {
+        SceneManager.LoadScene("Test");
+    }
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            ToggleOptionWindow();
+        }
+    }
     private void ToggleOptionWindow()
     {
         if (isPaused)
