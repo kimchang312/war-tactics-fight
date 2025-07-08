@@ -71,7 +71,7 @@ public class UnitDetailExplain : MonoBehaviour
         ranageText.text = $"사거리: {unit.range}";
         anitText.text = $"대기병: {unit.antiCavalry}";
         maxEnergyText.text = $"기력: {unit.maxEnergy}";
-        unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/{unit.unitImg}");
+        unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
 
         var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool) && (bool)f.GetValue(unit))

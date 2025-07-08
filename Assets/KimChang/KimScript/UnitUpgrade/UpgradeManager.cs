@@ -86,7 +86,8 @@ public class UpgradeManager
 
     public void ProcessUpgrade()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int id = 1;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in myUnits)
         {
@@ -96,52 +97,142 @@ public class UpgradeManager
 
             // 기본 강화 적용
             if (atkLv > 0)
-                unit.attackDamage += Mathf.Floor(unit.baseAttackDamage * atkLv * 0.1f);
+            {
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.AttackDamage,
+                    value = 0.1f* atkLv,
+                    source = SourceType.Upgrade,
+                    modifierId = id,
+                    isPercent = true
+                });
+            }
 
             if (defLv > 0)
-                unit.health += Mathf.Floor(unit.baseHealth * defLv * 0.1f);
+            {
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Health,
+                    value = 0.1f * defLv,
+                    source = SourceType.Upgrade,
+                    modifierId = id,
+                    isPercent = true
+                });
+            }
 
             // 병종별 특수 강화
             switch (idx)
             {
                 case 0:
-                    if (atkLv == 5)
-                        unit.antiCavalry += Mathf.Floor(unit.baseAntiCavalry * 0.3f);
+                    //if (atkLv == 5)
+                        //unit.antiCavalry += Mathf.Floor(unit.baseAntiCavalry * 0.3f);
                     break;
 
                 case 1:
                     if (atkLv == 5)
-                        unit.attackDamage += Mathf.Floor(unit.baseAttackDamage * 0.15f);
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.AttackDamage,
+                            value = 0.15f,
+                            source = SourceType.Upgrade,
+                            modifierId = id,
+                            isPercent = true
+                        });
+                    }
                     break;
 
                 case 2:
                     if (atkLv == 5)
-                        unit.range += 1;
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Range,
+                            value = 1,
+                            source = SourceType.Upgrade,
+                            modifierId = id,
+                            isPercent = false
+                        });
+                    }
                     if (defLv == 5)
-                        unit.mobility += 5;
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Mobility,
+                            value = 5,
+                            source = SourceType.Upgrade,
+                            modifierId = id,
+                            isPercent = false
+                        });
+                    }
                     break;
 
                 case 3:
                     if (atkLv == 5)
-                        unit.attackDamage += Mathf.Floor(unit.baseAttackDamage * 0.15f);
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.AttackDamage,
+                            value = 0.15f,
+                            source = SourceType.Upgrade,
+                            modifierId = id,
+                            isPercent = true
+                        });
+                    }
                     break;
 
                 case 4:
                     if (atkLv == 5)
-                        unit.attackDamage += Mathf.Floor(unit.baseAttackDamage * 0.15f);
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.AttackDamage,
+                            value = 0.15f,
+                            source = SourceType.Upgrade,
+                            modifierId = id,
+                            isPercent = true
+                        });
+                    }
                     if (defLv == 5)
-                        unit.mobility += 5;
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Mobility,
+                            value = 5,
+                            source = SourceType.Upgrade,
+                            modifierId = id,
+                            isPercent = false
+                        });
+                    }
                     break;
 
                 case 5:
                 case 6:
                     if (atkLv == 5)
-                        unit.mobility += 5;
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Mobility,
+                            value = 5,
+                            source = SourceType.Upgrade,
+                            modifierId = id,
+                            isPercent = false
+                        });
+                    }
                     break;
 
                 case 7:
                     if (atkLv == 5)
-                        unit.range += 1;
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Range,
+                            value = 1,
+                            source = SourceType.Upgrade,
+                            modifierId = id,
+                            isPercent = false
+                        });
+                    }
                     break;
             }
         }

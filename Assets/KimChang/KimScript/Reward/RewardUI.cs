@@ -267,6 +267,7 @@ public class RewardUI : MonoBehaviour
         else if (info.type == RewardType.RelicGrade || info.type == RewardType.NewRelic)
         {
             RogueLikeData.Instance.AcquireRelic(info.relicId);
+            RewardManager.AcquireReward();
             if (info.relicId == 79)
             {
                 unitSelectUI.gameObject.SetActive(true);
@@ -342,7 +343,7 @@ public class RewardUI : MonoBehaviour
 
     private ItemInformation CreateUnit(Button btn, RogueUnitDataBase unit, RewardType type)
     {
-        btn.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite($"UnitImages/{unit.unitImg}");
+        btn.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
         btn.GetComponentInChildren<TextMeshProUGUI>().text = unit.unitName;
 
         var info = btn.GetComponent<ItemInformation>();

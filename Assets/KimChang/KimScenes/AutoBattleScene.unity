@@ -1129,6 +1129,7 @@ MonoBehaviour:
   enemyAbilityBox: {fileID: 411384090}
   itemToolTip: {fileID: 1593952016}
   background: {fileID: 621572717}
+  goTestBtn: {fileID: 1366027963}
 --- !u!4 &211680953
 Transform:
   m_ObjectHideFlags: 0
@@ -6112,7 +6113,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 1.5003662, y: 0}
+  m_AnchoredPosition: {x: 1.5002441, y: 0}
   m_SizeDelta: {x: 3, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1582074376
@@ -6187,11 +6188,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 572035931929644885, guid: cff66c55da311654985a9bdfa64e16cc, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 115.28
+      value: 105.28
       objectReference: {fileID: 0}
     - target: {fileID: 572035931929644885, guid: cff66c55da311654985a9bdfa64e16cc, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 48.96
+      value: 38.96
       objectReference: {fileID: 0}
     - target: {fileID: 572035931929644885, guid: cff66c55da311654985a9bdfa64e16cc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6259,19 +6260,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8090495635351697776, guid: cff66c55da311654985a9bdfa64e16cc, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 105.28
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8090495635351697776, guid: cff66c55da311654985a9bdfa64e16cc, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 38.96
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8090495635351697776, guid: cff66c55da311654985a9bdfa64e16cc, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 57.64
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8090495635351697776, guid: cff66c55da311654985a9bdfa64e16cc, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -24.48
+      value: -19.48
       objectReference: {fileID: 0}
     - target: {fileID: 8970921639792750002, guid: cff66c55da311654985a9bdfa64e16cc, type: 3}
       propertyPath: m_AnchorMax.y

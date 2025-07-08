@@ -52,8 +52,12 @@ public class AutoBattleManager : MonoBehaviour
 
         if (autoBattleUI == null)
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
-        if (isTest) return;
-        currentState = BattleState.None;
+        if (isTest)
+        {
+            autoBattleUI.OpenGoTestBtn();
+            return;
+        }
+            currentState = BattleState.None;
         InitializeRogueLike();
     }
     private async void Update()
@@ -323,6 +327,9 @@ public class AutoBattleManager : MonoBehaviour
         myUnits = GetUnitsById(_myUnitIds);
         enemyUnits = GetUnitsById(_enemyUnitIds);
 
+        RogueLikeData.Instance.SetMyTeam(myUnits);
+        RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
+
         isFirstAttack = true;
 
         //기본 데이터 설정
@@ -332,25 +339,27 @@ public class AutoBattleManager : MonoBehaviour
         //SaveData saveData = new SaveData();
         //saveData.SaveDataFile();
 
-        //스탯 유산 실행
+        //
+        UnitStateChange.ChangeStateMyUnits();
+
         ProcessRelic();
 
         //유닛 생성
         UpdateUnitUI();
 
         currentState = BattleState.Check;
-
-        Debug.Log(currentState);
     }
     //로그라이크 모드일떄 초기화
     private void InitializeRogueLike()
     {
+        UnitStateChange.CalculateRunMorale();
+
         int presetId = RogueLikeData.Instance.GetPresetID();
         if (presetId == -1) return;
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
 
         enemyUnits = GetUnitsById(unitIds);
-        myUnits = RogueUnitDataBase.SetMyUnitsNormalize();
+        //myUnits = RogueUnitDataBase.SetMyUnitsNormalize();
         RogueLikeData.Instance.ClearSavedMyUnits();
 
         RogueLikeData.Instance.SetBattleUnitCount(myUnits.Count);
@@ -359,13 +368,13 @@ public class AutoBattleManager : MonoBehaviour
 
         isFirstAttack = true;
         SetBaseData();
-        
+
         //데이터 저장
         SaveData saveData = new SaveData();
         saveData.SaveDataFile();
         
         ProcessRelic();
-         
+
         UpdateUnitUI();
         
         //로딩창 종료
@@ -542,7 +551,7 @@ public class AutoBattleManager : MonoBehaviour
     private void ProcessRelic()
     {
         //스탯 유산 적용
-        RelicManager.RunStateRelic();
+        //RelicManager.RunStateRelic();
 
         //유산 이미지 생성
         autoBattleUI.CreateWarRelic();

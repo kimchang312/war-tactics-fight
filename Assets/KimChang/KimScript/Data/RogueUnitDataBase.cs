@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 
@@ -28,14 +29,13 @@ public class RogueUnitDataBase
     public float baseAntiCavalry;
     public int baseEnergy;
 
-    public float health;       
-    public float armor;       
-    public float attackDamage; 
-    public float mobility;    
-    public float range;       
-    public float antiCavalry;  
-    public int energy; 
-
+    public float health;
+    public float armor;
+    public float attackDamage;
+    public float mobility;
+    public float range;
+    public float antiCavalry;
+    public int energy;
 
     public bool lightArmor; 
     public bool heavyArmor;   
@@ -81,6 +81,8 @@ public class RogueUnitDataBase
     public int UniqueId;
 
     public Dictionary<int, BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
+
+    public StatBlock stats = new(); // 여기엔 계산된 결과 + modifier 임시 적용
 
     public RogueUnitDataBase(
     int idx, string unitName, string unitBranch, int branchIdx,string unitId,
@@ -169,96 +171,6 @@ public class RogueUnitDataBase
         this.fStriked = fStriked;
         this.UniqueId = uniqueId;
         this.effectDictionary = effectDictionary??new Dictionary<int, BuffDebuffData>();
-    }
-    public static RogueUnitDataBase ConvertToUnitDataBase(List<string> rowData,bool isTeam=true)
-    {
-        if (rowData == null || rowData.Count == 0) return null;
-
-        int idx, branchIdx, factionIdx, tagIdx, unitPrice, rarity,energy, maxEnergy, baseEnergy;
-        float health, armor, attackDamage, mobility, range, antiCavalry, maxHealth, baseHealth, baseArmor, baseAttackDamage, baseMobility, baseRange, baseAntiCavalry;
-
-        int.TryParse(rowData[0], out idx);
-        int.TryParse(rowData[3], out branchIdx);
-        int.TryParse(rowData[8], out factionIdx);
-        int.TryParse(rowData[10], out tagIdx);
-        int.TryParse(rowData[11], out unitPrice);
-        int.TryParse(rowData[12], out rarity);
-        int.TryParse(rowData[19], out energy);
-
-        float.TryParse(rowData[13], out health);
-        float.TryParse(rowData[14], out armor);
-        float.TryParse(rowData[15], out attackDamage);
-        float.TryParse(rowData[16], out mobility);
-        float.TryParse(rowData[17], out range);
-        float.TryParse(rowData[18], out antiCavalry);
-
-        baseHealth = health;
-        baseArmor = armor;
-        baseAttackDamage = attackDamage;
-        baseMobility = mobility;
-        baseRange = range;
-        baseAntiCavalry = antiCavalry;
-        baseEnergy = energy;
-        maxHealth = health;
-        maxEnergy = energy;
-
-        string unitName = rowData[1];
-        string unitBranch = rowData[2];
-        string unitId = rowData[4];
-        string unitExplain = rowData[5];
-        string unitImg = rowData[6];
-        string unitFaction = rowData[7];
-        string tag = rowData[9];
-
-        bool lightArmor = rowData[20] == "TRUE";
-        bool heavyArmor = rowData[21] == "TRUE";
-        bool rangedAttack = rowData[22] == "TRUE";
-        bool bluntWeapon = rowData[23] == "TRUE";
-        bool pierce = rowData[24] == "TRUE";
-        bool agility = rowData[25] == "TRUE";
-        bool strongCharge = rowData[26] == "TRUE";
-        bool perfectAccuracy = rowData[27] == "TRUE";
-        bool slaughter = rowData[28] == "TRUE";
-        bool bindingForce = rowData[29] == "TRUE";
-        bool bravery = rowData[30] == "TRUE";
-        bool suppression = rowData[31] == "TRUE";
-        bool plunder = rowData[32] == "TRUE";
-        bool doubleShot = rowData[33] == "TRUE";
-        bool scorching = rowData[34] == "TRUE";
-        bool thorns = rowData[35] == "TRUE";
-        bool endless = rowData[36] == "TRUE";
-        bool impact = rowData[37] == "TRUE";
-        bool healing = rowData[38] == "TRUE";
-        bool lifeDrain = rowData[39] == "TRUE";
-
-        bool charge = rowData[41] == "TRUE";
-        bool defense = rowData[42] == "TRUE";
-        bool throwSpear = rowData[43] == "TRUE";
-        bool guerrilla = rowData[44] == "TRUE";
-        bool guard = rowData[45] == "TRUE";
-        bool assassination = rowData[46] == "TRUE";
-        bool drain = rowData[47] == "TRUE";
-        bool overwhelm = rowData[48] == "TRUE";
-        bool martyrdom = rowData[49] == "TRUE";
-        bool wounding = rowData[50] == "TRUE";
-        bool vengeance = rowData[51] == "TRUE";
-        bool counter = rowData[52] == "TRUE";
-        bool firstStrike = rowData[53] == "TRUE";
-        bool challenge = rowData[54] == "TRUE";
-        bool smokeScreen = rowData[55] == "TRUE";
-
-        int UniqueId = BuildUnitUniqueId(branchIdx, idx, isTeam);
-        Dictionary<int,BuffDebuffData> effectDictionary = new Dictionary<int, BuffDebuffData>();
-
-        return new RogueUnitDataBase(
-            idx, unitName, unitBranch, branchIdx, unitId, unitExplain, unitImg, unitFaction, factionIdx, tag, tagIdx, unitPrice, rarity,
-            health, armor, attackDamage, mobility, range, antiCavalry, energy, baseHealth, baseArmor, baseAttackDamage, baseMobility, baseRange, baseAntiCavalry,baseEnergy,
-            lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy, slaughter,
-            bindingForce, bravery, suppression, plunder, doubleShot, scorching, thorns, endless, impact, healing, lifeDrain,
-            charge, defense, throwSpear, guerrilla, guard, assassination, drain, overwhelm,
-            martyrdom, wounding, vengeance, counter, firstStrike, challenge, smokeScreen,
-            maxHealth,maxEnergy, true, false, UniqueId, effectDictionary
-        );
     }
     public RogueUnitDataBase Clone()
     {
@@ -364,29 +276,86 @@ public class RogueUnitDataBase
         }
         return myUnits;
     }
-    public static void SetMyTeamNoramlize()
-    {
-        var myTeam = RogueLikeData.Instance.GetMyTeam();
-        foreach (var unit in myTeam)
-        {
-            unit.maxHealth = unit.baseHealth;
-            unit.health = unit.maxHealth;
-            unit.attackDamage= unit.baseAttackDamage;
-            unit.armor = unit.baseArmor;
-            unit.mobility= unit.baseMobility;
-            unit.range = unit.baseRange;
-            unit.antiCavalry= unit.baseAntiCavalry;
-            unit.fStriked = false;
-        }
-    }
 
     public static List<RogueUnitDataBase> GetBaseUnits()
     {
         List<RogueUnitDataBase> units = new();
         units.Add(UnitLoader.Instance.GetCloneUnitById(0));
+        units.Add(UnitLoader.Instance.GetCloneUnitById(1));
         units.Add(UnitLoader.Instance.GetCloneUnitById(2));
-        units.Add(UnitLoader.Instance.GetCloneUnitById(3));
         return units;
+    }
+    public void NormalizeStateModifiers()
+    {
+        stats = new StatBlock
+        {
+            baseHealth = baseHealth,
+            baseAttackDamage = baseAttackDamage,
+            baseArmor = baseArmor,
+            baseRange = baseRange,
+            baseMobility = baseMobility
+        };
+        RogueUnitDataBase unitEx = UnitLoader.Instance.GetUnitById(idx);
+        
+        lightArmor = unitEx.lightArmor;
+        heavyArmor = unitEx.heavyArmor;
+        rangedAttack =unitEx.rangedAttack;
+        bluntWeapon =unitEx.bluntWeapon;
+        pierce = unitEx.pierce;
+        agility =unitEx.agility;
+        strongCharge =unitEx.strongCharge;
+        perfectAccuracy =unitEx.perfectAccuracy;
+        slaughter =unitEx.slaughter;
+        bindingForce =unitEx.bindingForce;
+        bravery = unitEx.bravery;
+        suppression =unitEx.suppression;
+        plunder =unitEx.plunder;
+        doubleShot = unitEx.doubleShot;
+        scorching = unitEx.scorching;
+        thorns = unitEx.thorns;
+        impact = unitEx.impact;
+        healing = unitEx.healing;
+        lifeDrain = unitEx.lifeDrain;
+        charge = unitEx.charge;
+        defense = unitEx.defense;
+        throwSpear = unitEx.throwSpear;
+        guerrilla = unitEx.guerrilla;
+        guard = unitEx.guard;
+        assassination = unitEx.assassination;
+        drain = unitEx.drain;
+        overwhelm = unitEx.overwhelm;
+        martyrdom = unitEx.martyrdom;
+        wounding = unitEx.wounding;
+        vengeance = unitEx.vengeance;
+        counter = unitEx.counter;
+        firstStrike = unitEx.firstStrike;
+        challenge = unitEx.challenge;
+        smokeScreen = unitEx.smokeScreen;
+
+        fStriked = false;
+        alive =false;
+
+        effectDictionary.Clear();
+    }
+    public void ApplyModifiers(bool isBattle =false)
+    {
+        float newMaxHealth = Mathf.Round(stats.GetStat(StatType.Health));
+        if (isBattle)
+        {
+            float addHealth = newMaxHealth - maxHealth;
+            health += addHealth;
+
+        }
+        else
+        {
+            // 각각의 스탯 값을 StateBlock에서 계산하여 적용
+            health = Mathf.Round(stats.GetStat(StatType.Health));
+        }
+        maxHealth = newMaxHealth;
+        armor = Mathf.Round(stats.GetStat(StatType.Armor));
+        attackDamage = Mathf.Round(stats.GetStat(StatType.AttackDamage));
+        mobility = Mathf.Min(1,(int)stats.GetStat(StatType.Mobility));
+        range = (int)stats.GetStat(StatType.Range);
     }
 
 }

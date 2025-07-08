@@ -39,6 +39,8 @@ public class AutoBattleUI : MonoBehaviour
 
     [SerializeField] private GameObject itemToolTip;
     [SerializeField] private Image background;
+    [SerializeField] private GameObject goTestBtn;
+
     private Vector3 myTeam = new(270, 280, 0);               
     private Vector3 enemyTeam = new(-270, 280, 0);          
 
@@ -46,6 +48,9 @@ public class AutoBattleUI : MonoBehaviour
 
     private void Start()
     {
+        goTestBtn.SetActive(false);
+
+
         int fieldId = RogueLikeData.Instance.GetFieldId();
         switch (fieldId) 
         {
@@ -334,7 +339,7 @@ public class AutoBattleUI : MonoBehaviour
 
             Image img = unitImage.GetComponent<Image>();
             img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
-            img.sprite = SpriteCacheManager.GetSprite($"UnitImages/{units[i].unitImg}");
+            img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{units[i].idx}");
 
             unitFrame.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{unitTeam}");
 
@@ -515,7 +520,10 @@ public class AutoBattleUI : MonoBehaviour
         int morale = RogueLikeData.Instance.GetMorale();
         moraleText.text = $"{morale}";
     }
-
+    public void OpenGoTestBtn()
+    {
+        goTestBtn.SetActive(true);
+    }
    
 }
 
