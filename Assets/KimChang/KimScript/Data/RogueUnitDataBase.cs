@@ -279,10 +279,12 @@ public class RogueUnitDataBase
 
     public static List<RogueUnitDataBase> GetBaseUnits()
     {
-        List<RogueUnitDataBase> units = new();
-        units.Add(UnitLoader.Instance.GetCloneUnitById(0));
-        units.Add(UnitLoader.Instance.GetCloneUnitById(1));
-        units.Add(UnitLoader.Instance.GetCloneUnitById(2));
+        List<RogueUnitDataBase> units = new()
+        {
+            UnitLoader.Instance.GetCloneUnitById(0),
+            UnitLoader.Instance.GetCloneUnitById(1),
+            UnitLoader.Instance.GetCloneUnitById(2)
+        };
         return units;
     }
     public void NormalizeStateModifiers()

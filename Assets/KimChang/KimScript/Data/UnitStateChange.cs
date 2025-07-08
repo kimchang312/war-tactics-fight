@@ -57,20 +57,22 @@ public static class UnitStateChange
         }
     }
 
-    public static void CalculateRunMorale()
+    public static RogueUnitDataBase CalculateRunMorale()
     {
         int morale = RogueLikeData.Instance.GetMorale();
-        if (morale > 10) return;
-        var myTeam = RogueLikeData.Instance.GetMyTeam();
+        if (morale > 10) return null;
+        var myTeam = RogueLikeData.Instance.GetMyUnits();
 
         // 탈주할 유닛이 있으면 무작위로 한 유닛 선택하여 제거
         if (myTeam.Count > 0)
         {
             RogueUnitDataBase leavingUnit = myTeam[UnityEngine.Random.Range(0, myTeam.Count)];
-            if(leavingUnit.bravery) return;
+            if(leavingUnit.bravery) return null;
             myTeam.Remove(leavingUnit);
             RogueLikeData.Instance.SetMyTeam(myTeam);
+            return leavingUnit;
         }
+        return null;
     }
 
 }

@@ -108,6 +108,8 @@ public class AutoBattleManager : MonoBehaviour
         foreach (int unitId in unitIds)
         {
             RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(unitId, false);
+            unit.NormalizeStateModifiers();
+            unit.ApplyModifiers();
             units.Add(unit);
         }
         return units;
@@ -123,6 +125,7 @@ public class AutoBattleManager : MonoBehaviour
 
     private async Task HandleOneTurn()
     {
+
         bool isTrun =abilityManager.ProcessOneTurn();
 
         if (isTrun)
@@ -221,8 +224,7 @@ public class AutoBattleManager : MonoBehaviour
     {
         List<RogueUnitDataBase> myRangeUnits=new();
         List<RogueUnitDataBase> enemyRangUnits=new();
-        List<RogueUnitDataBase> myAliveUnits = new();
-        List<RogueUnitDataBase> enemyAliveUnits = new();
+
         //원거리 공격이 가능한지 검사
         for (int i = 1; i < myUnits.Count; i++)
         {
@@ -238,7 +240,7 @@ public class AutoBattleManager : MonoBehaviour
                 enemyRangUnits.Add(enemyUnits[i]);
             }
         }
-        
+
         autoBattleUI.CreateUnitBox(myUnits, enemyUnits, abilityManager.CalculateDodge(myUnits[0],true,isFirstAttack), abilityManager.CalculateDodge(enemyUnits[0],false,isFirstAttack),myRangeUnits,enemyRangUnits);
     }
     //전투 입장
@@ -326,7 +328,7 @@ public class AutoBattleManager : MonoBehaviour
         // 유닛 데이터 받아옴
         myUnits = GetUnitsById(_myUnitIds);
         enemyUnits = GetUnitsById(_enemyUnitIds);
-
+  
         RogueLikeData.Instance.SetMyTeam(myUnits);
         RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
 
@@ -352,14 +354,21 @@ public class AutoBattleManager : MonoBehaviour
     //로그라이크 모드일떄 초기화
     private void InitializeRogueLike()
     {
-        UnitStateChange.CalculateRunMorale();
+        if (UnitStateChange.CalculateRunMorale() != null)
+        {
+            
+        }
 
         int presetId = RogueLikeData.Instance.GetPresetID();
-        if (presetId == -1) return;
+        if (presetId == -1) 
+        {
+            Debug.Log("프리셋 아이디 오류");
+            return; 
+        }
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
-
+        
         enemyUnits = GetUnitsById(unitIds);
-        //myUnits = RogueUnitDataBase.SetMyUnitsNormalize();
+        myUnits = RogueLikeData.Instance.GetMyUnits();
         RogueLikeData.Instance.ClearSavedMyUnits();
 
         RogueLikeData.Instance.SetBattleUnitCount(myUnits.Count);
@@ -410,12 +419,12 @@ public class AutoBattleManager : MonoBehaviour
         await Task.Delay((int)waittingTime);
         currentState = BattleState.Start;
         isProcessing = false; // 체크가 끝난 후 상태를 변경
+
     }
     // 시작 단계 처리 (전투 시작을 위한 초기화)
     private async Task<bool> HandleStart()
     {
         bool result = StartBattlePhase();
-
         await Task.Yield();
         return result;
 
@@ -429,6 +438,7 @@ public class AutoBattleManager : MonoBehaviour
     // 준비 페이즈 관리
     private async Task<bool> HandlePreparation()
     {
+        Debug.Log(myUnits.Count);
         abilityManager.SetMultipleDamage(myFrontUnit,enemyFrontUnit,ref myFinalDamage, ref enemyFinalDamage);
         UpdateUnitUI();
         bool result = PreparationPhase();
@@ -487,6 +497,7 @@ public class AutoBattleManager : MonoBehaviour
     //종료관리 전투가 끝났을때 나오게 될것들
     private bool HandleEnd()
     {
+
         int result = CheckEnd();
         if (result == 3)
         {

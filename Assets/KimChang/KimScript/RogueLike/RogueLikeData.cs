@@ -771,7 +771,7 @@ public class RogueLikeData
             addHero += 2;
         }
         
-        return maxHero;
+        return maxHero+addHero;
     }
     public void SetMaxHero(int maxHero)
     {
