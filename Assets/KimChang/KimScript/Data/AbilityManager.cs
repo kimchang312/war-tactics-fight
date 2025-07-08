@@ -536,7 +536,7 @@ public class AbilityManager
         //사리유산
         CalculateSariRelic(attackers[0], isTeam, isFrontDefendrDead);
         //결속
-        CalculataeSolidarity(attackers, isTeam);
+        CalculataeSolidarity(attackers, isTeam,true);
         //넝마떼기
         RelicManager.SurvivorOfRag(attackers, isTeam);
 
@@ -1491,7 +1491,7 @@ public class AbilityManager
         return 0.5f;
     }
     //결속 발동
-    public static void CalculataeSolidarity(List<RogueUnitDataBase> units, bool isTeam)
+    public static void CalculataeSolidarity(List<RogueUnitDataBase> units, bool isTeam,bool isBattle =false)
     {
         int id = 9;
         foreach (var unit in units)
@@ -1515,6 +1515,8 @@ public class AbilityManager
                 modifierId = id,
                 isPercent = false
             });
+            if (isBattle) continue;
+
             unit.stats.AddModifier(new StatModifier
             {
                 stat = StatType.Health,
