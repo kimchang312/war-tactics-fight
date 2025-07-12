@@ -7546,12 +7546,12 @@ GameObject:
   - component: {fileID: 715344876}
   - component: {fileID: 715344875}
   m_Layer: 5
-  m_Name: "\uC801 \uC815\uBCF4 \uC608\uC2DC"
+  m_Name: "\uC0C8\uB85C\uC6B4 \uBC30\uCE58 \uC608\uC2DC"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &715344874
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7584,14 +7584,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.6509804}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 45ad2b254246019429c21fbb77c532ac, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1fc7721d7126e274caa418a219764ff6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

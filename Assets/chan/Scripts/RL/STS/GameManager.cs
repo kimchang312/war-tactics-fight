@@ -196,6 +196,21 @@ private void Start()
         // **currentStage를 무조건 여기서 설정**해 줍니다.
         currentStage = newStage;
 
+        // --- Relic 56: 전투가 아닌 지역 이동 시 사기 -5 ---
+        if (RelicManager.CheckRelicById(56))
+        {
+            bool isNonCombat = newStage.stageType != StageType.Combat &&
+                               newStage.stageType != StageType.Elite &&
+                               newStage.stageType != StageType.Boss;
+
+            if (isNonCombat)
+            {
+                RogueLikeData.Instance.ChangeMorale(-5);
+                UIManager.Instance.UpdateMorale();
+                Debug.Log(" 전투가 없는 지역으로 이동 → 사기 5 감소 (Relic 56 효과)");
+            }
+        }
+
         // 2) 맵 UI 전체 잠금
         foreach (var s in allStages)
             s.LockStage();
