@@ -192,7 +192,7 @@ private void Start()
 
         RogueLikeData.Instance.SetCurrentStage(newStage.level, newStage.row, newStage.stageType);
         RogueLikeData.Instance.SetPresetID(newStage.PresetID);
-        UnitStateChange.ChangeStateMyUnits();
+
         // **currentStage를 무조건 여기서 설정**해 줍니다.
         currentStage = newStage;
 

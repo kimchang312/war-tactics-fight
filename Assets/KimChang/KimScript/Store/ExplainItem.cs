@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public GameObject ItemToolTip;
-    [SerializeField] private GameObject unitPackageToolTip;
+    //[SerializeField] private GameObject unitPackageToolTip;
     private static readonly Dictionary<int, string> gradeText = new() 
     {
         {0,"저주" },
@@ -22,11 +22,11 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         if (ItemToolTip == null)
         {
             ItemToolTip = GameManager.Instance.itemToolTip;
-        }
+        }/*
         if (unitPackageToolTip == null)
         {
             unitPackageToolTip = FindInactiveObject("UnitPackageToolTip");
-        }
+        }*/
         ItemInformation info = GetComponent<ItemInformation>();
         if (info == null)
         {
@@ -35,7 +35,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
 
         StoreItemData item = info.item;
-
+        /*
         if (info.units.Count != 0)
         {
             unitPackageToolTip.SetActive(true);
@@ -64,7 +64,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             unitPackageToolTip.transform.SetAsLastSibling();
             return;
 
-        }
+        }*/
         TextMeshProUGUI textComponent = ItemToolTip.GetComponentInChildren<TextMeshProUGUI>();
 
         textComponent.text = "설정되지 않은 아이템";
@@ -156,14 +156,14 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         Canvas.ForceUpdateCanvases(); // ← 꼭 추가!
 
         ItemToolTip.SetActive(true);
-        unitPackageToolTip.SetActive(false);
+        //unitPackageToolTip.SetActive(false);
         ItemToolTip.transform.SetAsLastSibling();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         ItemToolTip.SetActive(false);
-        unitPackageToolTip.SetActive(false);
+        //unitPackageToolTip.SetActive(false);
     }
 
     private GameObject FindInactiveObject(string name)

@@ -64,11 +64,11 @@ public class UnitDetailExplain : MonoBehaviour
         branchText.text = $"병종: {branchName[unit.branchIdx]}";
         rarityText.text = $"희귀도: {unit.rarity}";
         energyText.text = $"현재 기력: {unit.energy}";
-        healthText.text = $"체력: {unit.maxHealth}";
-        armorText.text = $"장갑: {unit.armor}";
-        attackText.text = $"공격력: {unit.attackDamage}";
-        mobilityText.text = $"기동력: {unit.mobility}";
-        ranageText.text = $"사거리: {unit.range}";
+        healthText.text = UnitStateChange.GetUnitStatusDetail(unit, 1).ToString();
+        armorText.text = UnitStateChange.GetUnitStatusDetail(unit, 2).ToString();
+        attackText.text = UnitStateChange.GetUnitStatusDetail(unit, 3).ToString();
+        mobilityText.text = UnitStateChange.GetUnitStatusDetail(unit, 4).ToString();
+        ranageText.text = UnitStateChange.GetUnitStatusDetail(unit, 0).ToString();
         anitText.text = $"대기병: {unit.antiCavalry}";
         maxEnergyText.text = $"기력: {unit.maxEnergy}";
         unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");

@@ -587,7 +587,7 @@ public class AbilityManager
 
         foreach (var unit in attackers)
         {
-            unit.ApplyModifiers(false);
+            unit.ApplyModifiers(true);
         }
     }
     //선제 타격

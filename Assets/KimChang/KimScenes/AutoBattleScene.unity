@@ -8559,7 +8559,7 @@ PrefabInstance:
     - target: {fileID: 4526861162954605578, guid: 440c60b99f65b8c45b96975b49d03001, type: 3}
       propertyPath: itemToolTip
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1593952016}
     - target: {fileID: 4599016934731999128, guid: 440c60b99f65b8c45b96975b49d03001, type: 3}
       propertyPath: ItemToolTip
       value: 

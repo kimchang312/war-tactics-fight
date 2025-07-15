@@ -438,7 +438,6 @@ public class AutoBattleManager : MonoBehaviour
     // 준비 페이즈 관리
     private async Task<bool> HandlePreparation()
     {
-        Debug.Log(myUnits.Count);
         abilityManager.SetMultipleDamage(myFrontUnit,enemyFrontUnit,ref myFinalDamage, ref enemyFinalDamage);
         UpdateUnitUI();
         bool result = PreparationPhase();

@@ -10,6 +10,8 @@ public class StoreUI : MonoBehaviour
     [SerializeField] private Button leaveBtn;
     [SerializeField] private Transform unitParent, relicParent, itemParent, rerollObject;
     [SerializeField] private UnitSelectUI unitSelectUI;
+    [SerializeField] private Transform unitPackage;
+    [SerializeField] private GameObject packageBack;
 
     private List<StoreItemData> cachedUnitItems;
     private List<List<RogueUnitDataBase>> cachedUnitPackages;
@@ -20,6 +22,7 @@ public class StoreUI : MonoBehaviour
 
     private void OnEnable()
     {
+        RogueLikeData.Instance.SetCurrentGold(1000);
         RestUI();
         ShowUnitUI();
         ShowRelicUI();
@@ -32,6 +35,7 @@ public class StoreUI : MonoBehaviour
         leaveBtn.onClick.AddListener(CloseStore);
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
         unitSelectUI.gameObject.SetActive(false);
+        ClosePackageBack();
     }
 
     private void CloseStore() => gameObject.SetActive(false);
@@ -56,11 +60,18 @@ public class StoreUI : MonoBehaviour
         for (int i = 0; i < cachedUnitItems.Count; i++)
         {
             var item = cachedUnitItems[i];
+
             var units = FilterAndSelectUnits(item);
-            Transform child = unitParent.GetChild(i);
+
             cachedUnitPackages.Add(units);
             int price = CalculateUnitPackagePrice(units, item);
+            /*
+             *             Transform child = unitParent.GetChild(i);
             SetUnitPackageUI(child, item, units, price);
+            */
+            UnitPackageUI child = unitPackage.GetChild(i).GetComponent<UnitPackageUI>();
+
+            child.SetUnitPackage(units,item, price);
         }
     }
 
@@ -162,7 +173,7 @@ public class StoreUI : MonoBehaviour
 
         SetButtonState(rerollObject.GetComponent<Button>(), rerollCost);
     }
-
+    /*
     private void SetUnitPackageUI(Transform child, StoreItemData item, List<RogueUnitDataBase> units, int price)
     {
         string imgChannel = $"UnitImages/{units[0].unitImg}";
@@ -181,7 +192,7 @@ public class StoreUI : MonoBehaviour
 
         btn.onClick.RemoveAllListeners();
         btn.onClick.AddListener(() => PurchaseUnitPackage(btn, units, price));
-    }
+    }*/
 
     private void SetRelicUI(Transform child, StoreItemData item, int relicId, int price)
     {
@@ -296,7 +307,7 @@ public class StoreUI : MonoBehaviour
         else if (relicId != -1) itemInformation.relicId = relicId;
         else if (rerollCount != 0) itemInformation.rerollCount = rerollCount;
     }
-
+    /*
     private void PurchaseUnitPackage(Button btn, List<RogueUnitDataBase> units, int price)
     {
         if (!SpendGold(price)) return;
@@ -305,7 +316,7 @@ public class StoreUI : MonoBehaviour
         RogueLikeData.Instance.SetMyTeam(myUnits);
         btn.transform.GetChild(2).gameObject.SetActive(true);
         btn.interactable = false;
-    }
+    }*/
 
     private void PurchaseRelic(Button btn, int relicId, int price)
     {
@@ -383,6 +394,16 @@ public class StoreUI : MonoBehaviour
             }
         }
     }
+
+    public void OpenPackageBack()
+    {
+        packageBack.SetActive(true);
+    }
+    public void ClosePackageBack()
+    {
+        packageBack.SetActive(false);
+    }
+
     private void OnDisable()
     {
         GameManager.Instance.UpdateAllUI();

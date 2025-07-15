@@ -171,6 +171,8 @@ public class RogueUnitDataBase
         this.fStriked = fStriked;
         this.UniqueId = uniqueId;
         this.effectDictionary = effectDictionary??new Dictionary<int, BuffDebuffData>();
+
+        NormalizeStatBlock();
     }
     public RogueUnitDataBase Clone()
     {
@@ -287,7 +289,7 @@ public class RogueUnitDataBase
         };
         return units;
     }
-    public void NormalizeStateModifiers()
+    public void NormalizeStatBlock()
     {
         stats = new StatBlock
         {
@@ -297,6 +299,11 @@ public class RogueUnitDataBase
             baseRange = baseRange,
             baseMobility = baseMobility
         };
+    }
+
+    public void NormalizeStateModifiers()
+    {
+        //NormalizeStatBlock();
         RogueUnitDataBase unitEx = UnitLoader.Instance.GetUnitById(idx);
         
         lightArmor = unitEx.lightArmor;

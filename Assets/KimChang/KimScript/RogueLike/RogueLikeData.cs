@@ -427,6 +427,7 @@ public class RogueLikeData
             }
             playerMorale -= morale;
         }
+        UnitStateChange.ChangeStateMyUnits();
         return morale;
     }
 

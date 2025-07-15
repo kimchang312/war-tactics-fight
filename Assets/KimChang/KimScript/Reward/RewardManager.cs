@@ -197,9 +197,7 @@ public static class RewardManager
 
     public static void AcquireReward()
     {
-
-
-
+        Debug.Log("적용");
         UnitStateChange.ChangeStateMyUnits();
 
     }
