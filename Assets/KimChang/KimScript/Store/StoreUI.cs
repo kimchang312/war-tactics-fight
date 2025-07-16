@@ -27,7 +27,7 @@ public class StoreUI : MonoBehaviour
 
     private void OnEnable()
     {
-        RogueLikeData.Instance.SetCurrentGold(1000);
+        RogueLikeData.Instance.SetCurrentGold(3000);
         RestUI();
         ShowUnitUI();
         ShowRelicUI();
