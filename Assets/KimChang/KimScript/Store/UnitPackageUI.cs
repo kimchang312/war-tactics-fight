@@ -8,17 +8,29 @@ public class UnitPackageUI : MonoBehaviour
     [SerializeField] private StoreUI storeUI;
     ItemInformation itemInfo=new();
     List<RogueUnitDataBase> units=new();
-    Vector2 originPos;
+    RectTransform rect;
+
+    [SerializeField] Vector2 originPos;
 
     private void Awake()
     {
+        rect = transform as RectTransform;
+
         if (storeUI == null) storeUI = FindObjectOfType<StoreUI>(true);
-        originPos = transform.position;
     }
 
     //패키지 생성 시 데이터 세팅
     public void SetUnitPackage(List<RogueUnitDataBase> _units,StoreItemData storeItem,int price)
     {
+        rect = transform as RectTransform;
+        if (rect != null)
+            rect.anchoredPosition = originPos;
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            RectTransform childRect = transform.GetChild(i) as RectTransform;
+            if (childRect != null)
+                childRect.anchoredPosition = Vector2.zero;
+        }
         units = _units;
         itemInfo.item = storeItem;
         itemInfo.price = price;
@@ -46,14 +58,17 @@ public class UnitPackageUI : MonoBehaviour
 
     private void ClickUnitPackage(Button btn)
     {
+        UnitPackageUI unitPackageUI = GetComponent<UnitPackageUI>();    
+        storeUI.OpenPackageBack();
+
         transform.SetAsLastSibling();
         // 뒤 배경, 가격, 버튼 등 UI 활성화 필요 시 여기서 처리
-        storeUI.OpenPackageBack();
+        storeUI.ClickUnitPackage(unitPackageUI,units,itemInfo.price);
 
         btn.onClick.RemoveAllListeners();
 
-        RectTransform selfRect = transform as RectTransform;
-        if (selfRect == null) return;
+        rect = transform as RectTransform;
+        if (rect == null) return;
 
         int totalChildCount = transform.childCount;
         if (totalChildCount == 0) return;
@@ -80,7 +95,7 @@ public class UnitPackageUI : MonoBehaviour
         Sequence sequence = DOTween.Sequence();
 
         // Step 1: 본인(컨테이너) 0,0으로 이동
-        sequence.Append(selfRect.DOAnchorPos(Vector2.zero, 0.5f).SetEase(Ease.OutCubic));
+        sequence.Append(rect.DOAnchorPos(Vector2.zero, 0.5f).SetEase(Ease.OutCubic));
 
         // Step 2: 자식 정렬
         sequence.AppendCallback(() =>
@@ -89,6 +104,7 @@ public class UnitPackageUI : MonoBehaviour
             {
                 Vector2 targetPos = new Vector2(startX + offsetX * i, 0f);
                 activeChildren[i].DOAnchorPos(targetPos, 0.5f).SetEase(Ease.OutCubic);
+                activeChildren[i].GetComponent<OneUnitUI>().SetAbleUI();
             }
         });
     }
@@ -103,7 +119,6 @@ public class UnitPackageUI : MonoBehaviour
         else
         {
             ResetChildBtnInteractable(true);
-            //필요는 없을거 같지만 만약 상점에 들어온 후 금화가 증가하는 상황이 발생한다면 버튼에 이벤트 재 추가
             Button btn = GetLastChildBtn();
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => ClickUnitPackage(btn));
@@ -132,10 +147,10 @@ public class UnitPackageUI : MonoBehaviour
         return null;
     }
 
-    public void ResetUnitPackage()
+    public void ReturnUnitPackage()
     {
-        RectTransform selfRect = transform as RectTransform;
-        if (selfRect == null) return;
+        rect = transform as RectTransform;
+        if (rect == null) return;
 
         int totalChildCount = transform.childCount;
         if (totalChildCount == 0) return;
@@ -149,6 +164,7 @@ public class UnitPackageUI : MonoBehaviour
                 RectTransform rt = t as RectTransform;
                 if (rt != null)
                     activeChildren.Add(rt);
+                transform.GetChild(i).GetComponent<OneUnitUI>().SetDisableUI();
             }
         }
 
@@ -163,7 +179,9 @@ public class UnitPackageUI : MonoBehaviour
         }
 
         // Step 2: 이 오브젝트를 원래 위치로 이동
-        sequence.Append(selfRect.DOAnchorPos(originPos, 0.5f).SetEase(Ease.OutCubic));
+        sequence.Append(rect.DOAnchorPos(originPos, 0.5f).SetEase(Ease.OutCubic));
     }
+
+
 
 }

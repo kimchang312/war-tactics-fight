@@ -11,7 +11,12 @@ public class StoreUI : MonoBehaviour
     [SerializeField] private Transform unitParent, relicParent, itemParent, rerollObject;
     [SerializeField] private UnitSelectUI unitSelectUI;
     [SerializeField] private Transform unitPackage;
+
     [SerializeField] private GameObject packageBack;
+
+    [SerializeField] private Button purchasePackageBtn;
+    [SerializeField] private Button leavePackageBtn;
+    [SerializeField] private TextMeshProUGUI packageGoldText;
 
     private List<StoreItemData> cachedUnitItems;
     private List<List<RogueUnitDataBase>> cachedUnitPackages;
@@ -32,6 +37,9 @@ public class StoreUI : MonoBehaviour
 
     private void RestUI()
     {
+        leaveBtn.onClick.RemoveAllListeners();
+        leavePackageBtn.onClick.RemoveAllListeners();
+
         leaveBtn.onClick.AddListener(CloseStore);
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
         unitSelectUI.gameObject.SetActive(false);
@@ -307,16 +315,18 @@ public class StoreUI : MonoBehaviour
         else if (relicId != -1) itemInformation.relicId = relicId;
         else if (rerollCount != 0) itemInformation.rerollCount = rerollCount;
     }
-    /*
-    private void PurchaseUnitPackage(Button btn, List<RogueUnitDataBase> units, int price)
+    
+    private void PurchaseUnitPackage(GameObject obj,List<RogueUnitDataBase> units, int price)
     {
         if (!SpendGold(price)) return;
         var myUnits = RogueLikeData.Instance.GetMyTeam();
         myUnits.AddRange(units);
         RogueLikeData.Instance.SetMyTeam(myUnits);
-        btn.transform.GetChild(2).gameObject.SetActive(true);
-        btn.interactable = false;
-    }*/
+        //btn.transform.GetChild(2).gameObject.SetActive(true);
+        //btn.interactable = false;
+        obj.SetActive(false);
+        packageBack.SetActive(false);
+    }
 
     private void PurchaseRelic(Button btn, int relicId, int price)
     {
@@ -395,9 +405,42 @@ public class StoreUI : MonoBehaviour
         }
     }
 
+    public void ClickUnitPackage(UnitPackageUI unitPackageUI,List<RogueUnitDataBase> units,int price)
+    {
+        //패키지 누르면 구매하기 버튼 (돈이 안되면 구매 버튼 상호작용 불가,눌르면 해당 패키지 유닛들 비활성화, 구매)
+        //나가기 버튼 패키지 되돌리기 함수 + 배경 비활성화
+        //금화 가격으로 세팅
+        leavePackageBtn.onClick.RemoveAllListeners();
+        leavePackageBtn.onClick.AddListener(() => ClickLeavePackageBtn(unitPackageUI));
+
+        packageGoldText.text = $"{price}";
+
+        int gold = RogueLikeData.Instance.GetCurrentGold();
+        purchasePackageBtn.onClick.RemoveAllListeners();
+        if (gold < price)
+        {
+            purchasePackageBtn.interactable = false; 
+        }
+        else purchasePackageBtn.interactable=true;
+
+        purchasePackageBtn.onClick.AddListener(() => PurchaseUnitPackage(unitPackageUI.gameObject, units, price));
+
+    }
+    private void ClickLeavePackageBtn(UnitPackageUI unitPackageUI)
+    {
+        unitPackageUI.ReturnUnitPackage();
+        packageBack.SetActive(false);
+        foreach(Transform i in unitPackage)
+        {
+            i.GetComponent<UnitPackageUI>().UpdateUnitPackage();
+        }
+    }
+
+
     public void OpenPackageBack()
     {
         packageBack.SetActive(true);
+        packageBack.transform.SetAsLastSibling();
     }
     public void ClosePackageBack()
     {

@@ -7,7 +7,7 @@ public class OneUnitUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private GameObject energyObj;
     [SerializeField] private TextMeshProUGUI energyText;
     [SerializeField] private TextMeshProUGUI unitNameText;
-
+    private UnitDetailExplain unitDetail;
     public RogueUnitDataBase unit;
 
     public void SetOneUnit(RogueUnitDataBase _unit)
@@ -24,17 +24,19 @@ public class OneUnitUI : MonoBehaviour, IPointerClickHandler
     {
         if (eventData.button == PointerEventData.InputButton.Right)
         {
-            
+            if(unitDetail ==null) unitDetail = GameManager.Instance.unitDetail;
+            unitDetail.unit = unit;
+            unitDetail.gameObject.SetActive(true);
         }
     }
-    private void SetAbleUI()
+    public void SetAbleUI()
     {
         energyObj.SetActive(true);
         energyText.gameObject.SetActive(true);
         unitNameText.gameObject.SetActive(true);
     }
 
-    private void SetDisableUI()
+    public void SetDisableUI()
     {
         energyObj.SetActive(false);
         energyText.gameObject.SetActive(false);

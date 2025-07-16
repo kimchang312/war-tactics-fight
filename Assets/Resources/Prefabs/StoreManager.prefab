@@ -1434,7 +1434,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6827016148836399438
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1478,6 +1478,9 @@ MonoBehaviour:
   unitSelectUI: {fileID: 0}
   unitPackage: {fileID: 8987092412152561199}
   packageBack: {fileID: 7480281626163245457}
+  purchasePackageBtn: {fileID: 0}
+  leavePackageBtn: {fileID: 0}
+  packageGold: {fileID: 0}
 --- !u!1 &2438364860981246011
 GameObject:
   m_ObjectHideFlags: 0
