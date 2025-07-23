@@ -17,6 +17,9 @@ public static class UnitStateChange
             team.NormalizeStateModifiers();
         }
 
+        //유닛 계산
+        ApplyUnitAbility();
+
         //사기 계산
         ApplyMoralState();
 
@@ -144,6 +147,9 @@ public static class UnitStateChange
         return result;
     }
 
-
+    private static void ApplyUnitAbility()
+    {
+        RogueUnitDataBase.PassiveBizarreBishop();
+    }
 
 }

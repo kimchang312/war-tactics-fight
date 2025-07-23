@@ -154,13 +154,13 @@ public class RogueLikeData
                     }
                 }
             }
-            if (unit.idx == 63)
+            if (unit.idx == 55)
             {
                 AcquireRelic(78);
             }
-            else if (unit.idx == 59)
+            else if (unit.idx == 51)
             {
-                //AddQuest(unit.idx);
+                RogueUnitDataBase.AddBizarreBishopMyTeam();
             }
         }
        
@@ -358,16 +358,20 @@ public class RogueLikeData
     //골드 획득
     public void EarnGold(int gold)
     {
+        int baseGold =currentGold;
         float addGold = GetOwnedRelicById(5) == null ? 0 : 0.15f;
         gold = (int)((addGold+1)*gold);
         currentGold += gold;
+
+        //골드 애니메이션
+        UIManager.Instance.AnimateGoldChange(baseGold, gold);
     }
     //골드 감소
     public void ReduceGold(int gold)
     {
         bool hasLoanRelic = RelicManager.CheckRelicById(49);
         int minGold = hasLoanRelic ? -500 : 0;
-
+        int baseGold = currentGold;
         int availableGold = currentGold - gold;
 
         if (availableGold < minGold)
@@ -381,6 +385,8 @@ public class RogueLikeData
         {
             spentGold += gold;
             currentGold = availableGold;
+
+            UIManager.Instance.AnimateGoldChange(baseGold, -gold);
         }
     }
 
@@ -406,30 +412,30 @@ public class RogueLikeData
     // 사기 증감 통합 함수
     public int ChangeMorale(int value)
     {
-        int morale= value;
+        int baseMorale = playerMorale;
+        int actualChange = 0;
+
         if (value >= 0)
         {
             if (RelicManager.CheckRelicById(116)) return 0;
-            if(playerMorale + value >100)
-            {
-                morale = 100 - playerMorale;
-            }
-            playerMorale += morale;
+
+            actualChange = Mathf.Min(value, 100 - playerMorale);
+            playerMorale += actualChange;
         }
         else
         {
-            // 감소: 유산 33 보유 시 20% 감소량 완화
             float reductionModifier = GetOwnedRelicById(33) == null ? 1f : 0.8f;
-            int reduced = (int)(value * reductionModifier);
-            if (playerMorale + reduced < 0)
-            {
-                morale = playerMorale;                
-            }
-            playerMorale -= morale;
+            int reduced = Mathf.RoundToInt(value * reductionModifier); // value < 0
+
+            actualChange = Mathf.Max(reduced, -playerMorale); // 최소 0 유지
+            playerMorale += actualChange;
         }
+
+        UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
         UnitStateChange.ChangeStateMyUnits();
-        return morale;
+        return actualChange;
     }
+
 
 
     public void SetMorale(int value)
@@ -741,6 +747,7 @@ public class RogueLikeData
         if (RelicManager.CheckRelicById(66)) addMax += 1;
         if (RelicManager.CheckRelicById(67)) addMax += 3;
         if (RelicManager.CheckRelicById(89)) addMax -= 2;
+        if(GetMyTeam().Find((e)=> e.idx ==56 ) !=null) addMax += 3;
         addMax += 5 * (chapter-1);
         maxCount = maxCount +addMax;
         if (RelicManager.CheckRelicById(107)) maxCount /= 2;

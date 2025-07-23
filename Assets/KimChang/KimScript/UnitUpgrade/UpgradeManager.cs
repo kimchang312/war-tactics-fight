@@ -244,9 +244,9 @@ public class UpgradeManager
     {
         // Defender → Spearman, Warrior, Archer, HeavyInfantry, Assassin, LightCavalry, HeavyCavalry, Support
         // Spearman
-        { 0f,   0f,  0f,  0f,  0f,  0.4f,  0.4f,  0f },
+        { 0f,   0f,  0f,  0f,  0f,  0.25f,  0.25f,  0f },
         // Warrior
-        { 0.25f, 0f, 0.2f, 0f, 0f, 0f, 0f, 0f },
+        { 0.35f, 0f, 0.2f, 0f, 0f, 0f, 0f, 0f },
         // Archer
         { 0f, 0f, 0f, -0.4f, 0f, 0f, -0.4f, 0f },
         // HeavyInfantry
@@ -254,9 +254,9 @@ public class UpgradeManager
         // Assassin
         { 0f, 0f, 0.4f, -0.2f, 0f, 0f, -0.2f, 0.4f },
         // LightCavalry
-        { -0.2f, 0.1f, 0.25f, 0f, 0f, 0f, 0f, 0f },
+        { -0.25f, 0.3f, 0.25f, 0f, 0f, 0f, 0f, 0f },
         // HeavyCavalry
-        { -0.2f, 0.1f, 0f, 0.4f, 0f, 0f, 0f, 0f },
+        { -0.25f, 0.1f, 0f, 0.4f, 0f, 0f, 0f, 0f },
         // Support
         { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f }
     };

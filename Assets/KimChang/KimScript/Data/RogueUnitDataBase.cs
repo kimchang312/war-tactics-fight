@@ -18,7 +18,8 @@ public class RogueUnitDataBase
     public int factionIdx;   
     public string tag;    
     public int tagIdx;
-    public int unitPrice;     
+    public int unitPrice;
+    public int defaultPrice;
     public int rarity;        
 
     public float baseHealth;
@@ -87,7 +88,7 @@ public class RogueUnitDataBase
     public RogueUnitDataBase(
     int idx, string unitName, string unitBranch, int branchIdx,string unitId,
     string unitExplain, string unitImg,
-    string unitFaction, int factionIdx, string tag, int tagIdx, int unitPrice, int rarity,
+    string unitFaction, int factionIdx, string tag, int tagIdx, int unitPrice,int defaultPrice, int rarity,
     float health, float armor, float attackDamage, float mobility, float range,float antiCavalry, int energy,
     float baseHealth,float baseArmor,float baseAttackDamage,float baseMobility,float baseRange,float baseAntiCavalry,int baseEnergy,
     bool lightArmor, bool heavyArmor, bool rangedAttack,
@@ -112,6 +113,7 @@ public class RogueUnitDataBase
         this.tag = tag;
         this.tagIdx = tagIdx;
         this.unitPrice = unitPrice;
+        this.defaultPrice = defaultPrice;
         this.rarity = rarity;
 
         this.baseHealth = health;
@@ -178,7 +180,7 @@ public class RogueUnitDataBase
     {
         return new RogueUnitDataBase(
             this.idx, this.unitName, this.unitBranch, this.branchIdx, this.unitId, this.unitExplain, this.unitImg, this.unitFaction, this.factionIdx,
-            this.tag, this.tagIdx, this.unitPrice, this.rarity,
+            this.tag, this.tagIdx, this.unitPrice,this.defaultPrice, this.rarity,
             this.health, this.armor, this.attackDamage, this.mobility, this.range, this.antiCavalry, this.energy,
             this.baseHealth, this.baseArmor, this.baseAttackDamage, this.baseMobility, this.baseRange, this.baseAntiCavalry, this.baseEnergy,
             this.lightArmor, this.heavyArmor, this.rangedAttack, this.bluntWeapon, this.pierce, this.agility,
@@ -261,31 +263,14 @@ public class RogueUnitDataBase
 
         return unit;
     }
-    public static List<RogueUnitDataBase> SetMyUnitsNormalize()
-    {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        
-        foreach (var unit in myUnits)
-        {
-            unit.maxHealth = unit.baseHealth;
-            unit.health = unit.maxHealth;
-            unit.attackDamage = unit.baseAttackDamage;
-            unit.armor = unit.baseArmor;
-            unit.mobility = unit.baseMobility;
-            unit.range = unit.baseRange;
-            unit.antiCavalry = unit.baseAntiCavalry;
-            unit.fStriked =false;
-        }
-        return myUnits;
-    }
 
     public static List<RogueUnitDataBase> GetBaseUnits()
     {
         List<RogueUnitDataBase> units = new()
         {
-            UnitLoader.Instance.GetCloneUnitById(0),
             UnitLoader.Instance.GetCloneUnitById(1),
-            UnitLoader.Instance.GetCloneUnitById(2)
+            UnitLoader.Instance.GetCloneUnitById(1),
+            UnitLoader.Instance.GetCloneUnitById(51)
         };
         return units;
     }
@@ -365,6 +350,38 @@ public class RogueUnitDataBase
         attackDamage = Mathf.Round(stats.GetStat(StatType.AttackDamage));
         mobility = Mathf.Min(1,(int)stats.GetStat(StatType.Mobility));
         range = (int)stats.GetStat(StatType.Range);
+    }
+
+    public static void AddBizarreBishopMyTeam()
+    {
+        List<RogueUnitDataBase> myTeam = RogueLikeData.Instance.GetMyTeam();
+        int removed = 0;
+
+        // 조건: branchIdx != 1 && rarity < 3 인 유닛
+        for (int i = myTeam.Count - 1; i >= 0 && removed < 3; i--)
+        {
+            var unit = myTeam[i];
+            if (unit.branchIdx != 1 && unit.rarity < 3)
+            {
+                myTeam.RemoveAt(i);
+                removed++;
+            }
+        }
+        RogueLikeData.Instance.SetMyTeam(myTeam);
+    }
+
+    public static void PassiveBizarreBishop()
+    {
+        List<RogueUnitDataBase> myTeam = RogueLikeData.Instance.GetMyTeam();
+        foreach (var unit in myTeam)
+        {
+            if(unit.branchIdx == 1)
+            {
+                unit.wounding = true;
+                unit.counter=true;
+            }
+
+        }
     }
 
 }

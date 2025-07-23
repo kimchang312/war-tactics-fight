@@ -47,9 +47,12 @@ public static class RewardManager
             RogueLikeData.Instance.SetChapter(3);
             RogueLikeData.Instance.SetClearChapter(true);
         }
+
+
         int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
-        RogueLikeData.Instance.ChangeMorale(morale);
+        //RogueLikeData.Instance.ChangeMorale(morale); 
         reward.morale += morale;
+
         int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
         int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold);
         //유산 
@@ -69,6 +72,13 @@ public static class RewardManager
 
         RelicManager.ConquerorSeal(ref reward,type,grade);
     }
+
+    //보상 실제 획득하는 함수
+    private static void GetBattleReward()
+    {
+
+    }
+
     //전투 종료 시 사기 계산
     private static int EndBattleMorale(int result, List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits,StageType type)
     {

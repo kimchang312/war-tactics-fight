@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System;
+using DG.Tweening;
 
 public class RewardUI : MonoBehaviour
 {
@@ -28,12 +29,15 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private GameObject itemToolTip;
     [SerializeField] private Image teasureBox;
     [SerializeField] private Button teasureBtn;
+
+    [SerializeField] private GameObject moraleFlag;
     SaveData saveData = new SaveData();
 
     private bool isEnd=false;
     private void OnEnable()
     {
         ResetUI();
+
         transform.SetAsLastSibling();
     }
     private void Update()
@@ -77,19 +81,29 @@ public class RewardUI : MonoBehaviour
 
         leaveBtn.onClick.AddListener(LeaveReward);
     }
+    public void AnimateBattleEnd()
+    {
+        //0,0 위치에서 시작해서 활성화 시키고 모든 dotween을 종료시키고 0.2초간 0,0위치에 있다가 moraleFlag UI가 0.8초간 -490,480 위치로 이동후 비활성화
+        DisableBackground();
+        teasureBox.gameObject.SetActive(false);
+        //AbleRewardWindow();
+
+        AnimateMoraleFlag();
+    }
 
     public void CreateRewardUI()
     {
-        DisableBackground();
-        teasureBox.gameObject.SetActive(false);
-
+        //DisableBackground();
+        //teasureBox.gameObject.SetActive(false);
         AbleRewardWindow();
 
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         bool isGameOver = RewardManager.CheckGameOver();
         if (isGameOver) reward.battleResult = 5;
-        moraleResult.SetActive(true);
-        moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  사기 {reward.morale}";
+       
+
+        //moraleResult.SetActive(true);
+        //moraleResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  사기 {reward.morale}";
         resultText.text = reward.battleResult switch
         {
             5 => "전멸",
@@ -134,6 +148,8 @@ public class RewardUI : MonoBehaviour
             leaveBtn.gameObject.SetActive(false);
             return;
         }
+        int moraeReward = reward.morale;
+        RogueLikeData.Instance.ChangeMorale(moraeReward);
 
         RogueLikeData.Instance.EarnGold(reward.gold);
     }
@@ -160,6 +176,7 @@ public class RewardUI : MonoBehaviour
         rerollBtn.onClick.AddListener(RerollReward);
         skipBtn.onClick.AddListener(SkipSelectReward);
         unitSelectUI.gameObject.SetActive(false);
+        moraleFlag.SetActive(false);
     }
 
     private void OpenReward(bool isUnit)
@@ -438,4 +455,31 @@ public class RewardUI : MonoBehaviour
         backFrame.transform.parent?.gameObject.SetActive(false);
         backFrame.SetActive(false);
     }
+
+    public void AnimateMoraleFlag(int morale =10)
+    {
+        RectTransform rect = moraleFlag.GetComponent<RectTransform>();
+        moraleFlag.GetComponentInChildren<TextMeshProUGUI>().text = morale>0?$"+ {morale}":$"- {morale}";
+
+        rect.anchoredPosition = Vector2.zero;
+        moraleFlag.SetActive(true);
+
+        DOTween.Kill(rect);
+
+        Sequence seq = DOTween.Sequence();
+
+        // 0.4초간 0,0 위치 유지
+        seq.AppendInterval(0.4f);
+
+        // 0.8초간 (-490, 480)으로 이동 추후에는 상단 깃발 위치에 접근해서 설정해야함
+        seq.Append(rect.DOAnchorPos(new Vector2(-466f, 580f), 0.6f).SetEase(Ease.InOutSine));
+
+        // 이동 완료 후 비활성화
+        seq.OnComplete(() => { 
+            moraleFlag.SetActive(false);
+            CreateRewardUI();
+        });
+    }
+
+
 }

@@ -184,15 +184,34 @@ public class TestModeUI : MonoBehaviour
     //
     private void SetStringMyIds()
     {
-         List<int> ids = fightStartBtn.GetMyFightUnits();
-         myUnitIdListText.text = $"MyUnitList: {string.Join(",", ids)}";
-         myAllPriceText.text= $"가격: {priceDatabase.GetTotalPrice(ids)}";
+        List<int> ids = fightStartBtn.GetMyFightUnits();
+        int price, defaultPrice;
+        (price,defaultPrice) = GetPriceByIds(ids);
+
+        myUnitIdListText.text = $"MyUnitList: {string.Join(",", ids)}";
+        myAllPriceText.text= $"가격: {price} / 기력제외가격: {defaultPrice}";
     }
     private void SetStringEnemyIds()
     {
         List<int> ids = fightStartBtn.GetEnemyFightUnits();
+        int price, defaultPrice;
+        (price, defaultPrice) = GetPriceByIds(ids);
         enemyUnitIdListText.text = $"EnemyUnitIdList: {string.Join(",", fightStartBtn.GetEnemyFightUnits())}";
-        enemyAllPriceText.text = $"가격: {priceDatabase.GetTotalPrice(ids)}";
+        enemyAllPriceText.text = $"가격: {price} / 기력제외가격: {defaultPrice}";
+    }
+
+    private (int,int) GetPriceByIds(List<int> ids)
+    {
+        int price = 0;
+        int defaultPrice = 0;
+
+        foreach (int id in ids)
+        {
+            var unit = UnitLoader.Instance.GetUnitById(id);
+            price += unit.unitPrice;
+            defaultPrice += unit.defaultPrice;
+        }
+        return (price, defaultPrice);
     }
 
     //유산 추가

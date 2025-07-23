@@ -45,6 +45,7 @@ public class UnitLoader
             string tag = unitData["tag"].ToString();
             int tagIdx = Convert.ToInt32(unitData["tagIdx"]);
             int unitPrice = Convert.ToInt32(unitData["unitPrice"]);
+            int defaultPrice = Convert.ToInt32(unitData["defaultPrice"]);
             int rarity = Convert.ToInt32(unitData["rarity"]);
             float health = Convert.ToSingle(unitData["health"]);
             float armor = Convert.ToSingle(unitData["armor"]);
@@ -61,7 +62,7 @@ public class UnitLoader
                 unitId: unitData.ContainsKey("unitId") ? unitData["unitId"].ToString() : "",
                 unitExplain: unitData.ContainsKey("unitExplain") ? unitData["unitExplain"].ToString() : "",
                 unitImg: unitData.ContainsKey("unitImg") ? unitData["unitImg"].ToString() : "",
-                unitFaction, factionIdx, tag, tagIdx, unitPrice, rarity,
+                unitFaction, factionIdx, tag, tagIdx, unitPrice,defaultPrice, rarity,
                 health, armor, attackDamage, mobility, range, 0, energy,
                 health, armor, attackDamage, mobility, range, 0, energy,
 
