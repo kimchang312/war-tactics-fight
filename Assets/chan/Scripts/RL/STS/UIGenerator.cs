@@ -74,7 +74,7 @@ public class UIGenerator : MonoBehaviour
         // 노드 생성
         foreach (var entry in savedData.allNodes)
         {
-            StageNode node = new(entry.level, entry.row, System.Enum.Parse<StageType>(entry.stageType));
+            StageNode node = new(entry.level, entry.row, entry.stageType);
             node.presetID = entry.presetID;
             string key = $"{node.level}_{node.row}";
             dict[key] = node;

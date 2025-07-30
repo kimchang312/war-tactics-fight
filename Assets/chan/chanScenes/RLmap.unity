@@ -10725,7 +10725,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB098\uAC00\uAE30"
+  m_text: "\uC800\uC7A5,\uB098\uAC00\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88a6f729500ed5d44b498ab5cf8baece, type: 2}
   m_sharedMaterial: {fileID: -7399971578041752886, guid: 88a6f729500ed5d44b498ab5cf8baece, type: 2}
@@ -11208,6 +11208,7 @@ GameObject:
   - component: {fileID: 1105240314}
   - component: {fileID: 1105240313}
   - component: {fileID: 1105240312}
+  - component: {fileID: 1105240315}
   m_Layer: 5
   m_Name: SaveBtn
   m_TagString: Untagged
@@ -11278,7 +11279,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1105240313}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1105240315}
+        m_TargetAssemblyTypeName: SaveAndExit, Assembly-CSharp
+        m_MethodName: OnSaveAndExit
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1105240313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11317,6 +11330,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1105240310}
   m_CullTransparentMesh: 1
+--- !u!114 &1105240315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105240310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c660d984b452bb43a16a07ce0da762a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapGenerator: {fileID: 97947341}
 --- !u!1 &1108719038
 GameObject:
   m_ObjectHideFlags: 0

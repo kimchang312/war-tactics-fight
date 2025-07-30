@@ -2,12 +2,19 @@ using System;
 using System.Collections.Generic;
 
 [Serializable]
-public class StageSaveData
+public class StageFullSaveData
 {
     public int chapter;
+    public List<StageNodeSaveEntry> allNodes = new();
+}
+
+[Serializable]
+public class StageNodeSaveEntry
+{
     public int level;
     public int row;
-    public string stageType;
+    public StageType stageType;
+    public int presetID;
     public List<StageConnectionData> connections = new();
 }
 

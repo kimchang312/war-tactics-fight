@@ -135,16 +135,27 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
     }
 
-private void Start()
+    private void Start()
     {
-        // 씬에 있는 모든 StageNodeUI 컴포넌트를 수집
         allStages.AddRange(FindObjectsOfType<StageNodeUI>());
 
-        // (만약 RLmap 이 시작 씬이라면) 맵 진입 시 바로 잠금/언락 초기화
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
+        // 이어하기(불러오기) 처리
+        var save = SaveSystem.LoadFull();
+        if (save != null)
+        {
+            uIGenerator.RegenerateMapFromSaveFull(save);
+            Debug.Log("저장된 맵을 불러왔습니다.");
+        }
+        else
+        {
+            uIGenerator.RegenerateMap();
+            Debug.Log("새 맵을 생성합니다.");
+        }
+
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
             InitializeStageLocks();
     }
-    
+
     public void OnStageClicked(StageNodeUI clickedStage)
     {
         // 디버그: 클릭된 정보 찍기
