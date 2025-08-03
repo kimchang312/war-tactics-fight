@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 public class StoreUI : MonoBehaviour
 {
+    [SerializeField] private Button purchaseBtn;
     [SerializeField] private Button leaveBtn;
     [SerializeField] private Transform unitParent, relicParent, itemParent, rerollObject;
     [SerializeField] private UnitSelectUI unitSelectUI;
@@ -21,7 +22,7 @@ public class StoreUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI packageGoldText;
     [SerializeField] private Transform relicField;
     [SerializeField] private Transform itemField;
-    [SerializeField] private Button purchaseBtn;
+
 
     private List<StoreItemData> cachedUnitItems;
     private List<List<RogueUnitDataBase>> cachedUnitPackages;
@@ -542,6 +543,7 @@ public class StoreUI : MonoBehaviour
     {
         PackagePanelChildDisActive();
         packagePanel.SetActive(true);
+        HidePurchaseLeaveBtn();
         packagePanel.transform.SetAsLastSibling();
         Image backImg = packagePanel.transform.Find("Backgrond")?.GetComponent<Image>();
         UnityEngine.Color startColor = backImg.color;
@@ -549,7 +551,7 @@ public class StoreUI : MonoBehaviour
         backImg.color = startColor;
         backImg.gameObject.SetActive(true);
         // 0.5초 동안 알파값을 1로 변경 (불투명하게)
-        backImg.DOFade(1f, 0.5f).SetEase(Ease.InOutSine).OnComplete(() =>
+        backImg.DOFade(0.95f, 0.5f).SetEase(Ease.InOutSine).OnComplete(() =>
         {
             PackagePanelChildActive();
         });
@@ -592,6 +594,17 @@ public class StoreUI : MonoBehaviour
         btn.transform.GetChild(2).gameObject.SetActive(true);
         btn.interactable = false;
         btn.onClick.RemoveAllListeners();
+    }
+
+    public void HidePurchaseLeaveBtn()
+    {
+        purchaseBtn.gameObject.SetActive(false);
+        leaveBtn.gameObject.SetActive(false);
+    }
+    public void VisiblePurchaseLeaveBtn()
+    {
+        purchaseBtn.gameObject.SetActive(true);
+        leaveBtn.gameObject.SetActive(false);
     }
 
 }

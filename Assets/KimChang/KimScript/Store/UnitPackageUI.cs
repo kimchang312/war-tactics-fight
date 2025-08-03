@@ -11,21 +11,24 @@ public class UnitPackageUI : MonoBehaviour
     [SerializeField] private Transform unitBox;
     [SerializeField] private TextMeshProUGUI packageName;
     [SerializeField] private TextMeshProUGUI packagePrice;
- 
+
     ItemInformation itemInfo = new();
     List<RogueUnitDataBase> units = new();
     RectTransform rect;
-    private readonly Vector2 centerPos = new Vector2(0, 100);
-    private const float aniTime = 0.5f; 
+
+    private readonly Vector2 centerPos = new Vector2(0, 120);
+    private const float aniTime = 0.5f;
+
+    // 애니메이션 실행 여부 플래그
+    private bool isAnimating = false;
 
     private void Awake()
     {
         rect = transform as RectTransform;
-
         if (storeUI == null) storeUI = FindObjectOfType<StoreUI>(true);
     }
 
-    //패키지 생성 시 데이터 세팅
+    // 패키지 데이터 세팅
     public void SetUnitPackage(List<RogueUnitDataBase> _units, StoreItemData storeItem, int price)
     {
         rect = transform as RectTransform;
@@ -43,7 +46,6 @@ public class UnitPackageUI : MonoBehaviour
         itemInfo.item = storeItem;
         itemInfo.price = price;
 
-        // 텍스트 초기화
         packageName.text = itemInfo.item.itemName;
         packagePrice.text = itemInfo.price.ToString();
         packageName.gameObject.SetActive(true);
@@ -71,28 +73,28 @@ public class UnitPackageUI : MonoBehaviour
         UpdateUnitPackage();
     }
 
-    //유닛 페키지 눌렀을때 유닛 펼처지기
+    // 유닛 패키지 펼침
     private void ClickUnitPackage(Button btn)
     {
-        UnitPackageUI unitPackageUI = GetComponent<UnitPackageUI>();    
-        storeUI.AnimatePackageBackTrue();
+        if (isAnimating) return;
+        isAnimating = true;
 
+        KillAllAnimations();
+
+        UnitPackageUI unitPackageUI = GetComponent<UnitPackageUI>();
+        storeUI.AnimatePackageBackTrue();
         transform.SetAsLastSibling();
-        // 뒤 배경, 가격, 버튼 등 UI 활성화 필요 시 여기서 처리
-        storeUI.ClickUnitPackage(unitPackageUI,units,itemInfo.price);
+        storeUI.ClickUnitPackage(unitPackageUI, units, itemInfo.price);
 
         btn.onClick.RemoveAllListeners();
-
-        // 텍스트 숨김
         packageName.gameObject.SetActive(false);
         packagePrice.gameObject.SetActive(false);
 
-
         rect = transform as RectTransform;
-        if (rect == null) return;
+        if (rect == null) { isAnimating = false; return; }
 
         int totalChildCount = unitBox.childCount;
-        if (totalChildCount == 0) return;
+        if (totalChildCount == 0) { isAnimating = false; return; }
 
         List<RectTransform> activeChildren = new List<RectTransform>();
         for (int i = 0; i < totalChildCount; i++)
@@ -106,19 +108,15 @@ public class UnitPackageUI : MonoBehaviour
             }
         }
 
-
         int activeCount = activeChildren.Count;
-        if (activeCount == 0) return;
+        if (activeCount == 0) { isAnimating = false; return; }
 
-        float offsetX = 320f;
+        float offsetX = 365f;
         float startX = -offsetX * (activeCount - 1) / 2f;
 
         Sequence sequence = DOTween.Sequence();
-
-        // Step 1: 본인(컨테이너) 0,0으로 이동
         sequence.Append(rect.DOAnchorPos(centerPos, aniTime).SetEase(Ease.OutCubic));
 
-        // Step 2: 자식 정렬
         sequence.AppendCallback(() =>
         {
             for (int i = 0; i < activeCount; i++)
@@ -128,8 +126,57 @@ public class UnitPackageUI : MonoBehaviour
                 activeChildren[i].GetComponent<OneUnitUI>().SetAbleUI();
             }
         });
+
+        sequence.OnComplete(() => isAnimating = false);
     }
 
+    // 유닛 패키지 모음
+    public void ReturnUnitPackage()
+    {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        KillAllAnimations();
+
+        rect = transform as RectTransform;
+        if (rect == null) { isAnimating = false; return; }
+
+        int totalChildCount = unitBox.childCount;
+        if (totalChildCount == 0) { isAnimating = false; return; }
+
+        List<RectTransform> activeChildren = new List<RectTransform>();
+        for (int i = 0; i < totalChildCount; i++)
+        {
+            Transform t = unitBox.GetChild(i);
+            if (t.gameObject.activeSelf)
+            {
+                RectTransform rt = t as RectTransform;
+                if (rt != null)
+                    activeChildren.Add(rt);
+                t.GetComponent<OneUnitUI>().SetDisableUI();
+            }
+        }
+
+        if (activeChildren.Count == 0) { isAnimating = false; return; }
+
+        Sequence sequence = DOTween.Sequence();
+
+        foreach (var child in activeChildren)
+        {
+            sequence.Join(child.DOAnchorPos(Vector2.zero, aniTime).SetEase(Ease.OutCubic));
+        }
+
+        sequence.Append(rect.DOAnchorPos(originPos, aniTime).SetEase(Ease.OutCubic))
+                .OnComplete(() =>
+                {
+                    packageName.gameObject.SetActive(true);
+                    packagePrice.gameObject.SetActive(true);
+                    isAnimating = false;
+                    storeUI.VisiblePurchaseLeaveBtn();
+                });
+    }
+
+    // 버튼 활성화 상태 갱신
     public void UpdateUnitPackage()
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
@@ -152,8 +199,8 @@ public class UnitPackageUI : MonoBehaviour
         {
             child.GetComponent<Button>().interactable = isInteractable;
         }
-
     }
+
     private Button GetLastChildBtn()
     {
         for (int i = unitBox.childCount - 1; i >= 0; i--)
@@ -167,49 +214,15 @@ public class UnitPackageUI : MonoBehaviour
             }
         }
         return null;
-
     }
 
-    public void ReturnUnitPackage()
+    // 모든 관련 DOTween 애니메이션 종료
+    private void KillAllAnimations()
     {
-        rect = transform as RectTransform;
-        if (rect == null) return;
-
-        int totalChildCount = unitBox.childCount;
-        if (totalChildCount == 0) return;
-
-        List<RectTransform> activeChildren = new List<RectTransform>();
-        for (int i = 0; i < totalChildCount; i++)
+        DOTween.Kill(rect);
+        foreach (Transform child in unitBox)
         {
-            Transform t = unitBox.GetChild(i);
-            if (t.gameObject.activeSelf)
-            {
-                RectTransform rt = t as RectTransform;
-                if (rt != null)
-                    activeChildren.Add(rt);
-                t.GetComponent<OneUnitUI>().SetDisableUI();
-            }
+            DOTween.Kill(child as RectTransform);
         }
-
-        if (activeChildren.Count == 0) return;
-
-        Sequence sequence = DOTween.Sequence();
-
-        // Step 1: 자식들 모두 중앙 (0,0)으로 되돌리기
-        foreach (var child in activeChildren)
-        {
-            sequence.Join(child.DOAnchorPos(Vector2.zero, aniTime).SetEase(Ease.OutCubic));
-        }
-
-        // Step 2: 이 오브젝트를 원래 위치로 이동 + 텍스트 다시 보이기
-        sequence.Append(rect.DOAnchorPos(originPos, aniTime).SetEase(Ease.OutCubic))
-                .OnComplete(() => {
-                    packageName.gameObject.SetActive(true);
-                    packagePrice.gameObject.SetActive(true);
-                });
-
     }
-
-
-
 }
