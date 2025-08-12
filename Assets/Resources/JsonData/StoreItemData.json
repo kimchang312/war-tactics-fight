@@ -1611,7 +1611,7 @@
   },
   {
     "itemId": 115,
-    "itemName": "중기병 패키지(대)",
+    "itemName": "중기병 패키지",
     "price": 90,
     "priceRateMin": 0.7,
     "priceRateMax": 0.8,

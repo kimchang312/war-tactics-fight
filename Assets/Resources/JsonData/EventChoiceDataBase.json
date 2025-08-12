@@ -137,7 +137,7 @@
     "resultType": ["Gold"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["50"]
+    "resultCount": ["100"]
   },
   {
     "choiceId": 10,
@@ -151,7 +151,7 @@
     "resultType": ["Gold", "Curse"],
     "resultForm": ["None", "Random"],
     "resultValue": ["0", "0"],
-    "resultCount": ["150", "1"]
+    "resultCount": ["300", "1"]
   },
   {
     "choiceId": 11,
@@ -297,7 +297,7 @@
     "choiceId": 21,
     "eventId": 8,
     "choiceText": "주민을 징병한다.",
-    "resultDescription": "'민병대 창병' 3명 획득.",
+    "resultDescription": "민병대 창병' 1명 획득.",
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -305,7 +305,7 @@
     "resultType": ["Unit"],
     "resultForm": ["None"],
     "resultValue": ["0"],
-    "resultCount": ["3"]
+    "resultCount": ["1"]
   },
   {
     "choiceId": 22,
@@ -352,7 +352,7 @@
   {
     "choiceId": 25,
     "eventId": 9,
-    "choiceText": "병사를 고용해 보낸다.",
+    "choiceText": "병사를 파견한다.",
     "resultDescription": "희귀도 1 유닛 희생하여 금화(소) 획득. 희귀도 2 유닛 희생하여 금화(중) 획득. 희귀도 3 유닛 희생하여 금화(중), 전쟁 유산(일반) 획득.",
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
@@ -403,7 +403,7 @@
     "resultType": ["Battle", "Gold"],
     "resultForm": ["None", "None"],
     "resultValue": ["1", "0"],
-    "resultCount": ["1", "150"]
+    "resultCount": ["1", "300"]
   },
   {
     "choiceId": 29,
@@ -526,8 +526,8 @@
     "requireForm": ["None"],
     "requireValue": [""],
     "requireCount": [""],
-    "resultType": ["Special"],
-    "resultForm": ["Special"],
+    "resultType": ["Relic", "Battle"],
+    "resultForm": ["Special", "Special"],
     "resultValue": [""],
     "resultCount": [""]
   },
@@ -609,7 +609,7 @@
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["300"],
+    "requireCount": ["500"],
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["1~2"],
@@ -711,7 +711,7 @@
     "resultType": ["Gold", "Morale"],
     "resultForm": ["None", "None"],
     "resultValue": ["0", "0"],
-    "resultCount": ["50", "20"]
+    "resultCount": ["100", "20"]
   },
   {
     "choiceId": 51,
@@ -730,7 +730,7 @@
   {
     "choiceId": 52,
     "eventId": 19,
-    "choiceText": "힘 있는 병사가 검을 뽑으려 한다.(공격력 90이상의 아군이 있을 경우)",
+    "choiceText": "힘 있는 병사가 검을 뽑으려 한다.(공격력 90이상의 아군이 있을 경우 활성화)",
     "resultDescription": "전쟁 유산 보상(엘리트)",
     "requireThing": ["AttackDamage"],
     "requireForm": ["None"],
@@ -809,7 +809,7 @@
     "resultType": ["Gold", "Special"],
     "resultForm": ["None", "Special"],
     "resultValue": ["0", "0"],
-    "resultCount": ["50", "1"]
+    "resultCount": ["100", "1"]
   },
   {
     "choiceId": 58,
@@ -861,7 +861,7 @@
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["300"],
+    "requireCount": ["500"],
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["2~3"],
@@ -940,12 +940,12 @@
   {
     "choiceId": 67,
     "eventId": 25,
-    "choiceText": "강화 물약",
+    "choiceText": "지능 물약.",
     "resultDescription": "금화 -200, 무작위 병종 무작위 강화 2회",
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["200"],
+    "requireCount": ["300"],
     "resultType": ["Training"],
     "resultForm": ["Random"],
     "resultValue": [""],
@@ -954,12 +954,12 @@
   {
     "choiceId": 68,
     "eventId": 25,
-    "choiceText": "기력 물약",
+    "choiceText": "기력 물약.",
     "resultDescription": "금화 -200, 단일 기력 회복(대)",
     "requireThing": ["Gold", "Energy"],
     "requireForm": ["None", "Select"],
     "requireValue": ["0", "1"],
-    "requireCount": ["200", "1"],
+    "requireCount": ["300", "1"],
     "resultType": ["Energy"],
     "resultForm": ["Select"],
     "resultValue": ["10"],
@@ -968,12 +968,12 @@
   {
     "choiceId": 69,
     "eventId": 25,
-    "choiceText": "해주 물약",
+    "choiceText": "해주 물약.",
     "resultDescription": "금화 -200, 저주 등급 전쟁 유산 1개 제거",
     "requireThing": ["Gold", "Relic"],
     "requireForm": ["None", "Random"],
     "requireValue": ["0", "0"],
-    "requireCount": ["200", "1"],
+    "requireCount": ["300", "1"],
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
@@ -1005,7 +1005,7 @@
     "resultType": ["Gold"],
     "resultForm": ["Random"],
     "resultValue": ["75"],
-    "resultCount": ["150"]
+    "resultCount": ["300"]
   },
   {
     "choiceId": 72,
@@ -1019,12 +1019,12 @@
     "resultType": ["Gold"],
     "resultForm": ["Random"],
     "resultValue": ["25"],
-    "resultCount": ["250"]
+    "resultCount": ["500"]
   },
   {
     "choiceId": 73,
     "eventId": 26,
-    "choiceText": "우리 병사로 우승을 노린다.",
+    "choiceText": "기동력이 뛰어난 병사로 우승을 노린다.",
     "resultDescription": "선택 유닛의 기력이 1 감소하며, 우승 시 전설 등급 전쟁 유산(우승 확률: 선택 유닛의 현재 기동력 X 9%p. 기동력 12 이상 부터는 무조건 100% 우승)",
     "requireThing": ["Energy"],
     "requireForm": ["Select"],
@@ -1085,7 +1085,7 @@
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["200"],
+    "requireCount": ["300"],
     "resultType": ["Unit"],
     "resultForm": ["None"],
     "resultValue": ["9"],
@@ -1141,7 +1141,7 @@
     "requireThing": ["Morale", "Gold"],
     "requireForm": ["None", "None"],
     "requireValue": ["0", "0"],
-    "requireCount": ["20100"],
+    "requireCount": ["20", "100"],
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["1"],
@@ -1206,8 +1206,8 @@
   {
     "choiceId": 86,
     "eventId": 32,
-    "choiceText": "한명의 영웅",
-    "resultDescription": "희귀도 1 유닛 1명을 무작위 영웅유닛으로 변경",
+    "choiceText": "한명의 전설",
+    "resultDescription": "희귀도 1 유닛 1명을 무작위 희귀도 4 유닛으로 변경",
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": ["1"],
@@ -1271,7 +1271,7 @@
     "resultType": ["Gold"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["250"]
+    "resultCount": ["500"]
   },
   {
     "choiceId": 91,
@@ -1305,7 +1305,7 @@
     "choiceId": 93,
     "eventId": 34,
     "choiceText": "그를 설득하여 동료로 만든다.",
-    "resultDescription": "엘리트 전투, 승리 시 영웅 유닛 획득",
+    "resultDescription": "엘리트 전투, 승리 시 전설 유닛 획득",
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1333,7 +1333,7 @@
     "choiceId": 95,
     "eventId": 35,
     "choiceText": "의식을 완수한다.",
-    "resultDescription": "전쟁 유산 보상(저주), 선택한 유닛 희생, 유닛의 희귀도에 따라 확률적으로 무작위 영웅 유닛 획득. 희귀도1 30%, 희귀도2 60%, 희귀도3 100%",
+    "resultDescription": "전쟁 유산 보상(저주), 선택한 유닛 희생, 유닛의 희귀도에 따라 확률적으로 무작위 전설 유닛 획득. 희귀도1 30%, 희귀도2 60%, 희귀도3 100%",
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": [""],
@@ -1403,7 +1403,7 @@
     "choiceId": 100,
     "eventId": 37,
     "choiceText": "돈을 원한다.",
-    "resultDescription": "금화 +2000, 전쟁 유산 보상(저주) 3회",
+    "resultDescription": "금화 +5000, 전쟁 유산 보상(저주) 3회",
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1411,7 +1411,7 @@
     "resultType": ["Gold", "Relic"],
     "resultForm": ["None", "Random"],
     "resultValue": ["0", "0"],
-    "resultCount": ["2000", "3"]
+    "resultCount": ["5000", "3"]
   },
   {
     "choiceId": 101,
@@ -1561,7 +1561,7 @@
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["200"],
+    "requireCount": ["300"],
     "resultType": ["Energy", "Morale"],
     "resultForm": ["All", "None"],
     "resultValue": ["10", "0"],
@@ -1785,7 +1785,7 @@
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["300"],
+    "requireCount": ["500"],
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["1~2"],

@@ -32,17 +32,19 @@ public class EventManager
         if (!eventData.eventChapter.Contains(currentChapter))
             return false;
 
-        bool allNone = true;
+        // 조건이 전부 None이면 바로 등장 가능
+        bool hasCondition = false;
         for (int i = 0; i < eventData.requireThing.Count; i++)
         {
             if (eventData.requireThing[i] != RequireThing.None)
             {
-                allNone = false;
+                hasCondition = true;
                 break;
             }
         }
-        if (allNone) return true;
+        if (!hasCondition) return true;
 
+        // 조건 검사
         for (int i = 0; i < eventData.requireThing.Count; i++)
         {
             var thing = eventData.requireThing[i];
@@ -64,7 +66,9 @@ public class EventManager
         return true;
     }
 
-    private static bool CheckRequireCondition(RequireThing thing, RequireForm form, string value,string count)
+
+    //해당 이벤트가 실행할때 필요한 자원이 있는지 채크
+    private static bool CheckRequireCondition(RequireThing thing, RequireForm form, string value, string count)
     {
         switch (thing)
         {
@@ -72,101 +76,44 @@ public class EventManager
                 if (form == RequireForm.None)
                 {
                     int gold = RogueLikeData.Instance.GetCurrentGold();
-                    if(RogueLikeData.Instance.GetOwnedRelicById(49) != null)
-                    {
-                        gold += 500;
-                    }
+                    if (RogueLikeData.Instance.GetOwnedRelicById(49) != null) gold += 500;
                     return InRange(gold, count);
                 }
                 break;
+
             case RequireThing.Morale:
                 {
                     int morale = RogueLikeData.Instance.GetMorale();
-                    float reduceMorale = 1;
-                    if(RogueLikeData.Instance.GetOwnedRelicById(33) == null)
-                    {
-                        reduceMorale += 0.2f;
-                    }
-                    return InRange(morale, count,true, reduceMorale);
+                    float reduceMorale = 1f;
+                    if (RogueLikeData.Instance.GetOwnedRelicById(33) == null) reduceMorale += 0.2f;
+                    return InRange(morale, count, true, reduceMorale);
                 }
+
             case RequireThing.Unit:
                 {
-                    int requireCount = int.Parse(count);
-                    if (form == RequireForm.Select)
+                    int requireCount = SafeParseInt(count);
+                    var myUnits = RogueLikeData.Instance.GetMyTeam();
+
+                    if (form == RequireForm.Select || form == RequireForm.Random)
                     {
-                        if (value.Contains("~"))
+                        if (!string.IsNullOrEmpty(value))
                         {
-                            var myUnits = RogueLikeData.Instance.GetMyTeam();
-
-                            var (min, max) = ParseRange(value);
-                            int unitCount = 0;
-                            foreach (var unit in myUnits)
+                            if (value.Contains("~"))
                             {
-                                if (unit.rarity >= min && unit.rarity <= max)
-                                {
-                                    unitCount++;
-                                    if (unitCount >= requireCount) return true;
-                                }
+                                var (min, max) = ParseRange(value);
+                                return myUnits.Count(u => u.rarity >= min && u.rarity <= max) >= requireCount;
                             }
-                            return false;
-                        }
-                        else if (!string.IsNullOrEmpty(value))
-                        {
-                            var myUnits = RogueLikeData.Instance.GetMyTeam();
-                            int rarity = int.Parse(value);
-                            int unitCount = 0;
-                            foreach (var unit in myUnits)
+                            else
                             {
-                                if (unit.rarity <= rarity)
-                                {
-                                    unitCount++;
-                                    if (unitCount >= requireCount) return true;
-                                }
+                                int rarity = SafeParseInt(value);
+                                return myUnits.Count(u => u.rarity <= rarity) >= requireCount;
                             }
-                            return false;
                         }
-                        return RogueLikeData.Instance.GetMyTeam().Count >= requireCount;
-                    }
-                    else if (form == RequireForm.Random)
-                    {
-
-                        if (value.Contains("~"))
-                        {
-                            var myUnits = RogueLikeData.Instance.GetMyTeam();
-
-                            var (min, max) = ParseRange(value);
-                            int unitCount = 0;
-                            foreach (var unit in myUnits)
-                            {
-                                if (unit.rarity >= min && unit.rarity <= max)
-                                {
-                                    unitCount++;
-                                    if (unitCount >= requireCount) return true;
-                                }
-                            }
-                            return false;
-                        }
-                        else if (!string.IsNullOrEmpty(value))
-                        {
-                            var myUnits = RogueLikeData.Instance.GetMyTeam();
-                            int rarity = int.Parse(value);
-                            int unitCount = 0;
-
-                            foreach (var unit in myUnits)
-                            {
-                                if (unit.rarity <= rarity)
-                                {
-                                    unitCount++;
-                                    if (unitCount >= requireCount) return true;
-                                }
-                            }
-                            return false;
-                        }
-                        return RogueLikeData.Instance.GetMyTeam().Count >= requireCount;
+                        return myUnits.Count >= requireCount;
                     }
                     else if (form == RequireForm.Special)
                     {
-                        return RogueLikeData.Instance.GetMyTeam().Count >= requireCount;
+                        return myUnits.Count >= requireCount;
                     }
                     break;
                 }
@@ -175,78 +122,38 @@ public class EventManager
                 {
                     if (!string.IsNullOrEmpty(value))
                     {
-                        var relics = RogueLikeData.Instance.GetAllOwnedRelics();
-                        int grade = int.Parse(value);
-                        int relicCount = 0;
-                        int requireCount = int.Parse(count);
-                        foreach (var relic in relics)
-                        {
-                            if(relic.grade == grade)
-                            {
-                                relicCount++;
-                                if (relicCount >= requireCount) return true;
-                            }
-                        }
-                        return false;
+                        int grade = SafeParseInt(value);
+                        int requireCount = SafeParseInt(count);
+                        return RogueLikeData.Instance.GetAllOwnedRelics().Count(r => r.grade == grade) >= requireCount;
                     }
-                    int relicGrade = int.Parse(count);
-                    return RogueLikeData.Instance.GetAllOwnedRelics().Exists(relic => relic.grade == relicGrade);
+                    int relicGrade = SafeParseInt(count);
+                    return RogueLikeData.Instance.GetAllOwnedRelics().Exists(r => r.grade == relicGrade);
                 }
-                else if (form == RequireForm.None) // 특정 id 유산이 없어야 true
+                else if (form == RequireForm.None)
                 {
-                    int relicId = int.Parse(count);
+                    int relicId = SafeParseInt(count);
                     return !RelicManager.CheckRelicById(relicId);
                 }
                 break;
-            case RequireThing.Energy:
-                if(form == RequireForm.Random)
-                {
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        var myUnits = RogueLikeData.Instance.GetMyTeam();
-                        int energyValue = int.Parse(value);
-                        int unitCount= 0;
-                        int requireCount = int.Parse(count);
-                        foreach (var unit in myUnits)
-                        {
-                            if(unit.energy > energyValue)
-                            {
-                                unitCount++;
-                                if(unitCount >= requireCount) return true;
-                            }
-                        }
-                        return false;
-                    }
-                }
-                if(form == RequireForm.Select)
-                {
-                    if(string.IsNullOrEmpty(value)) return true;
 
-                    var myUnits = RogueLikeData.Instance.GetMyTeam();
-                    int energyValue = int.Parse(value);
-                    int unitCount = 0;
-                    int requireCount = int.Parse(count);
-                    foreach (var unit in myUnits)
-                    {
-                        if (unit.energy > energyValue)
-                        {
-                            unitCount++;
-                            if (unitCount >= requireCount) return true;
-                        }
-                    }
-                }
-                break;
-            case RequireThing.AttackDamage:
+            case RequireThing.Energy:
                 {
-                    int threshold = int.Parse(count);
                     var myUnits = RogueLikeData.Instance.GetMyTeam();
-                    foreach (var unit in myUnits)
+                    int energyValue = SafeParseInt(value);
+                    int requireCount = SafeParseInt(count);
+
+                    if (form == RequireForm.Random || form == RequireForm.Select)
                     {
-                        if (unit.attackDamage >= threshold)
-                            return true;
+                        return myUnits.Count(u => u.energy > energyValue) >= requireCount;
                     }
                     break;
                 }
+            case RequireThing.AttackDamage:
+                {
+                    int threshold = SafeParseInt(count);
+                    return RogueLikeData.Instance.GetMyTeam().Any(u => u.attackDamage >= threshold);
+                }
+
             case RequireThing.Stage:
                 if (form == RequireForm.None)
                 {
@@ -254,9 +161,21 @@ public class EventManager
                 }
                 break;
 
+            case RequireThing.Special:
+                // Special 조건은 별도 함수로 검사
+                return CheckSpecialRequire(null); // eventData 전달 가능하면 전달
+
         }
+
         return false;
     }
+    
+    private static int SafeParseInt(string str)
+    {
+        if (int.TryParse(str, out var result)) return result;
+        return 0;
+    }
+
 
     private static bool CheckSpecialRequire(EventData eventData)
     {
