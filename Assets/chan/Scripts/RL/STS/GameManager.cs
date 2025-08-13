@@ -14,16 +14,17 @@ public class GameManager : MonoBehaviour
     public PlacePanel PlacePanelComponent => PlacePanel.GetComponent<PlacePanel>();
     public LineUpBar LineUpBarComponent => lineUpBar;
 
-    [SerializeField] private GameObject eventManager;
-    [SerializeField] private GameObject storeManager;
+    [SerializeField] public GameObject eventManager;
+    [SerializeField] public GameObject storeManager;
 
     [Header("Map UI & Enemy Info Panel")]
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
-    [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
-    [SerializeField] private GameObject restPanel;
-    [SerializeField] private RewardUI rewardUI;
+    [SerializeField] public GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
+    [SerializeField] public GameObject restPanel;
+    [SerializeField] public RewardUI rewardUI;
     [SerializeField] private GameObject loadingPanel;
     public GameObject itemToolTip;
+    
 
     [SerializeField] private RectTransform mapPanel;
 
@@ -231,17 +232,21 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             newStage.stageType == StageType.Elite ||
             newStage.stageType == StageType.Boss)
         {
-
+            // 적 정보 패널과 배치 패널을 동시에 표시
             enemyInfoPanel.SetActive(true);
+            TogglePlacePanel(true);
+            PlacePanelComponent.UpdateMaxUnitText();
+
             var enemies = LoadEnemyUnits(newStage.PresetID);
             var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
 
             string cmdName = preset.Commander ?? "";
-            /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
-                              ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
-                              : "";*/
             var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
-            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName/*, cmdSkill*/);
+            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true);
+            
+            // 적 프리팹을 PlacePanel에 생성
+            PlacePanelComponent.CreateEnemyPrefabs(enemies);
+            
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---

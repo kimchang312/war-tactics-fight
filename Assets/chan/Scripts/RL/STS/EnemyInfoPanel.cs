@@ -22,11 +22,15 @@ public class EnemyInfoPanel : MonoBehaviour
     [Header("맹인 효과")]
     [SerializeField] private GameObject blindText;
 
+    private bool combinedMode = false;
+
     public void ShowEnemyInfo(StageType stageType,
                               List<RogueUnitDataBase> enemies,
-                              string commanderName )
+                              string commanderName,
+                              bool combined = false )
     
         {
+        combinedMode = combined;
         // 👉 맹인 유산 확인
         if (RelicManager.CheckRelicById(36))
         {
@@ -49,7 +53,7 @@ public class EnemyInfoPanel : MonoBehaviour
         commanderInfo.SetActive(true);
         unitCountText.gameObject.SetActive(true);
         enemyContainer.gameObject.SetActive(true);
-        placeButton.gameObject.SetActive(true);
+        placeButton.gameObject.SetActive(!combinedMode);
 
         // 1) 전투 타입 문구
         switch (stageType)
@@ -89,7 +93,10 @@ public class EnemyInfoPanel : MonoBehaviour
     }
     public void OnPlaceButtonClicked()
     {
-        gameObject.SetActive(false);
+        if (!combinedMode)
+        {
+            gameObject.SetActive(false);
+        }
         GameManager.Instance.TogglePlacePanel(true);
         GameManager.Instance.PlacePanelComponent.UpdateMaxUnitText();
     }

@@ -3070,7 +3070,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -960, y: 213}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &285092259
 MonoBehaviour:
@@ -5721,7 +5721,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -933, y: 213}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &481192272
 MonoBehaviour:
@@ -9814,11 +9814,11 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 562812097}
-  m_Father: {fileID: 972372225}
+  m_Father: {fileID: 1944157902}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 480.01, y: 45.8}
+  m_AnchoredPosition: {x: 480.01, y: -3.9500008}
   m_SizeDelta: {x: 960, y: 260.7812}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &927476001
@@ -10529,7 +10529,6 @@ RectTransform:
   - {fileID: 1480139112}
   - {fileID: 1944157902}
   - {fileID: 2064726064}
-  - {fileID: 927476000}
   - {fileID: 715344874}
   - {fileID: 1165016577}
   - {fileID: 1541897944}
@@ -19433,7 +19432,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1944157902
 RectTransform:
   m_ObjectHideFlags: 0
@@ -19446,6 +19445,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 927476000}
   - {fileID: 305393164}
   - {fileID: 1686562746}
   - {fileID: 1848147135}
@@ -19517,6 +19517,9 @@ MonoBehaviour:
   currentUnitCount: {fileID: 534568298}
   battleUnitPrefab: {fileID: 6891974015797885169, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
   PrefabContainer: {fileID: 285092258}
+  enemyUnitPrefab: {fileID: 7429648242532625682, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
+  EnemyPrefabsContainer: {fileID: 481192271}
+  enemyUnitCountText: {fileID: 1264429052}
 --- !u!1001 &1978038989
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20291,7 +20294,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2064726064
 RectTransform:
   m_ObjectHideFlags: 0
