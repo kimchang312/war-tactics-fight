@@ -274,18 +274,18 @@ public class RewardUI : MonoBehaviour
 
     private void ClickReward(ItemInformation info)
     {
-        if (info.isItem) return;
+        if (info.data.isItem) return;
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
-        if (info.type == RewardType.UnitGrade || info.type == RewardType.NewUnit || info.type == RewardType.ChangeUnit)
+        if (info.data.type == RewardType.UnitGrade || info.data.type == RewardType.NewUnit || info.data.type == RewardType.ChangeUnit)
         {
-            RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(info.unitId);
+            RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(info.data.unitId);
             RogueLikeData.Instance.AddMyUnis(unit);
         }
-        else if (info.type == RewardType.RelicGrade || info.type == RewardType.NewRelic)
+        else if (info.data.type == RewardType.RelicGrade || info.data.type == RewardType.NewRelic)
         {
-            RogueLikeData.Instance.AcquireRelic(info.relicId);
+            RogueLikeData.Instance.AcquireRelic(info.data.relicId);
             RewardManager.AcquireReward();
-            if (info.relicId == 79)
+            if (info.data.relicId == 79)
             {
                 unitSelectUI.gameObject.SetActive(true);
                 unitSelectUI.OpenSelectUnitWindow(SelectUnitEndless, null, 1);
@@ -315,7 +315,7 @@ public class RewardUI : MonoBehaviour
             var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
             countText.text = $"{reroll}";
             var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
-            OpenReward(info.unitId > -1);
+            OpenReward(info.data.unitId > -1);
             RogueLikeData.Instance.SetRerollChance(--reroll);
             countText.text = $"{reroll}";
             rerollBtn.interactable = true;
@@ -329,7 +329,7 @@ public class RewardUI : MonoBehaviour
     {
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
-        switch (info.type)
+        switch (info.data.type)
         {
             case RewardType.UnitGrade: reward.unitGrade.RemoveAt(0); break;
             case RewardType.NewUnit: reward.newUnits.RemoveAt(0); break;
@@ -364,10 +364,10 @@ public class RewardUI : MonoBehaviour
         btn.GetComponentInChildren<TextMeshProUGUI>().text = unit.unitName;
 
         var info = btn.GetComponent<ItemInformation>();
-        info.unitId = unit.idx;
-        info.relicId = -1;
-        info.type = type;
-        info.isItem = false;
+        info.data.unitId = unit.idx;
+        info.data.relicId = -1;
+        info.data.type = type;
+        info.data.isItem = false;
 
         btn.onClick.RemoveAllListeners();
         btn.onClick.AddListener(() => ClickReward(info));
@@ -381,10 +381,10 @@ public class RewardUI : MonoBehaviour
         btn.GetComponentInChildren<TextMeshProUGUI>().text = relic.name;
 
         var info = btn.GetComponent<ItemInformation>();
-        info.relicId = relic.id;
-        info.unitId = -1;
-        info.type = type;
-        info.isItem = false;
+        info.data.relicId = relic.id;
+        info.data.unitId = -1;
+        info.data.type = type;
+        info.data.isItem = false;
         ExplainItem exItem = btn.GetComponent<ExplainItem>();
         exItem.ItemToolTip = itemToolTip;
 

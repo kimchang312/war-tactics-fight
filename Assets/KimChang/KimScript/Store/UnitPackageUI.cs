@@ -12,7 +12,7 @@ public class UnitPackageUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI packageName;
     [SerializeField] private TextMeshProUGUI packagePrice;
 
-    ItemInformation itemInfo = new();
+    ItemInfoData itemInfo = new();
     List<RogueUnitDataBase> units = new();
     RectTransform rect;
 

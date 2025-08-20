@@ -309,12 +309,12 @@ public class StoreUI : MonoBehaviour
     private void SetItemInformation(Transform child, StoreItemData storeItemData, int price, List<RogueUnitDataBase> units = null, int relicId = -1, int rerollCount = 0)
     {
         ItemInformation itemInformation = child.GetComponent<ItemInformation>();
-        itemInformation.isItem = true;
-        itemInformation.item = storeItemData;
-        itemInformation.price = price;
-        if (units != null) itemInformation.units = units;
-        else if (relicId != -1) itemInformation.relicId = relicId;
-        else if (rerollCount != 0) itemInformation.rerollCount = rerollCount;
+        itemInformation.data.isItem = true;
+        itemInformation.data.item = storeItemData;
+        itemInformation.data.price = price;
+        if (units != null) itemInformation.data.units = units;
+        else if (relicId != -1) itemInformation.data.relicId = relicId;
+        else if (rerollCount != 0) itemInformation.data.rerollCount = rerollCount;
     }
     
     private void PurchaseUnitPackage(GameObject obj,List<RogueUnitDataBase> units, int price)
@@ -348,26 +348,26 @@ public class StoreUI : MonoBehaviour
         if (info == null) return;
 
         // 가격 검사 및 소모
-        if (!SpendGold(info.price)) return;
+        if (!SpendGold(info.data.price)) return;
 
         // Relic인 경우
-        if (info.relicId != -1)
+        if (info.data.relicId != -1)
         {
-            RogueLikeData.Instance.AcquireRelic(info.relicId);
+            RogueLikeData.Instance.AcquireRelic(info.data.relicId);
         }
         // 일반 아이템 처리
-        else if (info.item != null)
+        else if (info.data.item != null)
         {
-            switch (info.item.type)
+            switch (info.data.item.type)
             {
                 case "Energy":
-                    ApplyEnergyItem(info.item, checkedBtn);
+                    ApplyEnergyItem(info.data.item, checkedBtn);
                     break;
                 case "Morale":
-                    RogueLikeData.Instance.ChangeMorale(int.Parse(info.item.value));
+                    RogueLikeData.Instance.ChangeMorale(int.Parse(info.data.item.value));
                     break;
                 case "Reroll":
-                    RogueLikeData.Instance.AddReroll(info.item.count);
+                    RogueLikeData.Instance.AddReroll(info.data.item.count);
                     UIManager.Instance.UpdateReroll();
                     break;
             }
@@ -604,7 +604,7 @@ public class StoreUI : MonoBehaviour
     public void VisiblePurchaseLeaveBtn()
     {
         purchaseBtn.gameObject.SetActive(true);
-        leaveBtn.gameObject.SetActive(false);
+        leaveBtn.gameObject.SetActive(true);
     }
 
 }

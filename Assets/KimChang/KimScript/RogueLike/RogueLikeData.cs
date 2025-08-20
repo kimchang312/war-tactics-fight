@@ -413,7 +413,7 @@ public class RogueLikeData
     public int ChangeMorale(int value)
     {
         int baseMorale = playerMorale;
-        int actualChange = 0;
+        int actualChange;
 
         if (value >= 0)
         {

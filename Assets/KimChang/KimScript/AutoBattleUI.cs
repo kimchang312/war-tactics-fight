@@ -374,20 +374,20 @@ public class AutoBattleUI : MonoBehaviour
             Image img = iconImage.GetComponent<Image>();
             img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
 
-            itemInfo.isItem = false;
+            itemInfo.data.isItem = false;
             int? idx = GameTextData.GetIdxFromString(attr.Name);
             if (idx.HasValue)
             {
-                itemInfo.abilityId = idx.Value;
+                itemInfo.data.abilityId = idx.Value;
             }
             else if (int.TryParse(attr.Name, out int parsedId))
             {
-                itemInfo.abilityId = parsedId;
+                itemInfo.data.abilityId = parsedId;
             }
             else
             {
                 Debug.LogWarning($"abilityId 파싱 실패: {attr.Name}");
-                itemInfo.abilityId = -1; // 혹은 예외 처리 또는 기본값 지정
+                itemInfo.data.abilityId = -1; // 혹은 예외 처리 또는 기본값 지정
             }
 
             explainItem.ItemToolTip =itemToolTip;
@@ -482,29 +482,7 @@ public class AutoBattleUI : MonoBehaviour
     //유산 생성
     public void CreateWarRelic()
     {
-        var warRelics = RogueLikeData.Instance.GetAllOwnedRelics();
-
-        if (warRelics == null || warRelics.Count == 0)
-            return;
-
-        for (int i = 0; i < warRelics.Count; i++)
-        {
-            if (warRelics[i].used) return;
-            GameObject relicObject = objectPool.GetWarRelic();
-            ItemInformation itemInfo = relicObject.GetComponent<ItemInformation>();
-            ExplainItem explainItem = relicObject.GetComponent<ExplainItem>();
-
-            Image relicImg = relicObject.GetComponent<Image>();
-            relicImg.sprite = SpriteCacheManager.GetSprite($"KIcon/WarRelic/{warRelics[i].id}");
-
-            itemInfo.isItem =false;
-            itemInfo.relicId = warRelics[i].id;
-
-            explainItem.ItemToolTip = itemToolTip;
-
-            relicObject.transform.SetParent(relicBox.transform, false);
-
-        }
+        WarRelicBoxUI.SetRelicBox(relicBox, itemToolTip, objectPool);
     }
 
     //ui 활성화 비활성화 초기화

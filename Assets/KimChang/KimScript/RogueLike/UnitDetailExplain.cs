@@ -87,12 +87,12 @@ public class UnitDetailExplain : MonoBehaviour
 
             Image img = ability.GetComponent<Image>();
             img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
-            itemInfo.isItem = false;
+            itemInfo.data.isItem = false;
 
             int? idx = GameTextData.GetIdxFromString(attr.Name);
             // itemInfo.abilityId = attr.Name == "defense" ? 129 : idx ?? -1;
             // 수비태세 툴팁 돌격으로 뜨는 버그 수정
-            itemInfo.abilityId = idx ?? -1;
+            itemInfo.data.abilityId = idx ?? -1;
             explainItem.ItemToolTip = itemToolTip;
 
             Transform abilityBox = idx < 128 ? traitBox : skillBox;

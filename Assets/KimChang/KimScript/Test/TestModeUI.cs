@@ -45,7 +45,9 @@ public class TestModeUI : MonoBehaviour
     UnitPriceDatabase priceDatabase = new UnitPriceDatabase();
 
     private void Start()
-    {
+    { 
+
+        UnitLoader.Instance.LoadUnitsFromJson();
         if (fightStartBtn == null)
         {
             fightStartBtn = GetComponent<FightStartBtn>();

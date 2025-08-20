@@ -34,7 +34,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             return;
         }
 
-        StoreItemData item = info.item;
+        StoreItemData item = info.data.item;
         /*
         if (info.units.Count != 0)
         {
@@ -69,15 +69,15 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         textComponent.text = "설정되지 않은 아이템";
 
-        if (info.relicId != -1)
+        if (info.data.relicId != -1)
         {
-            var relic = WarRelicDatabase.GetRelicById(info.relicId);
+            var relic = WarRelicDatabase.GetRelicById(info.data.relicId);
             if (relic != null)
                 textComponent.text = $"{relic.name} {gradeText[relic.grade]}\n{relic.tooltip}";
             else
                 textComponent.text = "유산 정보를 찾을 수 없습니다.";
         }
-        else if (info.isItem)
+        else if (info.data.isItem)
         {
             if (item.itemId >= 0 && item.itemId < 34)
             {
@@ -88,10 +88,10 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
                 textComponent.text = $"주사위\n리롤을 {int.Parse(item.value)}회 추가한다";
             }
         }
-        else if (info.isUpgrade)
+        else if (info.data.isUpgrade)
         {
-            var (name, description, addOne, addTwo) = GameTextData.GetLocalizedTextFull(info.upgradeId);
-            int branch = info.upgradeId % 180;
+            var (name, description, addOne, addTwo) = GameTextData.GetLocalizedTextFull(info.data.upgradeId);
+            int branch = info.data.upgradeId % 180;
             string branchName = branch switch
             {
                 0 => "창병",
@@ -115,12 +115,12 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
         else
         {
-            if (info.abilityId != -1)
+            if (info.data.abilityId != -1)
             {
-                var (name, description) = GameTextData.GetLocalizedText(info.abilityId);
+                var (name, description) = GameTextData.GetLocalizedText(info.data.abilityId);
                 textComponent.text = $"{name}\n{description}";
             }
-            else if (info.unitId > -1)
+            else if (info.data.unitId > -1)
             {
                 return;
             }

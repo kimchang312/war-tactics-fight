@@ -36,6 +36,12 @@ public class RelicManager
         AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.BattleActive));
         AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.ActiveState));
     }
+    public static WarRelic GetRelicById(int id)
+    {
+        WarRelic warRelic = ownedRelics[id];
+        return warRelic;
+    }
+
     // 특정 등급에서 중복 여부를 고려하여 랜덤 유산들 반환
     public static List<WarRelic> GetAvailableRelics(int grade, RelicAction action)
     {

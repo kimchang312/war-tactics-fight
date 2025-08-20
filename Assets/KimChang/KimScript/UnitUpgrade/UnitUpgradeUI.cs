@@ -10,7 +10,7 @@ public class UnitUpgradeUI : MonoBehaviour
 
 
     [SerializeField] private Button toggleUpgradeBtn;
-    [SerializeField] private Button closeAllUpgradeBtn;
+    //[SerializeField] private Button closeAllUpgradeBtn;
     [SerializeField] private Button closeOneUpgradeBtn;
 
     [SerializeField] private Button goMainBtn;
@@ -18,7 +18,7 @@ public class UnitUpgradeUI : MonoBehaviour
     [SerializeField] private GameObject allUpgradeWindow;
     [SerializeField] private GameObject oneUpgradeWindow;
 
-    [SerializeField] private GameObject unitPrefab;                 // 유닛 프리팹
+    //[SerializeField] private GameObject unitPrefab;                 // 유닛 프리팹
     [SerializeField] private Transform unitParent;                  // 생성된 유닛의 부모 오브젝트
 
     [SerializeField] private Image oneUpgradeImg;           //강화 창 유닛 이미지
@@ -62,7 +62,7 @@ public class UnitUpgradeUI : MonoBehaviour
         //Debug.Log(unit.healthBoost);
         multipleBtn.onClick.AddListener(ToggleCom);
 
-        CreateUnit();
+        //CreateUnit();
 
         ApplyAffinityToUI();
     }
@@ -71,7 +71,7 @@ public class UnitUpgradeUI : MonoBehaviour
     {
         // 버튼 클릭 이벤트 연결
         toggleUpgradeBtn.onClick.AddListener(ToggleAllUpgradeWindow);
-        closeAllUpgradeBtn.onClick.AddListener(CloseAllUpgradeWindows);
+         // closeAllUpgradeBtn.onClick.AddListener(CloseAllUpgradeWindows);
         closeOneUpgradeBtn.onClick.AddListener(CloseOneUpgradeWindow);
         upgradeBtn.onClick.AddListener(ClickUpgradeBtn);
 
@@ -110,7 +110,7 @@ public class UnitUpgradeUI : MonoBehaviour
         oneUpgradeWindow.SetActive(true);
     }
 
-    //유닛 생성
+    /*//유닛 생성
     public void CreateUnit()
     {
         if (unitPrefab == null || unitParent == null)
@@ -151,7 +151,7 @@ public class UnitUpgradeUI : MonoBehaviour
             // 유닛 클릭 이벤트 추가
             AddClickEventToUnit(unit);
         }
-    }
+    }*/
 
     // 유닛 이미지 변경 메서드
     private void ChangeUnitImage(GameObject unit, int index)

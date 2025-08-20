@@ -289,7 +289,7 @@ public class EventManager
                     {
                         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
                         int energy = int.Parse(value);
-                        int unitCount = int.Parse(value);
+                        int unitCount = int.Parse(count);
 
                         // energy 보다 높은 에너지를 가진 유닛 필터링
                         List<RogueUnitDataBase> filteredUnits = myUnits.FindAll(unit => unit.energy > energy);
@@ -437,11 +437,15 @@ public class EventManager
         }
     }
     //선택시 보상 획득
-    public static (string,bool) ApplyChoiceResult(EventChoiceData choiceData,List<RogueUnitDataBase> selectedUnits)
+    public static (string, bool) ApplyChoiceResult(EventChoiceData choiceData, List<RogueUnitDataBase> selectedUnits)
     {
         string resultLog = "";
-        bool isBattle= false;
+        bool isBattle = false;
         int battleGrade = 0;
+
+        // 결과 템플릿 치환용 토큰 버퍼
+        List<string> resultTokens = new List<string>(4);
+
         for (int i = 0; i < choiceData.resultType.Count; i++)
         {
             ResultType type = choiceData.resultType[i];
@@ -454,452 +458,355 @@ public class EventManager
                 case ResultType.Gold:
                     {
                         int gold = int.Parse(count);
-                        if (isBattle)
-                        {
-                            RogueLikeData.Instance.AddGoldReward(gold);
-                        }
-                        else
-                        {
-                            gold = RogueLikeData.Instance.AddGoldByEventChapter(gold);
-                            resultLog += $"- 금화 {gold} 획득\n";
-                        }
+                        if (isBattle) RogueLikeData.Instance.AddGoldReward(gold);
+                        else { gold = RogueLikeData.Instance.AddGoldByEventChapter(gold); resultLog += $"- 금화 {gold} 획득\n"; }
+                        // 필요 시 토큰으로 “금화 xxx”를 템플릿에 쓰고 싶으면 아래 라인 유지
+                        // PushResultToken(resultTokens, $"금화 {gold}");
                         break;
                     }
 
                 case ResultType.Morale:
                     {
                         int morale = int.Parse(count);
-                        if (isBattle)
-                        {
-                            RogueLikeData.Instance.AddMoraleReward(morale);
-                        }
-                        else
-                        {
-                            morale = RogueLikeData.Instance.ChangeMorale(morale);
-                            resultLog += $"- 사기 {morale} 회복\n";
-                        }
+                        if (isBattle) RogueLikeData.Instance.AddMoraleReward(morale);
+                        else { morale = RogueLikeData.Instance.ChangeMorale(morale); resultLog += $"- 사기 {morale} 회복\n"; }
+                        // PushResultToken(resultTokens, $"사기 {morale}");
                         break;
                     }
 
                 case ResultType.Energy:
-                    int energy = int.Parse(value);
-                    if (form == ResultForm.Select)
                     {
-                        foreach(var unit in selectedUnits)
-                        {
-                            unit.energy = Math.Max(unit.maxEnergy, unit.energy+energy);
-                            resultLog += $"-기력 회복 {unit.unitName}\n";
-                        }
-                    }
-                    else if(form == ResultForm.All)
-                    {
-                        var myUnits = RogueLikeData.Instance.GetMyTeam();
-                        foreach(var unit in myUnits)
-                        {
-                            unit.energy = unit.maxEnergy;
-                        }
-                        resultLog += "모든 유닛의 기력이 회복 되었습니다.";
-                    }
-                    break;
-
-                case ResultType.Relic:
-                    int grade = int.Parse(value);
-                    int relicCount = int.Parse(count);
-                    if (form == ResultForm.Random)
-                    {
-                        if (isBattle)
-                        {
-                            for(int k=0; k<relicCount; k++)
-                            {
-                                RogueLikeData.Instance.AddRelicReward(RelicManager.GetRandomRelicId(grade, RelicAction.Acquire));
-                            }
-                        }
-                        else
-                        {
-                            for (int k = 0; k < relicCount; k++)
-                            {
-                                var relic = RelicManager.HandleRandomRelic(grade, RelicAction.Acquire);
-                                resultLog += $"- 전쟁 유산 획득: {relic.name}\n";
-                            }
-                        }
-                    }
-                    else if(form == ResultForm.Special)
-                    {
-                        if (choiceData.choiceId == 59 && UnityEngine.Random.value < 0.5f)
-                        {
-                            var relic = RelicManager.HandleRandomRelic(0, RelicAction.Acquire);
-                            resultLog += $"- 전쟁 유산 획득: {relic.name}\n";
-                        }
-                        else if(choiceData.choiceId == 73)
-                        {
-                            if (IsUnitVictory(selectedUnits[0]))
-                            {
-                                var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
-                                resultLog += $"- 전쟁 유산 획득: {relic.name}\n";
-                            }
-                            else
-                            {
-                                resultLog += $"- 경기에 패배해 아무것도 얻지 못했습니다.\n";
-                            }
-                        }
-                        else if(choiceData.choiceId == 75)
-                        {
-                            if (IsUnitVictoryByRarity(selectedUnits[0]))
-                            {
-                                RogueLikeData.Instance.AddMyUnis(selectedUnits[0]);
-                                var relic =RelicManager.HandleRandomRelic(10,RelicAction.Acquire);
-                                resultLog += $"- 결투에 승리해 전쟁유산 {relic.name} 획득";
-                            }
-                            else
-                            {
-                                resultLog += $"- 결투에 패배해 아무것도 얻지 못했습니다.\n";
-                            }
-                        }
-                        else if(choiceData.choiceId == 82)
-                        {
-                            var relicIds = RogueLikeData.Instance.GetAllOwnedRelicIds();
-                            int rewardRelicId = -1;
-                            if(!relicIds.Contains(23)) rewardRelicId = 23;
-                            else if(!relicIds.Contains(24)) rewardRelicId = 24;
-                            else rewardRelicId = 25;
-                            RogueLikeData.Instance.AcquireRelic(rewardRelicId);
-                            resultLog += $"- 보석 건틀릿의 마지막 유산을 획득했습니다.";
-                        }
-                    }
-                    break;
-                case ResultType.Unit:
-                    if(form == ResultForm.None)
-                    {
-                        int unitId = int.Parse(value);
-                        int unitCount = int.Parse(count);
-                        for (int k = 0; k < unitCount; k++)
-                        {
-                            RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(unitId);
-                            RogueLikeData.Instance.AddMyUnis(unit);
-                            resultLog += $"- {unit.unitName}이(가) 추가되었습니다.";
-                        }
-                    }
-                    else if (form == ResultForm.Random)
-                    {
-                        if (value.Contains("~"))
-                        {
-                            int unitCount = int.Parse(count);
-                            var (min, max) = ParseRange(value);
-
-                            var allUnits = UnitLoader.Instance.GetAllCachedUnits();
-
-                            var validUnits = allUnits.Where(u => u.rarity >= min && u.rarity <= max).ToList();
-
-                            for (int k = 0; k < unitCount && validUnits.Count > 0; k++)
-                            {
-                                int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
-                                validUnits.RemoveAt(randIndex);
-                                RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(validUnits[randIndex].idx);
-                                if (isBattle)
-                                {
-                                    RogueLikeData.Instance.AddUnitReward(newUnit);
-                                }
-                                else
-                                {
-                                    RogueLikeData.Instance.AddMyUnis(newUnit);
-                                    resultLog += $"- {newUnit.unitName}이(가) 추가되었습니다.";
-                                }
-                            }
-                        }
-                        else
-                        {
-                            int unitRarity = int.Parse(value);
-                            int unitCount = int.Parse(count);
-
-                            var allUnits = UnitLoader.Instance.GetAllCachedUnits();
-                            List<RogueUnitDataBase> validUnits;
-                            if (unitRarity == 4)
-                            {
-                                var myUnits = RogueLikeData.Instance.GetMyTeam();
-                                var myUnitIdxSet = System.Linq.Enumerable.ToHashSet(myUnits.Select(u => u.idx)); // 중복 탐색 최적화
-
-                                validUnits = allUnits
-                                    .Where(u => u.rarity == unitRarity && !myUnitIdxSet.Contains(u.idx))
-                                    .ToList();
-                                if (validUnits.Count == 0)
-                                {
-                                    WarRelic relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
-                                    resultLog += $"모든 영웅유닛을 보유하고 있습니다. 전쟁유산 {relic.name} 획득";
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                validUnits = allUnits.Where(u => u.rarity == unitRarity).ToList();
-                            }
-
-                            for(int k = 0; k < unitCount; k++)
-                            {
-                                int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
-                                validUnits.RemoveAt(randIndex);
-                                RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(validUnits[randIndex].idx);
-                                if (isBattle)
-                                {
-                                    RogueLikeData.Instance.AddUnitReward(newUnit);
-                                }
-                                else
-                                {
-                                    RogueLikeData.Instance.AddMyUnis(newUnit);
-                                    resultLog += $"- {newUnit.unitName}이(가) 추가되었습니다.";
-                                }
-                            }
-                        }
-                    }
-                    else if(form == ResultForm.Select)
-                    {
-                        var originUnit = selectedUnits[0];
-                        RogueUnitDataBase clone= UnitLoader.Instance.GetCloneUnitById(originUnit.idx);
-                        clone.energy=originUnit.energy;
-                        RogueLikeData.Instance.AddMyUnis(clone);
-                        resultLog += $"- {clone.unitName}이(가) 추가되었습니다.";
-                    }
-                    else if (form == ResultForm.Special)
-                    {
-                        int unitRarity = int.Parse(value);
-                        int unitCount = int.Parse(count);
-                        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
-                        List<RogueUnitDataBase> validUnits;
-                        var originUnit = selectedUnits[0];
-                        float chance = originUnit.rarity switch
-                        {
-                            1 => 0.3f,
-                            2 => 0.6f,
-                            3 => 1.0f,
-                            _ => 0f
-                        };
-                        if (UnityEngine.Random.value < chance)
-                        {
-                            var myUnits = RogueLikeData.Instance.GetMyTeam();
-                            var myUnitIdxSet = new HashSet<int>(myUnits.Select(u => u.idx));
-
-                            validUnits = allUnits
-                                .Where(u => u.rarity == 4 && !myUnitIdxSet.Contains(u.idx))
-                                .ToList();
-
-                            if (validUnits.Count == 0)
-                            {
-                                resultLog += $"모든 영웅 유닛을 보유하고 있습니다.";
-                                break;
-                            }
-                            for (int k = 0; k < unitCount && validUnits.Count > 0; k++)
-                            {
-                                int randIndex = UnityEngine.Random.Range(0, validUnits.Count);
-                                var newUnit = validUnits[randIndex];
-                                validUnits.RemoveAt(randIndex);
-
-                                RogueLikeData.Instance.AddMyUnis(newUnit);
-                                resultLog += $"'{originUnit.unitName}'을(를) 희생하고 '{newUnit.unitName}'을(를) 얻었습니다.\n";
-                            }
-                        }
-                        else
-                        {
-                            resultLog += $"'{originUnit.unitName}'을(를) 희생했지만 아무 일도 일어나지 않았습니다.\n";
-                        }
-
-                    }
-                    break;
-                case ResultType.Change:
-                    int changeCount = int.Parse(count);
-                    if (form == ResultForm.Select)
-                    {
-                        if (isBattle)
-                        {
-                            foreach(var unit in selectedUnits)
-                            {
-                                RogueUnitDataBase newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
-                                for(int k = 1;k< changeCount; k++)
-                                {
-                                    newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
-                                }
-                                RogueLikeData.Instance.AddChangeReward(newUnit);
-                            }
-                        }
-                        else
+                        int energy = int.Parse(value);
+                        if (form == ResultForm.Select)
                         {
                             foreach (var unit in selectedUnits)
                             {
-                                RogueUnitDataBase newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
-                                for (int k = 1; k < changeCount; k++)
-                                {
-                                    newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
-                                }
-                                RogueLikeData.Instance.AddMyUnis(newUnit);
-                                resultLog += $"- {unit.unitName}이 전직해 {newUnit.unitName}이(가) 되었습니다.\n";
+                                unit.energy = Math.Min(unit.maxEnergy, unit.energy + energy);
+                                resultLog += $"-기력 회복 {unit.unitName}\n";
+                                // 템플릿에 쓸 일이 거의 없지만 필요하면 토큰 추가 가능
                             }
                         }
-                    }
-                    else if(form == ResultForm.Random)
-                    {
-                        int unitCount = int.Parse(count);
-                        var myUnits = RogueLikeData.Instance.GetMyTeam();
-
-                        var candidates = myUnits.Where(u => u.rarity < 4).ToList();
-
-                        var changeUnits = candidates
-                            .OrderBy(_ => UnityEngine.Random.value)
-                            .Take(changeCount)
-                            .ToList();
-                        foreach(var unit in changeUnits)
+                        else if (form == ResultForm.All)
                         {
-                            var newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
-                            RogueLikeData.Instance.AddMyUnis(newUnit);
-                            resultLog += $"- {unit.unitName}이 전직해 {newUnit.unitName}이(가) 되었습니다.";
+                            var myUnits = RogueLikeData.Instance.GetMyTeam();
+                            foreach (var unit in myUnits) unit.energy = unit.maxEnergy;
+                            resultLog += "모든 유닛의 기력이 회복 되었습니다.";
                         }
-
+                        break;
                     }
-                    break;
+
+                case ResultType.Relic:
+                    {
+                        int grade = int.Parse(value);
+                        int relicCount = int.Parse(count);
+
+                        if (form == ResultForm.Random)
+                        {
+                            if (isBattle)
+                            {
+                                for (int k = 0; k < relicCount; k++)
+                                    RogueLikeData.Instance.AddRelicReward(RelicManager.GetRandomRelicId(grade, RelicAction.Acquire));
+                            }
+                            else
+                            {
+                                for (int k = 0; k < relicCount; k++)
+                                {
+                                    var relic = RelicManager.HandleRandomRelic(grade, RelicAction.Acquire);
+                                    resultLog += $"- 전쟁 유산 획득: {relic.name}\n";
+                                    PushResultToken(resultTokens, relic.name);
+                                }
+                            }
+                        }
+                        else if (form == ResultForm.Special)
+                        {
+                            if (choiceData.choiceId == 59 && UnityEngine.Random.value < 0.5f)
+                            {
+                                var relic = RelicManager.HandleRandomRelic(0, RelicAction.Acquire);
+                                resultLog += $"- 전쟁 유산 획득: {relic.name}\n";
+                                PushResultToken(resultTokens, relic.name);
+                            }
+                            else if (choiceData.choiceId == 73)
+                            {
+                                if (IsUnitVictory(selectedUnits[0]))
+                                {
+                                    var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
+                                    resultLog += $"- 전쟁 유산 획득: {relic.name}\n";
+                                    PushResultToken(resultTokens, relic.name);
+                                }
+                                else
+                                {
+                                    resultLog += $"- 경기에 패배해 아무것도 얻지 못했습니다.\n";
+                                }
+                            }
+                            else if (choiceData.choiceId == 75)
+                            {
+                                if (IsUnitVictoryByRarity(selectedUnits[0]))
+                                {
+                                    RogueLikeData.Instance.AddMyUnis(selectedUnits[0]);
+                                    var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
+                                    resultLog += $"- 결투 승리: 전쟁유산 {relic.name} 획득\n";
+                                    PushResultToken(resultTokens, relic.name);
+                                }
+                                else
+                                {
+                                    resultLog += "- 결투 패배\n";
+                                }
+                            }
+                            else if (choiceData.choiceId == 82)
+                            {
+                                var relicIds = RogueLikeData.Instance.GetAllOwnedRelicIds();
+                                int rewardRelicId = !relicIds.Contains(23) ? 23 : (!relicIds.Contains(24) ? 24 : 25);
+                                RogueLikeData.Instance.AcquireRelic(rewardRelicId);
+                                var relic = RelicManager.GetRelicById(rewardRelicId);
+                                resultLog += $"- 보석 건틀릿의 마지막 유산을 획득했습니다.\n";
+                                PushResultToken(resultTokens, relic?.name ?? "");
+                            }
+                        }
+                        break;
+                    }
+
+                case ResultType.Unit:
+                    {
+                        if (form == ResultForm.None)
+                        {
+                            int unitId = int.Parse(value);
+                            int unitCount = int.Parse(count);
+                            for (int k = 0; k < unitCount; k++)
+                            {
+                                RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(unitId);
+                                RogueLikeData.Instance.AddMyUnis(unit);
+                                resultLog += $"- {unit.unitName} 추가\n";
+                                PushResultToken(resultTokens, unit.unitName);
+                            }
+                        }
+                        else if (form == ResultForm.Random)
+                        {
+                            if (value.Contains("~"))
+                            {
+                                int unitCount = int.Parse(count);
+                                var (min, max) = ParseRange(value);
+                                var all = UnitLoader.Instance.GetAllCachedUnits().Where(u => u.rarity >= min && u.rarity <= max).ToList();
+
+                                for (int k = 0; k < unitCount && all.Count > 0; k++)
+                                {
+                                    int ri = UnityEngine.Random.Range(0, all.Count);
+                                    var pick = all[ri]; all.RemoveAt(ri);
+                                    RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(pick.idx);
+
+                                    if (isBattle) RogueLikeData.Instance.AddUnitReward(newUnit);
+                                    else { RogueLikeData.Instance.AddMyUnis(newUnit); resultLog += $"- {newUnit.unitName} 추가\n"; }
+                                    PushResultToken(resultTokens, newUnit.unitName);
+                                }
+                            }
+                            else
+                            {
+                                int unitRarity = int.Parse(value);
+                                int unitCount = int.Parse(count);
+                                var all = UnitLoader.Instance.GetAllCachedUnits();
+
+                                List<RogueUnitDataBase> valid;
+                                if (unitRarity == 4)
+                                {
+                                    var myIdx = System.Linq.Enumerable.ToHashSet(RogueLikeData.Instance.GetMyTeam().Select(u => u.idx));
+                                    valid = all.Where(u => u.rarity == unitRarity && !myIdx.Contains(u.idx)).ToList();
+                                    if (valid.Count == 0)
+                                    {
+                                        WarRelic relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
+                                        resultLog += $"모든 영웅유닛 보유. 전쟁유산 {relic.name} 획득\n";
+                                        PushResultToken(resultTokens, relic.name);
+                                        break;
+                                    }
+                                }
+                                else valid = all.Where(u => u.rarity == unitRarity).ToList();
+
+                                for (int k = 0; k < unitCount && valid.Count > 0; k++)
+                                {
+                                    int ri = UnityEngine.Random.Range(0, valid.Count);
+                                    var pick = valid[ri]; valid.RemoveAt(ri);
+                                    RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(pick.idx);
+
+                                    if (isBattle) RogueLikeData.Instance.AddUnitReward(newUnit);
+                                    else { RogueLikeData.Instance.AddMyUnis(newUnit); resultLog += $"- {newUnit.unitName} 추가\n"; }
+                                    PushResultToken(resultTokens, newUnit.unitName);
+                                }
+                            }
+                        }
+                        else if (form == ResultForm.Select)
+                        {
+                            var origin = selectedUnits[0];
+                            RogueUnitDataBase clone = UnitLoader.Instance.GetCloneUnitById(origin.idx);
+                            clone.energy = origin.energy;
+                            RogueLikeData.Instance.AddMyUnis(clone);
+                            resultLog += $"- {clone.unitName} 추가\n";
+                            PushResultToken(resultTokens, clone.unitName);
+                        }
+                        else if (form == ResultForm.Special)
+                        {
+                            var origin = selectedUnits[0];
+                            float chance = origin.rarity switch { 1 => 0.3f, 2 => 0.6f, 3 => 1.0f, _ => 0f };
+                            if (UnityEngine.Random.value < chance)
+                            {
+                                var myIdx = new HashSet<int>(RogueLikeData.Instance.GetMyTeam().Select(u => u.idx));
+                                var valid = UnitLoader.Instance.GetAllCachedUnits().Where(u => u.rarity == 4 && !myIdx.Contains(u.idx)).ToList();
+                                if (valid.Count == 0) { resultLog += "모든 영웅 유닛 보유\n"; break; }
+
+                                int ri = UnityEngine.Random.Range(0, valid.Count);
+                                var pick = valid[ri];
+                                var newUnit = UnitLoader.Instance.GetCloneUnitById(pick.idx);
+                                RogueLikeData.Instance.AddMyUnis(newUnit);
+                                resultLog += $"'{origin.unitName}' 희생 → '{newUnit.unitName}' 획득\n";
+                                PushResultToken(resultTokens, newUnit.unitName);
+                            }
+                            else
+                            {
+                                resultLog += $"'{origin.unitName}' 희생했지만 변화 없음\n";
+                            }
+                        }
+                        break;
+                    }
+
+                case ResultType.Change:
+                    {
+                        int changeCount = int.Parse(count);
+                        if (form == ResultForm.Select)
+                        {
+                            if (isBattle)
+                            {
+                                foreach (var unit in selectedUnits)
+                                {
+                                    RogueUnitDataBase newUnit = unit;
+                                    for (int k = 0; k < changeCount; k++) newUnit = RogueUnitDataBase.RandomUnitReForm(newUnit);
+                                    RogueLikeData.Instance.AddChangeReward(newUnit);
+                                    PushResultToken(resultTokens, newUnit.unitName);
+                                }
+                            }
+                            else
+                            {
+                                foreach (var unit in selectedUnits)
+                                {
+                                    RogueUnitDataBase newUnit = unit;
+                                    for (int k = 0; k < changeCount; k++) newUnit = RogueUnitDataBase.RandomUnitReForm(newUnit);
+                                    RogueLikeData.Instance.AddMyUnis(newUnit);
+                                    resultLog += $"- {unit.unitName} → {newUnit.unitName}\n";
+                                    PushResultToken(resultTokens, newUnit.unitName);
+                                }
+                            }
+                        }
+                        else if (form == ResultForm.Random)
+                        {
+                            int unitCount = int.Parse(count);
+                            var myUnits = RogueLikeData.Instance.GetMyTeam().Where(u => u.rarity < 4).OrderBy(_ => UnityEngine.Random.value).Take(unitCount).ToList();
+                            foreach (var unit in myUnits)
+                            {
+                                var newUnit = RogueUnitDataBase.RandomUnitReForm(unit);
+                                RogueLikeData.Instance.AddMyUnis(newUnit);
+                                resultLog += $"- {unit.unitName} → {newUnit.unitName}\n";
+                                PushResultToken(resultTokens, newUnit.unitName);
+                            }
+                        }
+                        break;
+                    }
+
                 case ResultType.Special:
-                    if (choiceData.choiceId == 3)
                     {
-                        int randEffect = UnityEngine.Random.Range(0, 9);
-
-                        switch (randEffect)
+                        if (choiceData.choiceId == 3)
                         {
-                            case 0:
-                                {
-                                    var relic = RelicManager.HandleRandomRelic(grade: 1, RelicManager.RelicAction.Acquire);
-                                    resultLog += $"- 일반 등급 전쟁 유산 '{relic?.name}'을 획득했습니다.\n";
-                                    break;
-                                }
-                            case 1:
-                                {
-                                    var relic = RelicManager.HandleRandomRelic(grade: 0, RelicManager.RelicAction.Acquire);
-                                    resultLog += $"- 저주 등급 전쟁 유산 '{relic?.name}'을 획득했습니다.\n";
-                                    break;
-                                }
-                            case 2:
-                                {
-                                    var myUnits = RogueLikeData.Instance.GetMyTeam();
-                                    if (myUnits.Count > 0)
+                            int randEffect = UnityEngine.Random.Range(0, 9);
+                            // 아래 기존 로직 유지, 획득/변경 시 토큰만 추가
+                            switch (randEffect)
+                            {
+                                case 0: { var r = RelicManager.HandleRandomRelic(1, RelicManager.RelicAction.Acquire); resultLog += $"- 일반 유산 '{r?.name}'\n"; PushResultToken(resultTokens, r?.name ?? ""); break; }
+                                case 1: { var r = RelicManager.HandleRandomRelic(0, RelicManager.RelicAction.Acquire); resultLog += $"- 저주 유산 '{r?.name}'\n"; PushResultToken(resultTokens, r?.name ?? ""); break; }
+                                case 2:
                                     {
-                                        var unit = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
-                                        var promoted = RogueUnitDataBase.RandomUnitReForm(unit);
-                                        if (promoted != null)
+                                        var my = RogueLikeData.Instance.GetMyTeam();
+                                        if (my.Count > 0)
                                         {
-                                            myUnits[myUnits.IndexOf(unit)] = promoted;
-                                            RogueLikeData.Instance.SetMyTeam(myUnits);
-                                            resultLog += $"- '{unit.unitName}'이(가) 전직하여 '{promoted.unitName}'이(가) 되었습니다.\n";
+                                            var unit = my[UnityEngine.Random.Range(0, my.Count)];
+                                            var promoted = RogueUnitDataBase.RandomUnitReForm(unit);
+                                            if (promoted != null)
+                                            {
+                                                my[my.IndexOf(unit)] = promoted;
+                                                RogueLikeData.Instance.SetMyTeam(my);
+                                                resultLog += $"- '{unit.unitName}' → '{promoted.unitName}'\n";
+                                                PushResultToken(resultTokens, promoted.unitName);
+                                            }
                                         }
+                                        break;
                                     }
-                                    break;
-                                }
-                            case 3:
-                                {
-                                    var myUnits = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy > 1).ToList();
-                                    if (myUnits.Count > 0)
+                                case 3:
                                     {
-                                        var target = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
-                                        target.energy = 1;
-                                        resultLog += $"- '{target.unitName}'의 기력이 1이 되었습니다.\n";
+                                        var my = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy > 1).ToList();
+                                        if (my.Count > 0)
+                                        {
+                                            var target = my[UnityEngine.Random.Range(0, my.Count)];
+                                            target.energy = 1;
+                                            resultLog += $"- '{target.unitName}' 기력 1\n";
+                                            PushResultToken(resultTokens, target.unitName);
+                                        }
+                                        break;
                                     }
-                                    break;
-                                }
-                            case 4:
-                                {
-                                    var (min, max) = ParseRange("1~3");
-
-                                    var allUnits = UnitLoader.Instance.GetAllCachedUnits();
-                                    var myIdxSet = Enumerable.ToHashSet(RogueLikeData.Instance.GetMyTeam().Select(u => u.idx));
-                                    var candidates = allUnits.Where(u => u.rarity >= min && u.rarity <= max && !myIdxSet.Contains(u.idx)).ToList();
-
-                                    if (candidates.Count > 0)
+                                case 4:
                                     {
-                                        var selected = candidates[UnityEngine.Random.Range(0, candidates.Count)];
-                                        RogueLikeData.Instance.AddMyUnis(selected);
-                                        resultLog += $"- 무작위 유닛 '{selected.unitName}'을(를) 획득했습니다.\n";
+                                        var (min, max) = ParseRange("1~3");
+                                        var all = UnitLoader.Instance.GetAllCachedUnits();
+                                        var myIdx = System.Linq.Enumerable.ToHashSet(RogueLikeData.Instance.GetMyTeam().Select(u => u.idx));
+                                        var cands = all.Where(u => u.rarity >= min && u.rarity <= max && !myIdx.Contains(u.idx)).ToList();
+                                        if (cands.Count > 0)
+                                        {
+                                            var sel = cands[UnityEngine.Random.Range(0, cands.Count)];
+                                            RogueLikeData.Instance.AddMyUnis(sel);
+                                            resultLog += $"- 유닛 '{sel.unitName}' 획득\n";
+                                            PushResultToken(resultTokens, sel.unitName);
+                                        }
+                                        break;
                                     }
-                                    break;
-                                }
-                            case 5:
-                                {
-                                    RogueLikeData.Instance.IncreaseRandomUpgrade(false);
-                                    resultLog += "- 무작위 병종이 강화되었습니다.\n";
-                                    break;
-                                }
-                            case 6:
-                                {
-                                    RogueLikeData.Instance.SetMorale(100);
-                                    resultLog += "- 사기가 최대치로 회복되었습니다.\n";
-                                    break;
-                                }
-                            case 7:
-                                {
-                                    int morale = RogueLikeData.Instance.ChangeMorale(25);
-                                    resultLog += $" 사기가 {-morale} 감소했습니다.\n";
-                                    break;
-                                }
-                            case 8:
-                                {
-                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(150);
-                                    resultLog += $"- 금화 {getGold}를 획득했습니다.\n";
-                                    break;
-                                }
+                                case 5: RogueLikeData.Instance.IncreaseRandomUpgrade(false); resultLog += "- 무작위 병종 강화\n"; break;
+                                case 6: RogueLikeData.Instance.SetMorale(100); resultLog += "- 사기 최대\n"; break;
+                                case 7: { int m = RogueLikeData.Instance.ChangeMorale(25); resultLog += $" 사기 {-m} 감소\n"; break; }
+                                case 8: { int g = RogueLikeData.Instance.AddGoldByEventChapter(150); resultLog += $"- 금화 {g} 획득\n"; PushResultToken(resultTokens, $"금화 {g}"); break; }
+                            }
                         }
-                    }
-                    else if (choiceData.choiceId == 25)
-                    {
-                        var unit = selectedUnits[0];
-                        int rarity = unit.rarity;
-
-                        var myUnits = RogueLikeData.Instance.GetMyTeam();
-                        int index = myUnits.IndexOf(unit);
-
-                        switch (rarity)
+                        else if (choiceData.choiceId == 25)
                         {
-                            case 1:
-                                {
-                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(50);
-                                    resultLog += $"'{unit.unitName}'을(를) 희생하여 금화 {getGold}를 획득했습니다.\n";
-                                    break;
-                                }
-                            case 2:
-                                {
-                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(150);
-                                    resultLog += $"'{unit.unitName}'을(를) 희생하여 금화 {getGold}를 획득했습니다.\n";
-                                    break;
-                                }
-                            case 3:
-                                {
-                                    int getGold = RogueLikeData.Instance.AddGoldByEventChapter(150);
-                                    var relic = RelicManager.HandleRandomRelic(grade: 1, RelicManager.RelicAction.Acquire);
-                                    resultLog += $"'{unit.unitName}'을(를) 희생하여 금화 {getGold}와 전쟁 유산 '{relic?.name}'을 획득했습니다.\n";
-                                    break;
-                                }
-                            default:
-                                {
-                                    resultLog += $"'{unit.unitName}'의 희귀도({rarity})는 처리되지 않았습니다. 희생만 처리되었습니다.\n";
-                                    break;
-                                }
+                            var unit = selectedUnits[0];
+                            int rarity = unit.rarity;
+                            int getGold = (rarity == 1) ? RogueLikeData.Instance.AddGoldByEventChapter(50)
+                                       : RogueLikeData.Instance.AddGoldByEventChapter(150);
+                            resultLog += $"'{unit.unitName}' 희생 → 금화 {getGold}\n";
+                            PushResultToken(resultTokens, $"금화 {getGold}");
+                            if (rarity == 3)
+                            {
+                                var r = RelicManager.HandleRandomRelic(1, RelicAction.Acquire);
+                                resultLog += $"+ 전쟁 유산 '{r?.name}'\n";
+                                PushResultToken(resultTokens, r?.name ?? "");
+                            }
                         }
-
-                    }
-                    else if(choiceData.choiceId == 37)
-                    {
-                        if(UnityEngine.Random.value < 0.5f)
+                        else if (choiceData.choiceId == 37)
                         {
-                            WarRelic relic = RelicManager.HandleRandomRelic(5, RelicManager.RelicAction.Acquire);
-                            resultLog += $"'{relic.name}을 획득했습니다.\n";
+                            if (UnityEngine.Random.value < 0.5f)
+                            {
+                                WarRelic r = RelicManager.HandleRandomRelic(5, RelicAction.Acquire);
+                                resultLog += $"'{r.name}' 획득\n";
+                                PushResultToken(resultTokens, r.name);
+                            }
+                            else
+                            {
+                                battleGrade = 5;
+                                isBattle = true;
+                            }
                         }
-                        else
-                        {
-                            battleGrade = 5;
-                            isBattle = true;
-                        }
+                        break;
                     }
-                    break;
 
                 case ResultType.None:
                     resultLog += "- 아무 일도 일어나지 않았다\n";
                     break;
+
                 case ResultType.Battle:
                     {
                         battleGrade = int.Parse(value);
-                        if(form == ResultForm.Special)
+                        if (form == ResultForm.Special)
                         {
                             if (choiceData.choiceId == 16 && UnityEngine.Random.value < 0.5f)
                             {
@@ -912,64 +819,67 @@ public class EventManager
                                 battleGrade = 20;
                             }
                         }
-
                         isBattle = true;
                         break;
                     }
+
                 case ResultType.Training:
                     {
                         for (int k = 0; k < choiceData.resultValue.Count; k++)
                         {
                             string valueStr = choiceData.resultValue[k];
                             bool useRandom = string.IsNullOrEmpty(valueStr) || valueStr == "-1";
+                            int upCnt = (k < choiceData.resultCount.Count && int.TryParse(choiceData.resultCount[k], out var c)) ? c : 1;
 
-                            int upgradeCount = (k < choiceData.resultCount.Count && int.TryParse(choiceData.resultCount[k], out var c)) ? c : 1;
-
-                            for (int j = 0; j < upgradeCount; j++)
+                            for (int j = 0; j < upCnt; j++)
                             {
-                                if (useRandom)
-                                {
-                                    RogueLikeData.Instance.IncreaseRandomUpgrade(false);
-                                }
+                                if (useRandom) RogueLikeData.Instance.IncreaseRandomUpgrade(false);
                                 else
                                 {
-                                    var unitTypeParts = valueStr.Split(',');
-                                    List<int> unitTypes = unitTypeParts
-                                        .Select(s => int.TryParse(s, out var v) ? v : -1)
-                                        .Where(v => v >= 0 && v < 8)
-                                        .ToList();
-
+                                    var parts = valueStr.Split(',');
+                                    var unitTypes = parts.Select(s => int.TryParse(s, out var v) ? v : -1).Where(v => v >= 0 && v < 8).ToList();
                                     if (unitTypes.Count == 0) continue;
-
                                     int randomType = unitTypes[UnityEngine.Random.Range(0, unitTypes.Count)];
                                     bool isAttack = UnityEngine.Random.value < 0.5f;
-
                                     RogueLikeData.Instance.IncreaseUpgrade(randomType, isAttack, false);
                                 }
                             }
-                            resultLog += $"랜덤 병종 {upgradeCount}회 강화함\n";
                         }
+                        resultLog += "랜덤 병종 강화 적용\n";
                         break;
                     }
+
                 case ResultType.Field:
                     {
                         int fieldId = int.Parse(value);
                         RogueLikeData.Instance.SetFieldId(fieldId);
-                        resultLog += "다음 전장이 변경되었습니다.";
+                        resultLog += "다음 전장이 변경되었습니다.\n";
+                        // PushResultToken(resultTokens, FieldName(fieldId)); // 필드명이 필요하면 추가
+                        break;
                     }
-                    break;
+
                 default:
                     resultLog += "- 알 수 없는 보상\n";
                     break;
-            }
+            } // switch
+        } // for
+
+        if (choiceData.resultText != null && choiceData.resultText.Count > 0)
+        {
+            // 선택 유닛 리스트가 null로 들어오면 RogueLikeData의 선택 목록 사용
+            var requires = selectedUnits ?? RogueLikeData.Instance.GetSelectedUnits();
+            // JSON 내러티브를 최우선으로 사용
+            resultLog = ComposeResultNarration(choiceData, requires, resultTokens);
         }
+
         if (isBattle)
         {
             SetPresetIdByGrade(battleGrade);
             GameManager.Instance.OpenBattlePanel();
         }
-        return (resultLog,isBattle);
+        return (resultLog, isBattle);
     }
+
 
     private static bool IsUnitVictory(RogueUnitDataBase unit)
     {
@@ -1081,5 +991,47 @@ public class EventManager
         RogueLikeData.Instance.SetPresetID(stage.PresetID);
     }
 
+    // 이 함수는 선택지 결과 문장을 만든다.
+    // 사용처: ApplyChoiceResult 마지막에서 JSON의 resultText를 기반으로 내러티브 문자열을 조립할 때 사용
+    private static string ComposeResultNarration(EventChoiceData choiceData, List<RogueUnitDataBase> selectedUnits, List<string> resultTokens)
+    {
+        if (choiceData.resultText == null || choiceData.resultText.Count == 0)
+            return "";
+
+        // 선택 유닛(Require)의 이름 목록 준비
+        var requireNames = new List<string>();
+        if (selectedUnits != null)
+        {
+            for (int i = 0; i < selectedUnits.Count; i++)
+                requireNames.Add(selectedUnits[i]?.unitName ?? "");
+        }
+
+        // 빠른 치환
+        System.Text.StringBuilder sb = new System.Text.StringBuilder(256);
+        foreach (var line in choiceData.resultText)
+        {
+            if (string.IsNullOrEmpty(line)) { sb.AppendLine(); continue; }
+
+            string s = line;
+
+            // {require[i]} 치환
+            for (int i = 0; i < requireNames.Count; i++)
+                s = s.Replace($"{{require[{i}]}}", requireNames[i]);
+
+            // {result[i]} 치환
+            for (int i = 0; i < resultTokens.Count; i++)
+                s = s.Replace($"{{result[{i}]}}", resultTokens[i]);
+
+            sb.AppendLine(s);
+        }
+        return sb.ToString();
+    }
+
+    // 결과 토큰을 추가한다.
+    // 사용처: ApplyChoiceResult 스위치 안에서 "플레이어가 실제로 얻은 것"의 표시 문자열을 순서대로 넣는다.
+    private static void PushResultToken(List<string> tokens, string value)
+    {
+        if (!string.IsNullOrEmpty(value)) tokens.Add(value);
+    }
 
 }

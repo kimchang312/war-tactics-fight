@@ -47,8 +47,7 @@ public class AutoBattleManager : MonoBehaviour
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private void Start()
     {
-        //여기 코드 추후 삭제
-        UnitLoader.Instance.LoadUnitsFromJson();
+       
 
         if (autoBattleUI == null)
             autoBattleUI = FindObjectOfType<AutoBattleUI>();

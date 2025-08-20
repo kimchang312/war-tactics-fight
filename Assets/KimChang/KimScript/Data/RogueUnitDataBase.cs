@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 
@@ -268,9 +267,9 @@ public class RogueUnitDataBase
     {
         List<RogueUnitDataBase> units = new()
         {
+            UnitLoader.Instance.GetCloneUnitById(0),
             UnitLoader.Instance.GetCloneUnitById(1),
-            UnitLoader.Instance.GetCloneUnitById(1),
-            UnitLoader.Instance.GetCloneUnitById(51)
+            UnitLoader.Instance.GetCloneUnitById(2)
         };
         return units;
     }

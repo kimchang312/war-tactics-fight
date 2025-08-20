@@ -30,38 +30,48 @@ public static class UnitStateChange
         UpgradeManager.Instance.ProcessUpgrade();
         
     }
-
+    //사기 계산 함수
     public static void ApplyMoralState()
     {
-        int id = 1;
         List<RogueUnitDataBase> myTeam = RogueLikeData.Instance.GetMyTeam();
-        int morale = RogueLikeData.Instance.GetMorale();
-        float multiplier = 0f;
-        if (morale >= 90) multiplier = 0.2f;
-        else if (morale >= 70) multiplier = 0.1f;
-        else if (morale <= 30) multiplier = -0.1f;
+        float m = GetMoraleMultiplier(RogueLikeData.Instance.GetMorale());
+
         foreach (var unit in myTeam)
         {
+            // 기존 사기 효과 제거
             unit.stats.RemoveModifiersBySource(SourceType.Morale);
-            if (unit.bravery && multiplier < 0) continue;
+
+            // 사기 하락은 용기(bravery) 유닛에 미적용
+            if (m < 0f && unit.bravery) continue;
+            if (m == 0f) continue;
+
+            // 퍼센트 수정자 적용
             unit.stats.AddModifier(new StatModifier
             {
                 stat = StatType.AttackDamage,
-                value = unit.baseAttackDamage * multiplier,
-                source = SourceType.Field,
-                modifierId = id,
+                value = m,
+                source = SourceType.Morale,
                 isPercent = false
             });
             unit.stats.AddModifier(new StatModifier
             {
                 stat = StatType.Health,
-                value = unit.baseHealth * multiplier,
-                source = SourceType.Field,
-                modifierId = id,
+                value = m,
+                source = SourceType.Morale,
                 isPercent = false
             });
         }
     }
+
+    // 사용처: 사기 구간별 배수 산출
+    private static float GetMoraleMultiplier(int morale)
+    {
+        if (morale >= 90) return 0.20f;
+        if (morale >= 70) return 0.10f;
+        if (morale <= 30) return -0.10f;
+        return 0f;
+    }
+
 
     public static RogueUnitDataBase CalculateRunMorale()
     {

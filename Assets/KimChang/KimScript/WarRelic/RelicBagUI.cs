@@ -36,8 +36,8 @@ public class NewBehaviourScript : MonoBehaviour
             Image relicImg = obj.GetComponent<Image>();
             relicImg.sprite = SpriteCacheManager.GetSprite($"KIcon/WarRelic/{relic.id}");
 
-            itemInfo.isItem = false;
-            itemInfo.relicId = relic.id;
+            itemInfo.data.isItem = false;
+            itemInfo.data.relicId = relic.id;
             explainItem.ItemToolTip = itemToolTip;
 
             obj.transform.SetParent(relicBox, false);
