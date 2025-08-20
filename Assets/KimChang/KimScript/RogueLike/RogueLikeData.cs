@@ -22,9 +22,7 @@ public class RogueLikeData
     private int maxUnits = 5;
     private int maxHero = 2;
     
-    //실제 보유한 유닛
     private List<RogueUnitDataBase> myTeam = new();
-    //전투에 사용되는 유닛
     private List<RogueUnitDataBase> myUnits = new();
     private List<RogueUnitDataBase> enemyUnits = new();
     private List<RogueUnitDataBase> savedMyUnits = new();
@@ -33,6 +31,8 @@ public class RogueLikeData
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new();
     private Dictionary<int, int> encounteredEvent = new();
+    //퀘스트의 상태 id, 완료 여부 퀘스트 수락시 false 퀘스트 취소되면 배열삭제
+    private Dictionary<int, QuestClass> questState = new();
     private int currentStageX = 1;
     private int currentStageY = 0;
     private int chapter = 1;
@@ -52,24 +52,20 @@ public class RogueLikeData
 
     private int[] costTable = { 100, 150, 200, 250, 300 };
 
-    //현재 필드 id 전투 종료 후 0으로 1~5
     private int fieldId = 0;
 
-    //전투 추가 보상
     private BattleRewardData battleReward = new();
 
     private int rerollChance = 2;
 
     public bool isFreeUpgrade =false;
 
-    //실제 전투에 배치된 유닛 수
     private int battleUnitCount = 0;
 
     private int score = 0;
 
     private bool clearChapter=false;
     private bool resetMap =false;
-    // 생성자에서 초기화
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
@@ -83,23 +79,19 @@ public class RogueLikeData
         for (int i = 0; i < upgradeValues.Length; i++)
             upgradeValues[i] = new UnitUpgrade();
     }
-    //내 데이터 전부 반환
     public SavePlayerData GetRogueLikeData()
     {
-        SavePlayerData data = new(0, myUnits, relicIdsByType.Values
+        SavePlayerData data = new(0, myUnits, relicsByType.Values
                                     .SelectMany(hashSet => hashSet)
                                     .ToList(),encounteredEvent.Values.ToList(),
                                     currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,
                                     upgradeValues, sariStack,battleReward, nextUnitUniqueId,score);
         return data;
     }
-    // 보유한 유닛 기력만 재설정 해서 반환
     public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
-        // 저장용 복사 리스트 생성 (깊은 복사하지 않고 원본 savedMyUnits를 수정)
         List<RogueUnitDataBase> savedCopy = new(savedMyUnits);
 
-        // 전투에 참여한 유닛 전부 순회 (생존 + 사망)
         foreach (var unit in units.Concat(deadUnits))
         {
             var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
@@ -118,7 +110,7 @@ public class RogueLikeData
         SavePlayerData data = new(
             0,
             savedCopy,
-            relicIdsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            relicsByType.Values.SelectMany(hashSet => hashSet).ToList(),
             encounteredEvent.Values.ToList(),
             currentGold,
             spentGold,
@@ -134,7 +126,6 @@ public class RogueLikeData
             score
         );
         myTeam = savedCopy;
-        RogueUnitDataBase.SetMyTeamNoramlize();
         savedMyUnits.Clear();
         return data;
     }
@@ -149,23 +140,31 @@ public class RogueLikeData
     {
         int heroCount = 0;
         int maxHeroCount = GetMaxHero();
-        foreach(var one in myTeam)
+        if(unit.branchIdx == 8)
         {
-            if(one.branchIdx==8) heroCount++;
-        }
-        if(heroCount >= maxHeroCount)
-        {
-            RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
-        }
-        else
-        {
-            if(unit.idx == 63)
+            for (int i = 0; i < myTeam.Count; i++)
+            {
+                if (myTeam[i].branchIdx == 8)
+                {
+                    heroCount++;
+                    if (heroCount >= maxHeroCount)
+                    {
+                        RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
+                        return;
+                    }
+                }
+            }
+            if (unit.idx == 55)
             {
                 AcquireRelic(78);
             }
-            myTeam.Add(unit);
+            else if (unit.idx == 51)
+            {
+                RogueUnitDataBase.AddBizarreBishopMyTeam();
+            }
         }
-        
+       
+        myTeam.Add(unit);
     }
 
     //상대 유닛 전부 수정하기
@@ -359,16 +358,20 @@ public class RogueLikeData
     //골드 획득
     public void EarnGold(int gold)
     {
+        int baseGold =currentGold;
         float addGold = GetOwnedRelicById(5) == null ? 0 : 0.15f;
         gold = (int)((addGold+1)*gold);
         currentGold += gold;
+
+        //골드 애니메이션
+        UIManager.Instance.AnimateGoldChange(baseGold, gold);
     }
     //골드 감소
     public void ReduceGold(int gold)
     {
         bool hasLoanRelic = RelicManager.CheckRelicById(49);
         int minGold = hasLoanRelic ? -500 : 0;
-
+        int baseGold = currentGold;
         int availableGold = currentGold - gold;
 
         if (availableGold < minGold)
@@ -382,6 +385,8 @@ public class RogueLikeData
         {
             spentGold += gold;
             currentGold = availableGold;
+
+            UIManager.Instance.AnimateGoldChange(baseGold, -gold);
         }
     }
 
@@ -407,24 +412,30 @@ public class RogueLikeData
     // 사기 증감 통합 함수
     public int ChangeMorale(int value)
     {
-        int morale;
+        int baseMorale = playerMorale;
+        int actualChange;
+
         if (value >= 0)
         {
             if (RelicManager.CheckRelicById(116)) return 0;
-            // 증가: 최대 100 제한
-            morale= Math.Min(100, playerMorale + value);
-            playerMorale = morale;
+
+            actualChange = Mathf.Min(value, 100 - playerMorale);
+            playerMorale += actualChange;
         }
         else
         {
-            // 감소: 유산 33 보유 시 20% 감소량 완화
             float reductionModifier = GetOwnedRelicById(33) == null ? 1f : 0.8f;
-            int reduced = (int)(-value * reductionModifier);
-            morale = Math.Max(0, playerMorale - reduced);
-            playerMorale = morale;
+            int reduced = Mathf.RoundToInt(value * reductionModifier); // value < 0
+
+            actualChange = Mathf.Max(reduced, -playerMorale); // 최소 0 유지
+            playerMorale += actualChange;
         }
-        return morale;
+
+        UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
+        UnitStateChange.ChangeStateMyUnits();
+        return actualChange;
     }
+
 
 
     public void SetMorale(int value)
@@ -500,7 +511,10 @@ public class RogueLikeData
     public void ClearSavedMyUnits()
     {
         savedMyUnits.Clear();
-        savedMyUnits = myTeam;
+        foreach (var unit in myTeam)
+        {
+            savedMyUnits.Add(unit.Clone());
+        }
     }
 
     public int GetChapter()
@@ -733,6 +747,7 @@ public class RogueLikeData
         if (RelicManager.CheckRelicById(66)) addMax += 1;
         if (RelicManager.CheckRelicById(67)) addMax += 3;
         if (RelicManager.CheckRelicById(89)) addMax -= 2;
+        if(GetMyTeam().Find((e)=> e.idx ==56 ) !=null) addMax += 3;
         addMax += 5 * (chapter-1);
         maxCount = maxCount +addMax;
         if (RelicManager.CheckRelicById(107)) maxCount /= 2;
@@ -764,7 +779,7 @@ public class RogueLikeData
             addHero += 2;
         }
         
-        return maxHero;
+        return maxHero+addHero;
     }
     public void SetMaxHero(int maxHero)
     {
@@ -842,6 +857,32 @@ public class RogueLikeData
     public void SetResetMap(bool resetMap)
     {
         this.resetMap = resetMap;
+    }
+
+    //퀘스트 추가
+    public Dictionary<int, QuestClass> GetQuestList()
+    {
+        return questState;
+    }
+    public void AddQuest(QuestClass q)
+    {
+        questState[q.id] = q;
+    }
+    
+    //유산 저장 데이터로 초기화
+    public void SetRelicBySaveData(List<WarRelic> warRelics)
+    {
+        foreach (RelicType type in Enum.GetValues(typeof(RelicType)))
+        {
+            relicsByType[type] = new List<WarRelic>();
+            relicIdsByType[type] = new HashSet<int>();
+        }
+        // warRelics를 타입별로 분류해서 추가
+        foreach (WarRelic relic in warRelics)
+        {
+            relicsByType[relic.type].Add(relic);
+            relicIdsByType[relic.type].Add(relic.id);
+        }
     }
 
 }

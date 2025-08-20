@@ -3,7 +3,7 @@
     "choiceId": 0,
     "eventId": 0,
     "choiceText": "한 병사를 침대에 눕힌다.",
-    "resultDescription": "단일 기력 회복(대)",
+    "resultDescription": ["단일 기력 회복(대)"],
     "requireThing": ["Energy"],
     "requireForm": ["Select"],
     "requireValue": [""],
@@ -11,13 +11,18 @@
     "resultType": ["Energy"],
     "resultForm": ["Select"],
     "resultValue": ["10"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["선택한 유닛의 기력을 최대치까지 회복."],
+    "resultText": [
+      "{require[0]}은(는) 침대에 몸을 뉘였다. 다른 병사들의 질투 어린 시선 속에서도",
+      "그는 깊은 휴식을 취했다."
+    ]
   },
   {
     "choiceId": 1,
     "eventId": 0,
     "choiceText": "모두가 똑같이 바닥에서 쉰다.",
-    "resultDescription": "사기 회복(소)",
+    "resultDescription": ["사기 회복(소)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -25,13 +30,18 @@
     "resultType": ["Morale"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["20"]
+    "resultCount": ["20"],
+    "choiceResultText": ["사기를 20만큼 회복.", ""],
+    "resultText": [
+      "모두가 바닥에 몸을 누였다. 불편함 속에서도 웃음과 한숨이 스며들며",
+      "잠시나마 진영에 온기가 돌았다.\n"
+    ]
   },
   {
     "choiceId": 2,
     "eventId": 0,
     "choiceText": "길을 서두른다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -39,13 +49,28 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "휴식을 뒤로한 채 부대는 다시 길을 나섰다. 발끝에 피로가 묻어났지만",
+      "그 누구도 불평은 입에 올리지 않았다.\n"
+    ]
   },
   {
     "choiceId": 3,
     "eventId": 1,
     "choiceText": "꿈의 의미를 탐구한다.",
-    "resultDescription": "일반 등급 전쟁 유산, 저주 등급 전쟁 유산, 무작위 유닛 전직, 무작위 유닛 기력 1로, 무작위 희귀도 1~3 유닛 획득, 무작위 병종 무작위 강화, 사기 회복(최대), 사기 -25, 금화(중) 중에서 무작위 1",
+    "resultDescription": [
+      "일반 등급 전쟁 유산",
+      "저주 등급 전쟁 유산",
+      "무작위 유닛 전직",
+      "무작위 유닛 기력 1로",
+      "무작위 희귀도 1~3 유닛 획득",
+      "무작위 병종 무작위 강화",
+      "사기 회복(최대)",
+      "사기 -25",
+      "금화(중) 중에서 무작위 1"
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -53,13 +78,20 @@
     "resultType": ["Special"],
     "resultForm": ["Special"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": [
+      "50% 확률로 좋은 일이 발생.",
+      "50% 확률로 나쁜 일이 발생."
+    ],
+    "resultText": [
+      "알 수 없는 예감이 맴돌았다. 끝내 그것은 {result[0]}으로 모습을 드러냈다.\n"
+    ]
   },
   {
     "choiceId": 4,
     "eventId": 1,
     "choiceText": "꿈을 무시한다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -67,13 +99,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "한순간 마음이 흔들렸지만",
+      "무시하고 꿈을 잊으려 애쓰며 조용히 아침을 맞이했다.\n"
+    ]
   },
   {
     "choiceId": 5,
     "eventId": 2,
     "choiceText": "병사를 맡긴다.",
-    "resultDescription": "선택한 유닛 전직",
+    "resultDescription": ["선택한 유닛 전직"],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": [""],
@@ -81,13 +118,19 @@
     "resultType": ["Change"],
     "resultForm": ["Select"],
     "resultValue": [""],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["선택한 유닛이 전직.", ""],
+    "resultText": [
+      "{require[0]}은(는) 검을 쥔 사내 앞에서 숨을 고르더니",
+      "그와 짧게 검을 주고받았다. 숨이 잦아들 무렵",
+      "{result[0]}의 모습이 드러났다.\n"
+    ]
   },
   {
     "choiceId": 6,
     "eventId": 2,
     "choiceText": "예의를 갖추고 지나친다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -95,13 +138,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "짧게 고개를 숙여 인사를 건넸다. 사내도 미소로 답했고",
+      "길은 다시 앞으로 이어졌다.\n"
+    ]
   },
   {
     "choiceId": 7,
     "eventId": 3,
     "choiceText": "성수를 사용한다.",
-    "resultDescription": "저주 등급 전쟁 유산 1개 제거",
+    "resultDescription": ["저주 등급 전쟁 유산 1개 제거"],
     "requireThing": ["Relic"],
     "requireForm": ["Random"],
     "requireValue": ["0"],
@@ -109,13 +157,17 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["무작위 저주 등급 전쟁 유산을 제거.", ""],
+    "resultText": [
+      "{require[0]}은(는) 성수에 닿자 빛 속으로 녹아들 듯 사라졌다. 공기엔 잠시 맑은 숨결이 감돌았다.\n"
+    ]
   },
   {
     "choiceId": 8,
     "eventId": 3,
     "choiceText": "자리를 뜬다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -123,13 +175,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "잠시 제단을 바라보다",
+      "조용히 발걸음을 돌렸다. 공기에는 아직 신성한 기운이 옅게 남아 있었다.\n"
+    ]
   },
   {
     "choiceId": 9,
     "eventId": 4,
     "choiceText": "작은 행운을 누린다.",
-    "resultDescription": "금화(소) 획득",
+    "resultDescription": ["금화(소) 획득"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -137,13 +194,17 @@
     "resultType": ["Gold"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["50"]
+    "resultCount": ["100"],
+    "choiceResultText": ["금화를 100만큼 획득.", ""],
+    "resultText": [
+      "금화를 손에 쥐며 작은 행운에 가볍게 웃었다. 잠시나마 긴장이 풀리는 순간이었다.\n"
+    ]
   },
   {
     "choiceId": 10,
     "eventId": 4,
     "choiceText": "더 많은 것을 원한다!",
-    "resultDescription": "금화(중) 획득, 전쟁 유산(저주) 획득",
+    "resultDescription": ["금화(중) 획득", "전쟁 유산(저주) 획득"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -151,13 +212,19 @@
     "resultType": ["Gold", "Curse"],
     "resultForm": ["None", "Random"],
     "resultValue": ["0", "0"],
-    "resultCount": ["150", "1"]
+    "resultCount": ["300", "1"],
+    "choiceResultText": ["금화를 300만큼 획득.", "저주 등급 전쟁 유산을 획득."],
+    "resultText": [
+      "금화를 더 움켜쥐는 순간",
+      "손끝에 차가운 기운이 스며들었다. 그 기운은 {result[0]}이(가) 되어 따라붙었지만",
+      "손은 끝내 멈추지 않았다.\n"
+    ]
   },
   {
     "choiceId": 11,
     "eventId": 4,
     "choiceText": "함정을 의심한다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -165,13 +232,19 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "함정을 의심해 금화에 손대지 않았다. 결국",
+      "아무 일도 없었고",
+      "남은 건 빈손뿐이었다.\n"
+    ]
   },
   {
     "choiceId": 12,
     "eventId": 5,
     "choiceText": "금화로 거래한다.",
-    "resultDescription": "금화 -100, 일반 등급 전쟁 유산 획득",
+    "resultDescription": ["금화 -100", "일반 등급 전쟁 유산 획득"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -179,13 +252,18 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전쟁 유산 획득.", "금화를 100만큼 상실."],
+    "resultText": [
+      "병사들 몰래 금화를 내밀자",
+      "상인은 만족스런 미소와 함께 {result[0]}을(를) 건넸다.\n"
+    ]
   },
   {
     "choiceId": 13,
     "eventId": 5,
     "choiceText": "군량미로 거래한다.",
-    "resultDescription": "사기 -30, 일반 등급 전쟁 유산 획득",
+    "resultDescription": ["사기 -30", "일반 등급 전쟁 유산 획득"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -193,13 +271,18 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전쟁 유산을 획득.", "사기가 30만큼 감소."],
+    "resultText": [
+      "군량 일부를 내주자",
+      "상인은 웃음을 머금고 {result[0]}을(를) 내밀었다. 병사들 사이에는 불만 섞인 눈빛이 오갔다.\n"
+    ]
   },
   {
     "choiceId": 14,
     "eventId": 5,
     "choiceText": "그를 무시한다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -207,13 +290,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "상인은 입꼬리를 올렸지만 말을 건네지 않았다. 눈길만 주고",
+      "조용히 발걸음을 돌렸다.\n"
+    ]
   },
   {
     "choiceId": 15,
     "eventId": 6,
     "choiceText": "잠깐 눈을 붙인다",
-    "resultDescription": "사기 회복(소)",
+    "resultDescription": ["사기 회복(소)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -221,13 +309,18 @@
     "resultType": ["Morale"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["20"]
+    "resultCount": ["20"],
+    "choiceResultText": ["사기를 20만큼 회복.", ""],
+    "resultText": [
+      "소수의 인원만 불침번에 나섰고",
+      "남은 병사들은 약간의 긴장 속에서 몸을 뉘였다. 짧은 휴식이지만 모두에게 귀한 숨 돌림이었다.\n"
+    ]
   },
   {
     "choiceId": 16,
     "eventId": 6,
     "choiceText": "몸을 눕히고 깊이 잠든다.",
-    "resultDescription": "사기 회복(중), 50% 확률로 일반 몬스터 전투 발생",
+    "resultDescription": ["사기 회복(중)", "50% 확률로 일반 몬스터 전투 발생"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -235,13 +328,19 @@
     "resultType": ["Morale", "Battle"],
     "resultForm": ["None", "Special"],
     "resultValue": ["0", "1"],
-    "resultCount": ["40", "1"]
+    "resultCount": ["40", "1"],
+    "choiceResultText": ["사기를 40만큼 회복.", "50% 확률로 일반 전투 진행."],
+    "resultText": [
+      "병사들은 편안히 몸을 뉘였고",
+      "나 또한 눈꺼풀을 감았다. 잠깐 머릿속을 스치는 야습의 불안조차 어느새 사라지고",
+      "야영지는 고요한 휴식으로 잠겼다.\n"
+    ]
   },
   {
     "choiceId": 17,
     "eventId": 6,
     "choiceText": "긴장을 놓지 않는다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -249,13 +348,21 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "끝까지 경계를 풀지 않았다. 지친 몸이 무거웠지만",
+      "날카롭게 세운 신경만이 이 밤을 견디게 했다. 그 긴장은 아침 햇살이 올 때까지 이어졌다.\n"
+    ]
   },
   {
     "choiceId": 18,
     "eventId": 7,
     "choiceText": "서약을 맺는다.",
-    "resultDescription": "무작위 희귀도 2~3 유닛 희생, 전설 등급 전쟁 유산 획득",
+    "resultDescription": [
+      "무작위 희귀도 2~3 유닛 희생",
+      "전설 등급 전쟁 유산 획득"
+    ],
     "requireThing": ["Unit"],
     "requireForm": ["Random"],
     "requireValue": ["2~3"],
@@ -263,13 +370,25 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["10"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "무작위 전설 등급 전쟁 유산을 획득하지만",
+      "무작위 숙련 또는 영웅 유닛을 희생."
+    ],
+    "resultText": [
+      "검은 망토의 자와 손을 맞잡자",
+      "피로 새겨진 서약이 맺어졌다. 그 대가로 {result[0]}이(가) 주어졌고",
+      "{require[0]}은(는) 조용히 자취를 감췄다.\n"
+    ]
   },
   {
     "choiceId": 19,
     "eventId": 7,
     "choiceText": "피를 바친다.",
-    "resultDescription": "무작위 유닛의 기력을 1로 변경(기력이 1이 아닌 유닛만 선택 가능), 일반 등급 전쟁 유산 획득",
+    "resultDescription": [
+      "무작위 유닛의 기력을 1로 변경(기력이 1이 아닌 유닛만 선택 가능)",
+      "일반 등급 전쟁 유산 획득"
+    ],
     "requireThing": ["Energy"],
     "requireForm": ["Random"],
     "requireValue": ["1"],
@@ -277,13 +396,21 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "무작위 일반 등급 전쟁 유산을 획득.",
+      "무작위 유닛의 기력을 1로 변경"
+    ],
+    "resultText": [
+      "{require[0]}의 피 몇 방울이 제단을 적셨고",
+      "{result[0]}이(가) 모습을 드러냈다. 남은 이들은 떨리는 숨을 고르며 손을 움켜쥐었다.\n"
+    ]
   },
   {
     "choiceId": 20,
     "eventId": 7,
     "choiceText": "그 자를 외면하고 떠난다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -291,13 +418,17 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "검은 망토의 시선을 끝까지 외면한 채 자리를 떴다. 불길한 기척이 한동안 등을 스쳤다.\n"
+    ]
   },
   {
     "choiceId": 21,
     "eventId": 8,
     "choiceText": "주민을 징병한다.",
-    "resultDescription": "'민병대 창병' 3명 획득.",
+    "resultDescription": ["민병대 창병 1명 획득."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -305,13 +436,17 @@
     "resultType": ["Unit"],
     "resultForm": ["None"],
     "resultValue": ["0"],
-    "resultCount": ["3"]
+    "resultCount": ["1"],
+    "choiceResultText": ["\n민병대 창병 1명 획득.\n", ""],
+    "resultText": [
+      "마을 주민 중 한 명이 떨리는 손으로 무기를 들었다. 민병대 창병 1명이 부대에 합류했다.\n"
+    ]
   },
   {
     "choiceId": 22,
     "eventId": 8,
     "choiceText": "마을을 약탈한다.",
-    "resultDescription": "전체 기력 회복(소), 사기 -20",
+    "resultDescription": ["전체 기력 회복(소)", "사기 -20"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -319,13 +454,21 @@
     "resultType": ["Energy"],
     "resultForm": ["All"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "부대 전체 유닛의 기력을 1만큼 회복.",
+      "사기가 20만큼 감소."
+    ],
+    "resultText": [
+      "병사들이 마을의 정적을 깨며 식량과 보급품을 쓸어 담았다. 잠시 숨을 고를 수 있었지만",
+      "등에 꽂히는 싸늘한 시선은 오래 남았다.\n"
+    ]
   },
   {
     "choiceId": 23,
     "eventId": 8,
     "choiceText": "대접을 요청한다.",
-    "resultDescription": "금화 -100, 사기 + 20",
+    "resultDescription": ["금화 -100", "사기 + 20"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -333,13 +476,18 @@
     "resultType": ["Morale"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["20"]
+    "resultCount": ["20"],
+    "choiceResultText": ["사기를 20만큼 회복.", "금화를 100만큼 상실."],
+    "resultText": [
+      "마을 주민들에게 넉넉히 보상을 건네고",
+      "따뜻한 음식을 대접받았다. 병사들 사이에는 오랜만에 웃음소리가 번졌다.\n"
+    ]
   },
   {
     "choiceId": 24,
     "eventId": 8,
     "choiceText": "가볍게 정비하고 떠난다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -347,13 +495,21 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "마을 사람들과 짧게 눈인사를 나눈 뒤",
+      "아무 일도 없던 듯 발걸음을 옮겼다.\n"
+    ]
   },
   {
     "choiceId": 25,
     "eventId": 9,
-    "choiceText": "병사를 고용해 보낸다.",
-    "resultDescription": "희귀도 1 유닛 희생하여 금화(소) 획득. 희귀도 2 유닛 희생하여 금화(중) 획득. 희귀도 3 유닛 희생하여 금화(중), 전쟁 유산(일반) 획득.",
+    "choiceText": "병사를 파견한다.",
+    "resultDescription": [
+      "희귀도 1 유닛 희생하여 금화(소) 획득. 희귀도 2 유닛 희생하여 금화(중) 획득. 희귀도 3 유닛 희생하여 금화(중)",
+      "전쟁 유산(일반) 획득."
+    ],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": ["3"],
@@ -361,13 +517,18 @@
     "resultType": ["Special"],
     "resultForm": ["Special"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["대가를 받고", "선택한 유닛을 파견."],
+    "resultText": [
+      "상인은 {result[0]}을 건네며 만족스러운 미소를 지었고",
+      "{require[0]}은(는) 마지막 인사를 남긴 채 그의 뒤를 따랐다.\n"
+    ]
   },
   {
     "choiceId": 26,
     "eventId": 9,
     "choiceText": "이 제안을 거절한다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -375,13 +536,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "상인은 아쉬운 눈빛을 보냈지만",
+      "우리는 묵묵히 고개를 저으며 길을 재촉했다.\n"
+    ]
   },
   {
     "choiceId": 27,
     "eventId": 10,
     "choiceText": "금화를 건넨다.",
-    "resultDescription": "금화를 0으로",
+    "resultDescription": ["금화를 0으로"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -389,13 +555,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", "금화를 모두 상실."],
+    "resultText": [
+      "도적들은 비웃으며 금화를 쓸어 담았고",
+      "우리는 분노를 꾹 눌러 담은 채 발걸음을 옮겼다.\n"
+    ]
   },
   {
     "choiceId": 28,
     "eventId": 10,
     "choiceText": "싸운다!",
-    "resultDescription": "전투(일반 몬스터), 승리 시 금화(중)",
+    "resultDescription": ["전투(일반 몬스터)", "승리 시 금화(중)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -403,13 +574,18 @@
     "resultType": ["Battle", "Gold"],
     "resultForm": ["None", "None"],
     "resultValue": ["1", "0"],
-    "resultCount": ["1", "150"]
+    "resultCount": ["1", "300"],
+    "choiceResultText": ["승리 시 금화를 300만큼 획득하는 ", "일반 전투 진행."],
+    "resultText": [
+      "병사들은 무기를 움켜쥐며 전투태세를 갖췄다. 긴장감이 감도는 가운데",
+      "숨소리마저 멎은 듯한 순간이 이어졌다.\n"
+    ]
   },
   {
     "choiceId": 29,
     "eventId": 11,
     "choiceText": "후원을 받는다.",
-    "resultDescription": "전쟁 유산 '재상의 보증서', 사기 -30.",
+    "resultDescription": ["전쟁 유산 재상의 보증서", "사기 -30."],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -417,13 +593,25 @@
     "resultType": ["Relic"],
     "resultForm": ["Select"],
     "resultValue": ["49"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "\n재상의 보증서 전쟁 유산을 획득.\n",
+      "사기가 30만큼 감소."
+    ],
+    "resultText": [
+      "부패한 재상의 미소가 스며들었고",
+      "우리는 그의 보증서를 손에 넣었다. 병사들 사이엔 묘한 긴장감이 흘렀다.\n"
+    ]
   },
   {
     "choiceId": 30,
     "eventId": 11,
     "choiceText": "재상의 음모를 무너뜨린다.",
-    "resultDescription": "일반 몬스터 전투, 승리 시 사기 회복 + 40, 전쟁 유산 보상(엘리트)",
+    "resultDescription": [
+      "일반 몬스터 전투",
+      "승리 시 사기 회복 + 40",
+      "전쟁 유산 보상(엘리트)"
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -431,13 +619,20 @@
     "resultType": ["Battle", "Morale", "Relic"],
     "resultForm": ["None", "None", "Random"],
     "resultValue": ["1", "0", "5"],
-    "resultCount": ["1", "40", "1"]
+    "resultCount": ["1", "40", "1"],
+    "choiceResultText": [
+      "승리 시 사기를 40만큼 회복하고 무작위 전쟁 유산을 획득하는 ",
+      "일반 전투 진행."
+    ],
+    "resultText": [
+      "병사들은 재상의 음모를 막기 위해 무기를 들었다. 정의를 위한 결투의 기운이 주변을 휘감았다.\n"
+    ]
   },
   {
     "choiceId": 31,
     "eventId": 11,
     "choiceText": "제안을 거절한다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -445,13 +640,20 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "우리는 단호히 고개를 저으며 등을 돌렸다. 재상의 눈빛이 잠시 우리를 꿰뚫었지만",
+      "발걸음은 흔들리지 않았다.\n"
+    ]
   },
   {
     "choiceId": 32,
     "eventId": 12,
     "choiceText": "정직하게 대답한다.",
-    "resultDescription": "보유 중인 무작위 일반 등급 전쟁 유산 1개를 소모하고 전설 등급 전쟁 유산 획득.",
+    "resultDescription": [
+      "보유 중인 무작위 일반 등급 전쟁 유산 1개를 소모하고 전설 등급 전쟁 유산 획득."
+    ],
     "requireThing": ["Relic"],
     "requireForm": ["Random"],
     "requireValue": ["1"],
@@ -459,13 +661,22 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["10"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "무작위 전쟁 유산을 획득하지만",
+      "무작위 일반 등급 전쟁 유산을 제거."
+    ],
+    "resultText": [
+      "정령은 고요히 고개를 끄덕였고",
+      "샘에서 {result[0]}이(가) 떠올랐다. 그 순간",
+      "{require[0]}은(는) 흔적도 없이 사라졌다.\n"
+    ]
   },
   {
     "choiceId": 33,
     "eventId": 12,
     "choiceText": "거짓을 말한다.",
-    "resultDescription": "전설 등급 전쟁 유산, 전쟁 유산(저주) 획득.",
+    "resultDescription": ["전설 등급 전쟁 유산", "전쟁 유산(저주) 획득."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -473,13 +684,20 @@
     "resultType": ["Relic", "Relic"],
     "resultForm": ["Random", "Random"],
     "resultValue": ["10", "0"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "무작위 전쟁 유산을 획득.",
+      "저주 등급 전쟁 유산을 획득."
+    ],
+    "resultText": [
+      "정령은 한참을 바라보더니 조용히 {result[0]}을(를) 내밀었다. 하지만 수면 아래 어른거린 그림자 끝에 {result[1]}이(가) 따라붙었다.\n"
+    ]
   },
   {
     "choiceId": 34,
     "eventId": 13,
     "choiceText": "병사들을 훈련에 참가시킨다.",
-    "resultDescription": "무작위 병종 무작위 강화",
+    "resultDescription": ["무작위 병종 무작위 강화"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -487,13 +705,17 @@
     "resultType": ["Training"],
     "resultForm": ["Random"],
     "resultValue": [""],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전술 개량을 진행.", ""],
+    "resultText": [
+      "병사들은 훈련소의 숙련병들과 함께 구슬땀을 흘리며 기술을 연마했다. 그 속에서 {result[0]}이(가) 탄생했다.\n"
+    ]
   },
   {
     "choiceId": 35,
     "eventId": 13,
     "choiceText": "병사들에게 자유 훈련을 허락한다.",
-    "resultDescription": "무작위 병사 2명 전직",
+    "resultDescription": ["무작위 병사 2명 전직"],
     "requireThing": ["Unit"],
     "requireForm": ["Random"],
     "requireValue": ["3"],
@@ -501,13 +723,20 @@
     "resultType": ["Change"],
     "resultForm": ["Random"],
     "resultValue": [""],
-    "resultCount": ["2"]
+    "resultCount": ["2"],
+    "choiceResultText": ["무작위 유닛 2명이 전직", ""],
+    "resultText": [
+      "병사들은 각자 방식으로 기량을 갈고닦았고",
+      "그중 {require[0]}",
+      "{require[1]}이 눈에 띄게 성장해 {result[0]}",
+      "{result[1]}로 새로운 모습을 갖췄다.\n"
+    ]
   },
   {
     "choiceId": 36,
     "eventId": 13,
     "choiceText": "우리는 다른 일정이 있다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -515,27 +744,43 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "우리는 훈련소를 한 번 둘러본 뒤",
+      "별다른 접촉 없이 다음 일정을 향해 발걸음을 옮겼다.\n"
+    ]
   },
   {
     "choiceId": 37,
     "eventId": 14,
     "choiceText": "조심히 잔해를 뒤져본다.",
-    "resultDescription": "50% 확률로 전쟁 유산 보상(엘리트), 50% 확률로 엘리트 전투",
+    "resultDescription": [
+      "50% 확률로 전쟁 유산 보상(엘리트)",
+      "50% 확률로 엘리트 전투"
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
     "requireCount": [""],
-    "resultType": ["Special"],
-    "resultForm": ["Special"],
-    "resultValue": [""],
-    "resultCount": [""]
+    "resultType": ["Relic", "Battle"],
+    "resultForm": ["Special", "Special"],
+    "resultValue": ["", ""],
+    "resultCount": ["", ""],
+    "choiceResultText": [
+      "50% 확률로 무작위 전쟁 유산 획득.",
+      "50% 확률로 엘리트 전투 진행."
+    ],
+    "resultText": [
+      "병사들은 잔해를 조심스레 뒤지기 시작했다. 불에 탄 더미 속에서 {result[0]}이(가) 모습을 드러냈다.\n",
+      "\n잔해 틈에서 갑자기 그림자가 튀어나왔다. 병사들은 본능적으로 무기를 움켜쥐며 맞설 준비를 했다.\n"
+    ]
   },
   {
     "choiceId": 38,
     "eventId": 14,
     "choiceText": "그대로 자리를 뜬다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -543,13 +788,17 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "위험을 감지한 우리는 더 깊이 다가가지 않고 조용히 자리를 떴다.\n"
+    ]
   },
   {
     "choiceId": 39,
     "eventId": 15,
     "choiceText": "성물을 급히 들고 달아난다.",
-    "resultDescription": "전쟁 유산 보상(엘리트), 전쟁 유산(저주)",
+    "resultDescription": ["전쟁 유산 보상(엘리트)", "전쟁 유산(저주)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -557,13 +806,24 @@
     "resultType": ["Relic", "Relic"],
     "resultForm": ["Random", "Random"],
     "resultValue": ["5", "0"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "무작위 전쟁 유산을 획득.",
+      "무작위 저주 등급 전쟁 유산을 획득."
+    ],
+    "resultText": [
+      "병사들은 {result[0]}을(를) 급히 낚아채 달아났지만",
+      "그 과정에서 {result[1]}도 같이 들고 오고 말았다.\n"
+    ]
   },
   {
     "choiceId": 40,
     "eventId": 15,
     "choiceText": "병사의 희생으로 안전히 탐색한다.",
-    "resultDescription": "전쟁 유산 보상(엘리트), 무작위 유닛의 기력을 1로 변경",
+    "resultDescription": [
+      "전쟁 유산 보상(엘리트)",
+      "무작위 유닛의 기력을 1로 변경"
+    ],
     "requireThing": ["Energy"],
     "requireForm": ["Random"],
     "requireValue": ["1"],
@@ -571,13 +831,21 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["5"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "무작위 전쟁 유산을 획득",
+      "무작위 유닛의 기력을 1로 변경"
+    ],
+    "resultText": [
+      "{require[0]}이(가) 부상을 무릅쓰고 길을 열었고",
+      "우리는 {result[0]}을(를) 무사히 손에 넣었다.\n"
+    ]
   },
   {
     "choiceId": 41,
     "eventId": 15,
     "choiceText": "잔해를 치우고 조심히 접근한다.",
-    "resultDescription": "전쟁 유산 보상(엘리트), 사기 -30",
+    "resultDescription": ["전쟁 유산 보상(엘리트)", "사기 -30"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -585,13 +853,18 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["5"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전쟁 유산을 획득.", "사기가 30만큼 감소."],
+    "resultText": [
+      "모두가 힘을 합쳐 잔해를 치우며 전진했고",
+      "결국 {result[0]}을(를) 찾아냈다. 그러나 모두의 얼굴엔 피로가 역력했다.\n"
+    ]
   },
   {
     "choiceId": 42,
     "eventId": 15,
     "choiceText": "위험을 감수할 필요는 없다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -599,27 +872,42 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "무너져가는 사원을 잠시 바라본 뒤",
+      "우리는 묵묵히 등을 돌렸다.\n"
+    ]
   },
   {
     "choiceId": 43,
     "eventId": 16,
     "choiceText": "그들을 고용한다.",
-    "resultDescription": "금화 -300, 무작위 희귀도 1~2 유닛 3명 획득.",
+    "resultDescription": ["금화 -300", "무작위 희귀도 1~2 유닛 3명 획득."],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["300"],
+    "requireCount": ["500"],
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["1~2"],
-    "resultCount": ["3"]
+    "resultCount": ["3"],
+    "choiceResultText": [
+      "무작위 일반 또는 숙련 유닛을 3명 획득.",
+      "금화를 500만큼 상실."
+    ],
+    "resultText": [
+      "한때 적이었고",
+      "한때는 아군이었던 얼굴들이 금화를 받고 미소를 지었다. {result[0]}",
+      "{result[1]}",
+      "{result[2]}이 합류했다.\n"
+    ]
   },
   {
     "choiceId": 44,
     "eventId": 16,
     "choiceText": "술을 함께 마신다.",
-    "resultDescription": "금화 -100, 사기회복(소)",
+    "resultDescription": ["금화 -100", "사기회복(소)"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -627,13 +915,18 @@
     "resultType": ["Morale"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["20"]
+    "resultCount": ["20"],
+    "choiceResultText": ["사기를 20만큼 회복.", "금화를 100만큼 상실."],
+    "resultText": [
+      "한때는 적",
+      "한때는 아군이었던 자들과 술잔을 부딪히자 긴장은 녹아내리고 웃음소리가 번졌다.\n"
+    ]
   },
   {
     "choiceId": 45,
     "eventId": 16,
     "choiceText": "그냥 지나친다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -641,13 +934,15 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": ["짧은 시선 교환 뒤", "우리는 말없이 주점을 지나쳤다.\n"]
   },
   {
     "choiceId": 46,
     "eventId": 17,
     "choiceText": "늪지대를 가로지른다.",
-    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용",
+    "resultDescription": ["다음 전투에서 늪지대 전장 효과 적용"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -655,13 +950,22 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["3"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["", "\n다음 전투에서 늪지대 전장 효과 적용.\n"],
+    "resultText": [
+      "병사들은 늪의 끝을 바라보며 불평과 우려를 내뱉었으나",
+      "결국 선택은 내려졌다. 그들은 진창에 발을 내딛고",
+      "무겁게 앞으로 나아갔다.\n"
+    ]
   },
   {
     "choiceId": 47,
     "eventId": 17,
     "choiceText": "우회로에서 한 병사가 부상을 당했다.",
-    "resultDescription": "다음 전투에서 '평원' 전장 효과 적용, 기력 2이상인 무작위 유닛의 기력을 1로 변경",
+    "resultDescription": [
+      "다음 전투에서 평원 전장 효과 적용",
+      "기력 2이상인 무작위 유닛의 기력을 1로 변경"
+    ],
     "requireThing": ["Energy"],
     "requireForm": ["Random"],
     "requireValue": ["1"],
@@ -669,13 +973,21 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "\n다음 전투에서 평원 전장 효과 적용.\n",
+      "무작위 유닛의 기력을 1로 변경"
+    ],
+    "resultText": [
+      "좁고 미끄러운 오솔길에서 {require[0]}이(가) 발을 헛디뎌 다쳤다. 모두가 부축하며 천천히 걸었고",
+      "평원의 끝자락이 모습을 드러냈다.\n"
+    ]
   },
   {
     "choiceId": 48,
     "eventId": 18,
     "choiceText": "신병을 모집한다.",
-    "resultDescription": "희귀도 1 무작위 유닛",
+    "resultDescription": ["희귀도 1 무작위 유닛"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -683,13 +995,17 @@
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 일반 유닛 획득.", ""],
+    "resultText": [
+      "한 명의 신병이 전열에 모습을 드러냈다. {result[0]}이(가) 긴장된 표정으로 줄을 맞췄다.\n"
+    ]
   },
   {
     "choiceId": 49,
     "eventId": 18,
     "choiceText": "병사를 승급시킨다.",
-    "resultDescription": "선택한 유닛 전직.",
+    "resultDescription": ["선택한 유닛 전직."],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": ["3"],
@@ -697,13 +1013,18 @@
     "resultType": ["Change"],
     "resultForm": ["Select"],
     "resultValue": [""],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["선택한 유닛이 전직.", ""],
+    "resultText": [
+      "{require[0]}이(가) 무겁게 숨을 내쉬며 한걸음 앞으로 나섰다. 잠시 후",
+      "그는 {result[0]}로서 새로운 각오를 다졌다.\n"
+    ]
   },
   {
     "choiceId": 50,
     "eventId": 18,
     "choiceText": "보급품을 여유있게 확보한다.",
-    "resultDescription": "금화(소), 사기회복(소)",
+    "resultDescription": ["금화(소)", "사기회복(소)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -711,13 +1032,18 @@
     "resultType": ["Gold", "Morale"],
     "resultForm": ["None", "None"],
     "resultValue": ["0", "0"],
-    "resultCount": ["50", "20"]
+    "resultCount": ["100", "20"],
+    "choiceResultText": ["금화를 100만큼 획득. 사기를 20만큼 회복.", ""],
+    "resultText": [
+      "보급품이 가득 실린 수레가 도착하자",
+      "병영 안에 잠시 웃음소리가 번졌다. 모두가 잠깐의 안도감을 느꼈다.\n"
+    ]
   },
   {
     "choiceId": 51,
     "eventId": 19,
     "choiceText": "독실한 병사가 검에 기도한다.",
-    "resultDescription": "선택한 유닛 전직",
+    "resultDescription": ["선택한 유닛 전직"],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": ["3"],
@@ -725,13 +1051,18 @@
     "resultType": ["Change"],
     "resultForm": ["Select"],
     "resultValue": [""],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["선택한 유닛이 전직.", ""],
+    "resultText": [
+      "{require[0]}이(가) 조용히 검 앞에 무릎 꿇었다. 기도가 끝나자",
+      "그는 {result[0]}로서 새롭게 일어섰다.\n"
+    ]
   },
   {
     "choiceId": 52,
     "eventId": 19,
-    "choiceText": "힘 있는 병사가 검을 뽑으려 한다.(공격력 90이상의 아군이 있을 경우)",
-    "resultDescription": "전쟁 유산 보상(엘리트)",
+    "choiceText": "힘 있는 병사가 검을 뽑으려 한다.(공격력 90이상의 아군이 있을 경우 활성화)",
+    "resultDescription": ["전쟁 유산 보상(엘리트)"],
     "requireThing": ["AttackDamage"],
     "requireForm": ["None"],
     "requireValue": ["90"],
@@ -739,13 +1070,18 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["5"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전쟁 유산을 획득.", ""],
+    "resultText": [
+      "움직이지 않을 것 같은 검이 미세하게 떨리기 시작했다. 힘센 병사가 그것을 뽑아들자",
+      "검은 어느새 {result[0]}으로 변해 있었다.\n"
+    ]
   },
   {
     "choiceId": 53,
     "eventId": 19,
     "choiceText": "검을 바라보다 조용히 자리를 뜬다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -753,13 +1089,20 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "모두는 검 앞에서 잠시 숨을 죽였다. 그리고 끝내",
+      "아무도 손대지 않은 채 그곳을 떠났다.\n"
+    ]
   },
   {
     "choiceId": 54,
     "eventId": 20,
     "choiceText": "병사들이 저주받았다.",
-    "resultDescription": "희귀도 1~2의 무작위 유닛  5명을 저주받은 기사로 변경.",
+    "resultDescription": [
+      "희귀도 1~2의 무작위 유닛  5명을 저주받은 기사로 변경."
+    ],
     "requireThing": ["Unit"],
     "requireForm": ["Random"],
     "requireValue": ["2"],
@@ -767,13 +1110,25 @@
     "resultType": ["Unit"],
     "resultForm": ["None"],
     "resultValue": ["45"],
-    "resultCount": ["5"]
+    "resultCount": ["5"],
+    "choiceResultText": [
+      "\n무작위 일반 또는 숙련 유닛 5명이 저주받은 기사로 변화.\n",
+      ""
+    ],
+    "resultText": [
+      "미처 도망치지 못한 병사들에게 검은 불꽃이 스며들었다. {require[0]}",
+      "{require[1]}",
+      "{require[2]}",
+      "{require[3]}",
+      "{require[4]}이(가) 몸을 떨기 시작하더니",
+      "저주받은 기사로 변모했다.\n"
+    ]
   },
   {
     "choiceId": 55,
     "eventId": 20,
     "choiceText": "전력으로 도망친다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -781,13 +1136,17 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "병사들은 한 치의 망설임도 없이 폐허에서 달아났다. 검은 불꽃은 잠시 그 자리를 맴돌다 사라졌다.\n"
+    ]
   },
   {
     "choiceId": 56,
     "eventId": 21,
     "choiceText": "힘의 길을 택한다.",
-    "resultDescription": "선택한 병사 전직, 사기 -5 이벤트 반복",
+    "resultDescription": ["선택한 병사 전직", "사기 -5 이벤트 반복"],
     "requireThing": ["Morale", "Unit"],
     "requireForm": ["None", "Select"],
     "requireValue": ["0", "3"],
@@ -795,13 +1154,20 @@
     "resultType": ["Change", "Special"],
     "resultForm": ["Select", "Special"],
     "resultValue": ["0", "0"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "선택한 유닛이 전직.",
+      "사기가 5만큼 감소하고 이벤트 반복."
+    ],
+    "resultText": [
+      "안개 속을 나아가던 {require[0]}이(가) 어느새 {result[0]}의 모습으로 변해 있었다. 그러나 발걸음은 같은 자리를 맴돌았다. 저 앞에 또 같은 갈림길이 보인다.\n"
+    ]
   },
   {
     "choiceId": 57,
     "eventId": 21,
     "choiceText": "재물의 길을 택한다.",
-    "resultDescription": "금화(소), 사기 -5, 이벤트 반복",
+    "resultDescription": ["금화(소)", "사기 -5", "이벤트 반복"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -809,13 +1175,21 @@
     "resultType": ["Gold", "Special"],
     "resultForm": ["None", "Special"],
     "resultValue": ["0", "0"],
-    "resultCount": ["50", "1"]
+    "resultCount": ["100", "1"],
+    "choiceResultText": [
+      "금화를 100만큼 획득.",
+      "사기가 5만큼 감소하고 이벤트 반복."
+    ],
+    "resultText": [
+      "안개 속을 걷던 중",
+      "어느새 손에는 금화가 쥐어져 있었다. 그러나 발걸음은 같은 자리를 맴돌았다. 저 앞에 또 같은 갈림길이 보인다.\n"
+    ]
   },
   {
     "choiceId": 58,
     "eventId": 21,
     "choiceText": "길을 되돌아 간다.",
-    "resultDescription": "사기 -5, 이벤트 반복 종료",
+    "resultDescription": ["사기 -5", "이벤트 반복 종료"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -823,13 +1197,21 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", "사기가 5만큼 감소."],
+    "resultText": [
+      "우리는 안개 속에서 발걸음을 되돌렸다. 그러자 길이 열리고",
+      "낯선 바람이 스쳐갔다.\n"
+    ]
   },
   {
     "choiceId": 59,
     "eventId": 22,
     "choiceText": "봉인을 풀고 석관을 열어본다.",
-    "resultDescription": "전쟁 유산 보상(엘리트), 50% 확률로 전쟁 유산 보상(저주).",
+    "resultDescription": [
+      "전쟁 유산 보상(엘리트)",
+      "50% 확률로 전쟁 유산 보상(저주)."
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -837,13 +1219,24 @@
     "resultType": ["Relic", "Relic"],
     "resultForm": ["Random", "Special"],
     "resultValue": ["5", "0"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "무작위 전쟁 유산을 획득.",
+      "50% 확률로 무작위 저주 등급 전쟁 유산을 획득."
+    ],
+    "resultText": [
+      "석관이 삐걱이며 열리자",
+      "내부에서 {result[0]}이(가) 모습을 드러냈다.\n",
+      "\n석관이 삐걱이며 열리자",
+      "내부에서 {result[0]}이(가) 모습을 드러냈다. 그러나 공기가 무겁게 뒤틀리며",
+      "{result[1]}이(가) 어둠 속에서 모습을 드러냈다.\n"
+    ]
   },
   {
     "choiceId": 60,
     "eventId": 22,
     "choiceText": "건드리지 않고 지나친다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -851,27 +1244,40 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "석관 앞에서 모두 숨을 죽였다. 결국 아무도 손대지 않은 채 조용히 그곳을 지나쳤다.\n"
+    ]
   },
   {
     "choiceId": 61,
     "eventId": 23,
     "choiceText": "용병단 전체를 고용한다.",
-    "resultDescription": "금화 -300, 희귀도 2~3 무작위 유닛 3명.",
+    "resultDescription": ["금화 -300", "희귀도 2~3 무작위 유닛 3명."],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["300"],
+    "requireCount": ["500"],
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["2~3"],
-    "resultCount": ["3"]
+    "resultCount": ["3"],
+    "choiceResultText": [
+      "무작위 숙련 또는 영웅 유닛 3명 획득.",
+      "금화를 500만큼 상실."
+    ],
+    "resultText": [
+      "{result[0]}",
+      "{result[1]}",
+      "{result[2]}이(가) 우리 군에 합류했다. 병사들 사이에는 긴장과 기대가 뒤섞였다.\n"
+    ]
   },
   {
     "choiceId": 62,
     "eventId": 23,
     "choiceText": "개별 용병만 고용한다.",
-    "resultDescription": "금화 -100, 희귀도 2~3 무작위 유닛 1명.",
+    "resultDescription": ["금화 -100", "희귀도 2~3 무작위 유닛 1명."],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -879,13 +1285,21 @@
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["2~3"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "무작위 숙련 또는 영웅 유닛 획득.",
+      "금화를 100만큼 상실."
+    ],
+    "resultText": [
+      "금화를 건네자",
+      "{result[0]}이(가) 우리 군에 합류했다. 그는 전장에 설 준비가 끝난 듯 보였다.\n"
+    ]
   },
   {
     "choiceId": 63,
     "eventId": 23,
     "choiceText": "용병은 받아들이지 않는다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -893,13 +1307,17 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "용병들은 짧은 불만을 내비치더니 결국 자리를 떴다. 우리 병사들은 묵묵히 그 모습을 지켜봤다.\n"
+    ]
   },
   {
     "choiceId": 64,
     "eventId": 24,
     "choiceText": "전술을 계승한다.",
-    "resultDescription": "무작위 병종 무작위 강화 2회",
+    "resultDescription": ["무작위 병종 무작위 강화 2회"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -907,13 +1325,19 @@
     "resultType": ["Training"],
     "resultForm": ["Random"],
     "resultValue": [""],
-    "resultCount": ["2"]
+    "resultCount": ["2"],
+    "choiceResultText": ["무작위 전술 개량을 2번 진행.", ""],
+    "resultText": [
+      "낡은 지도와 전술 기록을 해독한 끝에",
+      "{result[0]}",
+      "{result[1]}이(가) 우리 전술 체계에 반영되었다.\n"
+    ]
   },
   {
     "choiceId": 65,
     "eventId": 24,
     "choiceText": "유물만 챙기고 자리를 뜬다.",
-    "resultDescription": "일반 등급 전쟁 유산",
+    "resultDescription": ["일반 등급 전쟁 유산"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -921,13 +1345,18 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전쟁 유산을 획득.", ""],
+    "resultText": [
+      "오래된 진지에서 {result[0]}을 챙긴 뒤",
+      "빠르게 자리를 떠났다. 바람이 스쳐가는 소리만이 그 자리에 남았다.\n"
+    ]
   },
   {
     "choiceId": 66,
     "eventId": 24,
     "choiceText": "예를 갖추고 물러난다.",
-    "resultDescription": "사기회복(중)",
+    "resultDescription": ["사기회복(중)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -935,55 +1364,82 @@
     "resultType": ["Morale"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["40"]
+    "resultCount": ["40"],
+    "choiceResultText": ["사기를 40만큼 회복.", ""],
+    "resultText": [
+      "모두가 고개를 숙이고 잠시 묵념했다. 그 짧은 시간이 지나자",
+      "사기에는 미묘한 변화가 일었다.\n"
+    ]
   },
   {
     "choiceId": 67,
     "eventId": 25,
-    "choiceText": "강화 물약",
-    "resultDescription": "금화 -200, 무작위 병종 무작위 강화 2회",
+    "choiceText": "지능 물약.",
+    "resultDescription": ["금화 -200", "무작위 병종 무작위 강화 2회"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["200"],
+    "requireCount": ["300"],
     "resultType": ["Training"],
     "resultForm": ["Random"],
     "resultValue": [""],
-    "resultCount": ["2"]
+    "resultCount": ["2"],
+    "choiceResultText": [
+      "무작위 전술 개량을 2번 진행.",
+      "금화를 300만큼 상실."
+    ],
+    "resultText": [
+      "사령관이 물약을 마시자",
+      "머릿속에 전술적 통찰이 번뜩였다. {result[0]}",
+      "{result[1]}이(가) 전력에 적용되었다.\n"
+    ]
   },
   {
     "choiceId": 68,
     "eventId": 25,
-    "choiceText": "기력 물약",
-    "resultDescription": "금화 -200, 단일 기력 회복(대)",
+    "choiceText": "기력 물약.",
+    "resultDescription": ["금화 -200", "단일 기력 회복(대)"],
     "requireThing": ["Gold", "Energy"],
     "requireForm": ["None", "Select"],
     "requireValue": ["0", "1"],
-    "requireCount": ["200", "1"],
+    "requireCount": ["300", "1"],
     "resultType": ["Energy"],
     "resultForm": ["Select"],
     "resultValue": ["10"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "선택한 유닛의 기력을 최대치까지 회복.",
+      "금화를 300만큼 상실."
+    ],
+    "resultText": [
+      "{require[0]}이(가) 물약을 마신 뒤",
+      "한층 가벼운 숨을 내쉬었다. 기력이 완전히 회복된 모습이었다.\n"
+    ]
   },
   {
     "choiceId": 69,
     "eventId": 25,
-    "choiceText": "해주 물약",
-    "resultDescription": "금화 -200, 저주 등급 전쟁 유산 1개 제거",
+    "choiceText": "해주 물약.",
+    "resultDescription": ["금화 -200", "저주 등급 전쟁 유산 1개 제거"],
     "requireThing": ["Gold", "Relic"],
     "requireForm": ["None", "Random"],
     "requireValue": ["0", "0"],
-    "requireCount": ["200", "1"],
+    "requireCount": ["300", "1"],
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["저주 등급 전쟁 유산을 제거.", "금화를 300만큼 상실."],
+    "resultText": [
+      "해주 물약의 연기가 퍼지자",
+      "{require[0]}이(가) 서서히 빛 속으로 사라졌다.\n"
+    ]
   },
   {
     "choiceId": 70,
     "eventId": 25,
     "choiceText": "필요 없다",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -991,13 +1447,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "연금술사는 어깨를 으쓱하더니",
+      "금세 다른 손님을 찾아 나섰다.\n"
+    ]
   },
   {
     "choiceId": 71,
     "eventId": 26,
     "choiceText": "챔피언에게 돈을 건다.",
-    "resultDescription": "75% 확률로 금화(중)",
+    "resultDescription": ["75% 확률로 금화(중)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1005,13 +1466,20 @@
     "resultType": ["Gold"],
     "resultForm": ["Random"],
     "resultValue": ["75"],
-    "resultCount": ["150"]
+    "resultCount": ["300"],
+    "choiceResultText": ["75% 확률로 금화를 300만큼 획득.", ""],
+    "resultText": [
+      "챔피언이 결승선을 통과하자",
+      "병사들 사이에서 환호성이 터졌다. 주머니에는 금화가 묵직하게 채워졌다.\n",
+      "\n챔피언이 막판에 발이 꼬이자",
+      "병사들은 허탈한 표정으로 한숨을 내쉬었다.\n"
+    ]
   },
   {
     "choiceId": 72,
     "eventId": 26,
     "choiceText": "유망주에게 돈을 건다.",
-    "resultDescription": "25% 확률로 금화(대)",
+    "resultDescription": ["25% 확률로 금화(대)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1019,13 +1487,23 @@
     "resultType": ["Gold"],
     "resultForm": ["Random"],
     "resultValue": ["25"],
-    "resultCount": ["250"]
+    "resultCount": ["500"],
+    "choiceResultText": ["25% 확률로 금화를 500만큼 획득.", ""],
+    "resultText": [
+      "유망주가 기적적으로 우승하자",
+      "모두가 놀란 얼굴로 웃음을 터뜨렸다. 예상치 못한 거금이 손에 들어왔다.\n",
+      "\n유망주는 막판에 무너졌고",
+      "모두 고개를 흔들며 웃었다. 교훈만 남은 하루였다.\n"
+    ]
   },
   {
     "choiceId": 73,
     "eventId": 26,
-    "choiceText": "우리 병사로 우승을 노린다.",
-    "resultDescription": "선택 유닛의 기력이 1 감소하며, 우승 시 전설 등급 전쟁 유산(우승 확률: 선택 유닛의 현재 기동력 X 9%p. 기동력 12 이상 부터는 무조건 100% 우승)",
+    "choiceText": "기동력이 뛰어난 병사로 우승을 노린다.",
+    "resultDescription": [
+      "선택 유닛의 기력이 1 감소하며",
+      "우승 시 전설 등급 전쟁 유산(우승 확률: 선택 유닛의 현재 기동력 X 9%p. 기동력 12 이상 부터는 무조건 100% 우승)"
+    ],
     "requireThing": ["Energy"],
     "requireForm": ["Select"],
     "requireValue": ["-1"],
@@ -1033,13 +1511,21 @@
     "resultType": ["Relic"],
     "resultForm": ["Special"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": [
+      "우승 시 무작위 전쟁 유산을 획득.",
+      "선택한 유닛의 기력이 1만큼 감소."
+    ],
+    "resultText": [
+      "{require[0]}이(가) 고삐를 움켜쥐고 질주 끝에 승리를 쟁취했다. {result[0]}이(가) 그의 손에 쥐어졌다. 그는 숨을 거칠게 몰아쉬며 안장을 붙잡았다.\n",
+      "\n{require[0]}이(가) 전력 질주했지만 패배하고 온몸에 탈진이 번졌다. 그는 힘겹게 안장을 붙잡았다.\n"
+    ]
   },
   {
     "choiceId": 74,
     "eventId": 26,
     "choiceText": "잠시 긴장을 풀며 구경한다.",
-    "resultDescription": "사기 회복(소)",
+    "resultDescription": ["사기 회복(소)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1047,13 +1533,22 @@
     "resultType": ["Morale"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["20"]
+    "resultCount": ["20"],
+    "choiceResultText": ["사기를 20만큼 회복.", ""],
+    "resultText": [
+      "경마장을 뒤덮은 함성 속에서 잠시 마음을 내려놓았다. 병사들 얼굴에 오랜만에 웃음이 번졌다.\n"
+    ]
   },
   {
     "choiceId": 75,
     "eventId": 27,
     "choiceText": "용감한 병사 하나를 결투에 내보낸다.",
-    "resultDescription": "희귀도에 따라 25%, 50%, 75, 90% 확률로 승리. 패배 시 선택한 유닛 사망. 승리 시 전쟁 유산 보상(엘리트).",
+    "resultDescription": [
+      "희귀도에 따라 25%",
+      "50%",
+      "75",
+      "90% 확률로 승리. 패배 시 선택한 유닛 사망. 승리 시 전쟁 유산 보상(엘리트)."
+    ],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": [""],
@@ -1061,13 +1556,21 @@
     "resultType": ["Relic"],
     "resultForm": ["Special"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": [
+      "승리 시 무작위 전쟁 유산을 획득.",
+      "패배 시 선택한 유닛 사망."
+    ],
+    "resultText": [
+      "{require[0]}이(가) 검은 기사의 검을 막아내며 마침내 승리했다. {result[0]}이(가) 전리품으로 주어졌다.\n",
+      "\n{require[0]}이(가) 검은 기사의 검에 쓰러졌다. 그의 빈자리가 모두의 마음을 무겁게 했다.\n"
+    ]
   },
   {
     "choiceId": 76,
     "eventId": 27,
     "choiceText": "정정당당한 결투 따위 없다!",
-    "resultDescription": "선택한 3명의 유닛이 전직, 전쟁 유산 보상(저주)",
+    "resultDescription": ["선택한 3명의 유닛이 전직", "전쟁 유산 보상(저주)"],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": ["3"],
@@ -1075,41 +1578,67 @@
     "resultType": ["Change", "Relic"],
     "resultForm": ["Select", "Random"],
     "resultValue": ["0", "0"],
-    "resultCount": ["3", "1"]
+    "resultCount": ["3", "1"],
+    "choiceResultText": [
+      "선택한 유닛 3명이 전직.",
+      "저주 등급 전쟁 유산을 획득."
+    ],
+    "resultText": [
+      "비열한 수단으로 검은 기사를 쓰러뜨렸고",
+      "{require[0]}",
+      "{require[1]}",
+      "{require[2]}이(가) 새로운 힘을 각성해 {result[0]}",
+      "{result[1]}",
+      "{result[2]}이 되었다. 하지만 그 대가로 {result[3]}이(가) 뒤따랐다.\n"
+    ]
   },
   {
     "choiceId": 77,
     "eventId": 28,
     "choiceText": "궁기병을 고용한다.",
-    "resultDescription": "금화 -200, '궁기병' 유닛 2명 획득.",
+    "resultDescription": ["금화 -200", "궁기병 유닛 2명 획득."],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["200"],
+    "requireCount": ["300"],
     "resultType": ["Unit"],
     "resultForm": ["None"],
     "resultValue": ["9"],
-    "resultCount": ["2"]
+    "resultCount": ["2"],
+    "choiceResultText": ["\n궁기병 유닛 2명 획득.\n", "금화를 300만큼 상실."],
+    "resultText": [
+      "금화를 건네자",
+      "궁기병 2명이 우리 군에 합류했다. 초원의 냄새가 그들의 갑옷에 밴 듯했다.\n"
+    ]
   },
   {
     "choiceId": 78,
     "eventId": 28,
     "choiceText": "그들의 전술을 배운다.",
-    "resultDescription": "궁병 또는 경기병 병종의 무작위 강화 1개 획득.",
+    "resultDescription": ["궁병 또는 경기병 병종의 무작위 강화 1개 획득."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
     "requireCount": [""],
     "resultType": ["Training"],
     "resultForm": ["Random"],
-    "resultValue": ["2,5"],
-    "resultCount": ["1"]
+    "resultValue": ["2", "5"],
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "궁병 또는 경기병 병종의 무작위 전술 개량을 진행.",
+      ""
+    ],
+    "resultText": [
+      "유목민들이 전한 전술이 우리 병사들의 움직임을 변화시켰다. {result[0]}이(가) 이제 실전에 스며들었다.\n"
+    ]
   },
   {
     "choiceId": 79,
     "eventId": 28,
     "choiceText": "야만인을 약탈한다.",
-    "resultDescription": "일반 몬스터 전투 진행. 승리 시 전쟁 유산 보상(엘리트)",
+    "resultDescription": [
+      "일반 몬스터 전투 진행. 승리 시 전쟁 유산 보상(엘리트)"
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1117,13 +1646,20 @@
     "resultType": ["Battle", "Relic"],
     "resultForm": ["None", "Random"],
     "resultValue": ["1", "5"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "승리 시 무작위 전쟁 유산을 획득하는 ",
+      "일반 전투 진행."
+    ],
+    "resultText": [
+      "약탈대를 이끌고 야만인 진영으로 향했다. 그들의 함성이 초원 너머에서 울려왔다.\n"
+    ]
   },
   {
     "choiceId": 80,
     "eventId": 29,
     "choiceText": "폭풍을 뚫고 진군한다.",
-    "resultDescription": "다음 전투에서 '폭풍우' 전장 효과 적용.",
+    "resultDescription": ["다음 전투에서 폭풍우 전장 효과 적용."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1131,27 +1667,47 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["5"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["", "\n다음 전투에서 폭풍우 전장 효과 적용.\n"],
+    "resultText": [
+      "병사들은 비바람에 몸을 웅크리며도 앞으로 나아갔다. 바람에 묻힌 함성은 점점 사라졌고",
+      "그들의 발자국만이 남았다.\n"
+    ]
   },
   {
     "choiceId": 81,
     "eventId": 29,
     "choiceText": "물자를 아껴가며 버틴다.",
-    "resultDescription": "다음 전투에서 '평원' 전장 효과 적용, 사기 -20, 골드 - 100",
+    "resultDescription": [
+      "다음 전투에서 평원 전장 효과 적용",
+      "사기 -20",
+      "골드 - 100"
+    ],
     "requireThing": ["Morale", "Gold"],
     "requireForm": ["None", "None"],
     "requireValue": ["0", "0"],
-    "requireCount": ["20100"],
+    "requireCount": ["20", "100"],
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "\n다음 전투에서 평원 전장 효과 적용.\n",
+      "사기가 20만큼 감소. 금화를 100만큼 상실."
+    ],
+    "resultText": [
+      "오두막 안에서 숨을 고르며 버텼다. 그러나 불안은 사기를 갉아먹었고",
+      "준비한 물자는 예상보다 빨리 줄어들었다.\n"
+    ]
   },
   {
     "choiceId": 82,
     "eventId": 30,
     "choiceText": "영혼을 바친다.",
-    "resultDescription": "현재 부대에서 가장 비싸고 기력이 높은 유닛을 희생, 부족한 마지막 보석 전쟁 유산을 획득.",
+    "resultDescription": [
+      "현재 부대에서 가장 비싸고 기력이 높은 유닛을 희생",
+      "부족한 마지막 보석 전쟁 유산을 획득."
+    ],
     "requireThing": ["Unit"],
     "requireForm": ["Special"],
     "requireValue": [""],
@@ -1159,13 +1715,18 @@
     "resultType": ["Relic"],
     "resultForm": ["Special"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["찬란한 힘을 얻지만", "소중한 영혼을 상실."],
+    "resultText": [
+      "엄청난 힘을 뿜어내는 찬란한 방패가 우리 손에 들어왔지만",
+      "{require[0]}은(는) 더 이상 우리 곁에 없다.\n"
+    ]
   },
   {
     "choiceId": 83,
     "eventId": 30,
     "choiceText": "거절하고 떠난다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1173,13 +1734,21 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "유혹을 떨쳐내고 계곡을 등졌다. 아무것도 잃지 않았으나",
+      "강해질 기회도 뒤로했다.\n"
+    ]
   },
   {
     "choiceId": 84,
     "eventId": 31,
     "choiceText": "적을 몰아붙인다!",
-    "resultDescription": "엘리트 전투 진행, 승리 시 전쟁 유산(일반) 보상 2회",
+    "resultDescription": [
+      "엘리트 전투 진행",
+      "승리 시 전쟁 유산(일반) 보상 2회"
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1187,13 +1756,20 @@
     "resultType": ["Battle", "Relic"],
     "resultForm": ["None", "Random"],
     "resultValue": ["5", "1"],
-    "resultCount": ["1", "2"]
+    "resultCount": ["1", "2"],
+    "choiceResultText": [
+      "승리 시 전쟁 유산(일반) 보상 2회 획득하는 ",
+      "엘리트 전투 진행."
+    ],
+    "resultText": [
+      "기습을 당했지만 곧장 전열을 정비했다. 한 줄기 틈을 노려 역으로 적진을 향해 돌진했다.\n"
+    ]
   },
   {
     "choiceId": 85,
     "eventId": 31,
     "choiceText": "전력을 보존하고 도망친다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1201,13 +1777,17 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "기습을 당해 전세가 불리했다. 손실을 줄이기 위해 전장을 벗어나 퇴각할 수밖에 없었다.\n"
+    ]
   },
   {
     "choiceId": 86,
     "eventId": 32,
-    "choiceText": "한명의 영웅",
-    "resultDescription": "희귀도 1 유닛 1명을 무작위 영웅유닛으로 변경",
+    "choiceText": "한명의 전설",
+    "resultDescription": ["희귀도 1 유닛 1명을 무작위 희귀도 4 유닛으로 변경"],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": ["1"],
@@ -1215,13 +1795,18 @@
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["4"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["선택한 일반 유닛이 전설로 각성.", ""],
+    "resultText": [
+      "{require[0]}의 몸에서 강한 빛이 뿜어져 나오기 시작했다. 빛이 가시자",
+      "그곳엔 {result[0]}이(가) 서 있었다.\n"
+    ]
   },
   {
     "choiceId": 87,
     "eventId": 32,
     "choiceText": "훈련된 군대",
-    "resultDescription": "무작위 병종이 무작위 강화 1개 획득",
+    "resultDescription": ["무작위 병종이 무작위 강화 1개 획득"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1229,13 +1814,18 @@
     "resultType": ["Training"],
     "resultForm": ["Random"],
     "resultValue": [""],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전술 개량을 진행.", ""],
+    "resultText": [
+      "{result[0]}이 전열에 스며들며",
+      "강철 같은 일사불란함이 전장을 뒤덮었다.\n"
+    ]
   },
   {
     "choiceId": 88,
     "eventId": 32,
     "choiceText": "무의미한 고민이다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1243,13 +1833,15 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": ["승패는 고민으로 결정되지 않는다. 발걸음만이 답을 안다.\n"]
   },
   {
     "choiceId": 89,
     "eventId": 33,
     "choiceText": "담당에게 누명을 씌운다.",
-    "resultDescription": "무작위 병사 희생, 사기 회복(최대)",
+    "resultDescription": ["무작위 병사 희생", "사기 회복(최대)"],
     "requireThing": ["Unit"],
     "requireForm": ["Random"],
     "requireValue": [""],
@@ -1257,13 +1849,18 @@
     "resultType": ["Morale"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["100"]
+    "resultCount": ["100"],
+    "choiceResultText": ["사기를 최대치까지 회복.", "무작위 유닛을 희생."],
+    "resultText": [
+      "불만의 화살은 {require[0]}에게 향했다. 그 목이 떨어지자",
+      "병사들은 환호하며 분노를 잊었다.\n"
+    ]
   },
   {
     "choiceId": 90,
     "eventId": 33,
     "choiceText": "식량 배급을 반으로 줄인다.",
-    "resultDescription": "사기 -40, 금화(대)",
+    "resultDescription": ["사기 -40", "금화(대)"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1271,13 +1868,22 @@
     "resultType": ["Gold"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": ["250"]
+    "resultCount": ["500"],
+    "choiceResultText": ["금화를 500만큼 획득.", "사기가 40만큼 감소."],
+    "resultText": [
+      "배급을 줄었고",
+      "군자금에는 여유가 생겼다. 앞으로의 여정을 위한 준비였지만",
+      "새어나오는 병사들의 불만을 막지는 못했다.\n"
+    ]
   },
   {
     "choiceId": 91,
     "eventId": 33,
     "choiceText": "병사와 함께 굶어 결속을 다진다.",
-    "resultDescription": "모든 유닛의 기력 1감소(0이 되진 않음), 무작위 병종 무작위 강화 2번",
+    "resultDescription": [
+      "모든 유닛의 기력 1감소(0이 되진 않음)",
+      "무작위 병종 무작위 강화 2번"
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1285,13 +1891,22 @@
     "resultType": ["Energy", "Training"],
     "resultForm": ["All", "Random"],
     "resultValue": ["-1", "-1"],
-    "resultCount": ["1", "2"]
+    "resultCount": ["1", "2"],
+    "choiceResultText": [
+      "무작위 전술 개량을 2번 진행.",
+      "부대 전체 유닛의 기력이 1만큼 감소."
+    ],
+    "resultText": [
+      "모두가 허기를 견디며 맞섰다. 배는 고팠지만",
+      "그 속에서 {result[0]}",
+      "{result[1]}이(가) 나타나고 단련되어 갔다.\n"
+    ]
   },
   {
     "choiceId": 92,
     "eventId": 33,
     "choiceText": "돈으로라도 위기를 막는다.",
-    "resultDescription": "금화 -500",
+    "resultDescription": ["금화 -500"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1299,13 +1914,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", "금화를 500만큼 상실."],
+    "resultText": [
+      "가격은 생각하지 않고 식량을 사들였다. 예상치 못 한 출혈은 있었지만",
+      "위기는 가까스로 넘길 수 있었다.\n"
+    ]
   },
   {
     "choiceId": 93,
     "eventId": 34,
     "choiceText": "그를 설득하여 동료로 만든다.",
-    "resultDescription": "엘리트 전투, 승리 시 영웅 유닛 획득",
+    "resultDescription": ["엘리트 전투", "승리 시 전설 유닛 획득"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1313,13 +1933,17 @@
     "resultType": ["Battle", "Unit"],
     "resultForm": ["None", "Random"],
     "resultValue": ["5", "4"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": ["승리 시 전설 유닛을 획득하는 ", "엘리트 전투 진행."],
+    "resultText": [
+      "설득의 말은 공허히 메아리쳤다. 몰락한 전설의 손이 검집을 스치는 소리가 폐허에 울려 퍼졌다.\n"
+    ]
   },
   {
     "choiceId": 94,
     "eventId": 34,
     "choiceText": "그를 무시한다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1327,13 +1951,21 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": ["발길을 돌리자", "낡은 망토 속 시선이 허공에 멎었다.\n"]
   },
   {
     "choiceId": 95,
     "eventId": 35,
     "choiceText": "의식을 완수한다.",
-    "resultDescription": "전쟁 유산 보상(저주), 선택한 유닛 희생, 유닛의 희귀도에 따라 확률적으로 무작위 영웅 유닛 획득. 희귀도1 30%, 희귀도2 60%, 희귀도3 100%",
+    "resultDescription": [
+      "전쟁 유산 보상(저주)",
+      "선택한 유닛 희생",
+      "유닛의 희귀도에 따라 확률적으로 무작위 전설 유닛 획득. 희귀도1 30%",
+      "희귀도2 60%",
+      "희귀도3 100%"
+    ],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": [""],
@@ -1341,13 +1973,23 @@
     "resultType": ["Relic", "Unit"],
     "resultForm": ["Random", "Special"],
     "resultValue": ["0", "4"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "선택한 유닛이 전설로 각성하지만",
+      "실패 시 사망. 성공에 상관없이 무작위 저주 등급 전쟁 유산을 획득."
+    ],
+    "resultText": [
+      "{require[0]}은(는) 의식 속에서 고통에 몸부림쳤지만",
+      "끝내 {result[0]}으로 각성했다. 그러나 그 손엔 {result[1]}이(가) 함께 쥐어져 있었다.\n",
+      "\n{require[0]}은(는) 의식 속에서 비명을 질렀고",
+      "그 몸은 산산이 부서졌다. 자리에 남은 건 {result[0]}뿐이었다.\n"
+    ]
   },
   {
     "choiceId": 96,
     "eventId": 35,
     "choiceText": "제단을 정화한다.",
-    "resultDescription": "사기회복(소), 단일기력회복(대)",
+    "resultDescription": ["사기회복(소)", "단일기력회복(대)"],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": [""],
@@ -1355,13 +1997,22 @@
     "resultType": ["Morale", "Energy"],
     "resultForm": ["None", "Select"],
     "resultValue": ["0", "10"],
-    "resultCount": ["20", "1"]
+    "resultCount": ["20", "1"],
+    "choiceResultText": [
+      "사기를 20만큼 회복. 선택한 유닛의 기력을 최대치까지 회복.",
+      ""
+    ],
+    "resultText": [
+      "정화의 빛이 제단을 감싸자",
+      "{require[0]}은(는) 안도의 숨을 내쉬며 활력을 되찾았고",
+      "따뜻한 기운은 병사들 사이로 퍼져나가 안도와 기쁨을 안겼다.\n"
+    ]
   },
   {
     "choiceId": 97,
     "eventId": 36,
     "choiceText": "모두와 함께 포도주를 마신다.",
-    "resultDescription": "사기 회복(최대), 전쟁 유산 보상(저주)",
+    "resultDescription": ["사기 회복(최대)", "전쟁 유산 보상(저주)"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1369,13 +2020,20 @@
     "resultType": ["Morale", "Relic"],
     "resultForm": ["None", "Random"],
     "resultValue": ["0", "0"],
-    "resultCount": ["100", "1"]
+    "resultCount": ["100", "1"],
+    "choiceResultText": [
+      "사기를 최대치까지 회복.",
+      "무작위 저주 등급 전쟁 유산을 획득."
+    ],
+    "resultText": [
+      "병사들과 함께 포도주를 들이켰다. 기분은 들떴고 환희로 가득 차올랐다. 그러나 술잔 바닥에는 {result[0]}이(가) 잠들어 있었다.\n"
+    ]
   },
   {
     "choiceId": 98,
     "eventId": 36,
     "choiceText": "포도주를 무기와 갑옷에 바른다.",
-    "resultDescription": "무작위 병종 무작위 강화 3번, 사기 -30",
+    "resultDescription": ["무작위 병종 무작위 강화 3번", "사기 -30"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1383,13 +2041,21 @@
     "resultType": ["Training"],
     "resultForm": ["Random"],
     "resultValue": [""],
-    "resultCount": ["3"]
+    "resultCount": ["3"],
+    "choiceResultText": ["무작위 전술 개량을 3번 진행.", "사기가 30만큼 감소."],
+    "resultText": [
+      "병사들이 갈망하던 술은 무기와 갑옷 위로 흘렀고",
+      "그 표면은 기묘한 광택과 날카로움으로 빛났다. {result[0]}",
+      "{result[1]}",
+      "{result[2]}이 피어났지만",
+      "병사들의 눈에는 불만이 서려 있었다.\n"
+    ]
   },
   {
     "choiceId": 99,
     "eventId": 36,
     "choiceText": "유혹을 뿌리치고 떠난다.",
-    "resultDescription": "사기 -5",
+    "resultDescription": ["사기 -5"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1397,13 +2063,19 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", "사기가 5만큼 감소."],
+    "resultText": [
+      "달콤한 향에 잠시 흔들렸지만",
+      "결국 발길을 돌렸다. 그 자리에 남은 건 황홀한 유혹과",
+      "가슴 속에 스며든 작은 허전함뿐이었다.\n"
+    ]
   },
   {
     "choiceId": 100,
     "eventId": 37,
     "choiceText": "돈을 원한다.",
-    "resultDescription": "금화 +2000, 전쟁 유산 보상(저주) 3회",
+    "resultDescription": ["금화 +5000", "전쟁 유산 보상(저주) 3회"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1411,13 +2083,25 @@
     "resultType": ["Gold", "Relic"],
     "resultForm": ["None", "Random"],
     "resultValue": ["0", "0"],
-    "resultCount": ["2000", "3"]
+    "resultCount": ["5000", "3"],
+    "choiceResultText": [
+      "금화를 5000만큼 획득.",
+      "무작위 저주 등급 전쟁 유산을 3개 획득."
+    ],
+    "resultText": [
+      "동전이 쏟아지는 소리에 병사들의 눈빛이 번쩍였다. 탐욕의 기쁨은 잠시였고",
+      "그 틈을 타 {result[0]}",
+      "{result[1]}",
+      "{result[2]}이(가) 모습을 드러냈다.\n"
+    ]
   },
   {
     "choiceId": 101,
     "eventId": 37,
     "choiceText": "힘을 원한다.",
-    "resultDescription": "모든 희귀도 1 유닛을 희귀도 2 이상의 유닛으로 전직. '영광의 대가' 전쟁 유산 획득.",
+    "resultDescription": [
+      "모든 희귀도 1 유닛을 희귀도 2 이상의 유닛으로 전직. 영광의 대가 전쟁 유산 획득."
+    ],
     "requireThing": ["Unit"],
     "requireForm": ["Random"],
     "requireValue": ["1"],
@@ -1425,13 +2109,21 @@
     "resultType": ["Change", "Relic"],
     "resultForm": ["Select", "Select"],
     "resultValue": ["0", "116"],
-    "resultCount": ["100", "1"]
+    "resultCount": ["100", "1"],
+    "choiceResultText": [
+      "모든 일반 유닛이 전직.",
+      "\n영광의 대가 저주 등급 전쟁 유산 획득.\n"
+    ],
+    "resultText": [
+      "악마의 속삭임이 진영을 휘감았다. 평범했던 병사들의 형상이 찢기듯 변했고",
+      "그들이 선 자리에 남은 건 영광의 대가 뿐이었다.\n"
+    ]
   },
   {
     "choiceId": 102,
     "eventId": 37,
     "choiceText": "악마를 처단한다.",
-    "resultDescription": "엘리트 전투, 전설 등급 전쟁 유산",
+    "resultDescription": ["엘리트 전투", "전설 등급 전쟁 유산"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1439,13 +2131,22 @@
     "resultType": ["Battle", "Relic"],
     "resultForm": ["None", "Random"],
     "resultValue": ["5", "10"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "승리 시 무작위 전쟁 유산을 획득하는 ",
+      "엘리트 전투 진행."
+    ],
+    "resultText": [
+      "사령관의 명령이 떨어지자",
+      "병사들이 검을 빼들었다. 악마의 웃음은 메아리쳤고",
+      "전투는 피할 수 없는 운명처럼 다가왔다.\n"
+    ]
   },
   {
     "choiceId": 103,
     "eventId": 37,
     "choiceText": "유혹을 뿌리치고 떠난다",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1453,13 +2154,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "그들의 목소리는 뒤에서 메아리쳤지만",
+      "당신의 발걸음은 흔들리지 않았다.\n"
+    ]
   },
   {
     "choiceId": 104,
     "eventId": 38,
     "choiceText": "시험을 치른다",
-    "resultDescription": "엘리트 전투 진행, 승리 시 선택한 유닛 전직 5번",
+    "resultDescription": ["엘리트 전투 진행", "승리 시 선택한 유닛 전직 5번"],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": ["3"],
@@ -1467,13 +2173,21 @@
     "resultType": ["Battle", "Change"],
     "resultForm": ["None", "Select"],
     "resultValue": ["5", "0"],
-    "resultCount": ["1", "5"]
+    "resultCount": ["1", "5"],
+    "choiceResultText": [
+      "승리 시 선택한 유닛 5명이 전직.",
+      "엘리트 전투 진행."
+    ],
+    "resultText": [
+      "검과 피로 증명된 자만이 신의 축복을 받는다. 제단 앞에서 병사들은 숨을 고르며",
+      "곧 울릴 전투의 함성을 기다렸다.\n"
+    ]
   },
   {
     "choiceId": 105,
     "eventId": 38,
     "choiceText": "공물을 바친다",
-    "resultDescription": "금화 -100, 선택한 유닛 전직 2번",
+    "resultDescription": ["금화 -100", "선택한 유닛 전직 2번"],
     "requireThing": ["Gold", "Unit"],
     "requireForm": ["None", "Select"],
     "requireValue": ["0", "3"],
@@ -1481,13 +2195,22 @@
     "resultType": ["Change"],
     "resultForm": ["Select"],
     "resultValue": [""],
-    "resultCount": ["2"]
+    "resultCount": ["2"],
+    "choiceResultText": ["선택한 유닛 3명이 전직.", "금화를 100만큼 상실."],
+    "resultText": [
+      "금화가 제단에 쏟아졌다. 신의 빛이 번쩍이자",
+      "{require[0]}",
+      "{require[1]}",
+      "{require[2]}이(가) {result[0]}",
+      "{result[1]}",
+      "{result[2]}으로 거듭났다. 병영엔 숨죽인 경외가 감돌았다.\n"
+    ]
   },
   {
     "choiceId": 106,
     "eventId": 38,
     "choiceText": "기도한다",
-    "resultDescription": "무작위 병종 무작위 강화",
+    "resultDescription": ["무작위 병종 무작위 강화"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1495,13 +2218,18 @@
     "resultType": ["Training"],
     "resultForm": ["Random"],
     "resultValue": [""],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전술 개량을 진행.", ""],
+    "resultText": [
+      "전장을 위한 짧은 기도가 올려졌다. {result[0]}의 영감이 병사들 사이로 스며들며",
+      "전열은 더 날카로워졌다.\n"
+    ]
   },
   {
     "choiceId": 107,
     "eventId": 38,
     "choiceText": "신에게 의지하지 않는다",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1509,13 +2237,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "그들은 제단을 조용히 지나쳤다. 신은 침묵했고",
+      "발걸음만이 메아리쳤다.\n"
+    ]
   },
   {
     "choiceId": 108,
     "eventId": 39,
     "choiceText": "사기를 불태우고 최후의 전투로 나선다!",
-    "resultDescription": "사기 회복(최대), 즉시 보스 스테이지로 이동.",
+    "resultDescription": ["사기 회복(최대)", "즉시 보스 스테이지로 이동."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1523,13 +2256,21 @@
     "resultType": ["Morale", "Battle"],
     "resultForm": ["None", "Special"],
     "resultValue": ["0", "50"],
-    "resultCount": ["100", "1"]
+    "resultCount": ["100", "1"],
+    "choiceResultText": [
+      "사기를 최대치까지 회복.",
+      "즉시 보스 스테이지로 이동."
+    ],
+    "resultText": [
+      "병사들은 피로를 삼키고 검을 고쳐 쥐었다. 함성이 진영을 뒤흔졌고",
+      "그 열기는 곧 결전의 전장으로 이어졌다.\n"
+    ]
   },
   {
     "choiceId": 109,
     "eventId": 39,
     "choiceText": "천천히 전진한다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1537,13 +2278,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "급할 것 없다는 판단 아래",
+      "부대는 조용히 발걸음을 옮겼다.\n"
+    ]
   },
   {
     "choiceId": 110,
     "eventId": 40,
     "choiceText": "한상 차림",
-    "resultDescription": "금화 -100, 기력 전체 회복(소)",
+    "resultDescription": ["금화 -100", "기력 전체 회복(소)"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1551,27 +2297,43 @@
     "resultType": ["Energy"],
     "resultForm": ["All"],
     "resultValue": ["1"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "부대 전체 유닛의 기력을 1만큼 회복.",
+      "금화를 100만큼 상실."
+    ],
+    "resultText": [
+      "따뜻한 음식이 차려지자 병사들 얼굴에 미소가 번졌다. 뜨거운 국물에 피로가 조금씩 풀려갔지만",
+      "지갑은 조금 가벼워졌다.\n"
+    ]
   },
   {
     "choiceId": 111,
     "eventId": 40,
     "choiceText": "풍성한 한상 차림",
-    "resultDescription": "금화 -200, 기력 전체 회복(대), 사기 +20",
+    "resultDescription": ["금화 -200", "기력 전체 회복(대)", "사기 +20"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["200"],
+    "requireCount": ["300"],
     "resultType": ["Energy", "Morale"],
     "resultForm": ["All", "None"],
     "resultValue": ["10", "0"],
-    "resultCount": ["1", "20"]
+    "resultCount": ["1", "20"],
+    "choiceResultText": [
+      "부대 전체 유닛의 기력을 최대치까지 회복. 사기를 20만큼 회복.",
+      "금화를 300만큼 상실."
+    ],
+    "resultText": [
+      "푸짐한 음식과 술이 테이블을 가득 채웠다. 병사들은 웃음과 환호로 밤을 밝히며",
+      "활력을 되찾고 사기까지 한껏 끌어올렸다. 그러나 계산서에는 주모의 미소가 덧붙어 있었다.\n"
+    ]
   },
   {
     "choiceId": 112,
     "eventId": 40,
     "choiceText": "가벼운 정비만 하고 떠난다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1579,13 +2341,21 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "주모의 권유를 정중히 거절한 채",
+      "부대는 빠르게 자리를 정비했다. 발걸음은 무겁지만",
+      "눈빛은 여전히 전장을 향해 있었다.\n"
+    ]
   },
   {
     "choiceId": 113,
     "eventId": 41,
     "choiceText": "병사에게 가져오게한다.",
-    "resultDescription": "'기이한 조각' 전쟁 유산 획득. '기이한 조각' 전쟁 유산의 대상이 된 유닛의 기력을 1로 함",
+    "resultDescription": [
+      "기이한 조각 전쟁 유산 획득. 기이한 조각 전쟁 유산의 대상이 된 유닛의 기력을 1로 함"
+    ],
     "requireThing": ["Energy"],
     "requireForm": ["Select"],
     "requireValue": [""],
@@ -1593,13 +2363,21 @@
     "resultType": ["Relic"],
     "resultForm": ["None"],
     "resultValue": ["79"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": [
+      "기이한 조각 전쟁 유산을 획득.",
+      "기이한 조각 전쟁 유산의 대상이 된 유닛의 기력을 1로 함"
+    ],
+    "resultText": [
+      "{require[0]}은(는) 주저하다가 기이한 조각을 손에 쥐었다. 무한한 힘이 손끝에 스며들었지만",
+      "지금은 숨 돌릴 틈조차 없었다. 첫 전투가 곧 시험대가 될 것이다.\n"
+    ]
   },
   {
     "choiceId": 114,
     "eventId": 41,
     "choiceText": "무시한다",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1607,13 +2385,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "부대는 안도의 숨을 내쉬며 발걸음을 옮겼지만",
+      "마지막 순간 한 병사의 시선이 조각에 머물렀다.\n"
+    ]
   },
   {
     "choiceId": 115,
     "eventId": 42,
     "choiceText": "산을 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '산' 전장 효과 적용",
+    "resultDescription": ["다음 전투에서 산 전장 효과 적용"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1621,13 +2404,17 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["2"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["", "\n다음 전투에서 산 전장 효과 적용.\n"],
+    "resultText": [
+      "부대는 산을 향해 발걸음을 옮겼다. 거친 바람과 험한 바위길이 이들을 기다리고 있었다.\n"
+    ]
   },
   {
     "choiceId": 116,
     "eventId": 42,
     "choiceText": "숲을 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '숲' 전장 효과 적용",
+    "resultDescription": ["다음 전투에서 숲 전장 효과 적용"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1635,13 +2422,17 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["4"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["", "\n다음 전투에서 숲 전장 효과 적용.\n"],
+    "resultText": [
+      "부대는 숲을 향해 발걸음을 옮겼다. 속삭이는 나뭇잎과 어둑한 그늘이 진군길을 감쌌다.\n"
+    ]
   },
   {
     "choiceId": 117,
     "eventId": 43,
     "choiceText": "숲을 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '숲' 전장 효과 적용",
+    "resultDescription": ["다음 전투에서 숲 전장 효과 적용"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1649,13 +2440,17 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["4"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["", "\n다음 전투에서 숲 전장 효과 적용.\n"],
+    "resultText": [
+      "부대는 숲을 향해 발걸음을 옮겼다. 속삭이는 나뭇잎과 어둑한 그늘이 진군길을 감쌌다.\n"
+    ]
   },
   {
     "choiceId": 118,
     "eventId": 43,
     "choiceText": "늪지를 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용",
+    "resultDescription": ["다음 전투에서 늪지대 전장 효과 적용"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1663,13 +2458,17 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["3"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["", "\n다음 전투에서 늪지대 전장 효과 적용.\n"],
+    "resultText": [
+      "부대는 늪지를 향해 발걸음을 옮겼다. 축축한 안개와 미끄러운 땅이 이들의 발끝을 붙잡았다.\n"
+    ]
   },
   {
     "choiceId": 119,
     "eventId": 44,
     "choiceText": "늪지를 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용",
+    "resultDescription": ["다음 전투에서 늪지대 전장 효과 적용"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1677,13 +2476,17 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["3"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["", "\n다음 전투에서 늪지대 전장 효과 적용.\n"],
+    "resultText": [
+      "부대는 늪지를 향해 발걸음을 옮겼다. 축축한 안개와 미끄러운 땅이 이들의 발끝을 붙잡았다.\n"
+    ]
   },
   {
     "choiceId": 120,
     "eventId": 44,
     "choiceText": "산을 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '산' 전장 효과 적용",
+    "resultDescription": ["다음 전투에서 산 전장 효과 적용"],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1691,13 +2494,17 @@
     "resultType": ["Field"],
     "resultForm": ["None"],
     "resultValue": ["2"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["", "\n다음 전투에서 산 전장 효과 적용.\n"],
+    "resultText": [
+      "부대는 산을 향해 발걸음을 옮겼다. 거친 바람과 험한 바위길이 이들을 기다리고 있었다.\n"
+    ]
   },
   {
     "choiceId": 121,
     "eventId": 45,
     "choiceText": "한 병사의 훈련을 맡긴다.",
-    "resultDescription": "금화 -100, 선택한 유닛 전직",
+    "resultDescription": ["금화 -100", "선택한 유닛 전직"],
     "requireThing": ["Gold", "Unit"],
     "requireForm": ["None", "Select"],
     "requireValue": ["0", "3"],
@@ -1705,13 +2512,18 @@
     "resultType": ["Change"],
     "resultForm": ["Select"],
     "resultValue": [""],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["선택한 유닛이 전직.", "금화를 100만큼 상실."],
+    "resultText": [
+      "노인은 미소를 흘리며 {require[0]}를 불렀다. 광기 어린 훈련 속에서",
+      "그는 끝내 {result[0]}으로 거듭났다.\n"
+    ]
   },
   {
     "choiceId": 122,
     "eventId": 45,
     "choiceText": "부대의 훈련을 맡긴다.",
-    "resultDescription": "금화 -100, 무작위 병종 무작위 강화",
+    "resultDescription": ["금화 -100", "무작위 병종 무작위 강화"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1719,13 +2531,18 @@
     "resultType": ["Training"],
     "resultForm": ["Random"],
     "resultValue": [""],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전술 개량을 진행.", "금화를 100만큼 상실."],
+    "resultText": [
+      "노인은 고성을 질러 부대를 몰아붙였다. 비웃음은 곧 사라지고",
+      "병사들 사이에 {result[0]}이(가) 자리 잡았다.\n"
+    ]
   },
   {
     "choiceId": 123,
     "eventId": 45,
     "choiceText": "정신 나간 자를 걷어찬다.",
-    "resultDescription": "사기 -5",
+    "resultDescription": ["사기 -5"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1733,13 +2550,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", "사기가 5만큼 감소."],
+    "resultText": [
+      "노인을 거칠게 밀쳐냈다. 병사들은 안 좋은 눈길을 보냈지만",
+      "노인은 아랑곳하지 않고 허공에 칼을 휘두르며 웃었다.\n"
+    ]
   },
   {
     "choiceId": 124,
     "eventId": 46,
     "choiceText": "어둠 속으로 발을 내딛는다.",
-    "resultDescription": "사기 -50, 전설 등급 전쟁 유산",
+    "resultDescription": ["사기 -50", "전설 등급 전쟁 유산"],
     "requireThing": ["Morale"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1747,13 +2569,18 @@
     "resultType": ["Relic"],
     "resultForm": ["Random"],
     "resultValue": ["10"],
-    "resultCount": ["1"]
+    "resultCount": ["1"],
+    "choiceResultText": ["무작위 전쟁 유산을 획득.", "사기가 50만큼 감소."],
+    "resultText": [
+      "병사들이 어둠 속으로 발을 내딛었다. 한치 앞도 보이지 않는 어둠이 그들의 의지를 갈아먹는 듯했지만",
+      "끝내 {result[0]}을(를) 손에 넣었다.\n"
+    ]
   },
   {
     "choiceId": 125,
     "eventId": 46,
     "choiceText": "무시하고 지나간다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1761,13 +2588,21 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "부대는 동굴을 지나쳤다. 몇몇은 잠시 어둠 속을 들여다봤지만",
+      "이내 발걸음을 재촉했다.\n"
+    ]
   },
   {
     "choiceId": 126,
     "eventId": 47,
     "choiceText": "무력으로 제압한다.",
-    "resultDescription": "일반 몬스터 전투, 희귀도 1~2 무작위 유닛 3명 획득",
+    "resultDescription": [
+      "일반 몬스터 전투",
+      "희귀도 1~2 무작위 유닛 3명 획득"
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1775,27 +2610,44 @@
     "resultType": ["Battle", "Unit"],
     "resultForm": ["None", "Random"],
     "resultValue": ["1", "1~2"],
-    "resultCount": ["1", "3"]
+    "resultCount": ["1", "3"],
+    "choiceResultText": [
+      "승리 시 무작위 일반 또는 숙련 유닛을 3명 획득하는 ",
+      "일반 전투 진행."
+    ],
+    "resultText": [
+      "병사들은 무기를 들고 무리를 향해 나아갔다. 싸움에 익숙한 자들의 눈빛이 번뜩였고",
+      "충돌은 피할 수 없었다.\n"
+    ]
   },
   {
     "choiceId": 127,
     "eventId": 47,
     "choiceText": "돈으로 회유한다.",
-    "resultDescription": "금화 -300, 희귀도 1~2 무작위 유닛 3명 획득",
+    "resultDescription": ["금화 -300", "희귀도 1~2 무작위 유닛 3명 획득"],
     "requireThing": ["Gold"],
     "requireForm": ["None"],
     "requireValue": [""],
-    "requireCount": ["300"],
+    "requireCount": ["500"],
     "resultType": ["Unit"],
     "resultForm": ["Random"],
     "resultValue": ["1~2"],
-    "resultCount": ["3"]
+    "resultCount": ["3"],
+    "choiceResultText": [
+      "무작위 일반 또는 숙련 유닛 3명 획득.",
+      "금화를 500만큼 상실."
+    ],
+    "resultText": [
+      "돈 주머니를 내밀자 양아치 무리는 눈을 빛내며 따라왔다. 그렇게 {result[0]}",
+      "{result[1]}",
+      "{result[2]}이(가) 부대에 들어섰다.\n"
+    ]
   },
   {
     "choiceId": 128,
     "eventId": 47,
     "choiceText": "저런 병사는 필요 없다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1803,13 +2655,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "무리를 스쳐 지나쳤다. 마을 사람들의 신음과 무리의 웃음소리가 등 뒤로 번졌지만",
+      "부대는 그저 길을 재촉했다.\n"
+    ]
   },
   {
     "choiceId": 129,
     "eventId": 48,
     "choiceText": "거울을 가져간다",
-    "resultDescription": "선택한 유닛을 복사하여 얻음. 전쟁 유산 보상(저주)",
+    "resultDescription": ["선택한 유닛을 복사하여 얻음. 전쟁 유산 보상(저주)"],
     "requireThing": ["Unit"],
     "requireForm": ["Select"],
     "requireValue": [""],
@@ -1817,13 +2674,20 @@
     "resultType": ["Unit", "Relic"],
     "resultForm": ["Select", "Random"],
     "resultValue": ["0", "0"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "선택한 유닛을 복사하여 획득.",
+      "무작위 저주 등급 전쟁 유산을 획득."
+    ],
+    "resultText": [
+      "{require[0]}가 거울 앞에 섰다. 빛이 일그러지며 그와 똑같은 모습이 나타났다. 하지만 거울 속 그의 손에는 {result[0]}이(가) 들려 있었다.\n"
+    ]
   },
   {
     "choiceId": 130,
     "eventId": 48,
     "choiceText": "거울을 깨뜨린다",
-    "resultDescription": "저주 등급 전쟁 유산 1개 제거",
+    "resultDescription": ["저주 등급 전쟁 유산 1개 제거"],
     "requireThing": ["Relic"],
     "requireForm": ["Random"],
     "requireValue": ["0"],
@@ -1831,13 +2695,18 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["저주 등급 전쟁 유산을 제거.", ""],
+    "resultText": [
+      "거울을 내리치자 날카로운 파편이 튀었고",
+      "그 순간 {require[0]}이(가) 산산이 부서졌다.\n"
+    ]
   },
   {
     "choiceId": 131,
     "eventId": 48,
     "choiceText": "내버려 둔다",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1845,13 +2714,21 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "부대는 마법 기운이 뿜어져 나오는 거울을 외면한 채",
+      "조용히 발걸음을 옮겼다.\n"
+    ]
   },
   {
     "choiceId": 132,
     "eventId": 49,
     "choiceText": "상자를 열어본다.",
-    "resultDescription": "50% 확률로 전설 등급 전쟁 유산, 50% 확률로 전쟁 유산 보상(저주)",
+    "resultDescription": [
+      "50% 확률로 전설 등급 전쟁 유산",
+      "50% 확률로 전쟁 유산 보상(저주)"
+    ],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1859,13 +2736,21 @@
     "resultType": ["Relic"],
     "resultForm": ["Special"],
     "resultValue": ["10", "0"],
-    "resultCount": ["1", "1"]
+    "resultCount": ["1", "1"],
+    "choiceResultText": [
+      "50% 확률로 무작위 전쟁 유산을 획득.",
+      "50% 확률로 무작위 저주 등급 전쟁 유산을 획득."
+    ],
+    "resultText": [
+      "상자가 열리자 따스한 빛이 퍼졌다. 그 안에는 {result[0]}이(가) 고요히 놓여 있었다.\n",
+      "\n상자가 열리자 차가운 기운이 흘러나왔다. 그 안에는 {result[0]}이(가) 기다리고 있었다.\n"
+    ]
   },
   {
     "choiceId": 133,
     "eventId": 49,
     "choiceText": "그냥 지나친다.",
-    "resultDescription": "아무 일도 없음.",
+    "resultDescription": ["아무 일도 없음."],
     "requireThing": ["None"],
     "requireForm": ["None"],
     "requireValue": [""],
@@ -1873,6 +2758,10 @@
     "resultType": ["None"],
     "resultForm": ["None"],
     "resultValue": [""],
-    "resultCount": [""]
+    "resultCount": [""],
+    "choiceResultText": ["", ""],
+    "resultText": [
+      "모르는 것을 굳이 열어볼 필요는 없었다. 부대는 상자를 지나쳐 걸음을 옮겼다.\n"
+    ]
   }
 ]

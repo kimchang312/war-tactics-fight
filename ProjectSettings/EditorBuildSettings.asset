@@ -27,7 +27,7 @@ EditorBuildSettings:
     path: Assets/chan/chanScenes/Unit_UI.unity
     guid: 4dba5829a92fc8747994991691e11d1b
   - enabled: 1
-    path: Assets/KimChang/KimScenes/Upgrade.unity
+    path: Assets/KimChang/KimScenes/Test.unity
     guid: 77da6a257b5a7e94ca009bf00cd56885
   - enabled: 1
     path: Assets/chan/chanScenes/RLmap.unity

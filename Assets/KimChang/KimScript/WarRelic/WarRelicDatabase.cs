@@ -172,12 +172,20 @@ public static class WarRelicDatabase
     //도금 망원경 4
     private static void GoldPlatedTelescope()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 4;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
             if (unit.branchIdx == 2)
             {
-                unit.range++;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Range,
+                    value = 1,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
                 break;
             }
         }
@@ -204,14 +212,21 @@ public static class WarRelicDatabase
     //순금 검 8
     private static void GoldenSword()
     {
+        int id = 8;
         int gold= RogueLikeData.Instance.GetCurrentGold();
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
         if (gold > 0)
         {
-            units = RogueLikeData.Instance.GetMyUnits();
             foreach (var unit in units)
             {
-                unit.attackDamage += MathF.Round(unit.baseAttackDamage*(gold/100));
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.AttackDamage,
+                    value = unit.baseAttackDamage * (gold / 100),
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
     }
@@ -226,56 +241,69 @@ public static class WarRelicDatabase
     //광기의 깃발 10
     private static void FlagOfMadness()
     {
+        int id = 10;
         RogueLikeData.Instance.AddMyMultipleDamage(0.2f);
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
-        foreach(var unit in units)
+        foreach (var unit in units)
         {
-            unit.armor = UnityEngine.Mathf.Max(0, unit.armor - 1);
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Armor,
+                value = -1,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
 
     // 혼돈의 깃발 11
     private static void FlagOfChaos()
     {
+        int id = 11;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
-
-        if (units == null || units.Count == 0)
-        {
-            return;
-        }
-
-        // 유닛 리스트 무작위로 섞기
-        System.Random random = new();
-        for (int i = units.Count - 1; i > 0; i--)
-        {
-            int j = random.Next(i + 1);
-            (units[i], units[j]) = (units[j], units[i]);
-        }
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         // 유닛 데이터 수정
         foreach (var unit in units)
         {
-            unit.maxHealth += MathF.Round(unit.baseHealth*0.3f);
-            unit.health = unit.maxHealth;
-            unit.attackDamage +=MathF.Round(unit.baseAttackDamage * 0.3f);
-
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.3f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.3f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
             if (unit.rangedAttack)
             {
-                unit.range++;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Range,
+                    value = 1,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
-
-        RogueLikeData.Instance.SetAllMyUnits(units);
     }
-
 
     //위대한 지휘관의 훈장 12
     private static void MedalOfGreatCommander()
     {
+        int id = 12;
         //유닛 상한은 미구현
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
         HashSet<int> unitIds = new HashSet<int>();
         bool hasDuplicate = false;
 
@@ -292,10 +320,23 @@ public static class WarRelicDatabase
         {
             foreach (var unit in units)
             {
-                unitIds.Add(unit.idx);
-                unit.maxHealth += MathF.Round(unit.baseHealth * 0.2f);
-                unit.health = unit.maxHealth;
-                unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
+                unitIds.Add(unit.idx); 
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Health,
+                    value = unit.baseHealth * 0.2f,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Health,
+                    value = unit.baseAttackDamage * 0.2f,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
     }
@@ -309,12 +350,20 @@ public static class WarRelicDatabase
     //가시 갑옷 14
     private static void ReactiveThornArmor()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 14;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
             if (unit.thorns)
             {
-                unit.armor += 2;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Armor,
+                    value = 2,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
             if(unit.heavyArmor && !unit.thorns)
             {
@@ -326,12 +375,20 @@ public static class WarRelicDatabase
     //수호자의 훈장 15
     private static void MedalOfImperialGuard()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 15;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
             if (unit.guard)
             {
-                unit.armor+=4;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Armor,
+                    value = 4,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
     }
@@ -339,14 +396,22 @@ public static class WarRelicDatabase
     //헤르메스 신발 16
     private static void VeryLightMilitaryPants()
     {
+        int id = 16;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
             if(unit.lightArmor)
             {
-                unit.mobility += 8;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Mobility,
+                    value = 8,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
     }
@@ -355,8 +420,8 @@ public static class WarRelicDatabase
     private static void PhalanxTacticsBook()
     {
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
-        foreach(var unit in units)
+        var units = RogueLikeData.Instance.GetMyTeam();
+        foreach (var unit in units)
         {
             if (unit.branchIdx == 0)
             {
@@ -374,14 +439,22 @@ public static class WarRelicDatabase
     //정예 궁병 부대 깃털모자 19
     private static void EliteArcherFeatherHat()
     {
+        int id = 19;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
             if (unit.branchIdx == 2)
             {
-                unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.AttackDamage,
+                    value = unit.baseAttackDamage * 0.2f,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
     }
@@ -389,16 +462,30 @@ public static class WarRelicDatabase
     //민병대 나팔 20
     private static void MilitiaHorn()
     {
+        int id = 20;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
             if (unit.rarity == 1)
             {
-                unit.maxHealth += MathF.Round(unit.baseHealth * 0.15f);
-                unit.health = unit.maxHealth;
-                unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.15f);
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Health,
+                    value = unit.baseHealth * 0.15f,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.AttackDamage,
+                    value = unit.baseAttackDamage * 0.15f,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
     }
@@ -406,17 +493,31 @@ public static class WarRelicDatabase
     //소름끼치는 구슬 21
     private static void CreepyOrb()
     {
+        int id = 21;
         // RogueLikeData 싱글톤 사용
         int curseCount = RogueLikeData.Instance.GetRelicsByGrade(0).Count;
         if (curseCount == 0) return;
 
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
-            unit.maxHealth += MathF.Round(unit.baseHealth * (curseCount * 0.1f));
-            unit.health = unit.maxHealth;
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage * (curseCount * 0.1f));
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * (curseCount * 0.1f),
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * (curseCount * 0.1f),
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
 
@@ -447,13 +548,20 @@ public static class WarRelicDatabase
     //완성된 보석 건틀렛 26
     private static void CompletedGemGauntlet()
     {
+        int id = 26;
         // RogueLikeData 싱글톤 사용
         var units = RogueLikeData.Instance.GetEnemyUnits();
 
         foreach (var unit in units)
         {
-            unit.maxHealth -= MathF.Round(unit.baseHealth * 0.5f);
-            unit.health = unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = -0.5f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = true
+            });
         }
     }
 
@@ -472,12 +580,20 @@ public static class WarRelicDatabase
     //부러진 직검 29
     private static void BrokenStraightSword()
     {
+        int id = 29;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
-            unit.attackDamage -= MathF.Round(unit.baseAttackDamage*0.15f);
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = -unit.baseAttackDamage * 0.15f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
 
@@ -490,24 +606,42 @@ public static class WarRelicDatabase
     //해진 군화 31 
     private static void WornOutBoots()
     {
+        int id = 31;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
-            unit.mobility = UnityEngine.Mathf.Max(1, unit.mobility - 2);
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Mobility,
+                value = -2,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            //unit.mobility = UnityEngine.Mathf.Max(1, unit.mobility - 2);
         }
     }
 
     //갈라진 방패 32
     private static void SplitShield()
     {
+        int id = 32;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
-            unit.armor = UnityEngine.Mathf.Max(1, unit.armor - 2);
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Armor,
+                value = -2,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            //unit.armor = UnityEngine.Mathf.Max(1, unit.armor - 2);
         }
     }
 
@@ -532,15 +666,40 @@ public static class WarRelicDatabase
     //맹인전사의 안대 36
     private static void BlindWarriorEyepatch()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
-        foreach(var unit in units)
+        int id = 36;
+        var units = RogueLikeData.Instance.GetMyTeam();
+        foreach (var unit in units)
         {
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage *0.2f);
-            unit.maxHealth += MathF.Round(unit.baseHealth*0.2f);
-            unit.health =unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.2f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            }); 
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.2f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            //unit.attackDamage += MathF.Round(unit.baseAttackDamage *0.2f);
+            //unit.maxHealth += MathF.Round(unit.baseHealth*0.2f);
+            //unit.health =unit.maxHealth;
             if (unit.rangedAttack)
             {
-                unit.range++;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Range,
+                    value = 1,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
+                //unit.range++;
             }
         }
     }
@@ -548,24 +707,42 @@ public static class WarRelicDatabase
     //덧댐 장갑판 37
     private static void ReinforcedArmorPlate()
     {
+        int id = 37;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
-            unit.armor += 1;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Armor,
+                value = 1,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            //unit.armor += 1;
         }
     }
 
     //장식된 단검 38
     private static void DecoratedDagger()
     {
+        int id = 38;
         // RogueLikeData 싱글톤 사용
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
 
         foreach (var unit in units)
         {
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.1f);
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.1f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            //unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.1f);
         }
     }
 
@@ -584,6 +761,7 @@ public static class WarRelicDatabase
     //파괴공작용 대포 41
     private static void CannonForSabotage()
     {
+        int id = 41;
         StageType stage = RogueLikeData.Instance.GetCurrentStageType();
         if(stage == StageType.Combat || stage == StageType.Elite)
         {
@@ -592,8 +770,16 @@ public static class WarRelicDatabase
 
             foreach (var unit in units)
             {
-                unit.maxHealth -= MathF.Round(unit.baseHealth*0.1f);
-                unit.health = unit.maxHealth;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Health,
+                    value = -unit.baseHealth * 0.1f,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
+                //unit.maxHealth -= MathF.Round(unit.baseHealth*0.1f);
+                //unit.health = unit.maxHealth;
             }
         }
     }
@@ -601,7 +787,7 @@ public static class WarRelicDatabase
     // 자율 개발 명령서 42
     private static void AutonomousDevelopmentOrder()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         var unitTypes = myUnits.Select(u => u.branchIdx)
                                .Distinct()
                                .Where(t => t >= 0 && t < 8)
@@ -643,6 +829,7 @@ public static class WarRelicDatabase
     //전술적 단일화 교본 45
     private static void TacticalUnificationManual()
     {
+        int id = 45;
         // RogueLikeData 싱글톤 사용
         var units = RogueLikeData.Instance.GetEnemyUnits();
         bool allCorret=true;
@@ -659,9 +846,40 @@ public static class WarRelicDatabase
         if (!allCorret) return;
         foreach (var unit in units)
         {
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
-            if (unit.lightArmor) unit.mobility += 5;
-            else unit.armor += 5;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.2f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            //unit.attackDamage += MathF.Round(unit.baseAttackDamage * 0.2f);
+            if (unit.lightArmor)
+            {
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Mobility,
+                    value = 5,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
+                unit.mobility += 5;
+            }
+            else 
+            {
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Armor,
+                    value = 5,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
+                unit.armor += 5;
+                    
+            };        
         }
     }
 
@@ -722,7 +940,8 @@ public static class WarRelicDatabase
     // 혼돈의 주사위 (Relic 55) - 최소 60%, 최대 200% 값으로 설정 55
     private static void ChaosDice()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 55;
+        var units = RogueLikeData.Instance.GetMyTeam();
         System.Random random = new System.Random();
 
         foreach (var unit in units)
@@ -731,9 +950,25 @@ public static class WarRelicDatabase
             float healthMultiplier = (float)random.Next(60, 201) / 100f;   // 60% ~ 200%
             float attackMultiplier = (float)random.Next(60, 201) / 100f;  // 60% ~ 200%
 
-            unit.maxHealth += MathF.Round(unit.baseHealth * (1-healthMultiplier)); // 원래 체력의 60~200% 적용
-            unit.health = unit.maxHealth;
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage * (1-attackMultiplier)); // 원래 공격력의 60~200% 적용
+            //unit.maxHealth += MathF.Round(unit.baseHealth * (1-healthMultiplier)); // 원래 체력의 60~200% 적용
+            //unit.health = unit.maxHealth;
+            //unit.attackDamage += MathF.Round(unit.baseAttackDamage * (1-attackMultiplier)); // 원래 공격력의 60~200% 적용
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * (healthMultiplier-1),
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * (attackMultiplier-1),
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
 
@@ -765,67 +1000,162 @@ public static class WarRelicDatabase
     //무명의 군단 배지 60
     private static void NamelessLegionBadge()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 60;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
             if (unit.branchIdx == 8) return;
-            unit.maxHealth += MathF.Round(unit.baseHealth*0.2f);
-            unit.health = unit.maxHealth;
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.2f);
-            unit.armor += 2;
+            //unit.maxHealth += MathF.Round(unit.baseHealth*0.2f);
+            //unit.health = unit.maxHealth;
+            //unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.2f);
+            //unit.armor += 2;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.2f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.2f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Armor,
+                value = 2,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
 
     //뜨거운 심장 모형 61
     private static void HotHeartModel()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 61;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
-            unit.maxHealth += MathF.Round(unit.baseHealth*0.1f);
-            unit.health =unit.maxHealth;
+            //unit.maxHealth += MathF.Round(unit.baseHealth*0.1f);
+            //unit.health =unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.1f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //약자낙인 인두 62
     private static void UnderDogStigma()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 62;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
-            unit.maxHealth -= MathF.Round(unit.baseHealth*0.15f);
-            unit.health = unit.maxHealth;
+            //unit.maxHealth -= MathF.Round(unit.baseHealth*0.15f);
+            //unit.health = unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.15f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //매우 진한 스프 63
     private static void VeryThickSoup()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 63;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
-            unit.maxHealth += MathF.Round(unit.baseHealth*0.1f);
-            unit.health = unit.maxHealth;
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.1f);
-            unit.armor += 1;
-            unit.mobility += 1;
+            //unit.maxHealth += MathF.Round(unit.baseHealth*0.1f);
+            //unit.health = unit.maxHealth;
+            //unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.1f);
+            //unit.armor += 1;
+            //unit.mobility += 1;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.1f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.1f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Armor,
+                value = 1,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Mobility,
+                value = 1,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+
         }
     }
     //전쟁 군주의 투구 64
     private static void WarlordHelm()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 64;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
-            unit.maxHealth += MathF.Round(unit.baseHealth*0.25f);
-            unit.health = unit.maxHealth;
+            //unit.maxHealth += MathF.Round(unit.baseHealth*0.25f);
+            //unit.health = unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.25f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //전쟁 군주의 검 65
     private static void WarlordSword()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 65;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
-            unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.25f);
+            //unit.attackDamage += MathF.Round(unit.baseAttackDamage*0.25f);
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.25f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //확장 진형도 66
@@ -841,7 +1171,7 @@ public static class WarRelicDatabase
     //전리품 주머니 68
     private static void LootBag()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
         var plunder = units.FirstOrDefault(u=>u.plunder);
         if (plunder == null) return;
         // plunder가 false인 유닛들을 필터링합니다.
@@ -859,14 +1189,32 @@ public static class WarRelicDatabase
     //전위대의 갑옷 69
     private static void VanguardArmor()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
-        units[0].armor += 3;
+        int id = 69;
+        var units = RogueLikeData.Instance.GetMyTeam();
+        //units[0].armor += 3;
+        units[0].stats.AddModifier(new StatModifier
+        {
+            stat = StatType.Armor,
+            value = 3,
+            source = SourceType.Relic,
+            modifierId = id,
+            isPercent = false
+        });
     }
     //선봉대 군화 70
     private static void VanguardBoots()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
-        units[0].mobility += 3;
+        int id = 70;
+        var units = RogueLikeData.Instance.GetMyTeam();
+        //units[0].mobility += 3;
+        units[0].stats.AddModifier(new StatModifier
+        {
+            stat = StatType.Mobility,
+            value = 3,
+            source = SourceType.Relic,
+            modifierId = id,
+            isPercent = false
+        });
     }
     //녹슨 쇠말뚝 71
     private static void RustyIronStake()
@@ -876,53 +1224,7 @@ public static class WarRelicDatabase
     //수상한 부등변다면체 72
     private static void SuspiciousScalenePolyhedron()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        var enemyUnits= RogueLikeData.Instance.GetEnemyUnits();
-        //영웅 유닛의 인덱스 범위
-        int minIdx = 52;
-        int maxIdx = 66;
-
-        //영웅 유닛 목록 가져오기
-        var allUnits = RogueLikeData.Instance.GetMyUnits();
-        var heroUnits = allUnits.FindAll(unit => unit.idx >= minIdx && unit.idx <= maxIdx && unit.health > 0);
-
-        if (heroUnits.Count == 0) return; //영웅 유닛이 없으면 함수 종료
-
-        //랜덤으로 영웅 유닛 하나 선택
-        var randomUnit = heroUnits[new System.Random().Next(0, heroUnits.Count)];
-
-        //유닛의 복사본 생성
-        RogueUnitDataBase newUnit = new RogueUnitDataBase(
-            randomUnit.idx, randomUnit.unitName, randomUnit.unitBranch, randomUnit.branchIdx, randomUnit.unitId,
-            randomUnit.unitExplain, randomUnit.unitImg, randomUnit.unitFaction, randomUnit.factionIdx,
-            randomUnit.tag, randomUnit.tagIdx, randomUnit.unitPrice, randomUnit.rarity,
-            randomUnit.health, randomUnit.armor, randomUnit.attackDamage, randomUnit.mobility,
-            randomUnit.range, randomUnit.antiCavalry, randomUnit.energy,
-            randomUnit.baseHealth, randomUnit.baseArmor, randomUnit.baseAttackDamage, randomUnit.baseMobility,
-            randomUnit.baseRange, randomUnit.baseAntiCavalry, randomUnit.baseEnergy,
-            randomUnit.lightArmor, randomUnit.heavyArmor, randomUnit.rangedAttack, randomUnit.bluntWeapon,
-            randomUnit.pierce, randomUnit.agility, randomUnit.strongCharge, randomUnit.perfectAccuracy,
-            randomUnit.slaughter, randomUnit.bindingForce, randomUnit.bravery, randomUnit.suppression,
-            randomUnit.plunder, randomUnit.doubleShot, randomUnit.scorching, randomUnit.thorns,
-            randomUnit.endless, randomUnit.impact, randomUnit.healing, randomUnit.lifeDrain,
-            randomUnit.charge, randomUnit.defense, randomUnit.throwSpear, randomUnit.guerrilla,
-            randomUnit.guard, randomUnit.assassination, randomUnit.drain, randomUnit.overwhelm,
-            randomUnit.martyrdom, randomUnit.wounding, randomUnit.vengeance, randomUnit.counter,
-            randomUnit.firstStrike, randomUnit.challenge, randomUnit.smokeScreen,
-            randomUnit.maxHealth, randomUnit.maxEnergy, true, false, -1, new Dictionary<int, BuffDebuffData>()
-        );
-        //10% 확률로 enemyUnits에 추가
-        if (UnityEngine.Random.value <= 0.1f)
-        {
-            enemyUnits.Insert(UnityEngine.Random.Range(0, enemyUnits.Count + 1), newUnit);
-            RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
-        }
-        else
-        {
-            //myUnits에 랜덤 위치로 삽입
-            myUnits.Insert(UnityEngine.Random.Range(0, myUnits.Count + 1), newUnit);
-            RogueLikeData.Instance.SetAllMyUnits(myUnits);
-        }
+        
     }
 
     //뭐든지 들어있는 상자 73
@@ -939,7 +1241,7 @@ public static class WarRelicDatabase
     //푯대 75
     private static void Signpost()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
             int id = 5, type = 0, rank = 1, duration = -1;
@@ -949,7 +1251,7 @@ public static class WarRelicDatabase
     //경랑 갑옷 76
     private static void LightWeightArmor()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
             int id = 6, type = 0, rank = 1, duration = -1;
@@ -967,13 +1269,30 @@ public static class WarRelicDatabase
     //사리 유산 78
     private static void SariHeritage()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 78;
+        var units = RogueLikeData.Instance.GetMyTeam();
         int sariStack = RogueLikeData.Instance.GetSariStack();
         foreach(var unit in units)
         {
-            unit.maxHealth += Mathf.Round(unit.baseHealth * 0.01f * sariStack);
-            unit.health = unit.maxHealth;
-            unit.attackDamage = Mathf.Round(unit.baseAttackDamage *0.01f*sariStack);
+            //unit.maxHealth += Mathf.Round(unit.baseHealth * 0.01f * sariStack);
+            //unit.health = unit.maxHealth;
+            //unit.attackDamage = Mathf.Round(unit.baseAttackDamage *0.01f*sariStack);
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.01f * sariStack,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.01f * sariStack,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //기이한 조각 79
@@ -983,29 +1302,47 @@ public static class WarRelicDatabase
     //합금 박차 80
     private static void AlloySpur()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 80;
+        var units = RogueLikeData.Instance.GetMyTeam();
         RogueUnitDataBase front =units[0];
         if (front.branchIdx==5 || front.branchIdx == 6)
         {
-            front.maxHealth += MathF.Round(front.baseHealth*0.15f);
-            front.health =front.maxHealth;
+            //front.maxHealth += MathF.Round(front.baseHealth*0.15f);
+            //front.health =front.maxHealth;
+            front.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = front.baseHealth * 0.15f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
             front.strongCharge =true;
         }
     }
     //벼려진 마창 81
     private static void ForgedStable()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 81;
+        var units = RogueLikeData.Instance.GetMyTeam();
         RogueUnitDataBase front = units[0];
         foreach (var unit in units)
         {
-            unit.attackDamage += MathF.Floor((unit.baseMobility * (25 / 9)) - (25 / 9)); 
+            //unit.attackDamage += MathF.Floor((unit.baseMobility * (25 / 9)) - (25 / 9));
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = (unit.baseMobility * (25 / 9)) - (25 / 9),
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //반응 갑옷 82
     private static void ReactiveArmor()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
             unit.attackDamage += MathF.Floor(unit.baseArmor*1.7f);
@@ -1014,13 +1351,22 @@ public static class WarRelicDatabase
     //창술 교범 83
     private static void SpearManual()
     {
-        var units = RogueLikeData.Instance.GetMyUnits();
+        int id = 83;
+        var units = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in units)
         {
             if (unit.defense)
             {
                 unit.maxHealth += 20;
                 unit.health = unit.maxHealth;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Health,
+                    value = 20,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
     }
@@ -1042,7 +1388,8 @@ public static class WarRelicDatabase
     //파이브오브어카인드 87
     private static void FiveOfAKind()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int id = 87;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         var distinctBranches = new HashSet<int>();
 
         // 병종 수 체크
@@ -1059,14 +1406,23 @@ public static class WarRelicDatabase
         foreach (var unit in myUnits)
         {
             if (unit.health <= 0) continue;
-            unit.maxHealth += Mathf.Round(unit.baseHealth*0.15f);
-            unit.health = unit.maxHealth;
+            //unit.maxHealth += Mathf.Round(unit.baseHealth*0.15f);
+            //unit.health = unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.15f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //로열 스트레이트 플러시 88
     private static void RoyalStraightFlush()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int id = 88;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         var distinctBranches = new HashSet<int>();
 
         // 병종 수 체크
@@ -1077,11 +1433,19 @@ public static class WarRelicDatabase
             if(distinctBranches.Count >2) break;
         }
 
-        // 체력 +15%
+        // 공격력 +15%
         foreach (var unit in myUnits)
         {
             if (unit.health <= 0) continue;
-            unit.attackDamage += Mathf.Round(unit.baseAttackDamage*0.15f);
+            //unit.attackDamage += Mathf.Round(unit.baseAttackDamage*0.15f);
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.15f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //찢겨진 명단 89
@@ -1102,25 +1466,59 @@ public static class WarRelicDatabase
     //맛있는 군용식량 92
     private static void DeliciousMilitaryRations()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int id = 92;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach(var unit in myUnits)
         {
             if (unit.branchIdx == 8) continue;
-            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.08f);
-            unit.maxHealth += Mathf.Round(unit.baseHealth * 0.08f);
-            unit.health = unit.maxHealth;
+            //unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.08f);
+            //unit.maxHealth += Mathf.Round(unit.baseHealth * 0.08f);
+            //unit.health = unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.08f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.08f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //맛있는 특별식 93
     private static void DeliciousSpecialMeal()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int id = 93;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
             if (unit.branchIdx != 8) continue;
-            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.12f);
-            unit.maxHealth += Mathf.Round(unit.baseHealth * 0.12f);
-            unit.health = unit.maxHealth;
+            //unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.12f);
+            //unit.maxHealth += Mathf.Round(unit.baseHealth * 0.12f);
+            //unit.health = unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.12f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.12f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //무쇠 투구 94
@@ -1132,12 +1530,21 @@ public static class WarRelicDatabase
     //전속전진의 신발 95
     private static void ShoesOfFullSpeedAhead()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int id = 95;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
             if (unit.impact)
             {
-                unit.mobility += 3;
+                //unit.mobility += 3;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Mobility,
+                    value = 3,
+                    source = SourceType.Relic,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
             if (unit.charge)
             {
@@ -1164,36 +1571,88 @@ public static class WarRelicDatabase
     //무지개의 시작 100
     private static void BeginningOfRainbow()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        myUnits[0].attackDamage += Mathf.Round(myUnits[0].baseAttackDamage * 0.15f);
-        myUnits[0].maxHealth += Mathf.Round(myUnits[0].baseHealth * 0.15f);
-        myUnits[0].health = myUnits[0].maxHealth;
+        int id = 100;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
+        RogueUnitDataBase unit = myUnits[0];
+        //myUnits[0].attackDamage += Mathf.Round(myUnits[0].baseAttackDamage * 0.15f);
+        //myUnits[0].maxHealth += Mathf.Round(myUnits[0].baseHealth * 0.15f);
+        //myUnits[0].health = myUnits[0].maxHealth;
+        unit.stats.AddModifier(new StatModifier
+        {
+            stat = StatType.Health,
+            value = unit.baseHealth * 0.15f,
+            source = SourceType.Relic,
+            modifierId = id,
+            isPercent = false
+        });
+        unit.stats.AddModifier(new StatModifier
+        {
+            stat = StatType.AttackDamage,
+            value = unit.baseAttackDamage * 0.15f,
+            source = SourceType.Relic,
+            modifierId = id,
+            isPercent = false
+        });
     }
     //지평선의 끝 101
     private static void EndOfHorizon()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int id = 101;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         var last = myUnits[myUnits.Count - 1];
-        last.attackDamage += Mathf.Round(last.baseAttackDamage * 0.15f);
-        last.maxHealth += Mathf.Round(last.baseHealth * 0.15f);
-        last.health = last.maxHealth;
+        //last.attackDamage += Mathf.Round(last.baseAttackDamage * 0.15f);
+        //last.maxHealth += Mathf.Round(last.baseHealth * 0.15f);
+        //last.health = last.maxHealth;
+        last.stats.AddModifier(new StatModifier
+        {
+            stat = StatType.Health,
+            value = last.baseHealth * 0.15f,
+            source = SourceType.Relic,
+            modifierId = id,
+            isPercent = false
+        });
+        last.stats.AddModifier(new StatModifier
+        {
+            stat = StatType.AttackDamage,
+            value = last.baseAttackDamage * 0.15f,
+            source = SourceType.Relic,
+            modifierId = id,
+            isPercent = false
+        });
     }
     //도박꾼의 운명 102
     private static void GamblerFate()
     {
+        int id = 102;
         int gold = RogueLikeData.Instance.GetCurrentGold();
         int spentGold = (int)(gold * 0.2f);
         if (spentGold == 0) return;
         RogueLikeData.Instance.ReduceGold(spentGold);
         float addAttack = spentGold * 0.001f;
         float addHealth = spentGold * 0.0005f;
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
             if (unit.tagIdx != 1) continue;
-            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * addAttack);
-            unit.maxHealth += Mathf.Round(unit.baseHealth * addHealth);
-            unit.health = unit.maxHealth;
+            //unit.attackDamage += Mathf.Round(unit.baseAttackDamage * addAttack);
+            //unit.maxHealth += Mathf.Round(unit.baseHealth * addHealth);
+            //unit.health = unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseHealth * addHealth,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * addAttack,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //흑요석 심장 103
@@ -1219,20 +1678,39 @@ public static class WarRelicDatabase
     //훈장 무더기 107
     private static void PileOfMedals()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        int id = 107;
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
-            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.8f);
-            unit.antiCavalry += Mathf.Round(unit.baseAntiCavalry * 0.8f);
-            unit.maxHealth += Mathf.Round(unit.baseHealth * 0.8f);
-            unit.health = unit.maxHealth;
+            //unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.8f);
+            //unit.antiCavalry += Mathf.Round(unit.baseAntiCavalry * 0.8f);
+            //unit.maxHealth += Mathf.Round(unit.baseHealth * 0.8f);
+            //unit.health = unit.maxHealth;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.Health,
+                value = unit.baseHealth * 0.8f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = unit.baseAttackDamage * 0.8f,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
+
         }
     }
     //애매한 묵시록 108
     private static void AmbiguousApocalypse()
     {
+        int id = 108;
         int morale = RogueLikeData.Instance.GetMorale();
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         int addAttack = -30;
         if(morale >= 90)
         {
@@ -1240,13 +1718,21 @@ public static class WarRelicDatabase
         }
         foreach (var unit in myUnits)
         {
-            unit.attackDamage += addAttack;
+            //unit.attackDamage += addAttack;
+            unit.stats.AddModifier(new StatModifier
+            {
+                stat = StatType.AttackDamage,
+                value = addAttack,
+                source = SourceType.Relic,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
     //훈련용 모래주머니 109
     private static void TheoTrainingSandbagsryOfWar()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         bool isAttack = UnityEngine.Random.value < 0.5f;
         for (int i = 0; i < 2; i++)
         {
@@ -1284,7 +1770,7 @@ public static class WarRelicDatabase
     //투창용 깃창 115
     private static void JavelinForThrowing()
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach(var unit in myUnits)
         {
             if (unit.branchIdx != 0) continue;

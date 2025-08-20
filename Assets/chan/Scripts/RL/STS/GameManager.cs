@@ -248,7 +248,7 @@ private void Start()
                 {
                     relic.used = true;
                     rewardUI.gameObject.SetActive(true);
-                    rewardUI.CreateTeasureUI();
+                    rewardUI.SetActiveTeasureBox();
                     return;
                 }
             }
@@ -264,7 +264,7 @@ private void Start()
         {
             rewardUI.gameObject.SetActive(true);
             currentStage?.StopSelectableEffect();
-            rewardUI.CreateTeasureUI();
+            rewardUI.SetActiveTeasureBox();
         }
         
         Debug.Log($"📌 SetCurrentStage: {newStage.level}_{newStage.row}");

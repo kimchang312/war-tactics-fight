@@ -11,7 +11,7 @@ public class SavePlayerData
 {
     public int id;
     public List<RogueUnitDataBase> myUnits;
-    public List<int> relicIds= new();
+    public List<WarRelic> warRelics= new();
     public List<int> eventIds= new();
     public int currentGold;
     public int spentGold = 0;
@@ -26,13 +26,13 @@ public class SavePlayerData
     public int nextUniqueId;
     public int score;
 
-    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<int> relicIds,List<int> eventIds,
+    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<WarRelic> warRelics, List<int> eventIds,
         int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
         StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward,int nextUniqueId,int score)
     {
         this.id = id;
         this.myUnits = myUnits;
-        this.relicIds = relicIds;
+        this.warRelics = warRelics;
         this.eventIds = eventIds;
         this.currentGold = currentGold;
         this.spentGold = spentGold;
@@ -85,10 +85,8 @@ public class SaveData
             {
                 unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
             }
-            foreach (var id in savePlayerData.relicIds)
-            {
-                RogueLikeData.Instance.AcquireRelic(id);
-            }
+            List<WarRelic> warRelics = new(savePlayerData.warRelics);
+            RogueLikeData.Instance.SetRelicBySaveData(warRelics);
 
             RogueLikeData.Instance.SetLoadData(savePlayerData.eventIds,savePlayerData.currentGold, savePlayerData.spentGold,
                 savePlayerData.playerMorale, savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,

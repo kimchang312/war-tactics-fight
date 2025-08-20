@@ -1,5 +1,7 @@
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
 using System;
-
+[JsonConverter(typeof(StringEnumConverter))]
 public enum RelicType
 {
     AllEffect,

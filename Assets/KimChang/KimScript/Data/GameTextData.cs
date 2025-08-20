@@ -86,7 +86,7 @@ public class GameTextData
         { 104, (new[] { "사거리", "Range", "射程" },  new[] { "유닛의 공격 가능 범위.\n 사거리가 2이상이라면 후열에서도 공격 가능하다.", "", "" },new string[0], new string[0])},
         { 105, (new[] { "대기병", "Anti Calvary", "対騎兵" },  new[] { "적이 기병일 때 추가 피해량.", "", "" },new string[0], new string[0])},
         { 106, (new[] { "회피", "Dodge", "回避" }, new[] { "적의 공격을 피할 확률.", "", "" },new string[0], new string[0])},
-        { 107, (new[] { "기력", "Energy", "" }, new[]{"기력. 전투에 참가할 때마다 1 감소. 0이 되면 유닛이 영구적으로 사망한다."},new string[0], new string[0])},
+        { 107, (new[] { "기력", "Energy", "" }, new[]{"기력. 전투에 참가할 때마다 1 감소. 0이 되면 유닛이 영구적으로 사망한다.\n단, 영웅 유닛은 제외"},new string[0], new string[0])},
         { 108, (new[] { "희귀도", "Rarity", "" }, new[] { "높을 수록 획득 난도가 높다.", "", "" },new string[0], new string[0])},
 
 
@@ -152,14 +152,12 @@ public class GameTextData
         { 150, (new[] { "보유 전쟁 유산", "", "" }, new string[0],new string[0], new string[0])},
         { 151, (new[] { "전술 개량 현황", "", "" }, new string[0],new string[0], new string[0])},
         { 152, (new[] { "전술 개량", "", "" }, new string[0],new string[0], new string[0])},
-        { 160, (new[] { "사기", "Morale", "" }, new[] { "전투에서 승리할 때마다 증가. 사기가 높으면 유닛이 강해지고 낮으면 약해진다. 사기가 10 이하가 되면 유닛이 탈영할 수 있고, 0이 되면 원정에 실패한다.", "", "" },new string[0], new string[0])},
+        { 160, (new[] { "사기", "Morale", "" }, new[] { "전투에서 승리할 때마다 증가. 사기가 높으면 유닛이 강해지고 낮으면 약해진다.\n사기가 10 이하가 되면 유닛이 탈영할 수 있고, 0이 되면 원정에 실패한다.", "", "" },new string[0], new string[0])},
         { 170, (new[] { "휴식", "Rest", "" }, new[] { "부대 전체 유닛의 기력을 2만큼 회복시킵니다.", "", "" },new string[0], new string[0])},
         { 171, (new[] { "연회", "Banquet", "" }, new[] { "부대 전체 사기를 20만큼 증가시킵니다.", "", "" },new string[0], new string[0])},
         { 172, (new[] { "훈련", "Traning", "" }, new[] { "다음 전술 개량의 비용이 0이 됩니다.", "", "" }, new string[0], new string[0])},
         { 173, (new[] { "금화", "Gold", "" }, new[] { "다양한 교환에 사용할 수 있다.", "", "" }, new string[0], new string[0])},
         { 174, (new[] { "리롤", "Gold", "" }, new[] { "무작위 선택지를 다시 받을 수 있다.", "", "" }, new string[0], new string[0])},
-
-
 
         { 180, (new[] { "추가 공격력", "", "" }, new[] { "추가 대기병 +30%", "", "" },  new[] { "추가 체력", "", "" },  new[] { "추가 장갑 +5", "", "" })},
         { 181, (new[] { "추가 공격력", "", "" }, new[] { "추가 공격력 +15%", "", "" },  new[] { "추가 체력", "", "" },  new[] { "추가 장갑 +5", "", "" })},

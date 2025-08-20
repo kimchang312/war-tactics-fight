@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public GameObject ItemToolTip;
-    [SerializeField] private GameObject unitPackageToolTip;
+    //[SerializeField] private GameObject unitPackageToolTip;
     private static readonly Dictionary<int, string> gradeText = new() 
     {
         {0,"저주" },
@@ -20,12 +21,12 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     {
         if (ItemToolTip == null)
         {
-            ItemToolTip = FindInactiveObject("ItemToolTip");
-        }
+            ItemToolTip = GameManager.Instance.itemToolTip;
+        }/*
         if (unitPackageToolTip == null)
         {
             unitPackageToolTip = FindInactiveObject("UnitPackageToolTip");
-        }
+        }*/
         ItemInformation info = GetComponent<ItemInformation>();
         if (info == null)
         {
@@ -33,8 +34,8 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             return;
         }
 
-        StoreItemData item = info.item;
-
+        StoreItemData item = info.data.item;
+        /*
         if (info.units.Count != 0)
         {
             unitPackageToolTip.SetActive(true);
@@ -63,8 +64,67 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             unitPackageToolTip.transform.SetAsLastSibling();
             return;
 
-        }
+        }*/
+        TextMeshProUGUI textComponent = ItemToolTip.GetComponentInChildren<TextMeshProUGUI>();
 
+        textComponent.text = "설정되지 않은 아이템";
+
+        if (info.data.relicId != -1)
+        {
+            var relic = WarRelicDatabase.GetRelicById(info.data.relicId);
+            if (relic != null)
+                textComponent.text = $"{relic.name} {gradeText[relic.grade]}\n{relic.tooltip}";
+            else
+                textComponent.text = "유산 정보를 찾을 수 없습니다.";
+        }
+        else if (info.data.isItem)
+        {
+            if (item.itemId >= 0 && item.itemId < 34)
+            {
+                textComponent.text = $"{item.itemName}\n{item.description}";
+            }
+            else if (item.itemId > 59 && item.itemId < 63)
+            {
+                textComponent.text = $"주사위\n리롤을 {int.Parse(item.value)}회 추가한다";
+            }
+        }
+        else if (info.data.isUpgrade)
+        {
+            var (name, description, addOne, addTwo) = GameTextData.GetLocalizedTextFull(info.data.upgradeId);
+            int branch = info.data.upgradeId % 180;
+            string branchName = branch switch
+            {
+                0 => "창병",
+                1 => "전사",
+                2 => "궁병",
+                3 => "중보병",
+                4 => "암살자",
+                5 => "경기병",
+                6 => "중기병",
+                7 => "지원",
+                _ => "",
+            };
+            UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
+            int attackValue = upgrades[branch].attackLevel * 10;
+            int defenseValue = upgrades[branch].defenseLevel * 10;
+            string attackFull = "";
+            string defenseFull = "";
+            if (upgrades[branch].attackLevel > 4) attackFull = description;
+            if (upgrades[branch].defenseLevel > 4) defenseFull = addTwo;
+            textComponent.text = $"{branchName}의 추가 능력치\n{name} +{attackValue}%          {addOne} +{defenseValue}%\n{attackFull}           {defenseFull}";
+        }
+        else
+        {
+            if (info.data.abilityId != -1)
+            {
+                var (name, description) = GameTextData.GetLocalizedText(info.data.abilityId);
+                textComponent.text = $"{name}\n{description}";
+            }
+            else if (info.data.unitId > -1)
+            {
+                return;
+            }
+        }
         RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
         Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -74,7 +134,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             out var mousePosition
         );
 
-        Vector2 offset = new Vector2(110, -110);
+        Vector2 offset = new Vector2(20, -100);
         Vector2 desiredPosition = mousePosition + offset;
         
         Vector2 tooltipSize = tooltipRect.sizeDelta;
@@ -93,78 +153,17 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         tooltipRect.anchoredPosition = desiredPosition;
 
-
-        TextMeshProUGUI textComponent = ItemToolTip.transform.GetChild(ItemToolTip.transform.childCount - 1)
-            .GetComponent<TextMeshProUGUI>();
-
-        textComponent.text = "설정되지 않은 아이템";
-
-        if (info.relicId != -1)
-        {
-            var relic = WarRelicDatabase.GetRelicById(info.relicId);
-            if (relic != null)
-                textComponent.text = $"{relic.name} {gradeText[relic.grade]}\n{relic.tooltip}";
-            else
-                textComponent.text = "유산 정보를 찾을 수 없습니다.";
-        }
-        else if (info.isItem)
-        {
-            if (item.itemId >= 0 && item.itemId < 34)
-            {
-                textComponent.text = $"{item.itemName}\n{item.description}";
-            }
-            else if (item.itemId > 59 && item.itemId < 63)
-            {
-                textComponent.text = $"주사위\n리롤을 {int.Parse(item.value)}회 추가한다";
-            }
-        }
-        else if (info.isUpgrade)
-        {
-            var (name, description, addOne,addTwo) = GameTextData.GetLocalizedTextFull(info.upgradeId);
-            int branch = info.upgradeId % 180;
-            string branchName = branch switch
-            {
-                0 => "창병",
-                1 => "전사",
-                2 => "궁병",
-                3 => "중보병",
-                4 => "암살자",
-                5 => "경기병",
-                6 => "중기병",
-                7 => "지원",
-                _ => "",
-            };
-            UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
-            int attackValue = upgrades[branch].attackLevel * 10;
-            int defenseValue = upgrades[branch].defenseLevel *10;
-            string attackFull = "";
-            string defenseFull = "";
-            if (upgrades[branch].attackLevel >4) attackFull = description;
-            if (upgrades[branch].defenseLevel > 4) defenseFull = addTwo;
-            textComponent.text = $"{branchName}의 추가 능력치\n{name} +{attackValue}%          {addOne} +{defenseValue}%\n{attackFull}           {defenseFull}";
-        }
-        else
-        {
-            if (info.abilityId != -1)
-            {
-                var (name, description) = GameTextData.GetLocalizedText(info.abilityId);
-                textComponent.text = $"{name}\n{description}";
-            }
-            else if(info.unitId > -1)
-            {
-                return;
-            }
-        }
+        Canvas.ForceUpdateCanvases(); // ← 꼭 추가!
 
         ItemToolTip.SetActive(true);
-        unitPackageToolTip.SetActive(false);
+        //unitPackageToolTip.SetActive(false);
         ItemToolTip.transform.SetAsLastSibling();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         ItemToolTip.SetActive(false);
-        unitPackageToolTip.SetActive(false);
+        //unitPackageToolTip.SetActive(false);
     }
 
     private GameObject FindInactiveObject(string name)

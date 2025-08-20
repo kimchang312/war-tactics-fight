@@ -64,14 +64,14 @@ public class UnitDetailExplain : MonoBehaviour
         branchText.text = $"병종: {branchName[unit.branchIdx]}";
         rarityText.text = $"희귀도: {unit.rarity}";
         energyText.text = $"현재 기력: {unit.energy}";
-        healthText.text = $"체력: {unit.maxHealth}";
-        armorText.text = $"장갑: {unit.armor}";
-        attackText.text = $"공격력: {unit.attackDamage}";
-        mobilityText.text = $"기동력: {unit.mobility}";
-        ranageText.text = $"사거리: {unit.range}";
+        healthText.text = UnitStateChange.GetUnitStatusDetail(unit, 1).ToString();
+        armorText.text = UnitStateChange.GetUnitStatusDetail(unit, 2).ToString();
+        attackText.text = UnitStateChange.GetUnitStatusDetail(unit, 3).ToString();
+        mobilityText.text = UnitStateChange.GetUnitStatusDetail(unit, 4).ToString();
+        ranageText.text = UnitStateChange.GetUnitStatusDetail(unit, 0).ToString();
         anitText.text = $"대기병: {unit.antiCavalry}";
         maxEnergyText.text = $"기력: {unit.maxEnergy}";
-        unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/{unit.unitImg}");
+        unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
 
         var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool) && (bool)f.GetValue(unit))
@@ -87,12 +87,12 @@ public class UnitDetailExplain : MonoBehaviour
 
             Image img = ability.GetComponent<Image>();
             img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
-            itemInfo.isItem = false;
+            itemInfo.data.isItem = false;
 
             int? idx = GameTextData.GetIdxFromString(attr.Name);
             // itemInfo.abilityId = attr.Name == "defense" ? 129 : idx ?? -1;
             // 수비태세 툴팁 돌격으로 뜨는 버그 수정
-            itemInfo.abilityId = idx ?? -1;
+            itemInfo.data.abilityId = idx ?? -1;
             explainItem.ItemToolTip = itemToolTip;
 
             Transform abilityBox = idx < 128 ? traitBox : skillBox;

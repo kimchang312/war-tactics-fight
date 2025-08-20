@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class AbilityManager
 {
     private float heavyArmorValue = 15.0f;               
-    private float myBluntWeaponValue = 15.0f;            
-    private float enemyBluntWeaponValue = 15.0f;             
+    private float myBluntWeaponValue = 0;            
+    private float enemyBluntWeaponValue = 0f;             
     private float throwSpearValue = 50.0f;            
     private float overwhelmValue = 1.0f;           
     private float strongChargeValue = 0.5f;        
@@ -21,9 +20,11 @@ public class AbilityManager
     private float drainGainAttackValue = 10.0f;        
     private float suppressionValue = 1.1f;           
     private float thornsDamageValue = 10.0f;            
-    private float fireDamageValue = 10.0f;                    
+    private float fireDamageValue = 0.05f;                    
     private float bloodSuckingValue = 0.2f;                
     private float martyrdomValue = 1.2f;
+    private float mybindingHealth = 15;
+    private float eneymybindingHealth = 15;
     private float mybindingAttackDamage = 5;                  
     private float enemybindingAttackDamage = 5;
     private float moraleMultiplier = 0f;
@@ -64,23 +65,7 @@ public class AbilityManager
                 break;
             case StageType.Boss:
                 ReduceUnitEngery();
-                if (RelicManager.CheckRelicById(39)) morale += 15;
-                break;
-            case StageType.Rest:
-                break;
-            case StageType.Unknown:
-                break;
-            case StageType.Treasure:
-                break;
-            case StageType.Shop:
-                if (RelicManager.CheckRelicById(40))
-                {
-                    var myUnits = RogueLikeData.Instance.GetMyUnits();
-                    foreach (var unit in myUnits)
-                    {
-                        unit.energy = Math.Min(unit.maxEnergy, unit.energy + 1);
-                    }
-                }
+                if (RelicManager.CheckRelicById(39)) RogueLikeData.Instance.ChangeMorale(15);
                 break;
             default:
                 break;
@@ -94,14 +79,19 @@ public class AbilityManager
         {
             case 2:
                 {
-                    var myUnits = RogueLikeData.Instance.GetMyUnits();
-                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-                    foreach (var unit in myUnits)
+                    var allUnits = new List<RogueUnitDataBase>();
+                    allUnits.AddRange(RogueLikeData.Instance.GetMyUnits());
+                    allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
+                    foreach (var unit in allUnits)
                     {
-                        unit.armor++;
-                    }
-                    foreach (var unit in enemyUnits)
-                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Armor,
+                            value = 1,
+                            source = SourceType.Field,
+                            modifierId = fieldId,
+                            isPercent = false
+                        });
                         unit.armor++;
                     }
                     break;
@@ -110,16 +100,19 @@ public class AbilityManager
             case 3:
                 {
                     int id = 9, type = 1, rank = 1, duration = -1;
-                    var myUnits = RogueLikeData.Instance.GetMyUnits();
-                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-                    foreach(var unit in myUnits)
+                    var allUnits = new List<RogueUnitDataBase>();
+                    allUnits.AddRange(RogueLikeData.Instance.GetMyUnits());
+                    allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
+                    foreach (var unit in allUnits)
                     {
-                        unit.mobility = Math.Max(1,unit.mobility-2);
-                        unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
-                    }
-                    foreach(var unit in enemyUnits)
-                    {
-                        unit.mobility = Math.Max(1, unit.mobility - 2);
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Mobility,
+                            value = -2,
+                            source = SourceType.Field,
+                            modifierId = fieldId,
+                            isPercent = false
+                        });
                         unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
                     }
                     break;
@@ -127,13 +120,25 @@ public class AbilityManager
             case 4:
                 {
                     int id = 10, type = 0, rank = 1, duration = -1;
-                    var myUnits = RogueLikeData.Instance.GetMyUnits();
-                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-                    foreach (var unit in myUnits)
+                    var allUnits = new List<RogueUnitDataBase>();
+                    allUnits.AddRange(RogueLikeData.Instance.GetMyUnits());
+                    allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
+                    foreach (var unit in allUnits)
                     {
                         if (unit.lightArmor) unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
-                        if (unit.rangedAttack) unit.attackDamage -= 0.1f * unit.baseAttackDamage; 
+                        if (unit.rangedAttack)
+                        {
+                            unit.stats.AddModifier(new StatModifier
+                            {
+                                stat = StatType.AttackDamage,
+                                value = -unit.baseAttackDamage * 0.1f,
+                                source = SourceType.Field,
+                                modifierId = fieldId,
+                                isPercent = false
+                            });
+                        }
                     }
+                    
                     break;
                 }   
         }
@@ -177,6 +182,7 @@ public class AbilityManager
         bool isReduce = RelicManager.CheckRelicById(105);
         foreach (var unit in myUnits)
         {
+            if (unit.branchIdx == 8) continue;
             if (hasRelic && Random.value < 0.25f)
                 continue;
             int reduce = 1;
@@ -187,7 +193,7 @@ public class AbilityManager
     }
 
     //전투 전 발동(패시브)
-    public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage,AutoBattleUI _autoBattleUI)
+    public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam,AutoBattleUI _autoBattleUI)
     {
         autoBattleUI = _autoBattleUI;
 
@@ -197,7 +203,7 @@ public class AbilityManager
         CheckHeroUnit(units, isTeam);
 
         //사기 발동
-        CalculateFirstMorale(units,isTeam);
+        //CalculateFirstMorale(units,isTeam);
 
         //유닛 효과
         CalculateBloodPriest(units);
@@ -206,22 +212,30 @@ public class AbilityManager
         CalculateWanderer(isTeam);
         CalculateRebelLeader(units, isTeam);
         CalculateIndomitableShield(units, isTeam);
-        CalculateSpearOfStorm(units, isTeam);
+        CalculateBizarreBishop(units, isTeam);
+        //CalculateSpearOfStorm(units, isTeam);
 
         //시너지
         CalculateWarden(units);
         CalculateLongSwordMan(units);
         CalculateLongBowMan(units);
         CalculateSteelCastle(units);
+        CalculateStrikeForce(units);
         CalculateBattleHammer(units,isTeam);
         CalculateEmpire(units);
         CalculateDivinityCountry(units);
         CalculateSevenUnion(units);
 
+        //결속
         CalculataeSolidarity(units, isTeam);
 
         //유닛 강화
-        CalculateUpgradeUnit(units, isTeam);
+        //CalculateUpgradeUnit(units, isTeam);
+
+        foreach(RogueUnitDataBase unit in units)
+        {
+            unit.ApplyModifiers();
+        }
     }
     //전투당 한번(선재 타격 등)
     public bool ProcessStartBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders,float finalDamage,bool isTeam)
@@ -301,17 +315,20 @@ public class AbilityManager
             if (isFirstAttack && frontAttaker.charge && frontAttaker.impact)
             {                
                 RogueUnitDataBase target = CalculateBackAttack(defenders);
-                if (target==null)
+                if (target==null && defenders.Count > 1)
                 {
-                    foreach (var unit in defenders)
+                    for(int k=1; k < defenders.Count; k++)
                     {
-                        if (unit.health > 0)
+                        if (defenders[k].health > 0)
                         {
-                            target = unit;
+                            target = defenders[k];
                             break;
                         }
                     }
                     float impactDamage = MathF.Round(normalDamage * (1 - target.armor / (target.armor + 10)));
+
+                    impactDamage = ChangeBackMultiple(frontAttaker,frontDefender,target,impactDamage);
+
                     target.health -= impactDamage;
 
                     CallDamageText(impactDamage, "충격 ", !isTeam, true, 1);
@@ -518,8 +535,13 @@ public class AbilityManager
         CalculateTheUnsealedOne(deadDefenders.Count, isTeam);
         //불굴의 방패
         CalculateIndomitableShieldDead(attackers, deadAttackers, isTeam);
+        //기괴한 주교의 불사
+        CalculateImmortality(ref attackers, deadAttackers);
+
         //사리유산
         CalculateSariRelic(attackers[0], isTeam, isFrontDefendrDead);
+        //결속
+        CalculataeSolidarity(attackers, isTeam,true);
         //넝마떼기
         RelicManager.SurvivorOfRag(attackers, isTeam);
 
@@ -552,18 +574,25 @@ public class AbilityManager
                 frontAttacker.health = MathF.Min(frontAttacker.maxHealth, heal + frontAttacker.health);
                 frontAttacker.attackDamage += drainGainAttackValue;
             }
-            //노인기사
-            CalculateOldKnight(frontAttacker, isFrontDefendrDead);
-            //
             if (isFrontDefendrDead)
             {
+                //돌격대장
+                CalculateAssaultLeader(attackers, isTeam);
+                //노인기사
+                CalculateOldKnight(frontAttacker, isFrontDefendrDead);
                 //약탈
                 CalculatePlunder(frontAttacker, isTeam);
-                //무한
-                CalculateEndLess(frontAttacker, isTeam);
-                //돌격대장
-                CalculateAssaultLeader(attackers,isTeam);
             }
+        }
+        if (isFrontDefendrDead)
+        {
+            //무한
+            CalculateEndLess(frontAttacker, isTeam);
+        }
+
+        foreach (var unit in attackers)
+        {
+            unit.ApplyModifiers(true);
         }
     }
     //선제 타격
@@ -591,6 +620,9 @@ public class AbilityManager
             if (minHealthIndex == -1) return;
 
             float damage = MathF.Round(attacker.attackDamage * 2 * finalDamage);
+
+            damage = ChangeBackMultiple(attacker, defenders[0], defenders[minHealthIndex], damage);
+
             defenders[minHealthIndex].health -= damage;
             CallDamageText(damage, "선제타격 ", !isTeam, false, minHealthIndex);
         }
@@ -673,6 +705,8 @@ public class AbilityManager
                     return;
                 }
             }
+
+            damage = ChangeBackMultiple(attacker, defenders[0], defenders[minHealthIndex],damage);
 
             defenders[minHealthIndex].health -= damage;
 
@@ -774,9 +808,9 @@ public class AbilityManager
         string text = _text;
         Dictionary<Func<RogueUnitDataBase, bool>, Action> traitEffects = new()
         {
-            { unit => unit.bluntWeapon && defender.heavyArmor, () => CalculateBluntWeapon(isTeam,ref reduceDamage,ref text) }, // 둔기
+            { unit => unit.bluntWeapon && defender.heavyArmor, () => CalculateBluntWeapon(attacker,isTeam,ref reduceDamage,ref text) }, // 둔기
             { unit => unit.slaughter && defender.lightArmor, () => CalculateSlaughter(ref reduceDamage,ref text) }, // 도살
-            { unit => (defender.branchIdx == 5 || defender.branchIdx == 6) && unit.antiCavalry > 0, () => CalculateAntiCavalry(ref reduceDamage,ref text, attacker) }, // 대기병
+            //{ unit => (defender.branchIdx == 5 || defender.branchIdx == 6) && unit.antiCavalry > 0, () => CalculateAntiCavalry(ref reduceDamage,ref text, attacker) }, // 대기병
             { unit => unit.suppression && reduceDamage < 0, () => CalculateSuppression(defender,ref reduceDamage,ref text) } // 제압
         };
 
@@ -795,9 +829,9 @@ public class AbilityManager
         return ((0.95f / 100f) * (mobility * mobility))+1.05f;
     }
     //둔기
-    private void CalculateBluntWeapon(bool isTeam,ref float reduceDamage,ref string text)
+    private void CalculateBluntWeapon(RogueUnitDataBase unit,bool isTeam,ref float reduceDamage,ref string text)
     {
-        reduceDamage -= isTeam?myBluntWeaponValue:enemyBluntWeaponValue;
+        reduceDamage -= isTeam? unit.attackDamage*0.1f+myBluntWeaponValue  : unit.attackDamage*0.1f+enemyBluntWeaponValue;
 
         text += "둔기 ";
     }
@@ -884,7 +918,7 @@ public class AbilityManager
     //체력 회복
     private float HealHealth(RogueUnitDataBase unit, float healValue)
     {
-        if (unit.effectDictionary.ContainsKey(1)) return 0;
+        if (unit.effectDictionary.ContainsKey(1) || unit.effectDictionary.ContainsKey(0)) return 0;
         if (RelicManager.CheckRelicById(84)) return healValue * 1.3f;
         return healValue;
     }
@@ -897,7 +931,7 @@ public class AbilityManager
             int id = 2, type = 0, rank = 1, duration = -1;
             for (int i = 1; i < units.Count; i++)
             {
-                if(units[i].health>0)
+                if(units[i].health>0 && !units[i].effectDictionary.ContainsKey(id))
                 {
                     units[i].effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
                 }
@@ -940,11 +974,16 @@ public class AbilityManager
         burningEffect.Duration = Mathf.Min(burningEffect.Duration, 2);
         burningEffect.EffectGrade = Mathf.Min(burningEffect.EffectGrade, 3);
 
-        float damage = Mathf.Min(burningEffect.EffectGrade * fireDamageValue, fireDamageValue * 3);
+        //작열 데미지 공식 추후 최대 체력을 추가해서 변경
+        float fireDamage = fireDamageValue * unit.maxHealth;
+        float damage = Mathf.Min(burningEffect.EffectGrade * fireDamage, fireDamage * 3);
         unit.health -= damage;
 
         burningEffect.Duration--;
-
+        if(burningEffect.Duration == 0)
+        {
+            unit.effectDictionary.Remove(burningId);
+        }
         CallDamageText(damage, "작열 ", isTeam, false);
     }
     // 치유
@@ -1017,6 +1056,7 @@ public class AbilityManager
                 continue;
 
             float damage = attacker.attackDamage * finalDamage;
+            damage = ChangeBackMultiple(attackers[0], defenders[0], defenders[0], damage, attacker);
 
             for (int k = 0; k < 2; k++)
             {
@@ -1054,16 +1094,34 @@ public class AbilityManager
     //순교 0,1번이 동시에 사망해도 1번에 버프
     private void CalculateMartyrdom(List<RogueUnitDataBase> defenders,int defenderIndex)
     {
+        int id = 8;
         if (defenders[defenderIndex].martyrdom)
         {
             if(defenderIndex+1 < defenders.Count && defenders[defenderIndex + 1].health>0)
             {
-                defenders[defenderIndex + 1].attackDamage = Mathf.Round(defenders[defenderIndex+1].attackDamage * martyrdomValue);
+                defenders[defenderIndex + 1].stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.AttackDamage,
+                    value = defenders[defenderIndex + 1].baseAttackDamage * martyrdomValue,
+                    source = SourceType.Skill,
+                    modifierId = id,
+                    isPercent = false
+                });
+
+                //defenders[defenderIndex + 1].attackDamage = Mathf.Round(defenders[defenderIndex+1].attackDamage * martyrdomValue);
                 //유산
                 if (RelicManager.CheckRelicById(74)) 
                 {
-                    defenders[defenderIndex + 1].maxHealth += defenders[defenderIndex].attackDamage;
-                    defenders[defenderIndex + 1].health += defenders[defenderIndex].attackDamage;
+                    defenders[defenderIndex + 1].stats.AddModifier(new StatModifier
+                    {
+                        stat = StatType.Health,
+                        value = defenders[defenderIndex + 1].baseAttackDamage * martyrdomValue,
+                        source = SourceType.Skill,
+                        modifierId = id,
+                        isPercent = false
+                    });
+                    //defenders[defenderIndex + 1].maxHealth += defenders[defenderIndex].attackDamage;
+                    //defenders[defenderIndex + 1].health += defenders[defenderIndex].attackDamage;
                 }
             }
         }
@@ -1121,7 +1179,7 @@ public class AbilityManager
     //군단장
     private void CalculateCorpsCommander(bool isTeam)
     {
-        int heroId = 52;
+        int heroId = 44;
         List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
         if (heroList.Count <= 0) return;
         if (isTeam)
@@ -1137,7 +1195,7 @@ public class AbilityManager
     //봉인 풀린 자
     private void CalculateTheUnsealedOne(int deadDefenderCount, bool isTeam)
     {
-        int heroId = 53;
+        int heroId = 45;
         List<RogueUnitDataBase> heroUnits= GetHeroUnitList(isTeam,heroId);
         if(heroUnits.Count <= 0) return ;
         foreach (var unit in heroUnits)
@@ -1154,16 +1212,16 @@ public class AbilityManager
     //돌격대장
     private void CalculateAssaultLeader(List<RogueUnitDataBase> units,bool isTeam)
     {
-        if (!isTeam || units[0].idx != 54 || units[0].health <1) return;
+        if (!isTeam || units[0].idx != 46 || units[0].health <1) return;
         int morale = RogueLikeData.Instance.GetMorale();
         RogueLikeData.Instance.ChangeMorale(10);
-        CalculateFirstMorale(units, isTeam, true);
+        UnitStateChange.ApplyMoralState();
 
     }
     //유목민 족장
     private void CalculateNomadicChief(List<RogueUnitDataBase> units, bool isTeam)
     {
-        int heroId = 55;
+        int heroId = 47;
         List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
         if (heroList.Count <= 0) return;
         if (isTeam)
@@ -1184,7 +1242,7 @@ public class AbilityManager
     // 저격수 유닛들을 찾아서 0이 아닌 랜덤한 위치로 이동
     private void CalculateSniper(List<RogueUnitDataBase> units)
     {
-        int heroId = 56;
+        int heroId = 48;
         List<int> sniperIndices = new List<int>();
 
         for (int i = 0; i < units.Count; i++)
@@ -1211,7 +1269,7 @@ public class AbilityManager
     // 떠도는 자 효과 적용
     private void CalculateWanderer(bool isTeam)
     {
-        int heroId = 57;
+        int heroId = 49;
         List<RogueUnitDataBase> wandererList = GetHeroUnitList(isTeam, heroId);
         if (wandererList.Count <= 0) return;
         Dictionary<int, List<RogueUnitDataBase>> targetHeroUnits = isTeam ? myHeroUnits : enemyHeroUnits;
@@ -1222,7 +1280,14 @@ public class AbilityManager
             {
                 if (hero.idx != heroId)  // 떠도는 자가 아닌 다른 영웅에게 효과 적용
                 {
-                    hero.health += 40 * wandererList.Count;
+                    hero.stats.AddModifier(new StatModifier
+                    {
+                        stat = StatType.Health,
+                        value = 40* wandererList.Count,
+                        source = SourceType.Passive,
+                        modifierId = heroId,
+                        isPercent = false
+                    });
                 }
             }
         }
@@ -1230,7 +1295,7 @@ public class AbilityManager
     // 암살단장
     private bool ExecuteAssassinationLeaderStrike(bool isTeam, List<RogueUnitDataBase> defenders, float finalDamage)
     {
-        int heroId = 58;
+        int heroId = 50;
         List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
         bool use = false;
         if (heroList.Count <= 0) return use; 
@@ -1248,7 +1313,7 @@ public class AbilityManager
     //기괴한 주교
     private void CalculateBizarreBishop(List<RogueUnitDataBase> units,bool isTeam)
     {
-        int heroId = 59;
+        int heroId = 51;
         List<RogueUnitDataBase> heroList = GetHeroUnitList(isTeam, heroId);
         if (heroList.Count <= 0) return;
         int id = 7, type = 0, rank = 1, duration = -1;
@@ -1258,24 +1323,25 @@ public class AbilityManager
         }
     }
     //불사 효과
-    private void CalculateImmortality(ref List<RogueUnitDataBase> units,int unitIndex)
+    private void CalculateImmortality(ref List<RogueUnitDataBase> units,List<RogueUnitDataBase> deadUnits)
     {
         int id = 7;
-        if (!units[unitIndex].effectDictionary.ContainsKey(id)) return;
-        
-        // 불사 효과 제거
-        units[unitIndex].effectDictionary.Remove(id);
-        units[unitIndex].health = 10;
+        for (int i = 0; i < deadUnits.Count; i++) 
+        {
+            RogueUnitDataBase unit = deadUnits[i];
+            if (unit.effectDictionary.ContainsKey(id))
+            {
+                unit.effectDictionary.Remove(id);
+                unit.health = 10;
+                units.Add(unit);
+            }
 
-        // 유닛을 리스트에서 제거 후 후열 가장 뒤로 이동
-        RogueUnitDataBase immortalUnit = units[unitIndex];
-        units.RemoveAt(unitIndex);
-        units.Add(immortalUnit);
+        }
     }
     // 노인 기사 효과 적용 (랜덤 특성 획득)
     private void CalculateOldKnight(RogueUnitDataBase unit,bool isFrontDefenderDead)
     {
-        if (unit.idx != 60 || !isFrontDefenderDead || unit.health <= 0) return; // 생존 중인 노인 기사만 적용
+        if (unit.idx != 52 || !isFrontDefenderDead || unit.health <= 0) return;
 
         HashSet<string> excludedTraits = new()
     {
@@ -1300,13 +1366,11 @@ public class AbilityManager
         FieldInfo selectedTrait = availableTraits[UnityEngine.Random.Range(0, availableTraits.Count)];
 
         selectedTrait.SetValue(unit, true);
-
-        availableTraits.Remove(selectedTrait);
     }
     //미치광이 전투 시작 시
     private bool CalculateManiac(List<RogueUnitDataBase> defenders,bool isTeam)
     {
-        int heroId = 61;
+        int heroId = 53;
         List<RogueUnitDataBase> heroList= GetHeroUnitList(isTeam,heroId);
         if (heroList.Count == 0) return false;
         foreach (var unit in defenders)
@@ -1319,7 +1383,7 @@ public class AbilityManager
     // 미치광이 전열 효과
     private void CalculateFrontManiac(RogueUnitDataBase attacker, List<RogueUnitDataBase> defenders)
     {
-        if (attacker.idx != 61) return; 
+        if (attacker.idx != 53) return; 
         if (!CheckBackUnit(defenders)) return; 
 
         List<RogueUnitDataBase> backUnits = defenders.Skip(1).Where(unit => unit.health > 0).ToList();
@@ -1337,7 +1401,7 @@ public class AbilityManager
     //사신
     private float CalculateReaper(bool isTeam)
     {
-        int heroId = 62;
+        int heroId = 54;
         List<RogueUnitDataBase> heroUnits = GetHeroUnitList(isTeam,heroId);
         if(heroUnits.Count <= 0) return 0f;
 
@@ -1351,7 +1415,7 @@ public class AbilityManager
     //고승 유산 추가는 아직 없음
     private void CalculateHighPriest(bool isTeam)
     {
-        int heroId = 63;
+        int heroId = 55;
         List<RogueUnitDataBase> heroUnits = GetHeroUnitList(isTeam, heroId);
         if (heroUnits.Count <= 0) return;
 
@@ -1359,8 +1423,8 @@ public class AbilityManager
     //반란군 지도자 유닛 생성 부분
     private void CalculateRebelLeader(List<RogueUnitDataBase> units, bool isTeam)
     {
-        int heroId = 64;
-        int heroCount = GetHeroUnitList(isTeam, heroId).Count * 3;
+        int heroId = 56;
+        int heroCount = GetHeroUnitList(isTeam, heroId).Count * 2;
         if (heroCount <= 0) return;
 
         for (int i = 0; i < heroCount; i++)
@@ -1374,18 +1438,27 @@ public class AbilityManager
     //불굴의 방패 전투 참여 시
     private void CalculateIndomitableShield(List<RogueUnitDataBase> units,bool isTeam)
     {
-        int heroId = 65;
+        int heroId = 57;
         int heroCount = GetHeroUnitList(isTeam, heroId).Count;
         if (heroCount <= 0) return;
         foreach (var unit in units)
         {
-            if (unit.heavyArmor) unit.armor += 5 * heroCount;
+            if (unit.heavyArmor) { 
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Armor,
+                    value = 5,
+                    source = SourceType.Passive,
+                    modifierId = heroId,
+                    isPercent = false
+                });
+            }
         }
     }
     // 불굴의 방패 중갑 사망 시
     private void CalculateIndomitableShieldDead(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits, bool isTeam)
     {
-        int heroId = 65;
+        int heroId = 57;
         int heroCount = GetHeroUnitList(isTeam,heroId).Count;
         if (heroCount <= 0) return;
 
@@ -1406,7 +1479,7 @@ public class AbilityManager
     //폭풍의 창 전투 참여 시
     private void CalculateSpearOfStorm(List<RogueUnitDataBase> units,bool isTeam)
     {
-        int heroId = 66;
+        int heroId = 58;
         List <RogueUnitDataBase> heroUnits = GetHeroUnitList(isTeam, heroId);
         if(heroUnits.Count <= 0) return;
         foreach (var unit in units)
@@ -1418,99 +1491,72 @@ public class AbilityManager
     private float CalculateSpearOfStormDodge(RogueUnitDataBase unit,bool isTeam,bool isFirstAttack)
     {
         if(!isFirstAttack) return 0;
-        int heroId = 66;
+        int heroId = 58;
         List<RogueUnitDataBase> heroUnits = GetHeroUnitList(isTeam, heroId);
         if (heroUnits.Count <= 0 || unit.branchIdx !=0) return 0f;
         return 0.5f;
     }
     //결속 발동
-    private void CalculataeSolidarity(List<RogueUnitDataBase> units, bool isTeam)
+    public static void CalculataeSolidarity(List<RogueUnitDataBase> units, bool isTeam,bool isBattle =false)
     {
+        int id = 9;
         foreach (var unit in units)
         {
-            if (unit.bindingForce) // 결속이 활성화된 유닛만 체크
+            if (!unit.bindingForce || unit.tagIdx == 0) continue; // 태그 0이면 무시
+
+            // 같은 태그를 가진 유닛 수 계산
+            int sameTagCount = units.Count(u => u.tagIdx == unit.tagIdx);
+
+            // 보정 값
+            float attackBuff = sameTagCount * 5f;
+            float healthBuff = sameTagCount * 15f;
+
+            // 기존 동일 source 제거 후 재적용
+            unit.stats.RemoveModifiersBySource(SourceType.Synergy);
+            unit.stats.AddModifier(new StatModifier
             {
-                foreach (var checkUnit in units)
-                {
-                    // checkUnit.unitTag와 unit.unitTag에 공통된 태그가 하나라도 있으면 공격력 +5
-                    if (unit.tag == checkUnit.tag)
-                    {
-                        unit.attackDamage += isTeam ? mybindingAttackDamage : enemybindingAttackDamage;
-                    }
-                }
-            }
-        }
-    }
-    //사기 계산
-    private void CalculateFirstMorale(List<RogueUnitDataBase> units, bool isTeam, bool isBattle = false)
-    {
-        if (!isTeam) return;
-        int morale = RogueLikeData.Instance.GetMorale();
-        int reduceMorale = RelicManager.CheckRelicById(28) ? -10 : 0;
-        float newMultiplier = 0f;
+                stat = StatType.AttackDamage,
+                value = attackBuff,
+                source = SourceType.Synergy,
+                modifierId = id,
+                isPercent = false
+            });
+            if (isBattle) continue;
 
-        if (morale >= (90 + reduceMorale)) newMultiplier = 0.2f;
-        else if (morale >= (70 + reduceMorale)) newMultiplier = 0.1f;
-        else if (morale <= (30 + reduceMorale)) newMultiplier = -0.1f;
-
-        if (newMultiplier == moraleMultiplier) return; 
-
-        float multiplierDifference = newMultiplier - moraleMultiplier;
-        moraleMultiplier = newMultiplier;
-
-        // 유닛 능력치 조정
-        foreach (var unit in units)
-        {
-            if (morale <= (30 + reduceMorale) && unit.bravery) continue;
-
-            float healthChange = Mathf.Round(unit.baseHealth * multiplierDifference);
-            unit.maxHealth += healthChange;
-            unit.health += healthChange;
-
-            unit.attackDamage += Mathf.Round(unit.baseAttackDamage * multiplierDifference);
-        }
-
-        if (morale <= (10 + reduceMorale) && !isBattle)
-        {
-            RemoveLowMoraleUnits(units);
-        }
-
-        autoBattleUI.UpdateMorale();
-    }
-
-    //사기 탈주
-    private void RemoveLowMoraleUnits(List<RogueUnitDataBase> units)
-    {
-        List<RogueUnitDataBase> removableUnits = new List<RogueUnitDataBase>();
-
-        // 희귀도 1~3 유닛 중 '용맹'이 없는 유닛만 탈주 후보로 추가
-        foreach (var unit in units)
-        {
-            if (unit.rarity >= 1 && unit.rarity <= 3 && !unit.bravery)
+            unit.stats.AddModifier(new StatModifier
             {
-                removableUnits.Add(unit);
-            }
-        }
-
-        // 탈주할 유닛이 있으면 무작위로 한 유닛 선택하여 제거
-        if (removableUnits.Count > 0)
-        {
-            RogueUnitDataBase leavingUnit = removableUnits[UnityEngine.Random.Range(0, removableUnits.Count)];
-            units.Remove(leavingUnit);
+                stat = StatType.Health,
+                value = healthBuff,
+                source = SourceType.Synergy,
+                modifierId = id,
+                isPercent = false
+            });
         }
     }
 
     //파수꾼 시너지
     private void CalculateWarden(List<RogueUnitDataBase> units)
     {
-        if (units.Any(u => u.idx == 21))
+        int id = 1;
+        int idx = 19;
+        if (units.Any(u => u.idx == idx))
         {
             var findUnits = units.Where(u => u.branchIdx == 0).ToList();
             if (findUnits.Count >= 4)
             {
                 foreach (var unit in findUnits)
                 {
-                    unit.antiCavalry += 20;
+                    if(unit.idx == idx)
+                    {
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Health,
+                            value = 20,
+                            source = SourceType.Synergy,
+                            modifierId = id,
+                            isPercent = false
+                        });
+                    }
                 }
             }
         }
@@ -1519,13 +1565,15 @@ public class AbilityManager
     //장검병 시너지
     private void CalculateLongSwordMan(List<RogueUnitDataBase> units)
     {
-        if (units.Any(u => u.idx == 22))
+        int idx = 20;
+        if (units.Any(u => u.idx == idx))
         {
             var findUnits = units.Where(u => u.branchIdx == 1).ToList();
             if (findUnits.Count >= 4)
             {
                 foreach (var unit in findUnits)
                 {
+                    if(unit.idx == idx)
                     unit.strongCharge = true;
                 }
             }
@@ -1535,14 +1583,24 @@ public class AbilityManager
     //장궁병 시너지
     private void CalculateLongBowMan(List<RogueUnitDataBase> units)
     {
-        if (units.Any(u => u.idx == 23))
+        int idx = 21;
+        int id = 3;
+        if (units.Any(u => u.idx == idx))
         {
             var findUnits = units.Where(u => u.branchIdx == 2).ToList();
             if (findUnits.Count >= 3)
             {
                 foreach (var unit in findUnits)
                 {
-                    unit.attackDamage += 10;
+                    if (unit.idx == idx)
+                    unit.stats.AddModifier(new StatModifier
+                    {
+                        stat = StatType.AttackDamage,
+                        value = 10,
+                        source = SourceType.Synergy,
+                        modifierId = id,
+                        isPercent = false
+                    });
                 }
             }
         }
@@ -1551,35 +1609,70 @@ public class AbilityManager
     //철옹성
     private void CalculateSteelCastle(List<RogueUnitDataBase> units)
     {
-        if (units.Any(u => u.idx == 24))
+        int idx = 22;
+        int id = 4;
+        if (units.Any(u => u.idx == idx))
         {
             var findUnits = units.Where(u => u.branchIdx == 3).ToList();
             if (findUnits.Count >= 3)
             {
                 foreach (var unit in findUnits)
                 {
-                    unit.maxHealth += 40;
-                    unit.health += 40;
+                    if (unit.idx == idx)
+                    unit.stats.AddModifier(new StatModifier
+                    {
+                        stat = StatType.Health,
+                        value = 40,
+                        source = SourceType.Synergy,
+                        modifierId = id,
+                        isPercent = false
+                    });
                 }
             }
         }
-            
     }
+    //타격대 시너지
+    private void CalculateStrikeForce(List<RogueUnitDataBase> units)
+    {
+        int idx = 40;
+        int id = 5;
+        if (units.Any(u => u.idx == idx))
+        {
+            var findUnits = units.Where(u => u.branchIdx == 5).ToList();
+            if (findUnits.Count >= 3)
+            {
+                foreach(var unit in findUnits)
+                {
+                    if(unit.idx == idx)
+                        unit.stats.AddModifier(new StatModifier
+                        {
+                            stat = StatType.Mobility,
+                            value = 3,
+                            source = SourceType.Synergy,
+                            modifierId = id,
+                            isPercent = false
+                        });
+                }
+            }
+        }
+    }
+
     //전투망치 시너지
     private void CalculateBattleHammer(List<RogueUnitDataBase> units, bool isTeam)
     {
-        if (units.Any(u => u.idx == 25))
+        int idx = 23;
+        if (units.Any(u => u.idx == idx))
         {
             var findUnits = units.Where(u => u.branchIdx == 6).ToList();
-            if (findUnits.Count >= 4)
+            if (findUnits.Count >= 3)
             {
                 if (isTeam)
                 {
-                    myBluntWeaponValue += 5;
+                    myBluntWeaponValue += 15;
                 }
                 else
                 {
-                    enemyBluntWeaponValue += 5;
+                    enemyBluntWeaponValue += 15;
                 }
             }
         }
@@ -1601,24 +1694,41 @@ public class AbilityManager
     //신성국 시너지
     private void CalculateDivinityCountry(List<RogueUnitDataBase> units)
     {
+        int id = 8;
         var findUnits = units.Where(u => u.factionIdx == 2).ToList();
         if (findUnits.Count >= 5)
         {
             foreach (var unit in units)
             {
-                unit.armor += 1;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Armor,
+                    value = 1,
+                    source = SourceType.Synergy,
+                    modifierId = id,
+                    isPercent = false
+                });
+         
             }
         }
     }
     //칠왕연합 시너지
     private void CalculateSevenUnion(List<RogueUnitDataBase> units)
     {
+        int id = 9;
         var findUnits = units.Where(u => u.factionIdx == 3).ToList();
         if (findUnits.Count >= 5)
         {
             foreach (var unit in units)
             {
-                unit.attackDamage *= 1.03f;
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.AttackDamage,
+                    value = unit.baseAttackDamage*0.03f,
+                    source = SourceType.Synergy,
+                    modifierId = id,
+                    isPercent = false
+                });
             }
         }
     }
@@ -1661,7 +1771,35 @@ public class AbilityManager
         }
     }
 
+    public void SetMultipleDamage(RogueUnitDataBase myFront,RogueUnitDataBase enemyFront,ref float myFinalDamage,ref float enemyFinalDamage)
+    {
+        myFinalDamage = RogueLikeData.Instance.GetMyMultipleDamage();
+        enemyFinalDamage = RogueLikeData.Instance.GetEnemyMultipleDamage();
 
+        myFinalDamage += UpgradeManager.GetAffinityMultiplier(myFront.branchIdx, enemyFront.branchIdx);
+        enemyFinalDamage += UpgradeManager.GetAffinityMultiplier(enemyFront.branchIdx, myFront.branchIdx);
+    }
 
-
+    private float ChangeBackMultiple(RogueUnitDataBase frontAttacker,RogueUnitDataBase frontDeffender, RogueUnitDataBase target,float damage,RogueUnitDataBase backattacker=null)
+    {
+        if(backattacker == null)
+        {
+            float baseMultiple = UpgradeManager.GetAffinityMultiplier(frontAttacker.branchIdx, frontDeffender.branchIdx);
+            float backMultiple = UpgradeManager.GetAffinityMultiplier(frontAttacker.branchIdx, target.branchIdx);
+            if (baseMultiple != backMultiple)
+            {
+                damage = (damage / (1 + baseMultiple)) * (1 + backMultiple);
+            }
+        }
+        else
+        {
+            float baseMultiple = UpgradeManager.GetAffinityMultiplier(frontAttacker.branchIdx, frontDeffender.branchIdx);
+            float backMultiple = UpgradeManager.GetAffinityMultiplier(backattacker.branchIdx, frontDeffender.branchIdx);
+            if (baseMultiple != backMultiple)
+            {
+                damage = (damage / (1 + baseMultiple)) * (1 + backMultiple);
+            }
+        }
+        return damage;
+    }
 }
