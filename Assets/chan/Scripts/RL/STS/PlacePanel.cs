@@ -16,8 +16,14 @@ public class PlacePanel : MonoBehaviour
     [SerializeField] public TextMeshProUGUI maxUnitCount;
     [SerializeField] public TextMeshProUGUI currentUnitCount;
 
+    [Header("플레이어 유닛 배치")]
     public GameObject battleUnitPrefab;
     public RectTransform PrefabContainer;
+    
+    [Header("적 유닛 배치")]
+    public GameObject enemyUnitPrefab;
+    public RectTransform EnemyPrefabsContainer;
+    [SerializeField] public TextMeshProUGUI enemyUnitCountText;  // 적 유닛 수 표시용 텍스트
     //프리팹 식별용 unitOrderingNum 리스트?
     public List<int> PlacedUniqueIds { get; } = new List<int>();
 
@@ -31,14 +37,15 @@ public class PlacePanel : MonoBehaviour
 
         // 현재 배치 수 초기화
         UpdateCountTexts();
+        // 적 유닛 수 초기화
+        UpdateEnemyUnitCount(0);
         // 패널 처음 열릴 때는 항상 초기화
         ClearPlacePanel();
     }
     private void OnBackClicked()
     {
-        // PlacePanel 끄고
+        // 결합 모드에서도 뒤로가기를 누르면 적 정보만 남기고 배치 패널을 닫을 수 있게 처리
         gameObject.SetActive(false);
-        // EnemyInfoPanel 켜기 (이전 정보 그대로)
         enemyInfoPanel.SetActive(true);
     }
     public int AddUnitToBattle(RogueUnitDataBase unit)
@@ -79,8 +86,22 @@ public class PlacePanel : MonoBehaviour
         PlacedUniqueIds.Clear();
         foreach (Transform child in PrefabContainer)
             Destroy(child.gameObject);
+        // 적 유닛 프리팹도 정리
+        ClearEnemyPrefabs();
         // 초기화 후 현재 유닛 수 갱신
         UpdateCountTexts();
+    }
+    
+    public void ClearEnemyPrefabs()
+    {
+        if (EnemyPrefabsContainer != null)
+        {
+            foreach (Transform child in EnemyPrefabsContainer)
+                Destroy(child.gameObject);
+        }
+        
+        // 적 유닛 수 텍스트 초기화
+        UpdateEnemyUnitCount(0);
     }
     public void RemoveUnitFromBattle(RogueUnitDataBase unit)
     {
@@ -133,5 +154,62 @@ public class PlacePanel : MonoBehaviour
         // 최대 배치 가능 수 표시
         int maxUnits = RogueLikeData.Instance.GetMaxUnits();
         maxUnitCount.text = $"/ {maxUnits.ToString()}";
+    }
+    
+    public void UpdateEnemyUnitCount(int count)
+    {
+        if (enemyUnitCountText != null)
+        {
+            enemyUnitCountText.text = count.ToString();
+        }
+        else
+        {
+            Debug.LogWarning("Enemy unit count text is not assigned!");
+        }
+    }
+    
+    public void CreateEnemyPrefabs(List<RogueUnitDataBase> enemies)
+    {
+        if (enemyUnitPrefab == null || EnemyPrefabsContainer == null)
+        {
+            Debug.LogWarning("Enemy prefab or container not assigned!");
+            return;
+        }
+        
+        if (enemies == null || enemies.Count == 0)
+        {
+            Debug.LogWarning("Enemy list is null or empty!");
+            return;
+        }
+        
+        ClearEnemyPrefabs();
+        
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            var enemy = enemies[i];
+            if (enemy == null)
+            {
+                Debug.LogWarning($"Enemy at index {i} is null, skipping...");
+                continue;
+            }
+            
+            var go = Instantiate(enemyUnitPrefab, EnemyPrefabsContainer);
+            var ui = go.GetComponent<UnitUIPrefab>();
+            
+            if (ui == null)
+            {
+                Debug.LogError("UnitUIPrefab component not found on enemy prefab!");
+                Destroy(go);
+                continue;
+            }
+            
+            // 적 유닛 설정 (Context.Enemy로 설정)
+            ui.SetupIMG(enemy, Context.Enemy, enemy.UniqueId);
+            ui.SetupEnergy(enemy);
+            ui.SetNumber(i + 1); // 적 유닛 번호 설정
+        }
+        
+        // 적 유닛 수 텍스트 업데이트
+        UpdateEnemyUnitCount(enemies.Count);
     }
 }

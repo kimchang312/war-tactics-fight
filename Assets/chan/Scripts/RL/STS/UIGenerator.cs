@@ -46,6 +46,7 @@ public class UIGenerator : MonoBehaviour
     {
         // 0) 기존 UI 모두 제거
         ClearUI();
+
         if(mapGenerator ==null)
             mapGenerator = FindAnyObjectByType<MapGenerator>();
         // 1) 경로 생성
@@ -65,24 +66,61 @@ public class UIGenerator : MonoBehaviour
             GameManager.Instance.InitializeStageLocks();
         EnsurePlayerMarker();
     }
+    public void RegenerateMapFromSaveFull(StageFullSaveData savedData)
+    {
+        mapGenerator.ClearAll();
+        var dict = new Dictionary<string, StageNode>();
+
+        // 노드 생성
+        foreach (var entry in savedData.allNodes)
+        {
+            StageNode node = new(entry.level, entry.row, entry.stageType);
+            node.presetID = entry.presetID;
+            string key = $"{node.level}_{node.row}";
+            dict[key] = node;
+        }
+
+        // 연결 복원
+        foreach (var entry in savedData.allNodes)
+        {
+            string key = $"{entry.level}_{entry.row}";
+            StageNode node = dict[key];
+            foreach (var conn in entry.connections)
+            {
+                string connKey = $"{conn.level}_{conn.row}";
+                if (dict.TryGetValue(connKey, out var next))
+                    node.connectedNodes.Add(next);
+            }
+        }
+
+        mapGenerator.OverrideNodeDict(dict);
+
+        ClearUI();
+        CreateUIMap();
+        LinkUIConnections();
+        DrawAllConnectionLines();
+        GameManager.Instance.InitializeStageLocks();
+        EnsurePlayerMarker();
+
+        Debug.Log("🔁 저장된 맵으로 복원 완료");
+    }
+
     private void ClearUI()
     {
-        // mapPanel 하위의 모든 자식 오브젝트 검사
         for (int i = mapPanel.childCount - 1; i >= 0; i--)
         {
             var child = mapPanel.GetChild(i);
-            var isMarker = child.gameObject.GetComponent<PlayerMarkerTag>() != null;
+            if (child.TryGetComponent<PlayerMarkerTag>(out _))
+                continue; // 마커는 유지
+
             if (DOTween.IsTweening(child))
-            {
-                DOTween.Kill(child, true);  // true: 완전히 제거
-            }
+                DOTween.Kill(child, true);
+
             Destroy(child.gameObject);
         }
 
-        // ② 연결선 전부 파괴
         for (int i = connectionParent.childCount - 1; i >= 0; i--)
             Destroy(connectionParent.GetChild(i).gameObject);
-        
     }
     void CreateUIMap()
     {

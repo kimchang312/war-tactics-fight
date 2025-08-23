@@ -9,6 +9,12 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
+    [Header("사기 이미지UI")]
+    [SerializeField] private Image moraleIconImage;
+    [SerializeField] private Sprite normalMoraleSprite;
+    [SerializeField] private Sprite mediumMoraleSprite;
+    [SerializeField] private Sprite highMoraleSprite;
+
     [Header("UI 텍스트 레퍼런스")]
 
     public TextMeshProUGUI goldText;
@@ -52,7 +58,16 @@ public class UIManager : MonoBehaviour
     public void UpdateMorale()
     {
         int m = RogueLikeData.Instance.GetMorale();
-        moraleText.text = m.ToString(); ;
+        moraleText.text = m.ToString();
+        if (moraleIconImage != null)
+        {
+            if (m <= 30)
+                moraleIconImage.sprite = normalMoraleSprite;
+            else if (m <= 70)
+                moraleIconImage.sprite = mediumMoraleSprite;
+            else
+                moraleIconImage.sprite = highMoraleSprite;
+        }
     }
 
     public void UpdateReroll()

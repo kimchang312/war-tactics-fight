@@ -14,16 +14,17 @@ public class GameManager : MonoBehaviour
     public PlacePanel PlacePanelComponent => PlacePanel.GetComponent<PlacePanel>();
     public LineUpBar LineUpBarComponent => lineUpBar;
 
-    [SerializeField] private GameObject eventManager;
-    [SerializeField] private GameObject storeManager;
+    [SerializeField] public GameObject eventManager;
+    [SerializeField] public GameObject storeManager;
 
     [Header("Map UI & Enemy Info Panel")]
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
-    [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
-    [SerializeField] private GameObject restPanel;
-    [SerializeField] private RewardUI rewardUI;
+    [SerializeField] public GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
+    [SerializeField] public GameObject restPanel;
+    [SerializeField] public RewardUI rewardUI;
     [SerializeField] private GameObject loadingPanel;
     public GameObject itemToolTip;
+    
 
     [SerializeField] private RectTransform mapPanel;
 
@@ -135,16 +136,27 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
     }
 
-private void Start()
+    private void Start()
     {
-        // 씬에 있는 모든 StageNodeUI 컴포넌트를 수집
         allStages.AddRange(FindObjectsOfType<StageNodeUI>());
 
-        // (만약 RLmap 이 시작 씬이라면) 맵 진입 시 바로 잠금/언락 초기화
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
+        // 이어하기(불러오기) 처리
+        var save = SaveSystem.LoadFull();
+        if (save != null)
+        {
+            uIGenerator.RegenerateMapFromSaveFull(save);
+            Debug.Log("저장된 맵을 불러왔습니다.");
+        }
+        else
+        {
+            uIGenerator.RegenerateMap();
+            Debug.Log("새 맵을 생성합니다.");
+        }
+
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
             InitializeStageLocks();
     }
-    
+
     public void OnStageClicked(StageNodeUI clickedStage)
     {
         // 디버그: 클릭된 정보 찍기
@@ -196,6 +208,21 @@ private void Start()
         // **currentStage를 무조건 여기서 설정**해 줍니다.
         currentStage = newStage;
 
+        // --- Relic 56: 전투가 아닌 지역 이동 시 사기 -5 ---
+        if (RelicManager.CheckRelicById(56))
+        {
+            bool isNonCombat = newStage.stageType != StageType.Combat &&
+                               newStage.stageType != StageType.Elite &&
+                               newStage.stageType != StageType.Boss;
+
+            if (isNonCombat)
+            {
+                RogueLikeData.Instance.ChangeMorale(-5);
+                UIManager.Instance.UpdateMorale();
+                Debug.Log(" 전투가 없는 지역으로 이동 → 사기 5 감소 (Relic 56 효과)");
+            }
+        }
+
         // 2) 맵 UI 전체 잠금
         foreach (var s in allStages)
             s.LockStage();
@@ -205,17 +232,21 @@ private void Start()
             newStage.stageType == StageType.Elite ||
             newStage.stageType == StageType.Boss)
         {
-
+            // 적 정보 패널과 배치 패널을 동시에 표시
             enemyInfoPanel.SetActive(true);
+            TogglePlacePanel(true);
+            PlacePanelComponent.UpdateMaxUnitText();
+
             var enemies = LoadEnemyUnits(newStage.PresetID);
             var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
 
             string cmdName = preset.Commander ?? "";
-            /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
-                              ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
-                              : "";*/
             var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
-            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName/*, cmdSkill*/);
+            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true);
+            
+            // 적 프리팹을 PlacePanel에 생성
+            PlacePanelComponent.CreateEnemyPrefabs(enemies);
+            
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---

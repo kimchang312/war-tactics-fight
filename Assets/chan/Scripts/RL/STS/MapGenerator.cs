@@ -53,7 +53,15 @@ public class MapGenerator : MonoBehaviour
     private Dictionary<string, StageNode> nodeDict = new Dictionary<string, StageNode>();
     public Dictionary<string, StageNode> NodeDictionary { get { return nodeDict; } }
 
-
+    public void ClearAll()
+    {
+        nodeDict.Clear();
+        paths.Clear();
+    }
+    public void OverrideNodeDict(Dictionary<string, StageNode> loadedDict)
+    {
+        nodeDict = loadedDict;
+    }
     // ─── Combat/Elite/Boss 에 맞춰 presetID 선정 함수 ─────────────────
     private int PickPresetID(int level, StageType stageType)
     {
