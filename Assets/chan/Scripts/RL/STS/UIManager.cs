@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using DG.Tweening;
 
 public class UIManager : MonoBehaviour
 {
@@ -77,5 +78,37 @@ public class UIManager : MonoBehaviour
     public void UpdateChapter(int chapter)
     {
         chapterText.text = $"Chapter {chapter}";
+    }
+
+
+    //금화 증감 애니메이션
+    public void AnimateGoldChange(int baseGold,int newGold)
+    {
+        int startValue = baseGold;
+        int endValue = baseGold + newGold;
+
+        // 기존 트윈이 있으면 중지 (중복 방지)
+        DOTween.Kill(this);
+
+        // 정수값을 부드럽게 증가시키는 DOTween 트윈
+        DOVirtual.Int(startValue, endValue, 0.7f, value =>
+        {
+            goldText.text = value.ToString();
+        }).SetEase(Ease.OutCubic).SetTarget(this);
+    }
+    //사기 증감 애니메이션
+    public void AnimateMoraleChange(int baseMorale,int newMorale)
+    {
+        int startValue = baseMorale;
+        int endValue = baseMorale + newMorale;
+
+        // 기존 트윈이 있으면 중지 (중복 방지)
+        DOTween.Kill(this);
+
+        // 정수값을 부드럽게 증가시키는 DOTween 트윈
+        DOVirtual.Int(startValue, endValue, 0.7f, value =>
+        {
+            moraleText.text = value.ToString();
+        }).SetEase(Ease.OutCubic).SetTarget(this);
     }
 }

@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,7 +8,7 @@ public static class UIMaker
     public static void CreateSelectUnitEnergy(RogueUnitDataBase unit,GameObject selectedUnit)
     {
         Image img = selectedUnit.GetComponent<Image>();
-        img.sprite = SpriteCacheManager.GetSprite($"UnitImages/{unit.unitImg}");
+        img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
         TextMeshProUGUI textMeshProUGUI = selectedUnit.GetComponentInChildren<TextMeshProUGUI>();
         textMeshProUGUI.text = $"{unit.energy}/{unit.maxEnergy}";
         selectedUnit.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = $"{unit.unitName}";

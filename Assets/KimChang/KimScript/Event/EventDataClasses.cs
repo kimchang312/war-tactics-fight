@@ -27,24 +27,23 @@ public class EventChoiceData
     public int choiceId;
     public int eventId;
     public string choiceText;
-    public string resultDescription;
+    public string resultDescription; // 기존 호환용
 
     public List<RequireThing> requireThing;
-
     public List<RequireForm> requireForm;
-
     public List<string> requireValue;
     public List<string> requireCount;
 
-    [JsonConverter(typeof(StringEnumConverter))]
     public List<ResultType> resultType;
-
-    [JsonConverter(typeof(StringEnumConverter))]
     public List<ResultForm> resultForm;
-
     public List<string> resultValue;
     public List<string> resultCount;
+
+    // 새 필드
+    public List<string> choiceResultText = new();
+    public List<string> resultText = new();
 }
+
 
 [JsonConverter(typeof(StringEnumConverter))]
 public enum RequireThing

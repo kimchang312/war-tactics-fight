@@ -1,0 +1,18 @@
+[
+    
+    {
+        "id":59,
+        "questDataType": "SpotData",
+        "requireThing":["Unit"],
+        "requireType":["Under"],
+        "requireForm": ["None"],
+        "requireValue": ["2"],
+        "requireCount":[-25],
+        "resultType":["Special"],
+        "resultForm":["None"],
+        "resultValue":["50"],
+        "resultCount":[1],
+        "questClear":false
+    }
+
+]

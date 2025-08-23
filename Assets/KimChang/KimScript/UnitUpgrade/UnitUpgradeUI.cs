@@ -10,7 +10,7 @@ public class UnitUpgradeUI : MonoBehaviour
 
 
     [SerializeField] private Button toggleUpgradeBtn;
-    [SerializeField] private Button closeAllUpgradeBtn;
+    //[SerializeField] private Button closeAllUpgradeBtn;
     [SerializeField] private Button closeOneUpgradeBtn;
 
     [SerializeField] private Button goMainBtn;
@@ -18,28 +18,22 @@ public class UnitUpgradeUI : MonoBehaviour
     [SerializeField] private GameObject allUpgradeWindow;
     [SerializeField] private GameObject oneUpgradeWindow;
 
-    [SerializeField] private GameObject unitPrefab;                 // 유닛 프리팹
+    //[SerializeField] private GameObject unitPrefab;                 // 유닛 프리팹
     [SerializeField] private Transform unitParent;                  // 생성된 유닛의 부모 오브젝트
 
     [SerializeField] private Image oneUpgradeImg;           //강화 창 유닛 이미지
 
     [SerializeField] private GameObject currentState;      //강화 수치 모음집
 
-    /*
-    [SerializeField] private GameObject healthBoost;       //강화 체력 수치
-    [SerializeField] private GameObject armorBoosst;       //강화 장갑 수치
-    [SerializeField] private GameObject attackBoost;       //강화 공격력 수치
-    [SerializeField] private GameObject mobilityBoost;     //강화 기동력 수치
-    [SerializeField] private GameObject rangeBoost;        //강화 사거리 수치
-    [SerializeField] private GameObject antiCavalryBoost;  //강화 대기병 수치
-    */
 
     [SerializeField] private TextMeshProUGUI beforeStateText;      //현재 강화 수치
     [SerializeField] private TextMeshProUGUI afterStateText;      //강화 시 변화 수치
     [SerializeField] private TextMeshProUGUI selectUpgradeText;     //선택한 강화
 
     [SerializeField] private Button upgradeBtn;                     //강화 버튼
-
+    [SerializeField] private GameObject multipleWindow;
+    [SerializeField] private GameObject compatibility;
+    [SerializeField] private Button multipleBtn;
 
     private enum UpgradeState { 
         Health,
@@ -66,15 +60,18 @@ public class UnitUpgradeUI : MonoBehaviour
         //UpgradeManager.Instance.Upgrade(0, 0, 0);
         //var unit= UpgradeManager.Instance.GetUpgradeValues(0);
         //Debug.Log(unit.healthBoost);
+        multipleBtn.onClick.AddListener(ToggleCom);
 
-        CreateUnit();
+        //CreateUnit();
+
+        ApplyAffinityToUI();
     }
 
     private void Awake()
     {
         // 버튼 클릭 이벤트 연결
         toggleUpgradeBtn.onClick.AddListener(ToggleAllUpgradeWindow);
-        closeAllUpgradeBtn.onClick.AddListener(CloseAllUpgradeWindows);
+         // closeAllUpgradeBtn.onClick.AddListener(CloseAllUpgradeWindows);
         closeOneUpgradeBtn.onClick.AddListener(CloseOneUpgradeWindow);
         upgradeBtn.onClick.AddListener(ClickUpgradeBtn);
 
@@ -113,7 +110,7 @@ public class UnitUpgradeUI : MonoBehaviour
         oneUpgradeWindow.SetActive(true);
     }
 
-    //유닛 생성
+    /*//유닛 생성
     public void CreateUnit()
     {
         if (unitPrefab == null || unitParent == null)
@@ -154,7 +151,7 @@ public class UnitUpgradeUI : MonoBehaviour
             // 유닛 클릭 이벤트 추가
             AddClickEventToUnit(unit);
         }
-    }
+    }*/
 
     // 유닛 이미지 변경 메서드
     private void ChangeUnitImage(GameObject unit, int index)
@@ -386,8 +383,56 @@ public class UnitUpgradeUI : MonoBehaviour
     //메인화면으로
     private void GoMain()
     {
-        SceneManager.LoadScene("Main");
+        SceneManager.LoadScene("Title");
+    }
+    private void ApplyAffinityToUI()
+    {
+        TMP_InputField[] fields = compatibility.GetComponentsInChildren<TMP_InputField>();
+        int classCount = 8;
+        float[,] affinity = UpgradeManager.GetAffinity();
+
+        if (fields.Length != classCount * classCount)
+        {
+            Debug.LogError("입력 필드 개수가 올바르지 않습니다. 8x8 총 64개여야 합니다.");
+            return;
+        }
+
+        int index = 0;
+        for (int attacker = 0; attacker < classCount; attacker++)
+        {
+            for (int defender = 0; defender < classCount; defender++)
+            {
+                int a = attacker;
+                int d = defender;
+
+                float value = affinity[a, d];
+                fields[index].text = value.ToString("0.##");
+
+                // 색상 설정 (양수=빨강, 음수=파랑, 0=검정)
+                if (value > 0)
+                    fields[index].textComponent.color = Color.red;
+                else if (value < 0)
+                    fields[index].textComponent.color = Color.blue;
+                else
+                    fields[index].textComponent.color = Color.black;
+
+                fields[index].onValueChanged.RemoveAllListeners();
+                fields[index].onValueChanged.AddListener((string input) =>
+                {
+                    if (float.TryParse(input, out float f))
+                    {
+                        UpgradeManager.SetAffinityMultiplier(a, d, f);
+                    }
+                });
+
+                index++;
+            }
+        }
     }
 
-    
+
+    private void ToggleCom()
+    {
+        multipleWindow.SetActive(!multipleWindow.activeSelf);
+    }
 }
