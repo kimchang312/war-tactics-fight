@@ -247,6 +247,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             // 적 프리팹을 PlacePanel에 생성
             PlacePanelComponent.CreateEnemyPrefabs(enemies);
             
+            // PlacePanel에 지휘관 정보 표시
+            PlacePanelComponent.ShowCommanderInfo(cmdName);
+            
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---
@@ -419,6 +422,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                           : "";*/
         var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
         panel.ShowEnemyInfo(type, enemies, cmdName/*, cmdSkill*/);
+        
+        // PlacePanel에 지휘관 정보 표시
+        PlacePanelComponent.ShowCommanderInfo(cmdName);
     }
 
     private void changemorale()
