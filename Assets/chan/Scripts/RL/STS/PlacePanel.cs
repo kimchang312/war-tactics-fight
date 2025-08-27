@@ -24,6 +24,13 @@ public class PlacePanel : MonoBehaviour
     public GameObject enemyUnitPrefab;
     public RectTransform EnemyPrefabsContainer;
     [SerializeField] public TextMeshProUGUI enemyUnitCountText;  // 적 유닛 수 표시용 텍스트
+    
+    [Header("지휘관 정보")]
+    [SerializeField] private GameObject commanderInfoPanel;     // 지휘관 정보 패널
+    [SerializeField] private TextMeshProUGUI commanderNameText; // 지휘관 이름
+    [SerializeField] private TextMeshProUGUI commanderSkillText; // 지휘관 스킬 효과
+    [SerializeField] private TextMeshProUGUI battlefieldEffectText; // 전장 효과
+    
     //프리팹 식별용 unitOrderingNum 리스트?
     public List<int> PlacedUniqueIds { get; } = new List<int>();
 
@@ -88,6 +95,8 @@ public class PlacePanel : MonoBehaviour
             Destroy(child.gameObject);
         // 적 유닛 프리팹도 정리
         ClearEnemyPrefabs();
+        // 지휘관 정보 초기화
+        HideCommanderInfo();
         // 초기화 후 현재 유닛 수 갱신
         UpdateCountTexts();
     }
@@ -211,5 +220,40 @@ public class PlacePanel : MonoBehaviour
         
         // 적 유닛 수 텍스트 업데이트
         UpdateEnemyUnitCount(enemies.Count);
+    }
+
+    // 지휘관 정보를 표시하는 메서드
+    public void ShowCommanderInfo(string commanderName)
+    {
+        if (string.IsNullOrEmpty(commanderName))
+        {
+            // 지휘관이 없으면 패널 숨기기
+            if (commanderInfoPanel != null)
+                commanderInfoPanel.SetActive(false);
+            return;
+        }
+
+        // 지휘관이 있으면 패널 표시
+        if (commanderInfoPanel != null)
+            commanderInfoPanel.SetActive(true);
+
+        // 지휘관 이름 설정
+        if (commanderNameText != null)
+            commanderNameText.text = $"지휘관: {commanderName}";
+
+        // 지휘관 스킬 효과 설정
+        if (commanderSkillText != null)
+            commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
+
+        // 전장 효과 설정 (지휘관 스킬과 동일하거나 별도로 설정 가능)
+        if (battlefieldEffectText != null)
+            battlefieldEffectText.text = CommanderSkillData.GetSkillText(commanderName);
+    }
+
+    // 지휘관 정보를 숨기는 메서드
+    public void HideCommanderInfo()
+    {
+        if (commanderInfoPanel != null)
+            commanderInfoPanel.SetActive(false);
     }
 }
