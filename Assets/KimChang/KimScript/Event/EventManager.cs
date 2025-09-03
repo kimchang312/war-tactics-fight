@@ -21,7 +21,7 @@ public class EventManager
             .Select(kv => kv.Value)
             .ToList();
 
-        int idx = UnityEngine.Random.Range(0, candidates.Count);
+        int idx = RogueLikeData.Instance.GetRandomInt(0, candidates.Count);
         return candidates[idx];
     }
 
@@ -295,7 +295,7 @@ public class EventManager
                         List<RogueUnitDataBase> filteredUnits = myUnits.FindAll(unit => unit.energy > energy);
 
                         // 랜덤 셔플을 위해 리스트 섞기
-                        System.Random random = new();
+                        System.Random random = RogueLikeData.Instance.GetRandomBySeed();
                         for (int k = filteredUnits.Count - 1; k > 0; k--)
                         {
                             int j = random.Next(k + 1);
@@ -352,7 +352,7 @@ public class EventManager
 
                         List<RogueUnitDataBase> candidates = myUnits
                             .Where(unit => unit.rarity >= minRarity && unit.rarity <= maxRarity)
-                            .OrderBy(_ => UnityEngine.Random.value)
+                            .OrderBy(_ => RogueLikeData.Instance.GetRandomFloat())
                             .Take(unitCount)
                             .ToList();
 
@@ -519,7 +519,7 @@ public class EventManager
                         }
                         else if (form == ResultForm.Special)
                         {
-                            if (choiceData.choiceId == 59 && UnityEngine.Random.value < 0.5f)
+                            if (choiceData.choiceId == 59 && RogueLikeData.Instance.GetRandomFloat() < 0.5f)
                             {
                                 var relic = RelicManager.HandleRandomRelic(0, RelicAction.Acquire);
                                 resultLog += $"- 전쟁 유산 획득: {relic.name}\n";
@@ -589,7 +589,7 @@ public class EventManager
 
                                 for (int k = 0; k < unitCount && all.Count > 0; k++)
                                 {
-                                    int ri = UnityEngine.Random.Range(0, all.Count);
+                                    int ri = RogueLikeData.Instance.GetRandomInt(0, all.Count);
                                     var pick = all[ri]; all.RemoveAt(ri);
                                     RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(pick.idx);
 
@@ -621,7 +621,7 @@ public class EventManager
 
                                 for (int k = 0; k < unitCount && valid.Count > 0; k++)
                                 {
-                                    int ri = UnityEngine.Random.Range(0, valid.Count);
+                                    int ri = RogueLikeData.Instance.GetRandomInt(0, valid.Count);
                                     var pick = valid[ri]; valid.RemoveAt(ri);
                                     RogueUnitDataBase newUnit = UnitLoader.Instance.GetCloneUnitById(pick.idx);
 
@@ -644,13 +644,13 @@ public class EventManager
                         {
                             var origin = selectedUnits[0];
                             float chance = origin.rarity switch { 1 => 0.3f, 2 => 0.6f, 3 => 1.0f, _ => 0f };
-                            if (UnityEngine.Random.value < chance)
+                            if (RogueLikeData.Instance.GetRandomFloat() < chance)
                             {
                                 var myIdx = new HashSet<int>(RogueLikeData.Instance.GetMyTeam().Select(u => u.idx));
                                 var valid = UnitLoader.Instance.GetAllCachedUnits().Where(u => u.rarity == 4 && !myIdx.Contains(u.idx)).ToList();
                                 if (valid.Count == 0) { resultLog += "모든 영웅 유닛 보유\n"; break; }
 
-                                int ri = UnityEngine.Random.Range(0, valid.Count);
+                                int ri = RogueLikeData.Instance.GetRandomInt(0, valid.Count);
                                 var pick = valid[ri];
                                 var newUnit = UnitLoader.Instance.GetCloneUnitById(pick.idx);
                                 RogueLikeData.Instance.AddMyUnis(newUnit);
@@ -711,7 +711,7 @@ public class EventManager
                     {
                         if (choiceData.choiceId == 3)
                         {
-                            int randEffect = UnityEngine.Random.Range(0, 9);
+                            int randEffect = RogueLikeData.Instance.GetRandomInt(0, 9);
                             // 아래 기존 로직 유지, 획득/변경 시 토큰만 추가
                             switch (randEffect)
                             {
@@ -722,7 +722,7 @@ public class EventManager
                                         var my = RogueLikeData.Instance.GetMyTeam();
                                         if (my.Count > 0)
                                         {
-                                            var unit = my[UnityEngine.Random.Range(0, my.Count)];
+                                            var unit = my[RogueLikeData.Instance.GetRandomInt(0, my.Count)];
                                             var promoted = RogueUnitDataBase.RandomUnitReForm(unit);
                                             if (promoted != null)
                                             {
@@ -739,7 +739,7 @@ public class EventManager
                                         var my = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy > 1).ToList();
                                         if (my.Count > 0)
                                         {
-                                            var target = my[UnityEngine.Random.Range(0, my.Count)];
+                                            var target = my[RogueLikeData.Instance.GetRandomInt(0, my.Count)];
                                             target.energy = 1;
                                             resultLog += $"- '{target.unitName}' 기력 1\n";
                                             PushResultToken(resultTokens, target.unitName);
@@ -754,7 +754,7 @@ public class EventManager
                                         var cands = all.Where(u => u.rarity >= min && u.rarity <= max && !myIdx.Contains(u.idx)).ToList();
                                         if (cands.Count > 0)
                                         {
-                                            var sel = cands[UnityEngine.Random.Range(0, cands.Count)];
+                                            var sel = cands[RogueLikeData.Instance.GetRandomInt(0, cands.Count)];
                                             RogueLikeData.Instance.AddMyUnis(sel);
                                             resultLog += $"- 유닛 '{sel.unitName}' 획득\n";
                                             PushResultToken(resultTokens, sel.unitName);
@@ -839,7 +839,7 @@ public class EventManager
                                     var parts = valueStr.Split(',');
                                     var unitTypes = parts.Select(s => int.TryParse(s, out var v) ? v : -1).Where(v => v >= 0 && v < 8).ToList();
                                     if (unitTypes.Count == 0) continue;
-                                    int randomType = unitTypes[UnityEngine.Random.Range(0, unitTypes.Count)];
+                                    int randomType = unitTypes[RogueLikeData.Instance.GetRandomInt(0, unitTypes.Count)];
                                     bool isAttack = UnityEngine.Random.value < 0.5f;
                                     RogueLikeData.Instance.IncreaseUpgrade(randomType, isAttack, false);
                                 }
@@ -987,7 +987,7 @@ public class EventManager
         }
 
         if (filtered.Count == 0) return;
-        StagePreset stage =  filtered[UnityEngine.Random.Range(0, filtered.Count)];
+        StagePreset stage =  filtered[RogueLikeData.Instance.GetRandomInt(0, filtered.Count)];
         RogueLikeData.Instance.SetPresetID(stage.PresetID);
     }
 

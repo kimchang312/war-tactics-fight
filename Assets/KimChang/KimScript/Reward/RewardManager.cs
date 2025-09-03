@@ -172,7 +172,7 @@ public static class RewardManager
             }
 
             var unitPool = unitsByRarity[selectedRarity];
-            var selected = unitPool[UnityEngine.Random.Range(0, unitPool.Count)];
+            var selected = unitPool[RogueLikeData.Instance.GetRandomInt(0, unitPool.Count)];
             selectedUnits.Add(selected);
         }
 
@@ -182,7 +182,7 @@ public static class RewardManager
     private static int GetRandomRarityByWeight(Dictionary<int, int> weights)
     {
         int total = weights.Values.Sum();
-        int rand = UnityEngine.Random.Range(0, total);
+        int rand = RogueLikeData.Instance.GetRandomInt(0, total);
         int sum = 0;
         foreach (var kvp in weights)
         {

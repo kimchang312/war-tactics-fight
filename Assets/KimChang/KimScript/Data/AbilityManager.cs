@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class AbilityManager
 {
@@ -161,12 +160,12 @@ public class AbilityManager
         var myUnits = RogueLikeData.Instance.GetMyUnits();
         var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
 
-        int randomIndex = UnityEngine.Random.Range(0, myUnits.Count);
+        int randomIndex = RogueLikeData.Instance.GetRandomInt(0, myUnits.Count);
         myUnits[randomIndex].health -= 30;
         myUnits[randomIndex].health = Mathf.Max(myUnits[randomIndex].health, 0);
         CallDamageText(30, "폭풍우 ", true, false, randomIndex);
 
-        int randomI = UnityEngine.Random.Range(0, enemyUnits.Count);
+        int randomI = RogueLikeData.Instance.GetRandomInt(0, enemyUnits.Count);
         enemyUnits[randomI].health -= 30;
         enemyUnits[randomI].health = Mathf.Max(enemyUnits[randomI].health, 0);
         CallDamageText(30, "폭풍우 ", false, false, randomI);
@@ -183,10 +182,10 @@ public class AbilityManager
         foreach (var unit in myUnits)
         {
             if (unit.branchIdx == 8) continue;
-            if (hasRelic && Random.value < 0.25f)
+            if (hasRelic && RogueLikeData.Instance.GetRandomFloat() < 0.25f)
                 continue;
             int reduce = 1;
-            if (isReduce && Random.value < 0.8f)
+            if (isReduce && RogueLikeData.Instance.GetRandomFloat() < 0.8f)
                 reduce *= 2;
             unit.energy = Math.Max(0, unit.energy - reduce);
         }
@@ -687,7 +686,7 @@ public class AbilityManager
             CallDamageText(damage, "암살 수호 ", !isTeam, true);
 
             // 33% 확률로 한 번 더 실행
-            if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && Random.value < 0.33f)
+            if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && RogueLikeData.Instance.GetRandomFloat() < 0.33f)
             {
                 CalculateAssassination(attacker, defenders, finalDamage, ref _damage, ref text,isTeam,true);
             }
@@ -697,7 +696,7 @@ public class AbilityManager
         {
             if (RogueLikeData.Instance.GetPresetID() == 52)
             {
-                if (Random.value < 0.5f)
+                if (RogueLikeData.Instance.GetRandomFloat() < 0.5f)
                 {
                     defenders[minHealthIndex].health = 0;
                     CallDamageText(defenders[minHealthIndex].health, "암살 ", !isTeam, true, minHealthIndex);
@@ -719,7 +718,7 @@ public class AbilityManager
                 CallDamageText(damage, "복수 ", isTeam, true);
             }
 
-            if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && Random.value < 0.33f)
+            if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && RogueLikeData.Instance.GetRandomFloat() < 0.33f)
             {
                 CalculateAssassination(attacker, defenders, finalDamage, ref _damage, ref text, isTeam, true);
             }
@@ -755,7 +754,7 @@ public class AbilityManager
         if (attacker.charge)
         {
             multiplier = CalculateCharge(attacker.mobility);
-            if (attacker.effectDictionary.ContainsKey(11) && UnityEngine.Random.value < 0.33f)
+            if (attacker.effectDictionary.ContainsKey(11) && RogueLikeData.Instance.GetRandomFloat() < 0.33f)
             {
                 multiplier *= 2;
                 text += "아마록 ";
@@ -899,7 +898,7 @@ public class AbilityManager
 
         float dogeRate = CalculateDodge(defender,isTeam,isFirstAttack);
 
-        bool result = dogeRate >= Random.Range(0, 101);
+        bool result = dogeRate >= RogueLikeData.Instance.GetRandomInt(0, 101);
         if (result)
         {
             //방어자가 회피 성공시 암살단장의 효과 발동 isTeam==true라는건 attacker가 내 유닛이라는것 defender는 이때 enemy가 됨
@@ -1257,7 +1256,7 @@ public class AbilityManager
 
         foreach (int index in sniperIndices)
         {
-            int newIndex = UnityEngine.Random.Range(1, units.Count);
+            int newIndex = RogueLikeData.Instance.GetRandomInt(1, units.Count);
 
             var sniper = units[index];
             units.RemoveAt(index);
@@ -1363,7 +1362,7 @@ public class AbilityManager
 
         if (availableTraits.Count == 0) return; 
 
-        FieldInfo selectedTrait = availableTraits[UnityEngine.Random.Range(0, availableTraits.Count)];
+        FieldInfo selectedTrait = availableTraits[RogueLikeData.Instance.GetRandomInt(0, availableTraits.Count)];
 
         selectedTrait.SetValue(unit, true);
     }
@@ -1389,7 +1388,7 @@ public class AbilityManager
         List<RogueUnitDataBase> backUnits = defenders.Skip(1).Where(unit => unit.health > 0).ToList();
         int debuffTargetCount = Mathf.Min(3, backUnits.Count);
 
-        List<RogueUnitDataBase> selectedTargets = backUnits.OrderBy(x => UnityEngine.Random.value).Take(debuffTargetCount).ToList();
+        List<RogueUnitDataBase> selectedTargets = backUnits.OrderBy(x => RogueLikeData.Instance.GetRandomFloat()).Take(debuffTargetCount).ToList();
 
         foreach (var unit in selectedTargets)
         {

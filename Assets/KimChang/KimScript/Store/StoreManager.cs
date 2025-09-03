@@ -23,14 +23,13 @@ public static class StoreManager
 
     public static int CalculatePrice(StoreItemData item)
     {
-        float rate = UnityEngine.Random.Range(item.priceRateMin, item.priceRateMax);
+        float rate = RogueLikeData.Instance.GetRandomInt((int)item.priceRateMin, (int)item.priceRateMax);
         return Mathf.RoundToInt(item.price * rate);
     }
 
     public static List<StoreItemData> GetFilteredItems(Func<StoreItemData, bool> predicate, int count, bool allowDuplicate = false, Dictionary<int, int> rarityWeights = null)
     {
         var candidates = storeItems.Where(predicate).ToList();
-        int uniqueCount = candidates.Distinct().Count();
         return GetWeightedRandomItemsByRarity(candidates, count, allowDuplicate, rarityWeights);
     }
 
@@ -51,7 +50,7 @@ public static class StoreManager
         int safeGuard = 1000; // 무한 루프 방지
         while (result.Count < count && weightedItems.Count > 0 && safeGuard-- > 0)
         {
-            var selected = weightedItems[UnityEngine.Random.Range(0, weightedItems.Count)];
+            var selected = weightedItems[RogueLikeData.Instance.GetRandomInt(0, weightedItems.Count)];
             if (allowDuplicate || !result.Contains(selected))
                 result.Add(selected);
         }
@@ -84,6 +83,6 @@ public static class StoreManager
     // 두 값 사이 무작위 값 반환
     public static float GetRandomBetweenValue(float min, float max)
     {
-        return UnityEngine.Random.Range(min, max);
+        return min + (max - min) * RogueLikeData.Instance.GetRandomFloat();
     }
 }

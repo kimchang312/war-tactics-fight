@@ -200,7 +200,7 @@ public class RogueUnitDataBase
     }
     public static int RollPromotion(int rarity)
     {
-        float rand = UnityEngine.Random.value;
+        float rand = RogueLikeData.Instance.GetRandomFloat();
         return rarity switch
         {
             1 => rand < 0.5f ? 1 : (rand < 0.95f ? 2 : 3),
@@ -221,7 +221,7 @@ public class RogueUnitDataBase
 
         if (pool.Count == 0) return null;
 
-        var picked = pool[UnityEngine.Random.Range(0, pool.Count)];
+        var picked = pool[RogueLikeData.Instance.GetRandomInt(0, pool.Count)];
         if (picked == null) return null;
 
         RogueUnitDataBase recreated = UnitLoader.Instance.GetCloneUnitById(picked.idx);
@@ -255,7 +255,7 @@ public class RogueUnitDataBase
         if (filtered.Count == 0)
             return null;
 
-        int idx = Random.Range(0, filtered.Count);
+        int idx = RogueLikeData.Instance.GetRandomInt(0, filtered.Count);
         RogueUnitDataBase selected = filtered[idx];
 
         RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(selected.idx);

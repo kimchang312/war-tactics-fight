@@ -11,7 +11,7 @@ public static class WarRelicDatabase
 {
     public static List<WarRelic> relics = new List<WarRelic>();
 
-    private static System.Random random = new();
+    private static System.Random random = RogueLikeData.Instance.GetRandomBySeed();
     static WarRelicDatabase()
     {
         relics.Add(new WarRelic(0, "할인쿠폰", 1, "상단의 금화 가격이 20% 감소한다.", RelicType.SpecialEffect, () => DiscountCard()));
@@ -797,7 +797,7 @@ public static class WarRelicDatabase
 
         for (int i = 0; i < unitTypes.Count; i++)
         {
-            int r = UnityEngine.Random.Range(i, unitTypes.Count);
+            int r = RogueLikeData.Instance.GetRandomInt((int)i, (int)unitTypes.Count);
             (unitTypes[i], unitTypes[r]) = (unitTypes[r], unitTypes[i]);
         }
 
@@ -805,7 +805,7 @@ public static class WarRelicDatabase
         for (int i = 0; i < count; i++)
         {
             int type = unitTypes[i];
-            bool isAttack = UnityEngine.Random.value < 0.5f;
+            bool isAttack = RogueLikeData.Instance.GetRandomFloat() < 0.5f;
             RogueLikeData.Instance.IncreaseUpgrade(type, isAttack, false);
         }
     }
@@ -942,7 +942,7 @@ public static class WarRelicDatabase
     {
         int id = 55;
         var units = RogueLikeData.Instance.GetMyTeam();
-        System.Random random = new System.Random();
+        System.Random random = RogueLikeData.Instance.GetRandomBySeed();
 
         foreach (var unit in units)
         {
@@ -1733,7 +1733,7 @@ public static class WarRelicDatabase
     private static void TheoTrainingSandbagsryOfWar()
     {
         var myUnits = RogueLikeData.Instance.GetMyTeam();
-        bool isAttack = UnityEngine.Random.value < 0.5f;
+        bool isAttack = RogueLikeData.Instance.GetRandomFloat() < 0.5f;
         for (int i = 0; i < 2; i++)
         {
             RogueLikeData.Instance.IncreaseUpgrade(myUnits[0].branchIdx, isAttack, false);

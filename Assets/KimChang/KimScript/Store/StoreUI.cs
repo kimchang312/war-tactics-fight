@@ -116,7 +116,7 @@ public class StoreUI : MonoBehaviour
                                          .Where(id => !cachedRelicIds.Contains(id)).ToList();
             if (candidates.Count == 0) continue;
 
-            int relicId = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+            int relicId = candidates[RogueLikeData.Instance.GetRandomInt(0, candidates.Count)];
             cachedRelicIds.Add(relicId);
             int cost = CalculateDiscountedPrice(item);
             SetRelicUI(child, item, relicId, cost);
@@ -262,7 +262,7 @@ public class StoreUI : MonoBehaviour
         {
             if (filtered.Count == 0) break;
 
-            int rand = UnityEngine.Random.Range(0, filtered.Count);
+            int rand = RogueLikeData.Instance.GetRandomInt(0, filtered.Count);
             RogueUnitDataBase baseUnit = filtered[rand];
             RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(baseUnit.idx);
 
@@ -483,7 +483,7 @@ public class StoreUI : MonoBehaviour
 
             for (int i = 0; i < units.Count; i++)
             {
-                int r = UnityEngine.Random.Range(i, units.Count);
+                int r = RogueLikeData.Instance.GetRandomInt(i, units.Count);
                 (units[i], units[r]) = (units[r], units[i]);
             }
 
