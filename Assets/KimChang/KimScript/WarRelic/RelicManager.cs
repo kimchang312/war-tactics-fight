@@ -45,13 +45,16 @@ public class RelicManager
     // 특정 등급에서 중복 여부를 고려하여 랜덤 유산들 반환
     public static List<WarRelic> GetAvailableRelics(int grade, RelicAction action)
     {
+        var random = RogueLikeData.Instance.GetRandomBySeed();
         if (grade == 5)
         {
-            grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
+            //grade = UnityEngine.Random.value < 0.2f ? 10 : 1;
+            grade = random.Next(0, 10) < 2 ? 10 : 1;
         }
         else if(grade == 7)
         {
-            grade = UnityEngine.Random.value < 0.5f ? 10 : 1;
+            //grade = UnityEngine.Random.value < 0.5f ? 10 : 1;
+            grade = random.Next(0,10) <5 ? 10 : 1;
         }
 
         var relics = WarRelicDatabase.relics.Where(r => r.grade == grade).ToList();
@@ -78,7 +81,7 @@ public class RelicManager
         var available = GetAvailableRelics(grade, action);
         if (available.Count == 0) return -1;
 
-        return available[UnityEngine.Random.Range(0, available.Count)].id;
+        return available[RogueLikeData.Instance.GetRandomInt(0, available.Count)].id;
     }
 
 
@@ -99,7 +102,7 @@ public class RelicManager
         var available = GetAvailableRelics(grade, action);
         if (available.Count == 0) return null;
 
-        var selected = available[UnityEngine.Random.Range(0, available.Count)];
+        var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
         {
@@ -220,7 +223,7 @@ public class RelicManager
         var available = GetAvailableRelicsAllGrades(action);
         if (available.Count == 0) return null;
 
-        var selected = available[UnityEngine.Random.Range(0, available.Count)];
+        var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
         {
@@ -245,7 +248,7 @@ public class RelicManager
             var units = RogueLikeData.Instance.GetMyUnits();
 
             // 유닛 리스트 무작위로 섞기
-            System.Random random = new();
+            var random = RogueLikeData.Instance.GetRandomBySeed();
             for (int i = units.Count - 1; i > 0; i--)
             {
                 int j = random.Next(i + 1);
@@ -269,23 +272,23 @@ public class RelicManager
             if (heroUnits.Count == 0) return; //영웅 유닛이 없으면 함수 종료
 
             //랜덤으로 영웅 유닛 하나 선택
-            var randomUnit = heroUnits[new System.Random().Next(0, heroUnits.Count)];
+            var randomUnit = heroUnits[RogueLikeData.Instance.GetRandomInt(0, heroUnits.Count)];
 
             //유닛의 복사본 생성
             RogueUnitDataBase newUnit = randomUnit.Clone();
             //10% 확률로 enemyUnits에 추가
-            if (UnityEngine.Random.value <= 0.1f)
+            if (RogueLikeData.Instance.GetRandomFloat() <= 0.1f)
             {
                 int uId = RogueUnitDataBase.BuildUnitUniqueId(newUnit.branchIdx, newUnit.idx, false);
                 newUnit.UniqueId = uId;
-                enemyUnits.Insert(UnityEngine.Random.Range(0, enemyUnits.Count + 1), newUnit);
+                enemyUnits.Insert(RogueLikeData.Instance.GetRandomInt(0, enemyUnits.Count + 1), newUnit);
                 RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
             }
             else
             {
                 int uId = RogueUnitDataBase.BuildUnitUniqueId(newUnit.branchIdx, newUnit.idx, true);
                 newUnit.UniqueId = uId;
-                myUnits.Insert(UnityEngine.Random.Range(0, myUnits.Count + 1), newUnit);
+                myUnits.Insert(RogueLikeData.Instance.GetRandomInt(0, myUnits.Count + 1), newUnit);
                 RogueLikeData.Instance.SetAllMyUnits(myUnits);
             }
 

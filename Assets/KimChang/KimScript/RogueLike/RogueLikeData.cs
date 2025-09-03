@@ -66,6 +66,11 @@ public class RogueLikeData
 
     private bool clearChapter=false;
     private bool resetMap =false;
+
+    private int randomSeed;
+    private System.Random systemRandom;
+    private int currentStageSeedBase;
+    private int stageCallCount;       
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
@@ -192,7 +197,7 @@ public class RogueLikeData
         {
             if (!relicIdsByType[relic.type].Contains(relicId))
             {
-                if (relicId == 53 && UnityEngine.Random.value <= 0.75f)
+                if (relicId == 53 && GetRandomFloat() <= 0.75f)
                 {
                     RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
                 }
@@ -331,6 +336,7 @@ public class RogueLikeData
         currentStageX = x;
         currentStageY = y;
         currentStageType = type;
+        SetStage();
     }
     public int GetCurrentStageX()
     {
@@ -720,7 +726,8 @@ public class RogueLikeData
     public (int unitType, bool isAttack) GetRandomUpgradeTarget()
     {
         // 총 16개 항목 중 하나 선택
-        int randomIndex = UnityEngine.Random.Range(0, 16);
+        var random = GetRandomBySeed();
+        int randomIndex = random.Next(0, 16);
 
         int unitType = randomIndex / 2;           // 0~7
         bool isAttack = (randomIndex % 2 == 0);   // 짝수면 공격, 홀수면 방어
@@ -842,6 +849,8 @@ public class RogueLikeData
         score = 0;
         upgradeValues = new UnitUpgrade[9];
         var baseUnits = RogueUnitDataBase.GetBaseUnits();
+        currentStageSeedBase = 0;
+        stageCallCount = 0;
         SetMyTeam(baseUnits);
         SetAllMyUnits(baseUnits);
 
@@ -884,5 +893,55 @@ public class RogueLikeData
             relicIdsByType[relic.type].Add(relic.id);
         }
     }
+    //랜덤 시드 설정
+    public void SetRandomSeed()
+    {
+        int seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
+        randomSeed = seed;
+    }
+    //랜덤 시드 반환
+    public int GetRandomSeed()
+    {
+        return randomSeed;
+    }
+    // 특정 스테이지 전용 랜덤 생성기 반환
+    public System.Random GetRandomBySeed()
+    {
+        stageCallCount++;
+
+        int stageSeed = currentStageSeedBase + stageCallCount;
+
+        int finalSeed = HashCode.Combine(randomSeed, stageSeed);
+
+        return new System.Random(finalSeed);
+    }
+    // 스테이지 진입 시 고유 번호 설정 + 카운터 초기화
+    public void SetStage()
+    {
+        currentStageSeedBase =
+           chapter * 1_000_0000 
+           + currentStageX * 100_000  
+           + currentStageY * 10_000 
+           + (int)currentStageType * 1_000;   
+        stageCallCount = 0;
+    }
+    //스테이지 위치로 랜덤 시드 생성
+    public System.Random GetRandomStage(int currentX,int currentY)
+    {
+        int currentStageSeed = chapter * 1_000_0000 + currentX * 100_000 + currentY * 10_000;
+        int finalSeed = HashCode.Combine(randomSeed, currentStageSeed);
+        return new System.Random(finalSeed);
+    }
+    // 0~1 사이 랜덤값
+    public float GetRandomFloat()
+    {
+        return (float)GetRandomBySeed().NextDouble();
+    }
+    // 정수 범위 랜덤값 (스테이지 기반)
+    public int GetRandomInt(int min, int max)
+    {
+        return GetRandomBySeed().Next(min, max);
+    }
+
 
 }
