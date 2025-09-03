@@ -19,6 +19,8 @@ public class StagePreset
     public string Commander;
     public string CommanderID;
     public string Description;
+    [JsonProperty("BattlefieldEffect")]
+    public string BattlefieldEffect;
 }
 
 public class StagePresetLoader : MonoBehaviour

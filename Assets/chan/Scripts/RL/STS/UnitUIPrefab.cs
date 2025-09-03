@@ -54,7 +54,7 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
         // unitImage null 체크
         if (unitImage != null)
         {
-            var sprite = Resources.Load<Sprite>($"UnitImages/{unit.unitImg}");
+            var sprite = SpriteCacheManager.GetSprite($"UnitImages/{unit.unitImg}");
             if (sprite != null)
             {
                 unitImage.sprite = sprite;

@@ -16,6 +16,15 @@ public enum StageType
     Boss      // 보스
 }
 
+public enum BattlefieldEffect
+{
+    Plains,   // 평원
+    Hills,    // 언덕
+    Swamp,    // 늪지대
+    Forest,   // 숲
+    Storm     // 폭풍
+}
+
 public class StageNode
 {
     public int level;  // 0-indexed (예: 0: 레벨1, 14: 레벨15)
@@ -24,6 +33,7 @@ public class StageNode
     public Color stageColor; // 스테이지 색상
     public List<StageNode> connectedNodes; // 다음 레벨과 연결된 노드 목록
     public int presetID;
+    public BattlefieldEffect battlefieldEffect; // 전장효과
 
     public StageNode(int level, int row, StageType stageType)
     {
@@ -31,12 +41,13 @@ public class StageNode
         this.row = row;
         this.stageType = stageType;
         connectedNodes = new List<StageNode>();
+        battlefieldEffect = BattlefieldEffect.Plains; // 기본값은 평원
     }
 
     public override string ToString()
     {
         char rowChar = (char)('A' + row);
-        return $"L{level + 1}{rowChar} - {stageType}";
+        return $"L{level + 1}{rowChar} - {stageType} ({battlefieldEffect})";
     }
 }
 
@@ -89,6 +100,61 @@ public class MapGenerator : MonoBehaviour
         // Combat, Elite, Boss 모두 후보 중 랜덤 선택
         int idx = UnityEngine.Random.Range(0, candidates.Count);
         return candidates[idx].PresetID;
+    }
+
+    // ─── 전장효과 생성 함수 ─────────────────
+    private BattlefieldEffect GenerateBattlefieldEffect(int level, StageType stageType)
+    {
+        // 챕터 1의 레벨 1-8은 평원으로 고정
+        int chapter = RogueLikeData.Instance.GetChapter();
+        if (chapter == 1 && level >= 1 && level <= 8)
+        {
+            return BattlefieldEffect.Plains;
+        }
+
+        // 전투 스테이지가 아닌 경우 평원으로 고정
+        if (stageType != StageType.Combat && stageType != StageType.Elite && stageType != StageType.Boss)
+        {
+            return BattlefieldEffect.Plains;
+        }
+
+        // 전투 스테이지의 경우 확률에 따라 전장효과 결정
+        float randomValue = UnityEngine.Random.Range(0f, 100f);
+        
+        if (randomValue < 50f)
+        {
+            return BattlefieldEffect.Plains;      // 평원 50%
+        }
+        else if (randomValue < 65f)
+        {
+            return BattlefieldEffect.Hills;       // 언덕 15%
+        }
+        else if (randomValue < 80f)
+        {
+            return BattlefieldEffect.Swamp;       // 늪지대 15%
+        }
+        else if (randomValue < 95f)
+        {
+            return BattlefieldEffect.Forest;      // 숲 15%
+        }
+        else
+        {
+            return BattlefieldEffect.Storm;       // 폭풍 5%
+        }
+    }
+
+    // ─── 전장효과를 한국어로 변환하는 유틸리티 메서드 ─────────────────
+    public static string GetBattlefieldEffectKoreanName(BattlefieldEffect effect)
+    {
+        return effect switch
+        {
+            BattlefieldEffect.Plains => "평원",
+            BattlefieldEffect.Hills => "언덕",
+            BattlefieldEffect.Swamp => "늪지대",
+            BattlefieldEffect.Forest => "숲",
+            BattlefieldEffect.Storm => "폭풍",
+            _ => "알 수 없음"
+        };
     }
 
     
@@ -305,11 +371,15 @@ public class MapGenerator : MonoBehaviour
                     }
                     StageNode node = new StageNode(lvl, row, type);
                     nodeDict[key] = node;
+                    
+                    // 전장효과 설정
+                    node.battlefieldEffect = GenerateBattlefieldEffect(lvl + 1, type);
+                    
                     // ① StagePresetLoader.I 가 준비되어 있는지 확인
                     if (StagePresetLoader.I != null)
-                    node.presetID = PickPresetID(lvl + 1, type);
+                        node.presetID = PickPresetID(lvl + 1, type);
                     else
-                    Debug.LogWarning("[MapGenerator] StagePresetLoader.I is null; presetID skipped");
+                        Debug.LogWarning("[MapGenerator] StagePresetLoader.I is null; presetID skipped");
                 }
             }
         }
@@ -336,6 +406,10 @@ public class MapGenerator : MonoBehaviour
         // 3) 보스 스테이지 생성 및 연결
         // 보스 스테이지는 전체 레벨 중 마지막(레벨 = normalLevels, 즉 totalLevels-1)에서 단일 노드로 생성합니다.
         StageNode bossNode = new StageNode(normalLevels, 3, StageType.Boss); // 여기서 row 3(예: D열) 고정
+        
+        // 보스 스테이지 전장효과 설정
+        bossNode.battlefieldEffect = GenerateBattlefieldEffect(normalLevels, StageType.Boss);
+        
         bossNode.presetID = PickPresetID(normalLevels, StageType.Boss);
         string bossKey = normalLevels + "_3";
         nodeDict[bossKey] = bossNode;
