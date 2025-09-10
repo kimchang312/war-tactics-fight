@@ -9,6 +9,7 @@ public class LineUpBar : MonoBehaviour
     [Header("할당할 프리팹 & Content")]
     public GameObject unitUIPrefab;      // UnitItemPrefab
     public RectTransform contentParent;    // ScrollView → Content
+    [SerializeField] private Button openUnitSort;
 
     private void Awake()
     {
