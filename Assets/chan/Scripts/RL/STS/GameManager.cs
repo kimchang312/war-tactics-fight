@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public GameObject restPanel;
     [SerializeField] public RewardUI rewardUI;
     [SerializeField] private GameObject loadingPanel;
+    [SerializeField] public ObjectPool objectPool;
     public GameObject itemToolTip;
     
 
@@ -73,7 +74,10 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
+        if(objectPool == null)
+        {
+            objectPool = transform.Find("ObjectPooling").GetComponent<ObjectPool>();
+        }
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
 

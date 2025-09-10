@@ -10,7 +10,8 @@ public class TitleScene : MonoBehaviour
     [SerializeField] private Button newGameBtn;
     [SerializeField] private Button loadBtn;
     [SerializeField] private Button exitBtn;
-    
+    [SerializeField] private Button testOptionBtn;
+
     private void Start()
     {
         UnitLoader.Instance.LoadUnitsFromJson();
@@ -27,7 +28,7 @@ public class TitleScene : MonoBehaviour
         {
             loadBtn.interactable = false;
         }
-
+        RogueLikeData.Instance.ResetToDefault();
         newGameBtn.onClick.AddListener(GoRogueLike);
         exitBtn.onClick.AddListener(QuitGame);
 

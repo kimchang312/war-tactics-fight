@@ -10,6 +10,7 @@ public class ObjectPool : MonoBehaviour
     [SerializeField] private GameObject warRelicPrefab;     //전쟁유산
     [SerializeField] private GameObject onlyUnitPrefab;     //배경 없는 유닛
     [SerializeField] private GameObject selectUnitPrefab;   //선택 가능한 유닛
+    [SerializeField] private GameObject orderUnitPrefab;
 
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();
@@ -17,6 +18,7 @@ public class ObjectPool : MonoBehaviour
     private readonly Queue<GameObject> warRelicPool = new();
     private readonly Queue<GameObject> onlyUnitPool = new();
     private readonly Queue<GameObject> selectUnitPool = new();
+    private readonly Queue<GameObject> orderUnitPool = new();
 
     private readonly List<GameObject> activeBattleUnits = new(); // 활성화된 유닛을 추적
     private readonly List<GameObject> activeAbilitys= new();      //활성화된 능력 아이콘 추적
@@ -25,6 +27,11 @@ public class ObjectPool : MonoBehaviour
     // 초기 풀 생성
     private void Awake()
     {
+        if(orderUnitPrefab == null)
+        {
+            orderUnitPrefab = Resources.Load<GameObject>("Prefabs/OrderUnit");
+        }
+
         for (int i = 0; i < poolSize; i++)
         {
             GameObject damageInstance = Instantiate(damageTextPrefab, transform);
@@ -32,18 +39,21 @@ public class ObjectPool : MonoBehaviour
             GameObject abilityInstance= Instantiate(abilityPrefab, transform);
             GameObject warRelicInstance = Instantiate(warRelicPrefab, transform);
             GameObject selectUnitInstance = Instantiate(selectUnitPrefab, transform);
+            GameObject orderUnitInstance = Instantiate(orderUnitPrefab, transform);
 
             damageInstance.SetActive(false);
             unitInstance.SetActive(false);
             abilityInstance.SetActive(false);
             warRelicInstance.SetActive(false);
             selectUnitInstance.SetActive(false);
+            orderUnitInstance.SetActive(false);
 
             damageTextPool.Enqueue(damageInstance);
             battleUnitPool.Enqueue(unitInstance);
             abilityPool.Enqueue(abilityInstance);
             warRelicPool.Enqueue(warRelicInstance);
             selectUnitPool.Enqueue(selectUnitInstance);
+            orderUnitPool.Enqueue(orderUnitInstance);
 
             if (onlyUnitPrefab != null)
             {
@@ -262,5 +272,30 @@ public class ObjectPool : MonoBehaviour
             childObj.SetActive(false);
             selectUnitPool.Enqueue(childObj);
         }
+    }
+
+    public GameObject GetOrderUnit()
+    {
+        GameObject instance;
+
+        if (orderUnitPool.Count > 0)
+        {
+            instance = orderUnitPool.Dequeue();
+        }
+        else
+        {
+            instance = Instantiate(orderUnitPrefab, transform);
+        }
+
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, false);
+        return instance;
+    }
+
+    public void ReturnOrderUnit(GameObject orderUnit)
+    {
+        orderUnit.SetActive(false);
+        orderUnit.transform.SetParent(canvasTransform, false);
+        orderUnitPool.Enqueue(orderUnit);
     }
 }

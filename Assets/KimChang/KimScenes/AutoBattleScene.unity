@@ -4324,29 +4324,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isItem: 0
-  item:
-    itemId: -1
-    itemName: 
+  data:
+    isItem: 1
+    item:
+      itemId: -1
+      itemName: 
+      price: 0
+      priceRateMin: 0
+      priceRateMax: 0
+      rarity: 0
+      type: 
+      form: 
+      value: 
+      count: 0
+      condition: 
+      description: 
     price: 0
-    priceRateMin: 0
-    priceRateMax: 0
-    rarity: 0
-    type: 
-    form: 
-    value: 
-    count: 0
-    condition: 
-    description: 
-  price: 0
-  units: []
-  rerollCount: 0
-  relicId: -1
-  type: 0
-  unitId: -1
-  abilityId: 160
-  isUpgrade: 0
-  upgradeId: -1
+    units: []
+    rerollCount: 0
+    relicId: -1
+    type: 0
+    unitId: -1
+    abilityId: -1
+    isUpgrade: 0
+    upgradeId: -1
 --- !u!224 &1123382890 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2746486047260727353, guid: 1f792555b7db59c40ac58b3d04da486f, type: 3}
@@ -5452,6 +5453,7 @@ GameObject:
   - component: {fileID: 1477803953}
   - component: {fileID: 1477803952}
   - component: {fileID: 1477803951}
+  - component: {fileID: 1477803954}
   m_Layer: 5
   m_Name: RelicScroll
   m_TagString: Untagged
@@ -5547,6 +5549,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1477803949}
   m_CullTransparentMesh: 1
+--- !u!114 &1477803954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1477803949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 225329607b300164b8cf469cb9b8aa35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemToolTip: {fileID: 1593952016}
+  objectPool: {fileID: 9976923}
 --- !u!1 &1479289784
 GameObject:
   m_ObjectHideFlags: 0

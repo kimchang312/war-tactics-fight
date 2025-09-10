@@ -1,10 +1,12 @@
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class TestModeUI : MonoBehaviour
@@ -18,11 +20,13 @@ public class TestModeUI : MonoBehaviour
     [SerializeField] private Button openMyUnitWindowBtn;
     [SerializeField] private Button openEnemyUnitWindowBtn;
     [SerializeField] private Button clearWarRelicBtn;
+    [SerializeField] private Button gameStartBtn;
 
     [SerializeField] private TMP_InputField myUnitIdInput;
     [SerializeField] private TMP_InputField enemyUnitIdInput;
     [SerializeField] private TMP_InputField warRelicIdInput;
     [SerializeField] private TMP_InputField moraleInput;
+    [SerializeField] private TMP_InputField goldInput;
 
     [SerializeField] private GameObject testUnitWindow;
     [SerializeField] private GameObject testRelicWindow;
@@ -35,6 +39,7 @@ public class TestModeUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI enemyUnitIdListText;
     [SerializeField] private TextMeshProUGUI warRelicIdListText;
     [SerializeField] private TextMeshProUGUI moraleText;
+    [SerializeField] private TextMeshProUGUI goldText;
 
     [SerializeField] private TextMeshProUGUI myAllPriceText;
     [SerializeField] private TextMeshProUGUI enemyAllPriceText;
@@ -44,10 +49,19 @@ public class TestModeUI : MonoBehaviour
 
     UnitPriceDatabase priceDatabase = new UnitPriceDatabase();
 
+
+    List<int> myUnitIds = new List<int>();
+    List<int> warRelicIds = new List<int>();
+
+    int gold = 500;
     private void Start()
     { 
 
         UnitLoader.Instance.LoadUnitsFromJson();
+        EventManager.LoadEventData();
+        StoreManager.LoadStoreData();
+        QuestManager.LoadQuestData();
+
         if (fightStartBtn == null)
         {
             fightStartBtn = GetComponent<FightStartBtn>();
@@ -71,11 +85,49 @@ public class TestModeUI : MonoBehaviour
         enemyUnitIdInput.onSubmit.AddListener (OnEndEditEnemyUnit);
         warRelicIdInput.onSubmit.AddListener(AddWarRelic);
         moraleInput.onEndEdit.AddListener((_) => UpdateMorale());
+        goldInput.onSubmit.AddListener(UpdateGold);
+
+        gameStartBtn.onClick.AddListener(GameStartByTestOption);
 
         SetStringMyIds();
         SetStringEnemyIds();
 
         SetStringWarRelic();
+    }
+
+    //설정한 데이터로 게임시작
+    private void GameStartByTestOption()
+    {
+        SaveData saveData = new SaveData();
+        saveData.ResetGameData();
+        RogueLikeData.Instance.SetResetMap(true);
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetCurrentStageNull();
+        }
+        List<RogueUnitDataBase> units = new List<RogueUnitDataBase>();
+        if (units.Count == 0)
+        {
+            units.Add(UnitLoader.Instance.GetCloneUnitById(0));
+            units.Add(UnitLoader.Instance.GetCloneUnitById(1));
+            units.Add(UnitLoader.Instance.GetCloneUnitById(2));
+        }
+        else
+        {
+            foreach (int id in myUnitIds)
+            {
+                units.Add(UnitLoader.Instance.GetCloneUnitById(id));
+            }
+        }
+        foreach(int id in warRelicIds)
+        {
+            RogueLikeData.Instance.AcquireRelic(id);
+        }
+        RogueLikeData.Instance.SetMyTeam(units);
+        RogueLikeData.Instance.SetTestMode(true);
+        RogueLikeData.Instance.SetCurrentGold(gold);
+        SceneManager.LoadScene("RLmap");
+
     }
 
     // 테스트 유닛 윈도우 토글
@@ -118,7 +170,7 @@ public class TestModeUI : MonoBehaviour
     private void OnEndEditMyUnit(string input)
     {
         // 결과를 저장할 리스트 생성
-        List<int> myUnitIds = new List<int>();
+        myUnitIds = new List<int>();
 
         // 정규식으로 숫자(하나 이상의 연속된 숫자)를 추출합니다.
         MatchCollection matches = Regex.Matches(input, @"\d+");
@@ -220,7 +272,7 @@ public class TestModeUI : MonoBehaviour
     private void AddWarRelic(string input)
     {
         // 결과를 저장할 리스트 생성
-        List<int> warRelicIds = new List<int>();
+        warRelicIds = new List<int>();
 
         // 정규식으로 숫자(하나 이상의 연속된 숫자)를 추출합니다.
         MatchCollection matches = Regex.Matches(input, @"\d+");
@@ -342,4 +394,31 @@ public class TestModeUI : MonoBehaviour
             moraleInput.text = RogueLikeData.Instance.GetMorale().ToString();
         }
     }
+
+    private void UpdateGold(string goldString)
+    {
+        if (string.IsNullOrEmpty(goldString))
+        {
+            goldText.text = "0";
+            return;
+        }
+
+        string digitsOnly = new string(goldString.Where(char.IsDigit).ToArray());
+
+        if (string.IsNullOrEmpty(digitsOnly))
+        {
+            goldText.text = "0";
+            return;
+        }
+
+        if (int.TryParse(digitsOnly, out int gold))
+        {
+            goldText.text = gold.ToString();
+        }
+        else
+        {
+            goldText.text = "0"; // int 범위를 벗어나면 0 처리
+        }
+    }
+
 }
