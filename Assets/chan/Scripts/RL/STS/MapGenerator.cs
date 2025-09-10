@@ -98,13 +98,30 @@ public class MapGenerator : MonoBehaviour
         }
 
         // Combat, Elite, Boss 모두 후보 중 랜덤 선택
-        int idx = UnityEngine.Random.Range(0, candidates.Count);
+        var random = RogueLikeData.Instance.GetRandomBySeed();
+        int idx = random.Next(0, candidates.Count);
         return candidates[idx].PresetID;
     }
 
     // ─── 전장효과 생성 함수 ─────────────────
-    private BattlefieldEffect GenerateBattlefieldEffect(int level, StageType stageType)
+    private BattlefieldEffect GenerateBattlefieldEffect(int level, StageType stageType, string commanderName = "")
     {
+        // 전투 스테이지가 아닌 경우 전장 효과 없음 (기본값 반환)
+        if (stageType != StageType.Combat && stageType != StageType.Elite && stageType != StageType.Boss)
+        {
+            return BattlefieldEffect.Plains; // 기본값 (실제로는 사용되지 않음)
+        }
+
+        // 지휘관 특성으로 정해지는 전장효과 우선 적용
+        if (!string.IsNullOrEmpty(commanderName))
+        {
+            BattlefieldEffect commanderEffect = GetCommanderBattlefieldEffect(commanderName);
+            if (commanderEffect != BattlefieldEffect.Plains)
+            {
+                return commanderEffect; // 지휘관 특성 우선 적용
+            }
+        }
+
         // 챕터 1의 레벨 1-8은 평원으로 고정
         int chapter = RogueLikeData.Instance.GetChapter();
         if (chapter == 1 && level >= 1 && level <= 8)
@@ -112,14 +129,9 @@ public class MapGenerator : MonoBehaviour
             return BattlefieldEffect.Plains;
         }
 
-        // 전투 스테이지가 아닌 경우 평원으로 고정
-        if (stageType != StageType.Combat && stageType != StageType.Elite && stageType != StageType.Boss)
-        {
-            return BattlefieldEffect.Plains;
-        }
-
-        // 전투 스테이지의 경우 확률에 따라 전장효과 결정
-        float randomValue = UnityEngine.Random.Range(0f, 100f);
+        // 지휘관 특성이 없거나 평원인 경우 확률에 따라 전장효과 결정
+        var random = RogueLikeData.Instance.GetRandomBySeed();
+        float randomValue = (float)random.NextDouble() * 100f;
         
         if (randomValue < 50f)
         {
@@ -154,6 +166,33 @@ public class MapGenerator : MonoBehaviour
             BattlefieldEffect.Forest => "숲",
             BattlefieldEffect.Storm => "폭풍",
             _ => "알 수 없음"
+        };
+    }
+
+    // BattlefieldEffect를 fieldId로 변환하는 함수
+    public static int GetFieldIdFromBattlefieldEffect(BattlefieldEffect effect)
+    {
+        return effect switch
+        {
+            BattlefieldEffect.Plains => 1,  // 기본값 (효과 없음)
+            BattlefieldEffect.Hills => 2,    // 언덕: 모든 유닛 방어력 +1
+            BattlefieldEffect.Swamp => 3,    // 늪지대: 모든 유닛 기동력 -2
+            BattlefieldEffect.Forest => 4,   // 숲: 경장갑 기절, 궁병 공격력 -10%
+            BattlefieldEffect.Storm => 5,    // 폭풍: 매 턴 랜덤 유닛 체력 -30
+            _ => 1
+        };
+    }
+
+    // 지휘관별 전장 효과 매핑 함수 (우선 적용용)
+    public static BattlefieldEffect GetCommanderBattlefieldEffect(string commanderName)
+    {
+        return commanderName switch
+        {
+            "호쉬" => BattlefieldEffect.Storm,      // 눈보라 → 폭풍
+            "모리슨" => BattlefieldEffect.Hills,    // 광채 → 언덕
+            "딜런" => BattlefieldEffect.Forest,     // 안개 → 숲
+            "잰더" => BattlefieldEffect.Swamp,      // 용광로 → 늪지대
+            _ => BattlefieldEffect.Plains           // 기본값 (우선 적용 안함)
         };
     }
 
@@ -214,9 +253,10 @@ public class MapGenerator : MonoBehaviour
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
             int[] arr = new int[totalPaths];
+            var random = RogueLikeData.Instance.GetRandomBySeed();
             for (int i = 0; i < totalPaths; i++)
             {
-                arr[i] = Random.Range(0, totalRows);
+                arr[i] = random.Next(0, totalRows);
             }
             System.Array.Sort(arr);
             bool allSame = true;
@@ -260,7 +300,8 @@ public class MapGenerator : MonoBehaviour
         if (baseVal - 1 >= 0) allowed.Add(baseVal - 1);
         allowed.Add(baseVal);
         if (baseVal + 1 < totalRows) allowed.Add(baseVal + 1);
-        allowed = allowed.Distinct().OrderBy(x => Random.value).ToList();
+        var random = RogueLikeData.Instance.GetRandomBySeed();
+        allowed = allowed.Distinct().OrderBy(x => (float)random.NextDouble()).ToList();
         foreach (int candidate in allowed)
         {
             if (candidate >= last)
@@ -355,7 +396,8 @@ public class MapGenerator : MonoBehaviour
                         }
                         // 확률에 따라 타입 선택
                         float total = baseProbs.Values.Sum();
-                        float rand = Random.Range(0f, total);
+                        var random = RogueLikeData.Instance.GetRandomBySeed();
+                        float rand = (float)random.NextDouble() * total;
                         float cumulative = 0f;
                         StageType selected = StageType.Combat;
                         foreach (var kvpProb in baseProbs)
@@ -372,8 +414,18 @@ public class MapGenerator : MonoBehaviour
                     StageNode node = new StageNode(lvl, row, type);
                     nodeDict[key] = node;
                     
-                    // 전장효과 설정
-                    node.battlefieldEffect = GenerateBattlefieldEffect(lvl + 1, type);
+                    // 전장효과 설정 (지휘관 정보 포함)
+                    string commanderName = "";
+                    if (StagePresetLoader.I != null)
+                    {
+                        int presetId = PickPresetID(lvl + 1, type);
+                        if (presetId != -1)
+                        {
+                            var preset = StagePresetLoader.I.GetByID(presetId);
+                            commanderName = preset?.Commander ?? "";
+                        }
+                    }
+                    node.battlefieldEffect = GenerateBattlefieldEffect(lvl + 1, type, commanderName);
                     
                     // ① StagePresetLoader.I 가 준비되어 있는지 확인
                     if (StagePresetLoader.I != null)
@@ -407,8 +459,18 @@ public class MapGenerator : MonoBehaviour
         // 보스 스테이지는 전체 레벨 중 마지막(레벨 = normalLevels, 즉 totalLevels-1)에서 단일 노드로 생성합니다.
         StageNode bossNode = new StageNode(normalLevels, 3, StageType.Boss); // 여기서 row 3(예: D열) 고정
         
-        // 보스 스테이지 전장효과 설정
-        bossNode.battlefieldEffect = GenerateBattlefieldEffect(normalLevels, StageType.Boss);
+        // 보스 스테이지 전장효과 설정 (지휘관 정보 포함)
+        string bossCommanderName = "";
+        if (StagePresetLoader.I != null)
+        {
+            int bossPresetId = PickPresetID(normalLevels, StageType.Boss);
+            if (bossPresetId != -1)
+            {
+                var bossPreset = StagePresetLoader.I.GetByID(bossPresetId);
+                bossCommanderName = bossPreset?.Commander ?? "";
+            }
+        }
+        bossNode.battlefieldEffect = GenerateBattlefieldEffect(normalLevels, StageType.Boss, bossCommanderName);
         
         bossNode.presetID = PickPresetID(normalLevels, StageType.Boss);
         string bossKey = normalLevels + "_3";

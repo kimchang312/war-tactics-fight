@@ -250,9 +250,17 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             // PlacePanel에 지휘관 정보 표시
             PlacePanelComponent.ShowCommanderInfo(cmdName);
             
-            // PlacePanel에 전장효과 표시
-            
-            PlacePanelComponent.ShowBattlefieldEffect(newStage.battlefieldEffect);
+            // PlacePanel에 전장효과 표시 (전투 스테이지만)
+            if (newStage.stageType == StageType.Combat || 
+                newStage.stageType == StageType.Elite || 
+                newStage.stageType == StageType.Boss)
+            {
+                PlacePanelComponent.ShowBattlefieldEffect(newStage.battlefieldEffect);
+                
+                // 전장 효과를 fieldId로 설정 (AbilityManager에서 사용)
+                int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
+                RogueLikeData.Instance.SetFieldId(fieldId);
+            }
             
             
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
