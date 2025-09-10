@@ -14,9 +14,13 @@ public class UnitSelectUI : MonoBehaviour
     private int requireCount = 1;
     private List<RogueUnitDataBase> availableUnits;
 
-    private void Awake()
+    private void Start()
     {
         gameObject.SetActive(false);
+        if (objectPool == null)
+        {
+            objectPool = GameManager.Instance.objectPool;
+        }
     }
 
     public void OpenSelectUnitWindow(Action func, List<RogueUnitDataBase> selectUnits = null, int requiredCount = 1)

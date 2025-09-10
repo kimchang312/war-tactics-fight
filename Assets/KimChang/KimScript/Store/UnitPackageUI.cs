@@ -19,7 +19,7 @@ public class UnitPackageUI : MonoBehaviour
 
     private static readonly Vector2 CenterPos = new Vector2(0, 120);
     private const float AniTime = 0.5f;
-    private const float HoverOffsetX = 100f;
+    private const float HoverOffsetX = 80f;
     private const float ClickOffsetX = 365f;
     private const float ScreenMargin = 50f;
 
@@ -35,6 +35,7 @@ public class UnitPackageUI : MonoBehaviour
     private readonly List<RectTransform> activeChildren = new(8);
     private readonly List<Button> childButtons = new(8);
 
+    private const float ExpandThresholdX = 720f;
     private void Awake()
     {
         rect = transform as RectTransform;
@@ -138,7 +139,7 @@ public class UnitPackageUI : MonoBehaviour
         if (currentHover == this) currentHover = null;
     }
 
-    // 사용처: 호버 펼침(방향 반전 적용)
+    // 사용처: 호버 펼침(위치 기준 단방향/대칭 모드)
     private void SpreadUnits(bool force)
     {
         if (!force && isAnimating) return;
@@ -149,19 +150,48 @@ public class UnitPackageUI : MonoBehaviour
         int n = activeChildren.Count;
         if (n == 0) { isAnimating = false; return; }
 
-        // 반전: 오른쪽에서 왼쪽으로
-        float startX = HoverOffsetX * (n - 1) * 0.5f;
+        // this의 현재 X 위치
+        float anchorX = rect != null ? rect.anchoredPosition.x : ((RectTransform)transform).anchoredPosition.x;
         float halfWidth = GetCanvasHalfWidth();
 
-        for (int i = 0; i < n; i++)
+        // 단방향/대칭 분기: x > +750 → 오른쪽으로만, x < -750 → 왼쪽으로만, 그 외는 기존 대칭
+        if (anchorX > ExpandThresholdX)
         {
-            float x = startX - HoverOffsetX * i;
-            x = Mathf.Clamp(x, -halfWidth + ScreenMargin, halfWidth - ScreenMargin);
-            activeChildren[i].DOAnchorPos(new Vector2(x, 0f), AniTime).SetEase(Ease.OutCubic);
+            // 오른쪽으로만: 마지막 유닛이 0, 그 앞 유닛들이 +1*HoverOffsetX, +2*HoverOffsetX ...
+            for (int i = 0; i < n; i++)
+            {
+                int offsetIndex = (n - 1 - i); // 역순
+                float x = -HoverOffsetX * offsetIndex;
+                x = Mathf.Clamp(x, -halfWidth + ScreenMargin, halfWidth - ScreenMargin);
+                activeChildren[i].DOAnchorPos(new Vector2(x, 0f), AniTime).SetEase(Ease.OutCubic);
+            }
+        }
+        else if (anchorX < -ExpandThresholdX)
+        {
+            // 왼쪽으로만: 마지막 유닛이 0, 그 앞 유닛들이 -1*HoverOffsetX, -2*HoverOffsetX ...
+            for (int i = 0; i < n; i++)
+            {
+                int offsetIndex = (n - 1 - i); // 역순
+                float x = HoverOffsetX * offsetIndex;
+                x = Mathf.Clamp(x, -halfWidth + ScreenMargin, halfWidth - ScreenMargin);
+                activeChildren[i].DOAnchorPos(new Vector2(x, 0f), AniTime).SetEase(Ease.OutCubic);
+            }
+        }
+        else
+        {
+            // 중앙 영역: 기존처럼 대칭으로 펼침(첫 번째도 살짝 퍼지길 원하면 여기만 조정)
+            float startX = HoverOffsetX * (n - 1) * 0.5f;
+            for (int i = 0; i < n; i++)
+            {
+                float x = startX - HoverOffsetX * i;
+                x = Mathf.Clamp(x, -halfWidth + ScreenMargin, halfWidth - ScreenMargin);
+                activeChildren[i].DOAnchorPos(new Vector2(x, 0f), AniTime).SetEase(Ease.OutCubic);
+            }
         }
 
         DOVirtual.DelayedCall(AniTime, () => isAnimating = false);
     }
+
 
     // 사용처: 호버 접기
     private void CollapseUnits(bool force)

@@ -73,6 +73,7 @@ public class SaveData
     }
     public void LoadData()
     {
+        if (RogueLikeData.Instance.GetTestMode()) return;
         _filePath = Application.persistentDataPath + "/PlayerData.json";
         try
         {

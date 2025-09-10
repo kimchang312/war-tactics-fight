@@ -50,7 +50,7 @@ public class RogueLikeData
 
     private int sariStack = 0;
 
-    private int[] costTable = { 100, 150, 200, 250, 300 };
+    private readonly int[] costTable = { 100, 150, 200, 250, 300 };
 
     private int fieldId = 0;
 
@@ -70,7 +70,11 @@ public class RogueLikeData
     private int randomSeed;
     private System.Random systemRandom;
     private int currentStageSeedBase;
-    private int stageCallCount;       
+    private int stageCallCount;
+    
+    private bool isTestMode =false;
+
+    private int unitOrder = 1;
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
@@ -851,12 +855,16 @@ public class RogueLikeData
         var baseUnits = RogueUnitDataBase.GetBaseUnits();
         currentStageSeedBase = 0;
         stageCallCount = 0;
+        unitOrder = 0;
+
         SetMyTeam(baseUnits);
         SetAllMyUnits(baseUnits);
 
         encounteredEvent.Clear();
-
+        SetRandomSeed();
         ResetFinalDamage();
+
+        isTestMode = false;
     }
 
     public bool GetResetMap()
@@ -898,6 +906,7 @@ public class RogueLikeData
     {
         int seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
         randomSeed = seed;
+        //randomSeed = 0;
     }
     //랜덤 시드 반환
     public int GetRandomSeed()
@@ -910,20 +919,18 @@ public class RogueLikeData
         stageCallCount++;
 
         int stageSeed = currentStageSeedBase + stageCallCount;
-
-        int finalSeed = HashCode.Combine(randomSeed, stageSeed);
-
+        int finalSeed = unchecked((randomSeed * 397) ^ stageSeed);
         return new System.Random(finalSeed);
     }
     // 스테이지 진입 시 고유 번호 설정 + 카운터 초기화
     public void SetStage()
     {
         currentStageSeedBase =
-           chapter * 1_000_0000 
-           + currentStageX * 100_000  
-           + currentStageY * 10_000 
-           + (int)currentStageType * 1_000;   
-        stageCallCount = 0;
+           chapter * 1_000_0000
+           + currentStageX * 100_000
+           + currentStageY * 10_000
+           + (int)currentStageType * 1_000;
+        stageCallCount = 0; 
     }
     //스테이지 위치로 랜덤 시드 생성
     public System.Random GetRandomStage(int currentX,int currentY)
@@ -942,6 +949,22 @@ public class RogueLikeData
     {
         return GetRandomBySeed().Next(min, max);
     }
+    public bool GetTestMode()
+    {
+        return isTestMode; 
+    }
+    public void SetTestMode(bool _isTestMode)
+    {
+        isTestMode = _isTestMode;
+    }
 
+    public void SetUnitOrder(int order)
+    {
+        unitOrder = order;
+    }
+    public int GetUnitOrder()
+    {
+        return unitOrder;
+    }
 
 }

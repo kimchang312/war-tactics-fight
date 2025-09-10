@@ -13,12 +13,12 @@ public class EventUIManager : MonoBehaviour
 
     [SerializeField] private UnitSelectUI unitSelectUI;
 
-    [SerializeField] private ObjectPool objectPool;
 
     private void Awake()
     {
         ResetUI();
     }
+
     private void OnEnable()
     {
         ResetUI();

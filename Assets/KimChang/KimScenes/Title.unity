@@ -1740,6 +1740,7 @@ MonoBehaviour:
   newGameBtn: {fileID: 1391114247}
   loadBtn: {fileID: 1170826700}
   exitBtn: {fileID: 1829842205}
+  testOptionBtn: {fileID: 0}
 --- !u!1001 &3859987665613238740
 PrefabInstance:
   m_ObjectHideFlags: 0

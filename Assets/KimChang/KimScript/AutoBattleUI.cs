@@ -482,7 +482,7 @@ public class AutoBattleUI : MonoBehaviour
     //유산 생성
     public void CreateWarRelic()
     {
-        WarRelicBoxUI.SetRelicBox(relicBox, itemToolTip, objectPool);
+        //WarRelicBoxUI.SetRelicBox(relicBox, itemToolTip, objectPool);
     }
 
     //ui 활성화 비활성화 초기화

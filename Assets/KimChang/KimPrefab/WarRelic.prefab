@@ -36,7 +36,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -882, y: 341}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 8, y: 8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7910484927534583022
@@ -89,27 +89,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isItem: 0
-  item:
-    itemId: 0
-    itemName: 
+  data:
+    isItem: 1
+    item:
+      itemId: -1
+      itemName: 
+      price: 0
+      priceRateMin: 0
+      priceRateMax: 0
+      rarity: 0
+      type: 
+      form: 
+      value: 
+      count: 0
+      condition: 
+      description: 
     price: 0
-    priceRateMin: 0
-    priceRateMax: 0
-    rarity: 0
-    type: 
-    form: 
-    value: 
-    count: 0
-    condition: 
-    description: 
-  price: 0
-  units: []
-  rerollCount: 0
-  relicId: -1
-  type: 0
-  unitId: -1
-  abilityId: -1
+    units: []
+    rerollCount: 0
+    relicId: -1
+    type: 0
+    unitId: -1
+    abilityId: -1
+    isUpgrade: 0
+    upgradeId: -1
 --- !u!114 &2962754129759069029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,4 +126,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ItemToolTip: {fileID: 0}
-  unitPackageToolTip: {fileID: 0}

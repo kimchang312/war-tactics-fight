@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -84,6 +85,7 @@ public class RogueUnitDataBase
 
     public StatBlock stats = new(); // 여기엔 계산된 결과 + modifier 임시 적용
 
+    public DateTime acquiredDate;
     public RogueUnitDataBase(
     int idx, string unitName, string unitBranch, int branchIdx,string unitId,
     string unitExplain, string unitImg,
@@ -98,7 +100,7 @@ public class RogueUnitDataBase
     bool guard, bool assassination, bool drain, bool overwhelm, bool martyrdom, bool wounding,
     bool vengeance, bool counter, bool firstStrike, bool challenge, bool smokeScreen,
     float maxHealth,int maxEnergy, bool alive = true, bool fStriked = false, int uniqueId = -1,
-    Dictionary<int, BuffDebuffData> effectDictionary = null)
+    Dictionary<int, BuffDebuffData> effectDictionary = null, DateTime? acquiredDate = null)
     {
         this.idx = idx;
         this.unitName = unitName;
@@ -172,7 +174,7 @@ public class RogueUnitDataBase
         this.fStriked = fStriked;
         this.UniqueId = uniqueId;
         this.effectDictionary = effectDictionary??new Dictionary<int, BuffDebuffData>();
-
+        this.acquiredDate = acquiredDate ?? DateTime.Now;
         NormalizeStatBlock();
     }
     public RogueUnitDataBase Clone()
@@ -188,7 +190,7 @@ public class RogueUnitDataBase
             this.lifeDrain, this.charge, this.defense, this.throwSpear, this.guerrilla, this.guard, this.assassination,
             this.drain, this.overwhelm, this.martyrdom, this.wounding, this.vengeance, this.counter, this.firstStrike,
             this.challenge, this.smokeScreen, this.maxHealth, this.maxEnergy, this.alive, this.fStriked, this.UniqueId,
-            new Dictionary<int, BuffDebuffData>(this.effectDictionary) 
+            new Dictionary<int, BuffDebuffData>(this.effectDictionary), DateTime.Now 
         );
     }
 

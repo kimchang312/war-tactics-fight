@@ -8,10 +8,9 @@ public static class WarRelicBoxUI
     public static void SetRelicBox(GameObject box, GameObject itemToolTip, ObjectPool objectPool)
     {
         var warRelics = RogueLikeData.Instance.GetAllOwnedRelics();
-
+        
         if (warRelics == null || warRelics.Count == 0)
             return;
-
         for (int i = 0; i < warRelics.Count; i++)
         {
             if (warRelics[i].used) return;
@@ -26,8 +25,8 @@ public static class WarRelicBoxUI
             itemInfo.data.relicId = warRelics[i].id;
 
             explainItem.ItemToolTip = itemToolTip;
-
-            relicObject.transform.SetParent(box.transform, false);
+            Transform relicBox = box.transform.GetChild(0).GetChild(0);
+            relicObject.transform.SetParent(relicBox, false);
 
         }
     }
