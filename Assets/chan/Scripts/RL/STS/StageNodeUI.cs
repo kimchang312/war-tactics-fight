@@ -11,6 +11,7 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
     public int level;
     public int row;
     public StageType stageType;
+    public BattlefieldEffect battlefieldEffect;
 
     [Header("Sprites (assign in Inspector)")]
     public Sprite combatSprite;
@@ -74,6 +75,7 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         level = node.level;
         row = node.row;
         stageType = node.stageType;
+        battlefieldEffect = node.battlefieldEffect;
         // 1) StageType별로 스프라이트 교체
         image.sprite = stageType switch
         {

@@ -245,9 +245,19 @@ public class PlacePanel : MonoBehaviour
         if (commanderSkillText != null)
             commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
 
-        // 전장 효과 설정 (지휘관 스킬과 동일하거나 별도로 설정 가능)
+        // 전장 효과는 별도로 설정해야 함 (ShowBattlefieldEffect 메서드 사용)
         if (battlefieldEffectText != null)
-            battlefieldEffectText.text = CommanderSkillData.GetSkillText(commanderName);
+            battlefieldEffectText.text = "전장효과: -";
+    }
+
+    // 전장효과를 표시하는 메서드
+    public void ShowBattlefieldEffect(BattlefieldEffect effect)
+    {
+        if (battlefieldEffectText != null)
+        {
+            string effectName = MapGenerator.GetBattlefieldEffectKoreanName(effect);
+            battlefieldEffectText.text = $"전장효과: {effectName}";
+        }
     }
 
     // 지휘관 정보를 숨기는 메서드

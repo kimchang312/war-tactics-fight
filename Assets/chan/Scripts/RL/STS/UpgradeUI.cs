@@ -83,8 +83,9 @@ public class UpgradeUI : MonoBehaviour
         }
 
         // 3) 랜덤 셔플 후 최대 3개 선택
+        var random = RogueLikeData.Instance.GetRandomBySeed();
         _currentChoices = options
-            .OrderBy(_ => Random.value)
+            .OrderBy(_ => (float)random.NextDouble())
             .Take(3)
             .ToList();
         // 무료업그레이드 라면
