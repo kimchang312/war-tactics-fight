@@ -25,6 +25,7 @@ public class SavePlayerData
     public BattleRewardData battleReward;
     public int nextUniqueId;
     public int score;
+    public StoreSnapshot currentStore;   // 사용처: 상점 스냅샷 저장
 
     public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<WarRelic> warRelics, List<int> eventIds,
         int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
@@ -61,6 +62,7 @@ public class SaveData
         SavePlayerData savePlayerData = RogueLikeData.Instance.GetRogueLikeData();
         _jsonData = JsonUtility.ToJson(savePlayerData);
         File.WriteAllText(_filePath, _jsonData);
+
     }
     
     public void SaveDataBattaleEnd(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
@@ -92,6 +94,9 @@ public class SaveData
             RogueLikeData.Instance.SetLoadData(savePlayerData.eventIds,savePlayerData.currentGold, savePlayerData.spentGold,
                 savePlayerData.playerMorale, savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,
                 savePlayerData.currentStageType, savePlayerData.sariStack, savePlayerData.battleReward,savePlayerData.nextUniqueId,savePlayerData.score);
+           
+            RogueLikeData.Instance.SetCurrentStoreSnapshot(savePlayerData.currentStore); // 사용처: 상점 스냅샷 복원
+
         }
         catch (Exception ex)
         {

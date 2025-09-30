@@ -555,9 +555,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e037f9e7f2a67d47b0f21cd74807266, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energyObj: {fileID: 5789703501790938623}
+  unitImg: {fileID: 8749554731890461909}
+  energyImg: {fileID: 3727083211428323285}
   energyText: {fileID: 2271658381407936989}
   unitNameText: {fileID: 3809392982297384470}
+  unitFramImg: {fileID: 6012161674333754432}
   unit:
     idx: 0
     unitName: 

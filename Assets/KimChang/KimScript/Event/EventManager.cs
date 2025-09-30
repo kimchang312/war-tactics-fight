@@ -460,8 +460,6 @@ public class EventManager
                         int gold = int.Parse(count);
                         if (isBattle) RogueLikeData.Instance.AddGoldReward(gold);
                         else { gold = RogueLikeData.Instance.AddGoldByEventChapter(gold); resultLog += $"- 금화 {gold} 획득\n"; }
-                        // 필요 시 토큰으로 “금화 xxx”를 템플릿에 쓰고 싶으면 아래 라인 유지
-                        // PushResultToken(resultTokens, $"금화 {gold}");
                         break;
                     }
 
@@ -470,7 +468,6 @@ public class EventManager
                         int morale = int.Parse(count);
                         if (isBattle) RogueLikeData.Instance.AddMoraleReward(morale);
                         else { morale = RogueLikeData.Instance.ChangeMorale(morale); resultLog += $"- 사기 {morale} 회복\n"; }
-                        // PushResultToken(resultTokens, $"사기 {morale}");
                         break;
                     }
 
@@ -483,7 +480,6 @@ public class EventManager
                             {
                                 unit.energy = Math.Min(unit.maxEnergy, unit.energy + energy);
                                 resultLog += $"-기력 회복 {unit.unitName}\n";
-                                // 템플릿에 쓸 일이 거의 없지만 필요하면 토큰 추가 가능
                             }
                         }
                         else if (form == ResultForm.All)

@@ -36,13 +36,28 @@ public class StoreUI : MonoBehaviour
 
     private void OnEnable()
     {
-        RogueLikeData.Instance.SetCurrentGold(3000);
         RestUI();
-        ShowUnitUI();
-        ShowRelicUI();
-        ShowItemUI();
-        ShowRerollUI();
+
+        // 현재 위치/챕터 가져오기(네가 쓰는 방식에 맞게)
+        int chapter = RogueLikeData.Instance.GetChapter();
+        var (x, y, _) = RogueLikeData.Instance.GetCurrentStage();
+
+        // 최초 진입이면 롤 함수로 스냅샷 생성, 아니면 기존 스냅샷 반환
+        var snap = RogueLikeData.Instance.OpenShopAndFreezeIfNeeded(
+            chapter, x, y,
+            RollUnitPacksOnce,
+            RollRelicsOnce,
+            RollItemsOnce,
+            RollRerollOnce
+        );
+
+        // 스냅샷을 UI로 바인딩
+        BindUnitPackages(snap);
+        BindRelics(snap);
+        BindItems(snap);
+        BindReroll(snap);
     }
+
     private void OnDisable()
     {
         GameManager.Instance.UpdateAllUI();
@@ -316,18 +331,36 @@ public class StoreUI : MonoBehaviour
         else if (relicId != -1) itemInformation.data.relicId = relicId;
         else if (rerollCount != 0) itemInformation.data.rerollCount = rerollCount;
     }
-    
-    private void PurchaseUnitPackage(GameObject obj,List<RogueUnitDataBase> units, int price)
+
+    // 사용처: 패키지 결제/소유 반영/스냅샷 판매 잠금
+    private void PurchaseUnitPackage(GameObject obj, List<RogueUnitDataBase> units, int price)
     {
-        if (!SpendGold(price)) return;
+        // 사전 검증(금화 UI 체크는 되어 있지만 한번 더)
+        int gold = RogueLikeData.Instance.GetCurrentGold();
+        int lental = RelicManager.CheckRelicById(49) ? 500 : 0;
+        if (gold + lental < price) return;
+
+        int slotIndex = obj.transform.GetSiblingIndex();
+
+        // 판매 잠금(중복 방지)
+        if (!RogueLikeData.Instance.TryMarkSold(StoreSlotType.UnitPackage, slotIndex))
+            return;
+
+        // 금화 차감 실패 시 롤백
+        if (!SpendGold(price))
+        {
+            RogueLikeData.Instance.UnmarkSold(StoreSlotType.UnitPackage, slotIndex);
+            return;
+        }
+
         var myUnits = RogueLikeData.Instance.GetMyTeam();
         myUnits.AddRange(units);
         RogueLikeData.Instance.SetMyTeam(myUnits);
-        //btn.transform.GetChild(2).gameObject.SetActive(true);
-        //btn.interactable = false;
+
         obj.SetActive(false);
         ClosePackageBack();
     }
+
 
     private void PurchaseRelic(Button btn, int relicId, int price)
     {
@@ -339,23 +372,56 @@ public class StoreUI : MonoBehaviour
         SoldOutItemBtn(btn);
     }
 
-    //구매 버튼 클릭 시
+    // 사용처: 체크된 슬롯을 구매 버튼으로 결제
     private void ClickPurchaseItemBtn()
     {
         if (checkedBtn == null) return;
 
+        // 체크된 버튼이 어느 영역인지 판별
+        StoreSlotType type;
+        int slotIndex;
+
+        if (checkedBtn.transform.IsChildOf(relicField))
+        {
+            type = StoreSlotType.Relic;
+            slotIndex = checkedBtn.transform.GetSiblingIndex();
+        }
+        else if (checkedBtn.transform.IsChildOf(itemField))
+        {
+            type = StoreSlotType.Item;
+            slotIndex = checkedBtn.transform.GetSiblingIndex();
+        }
+        else if (checkedBtn.transform == rerollObject)
+        {
+            type = StoreSlotType.Reroll;
+            slotIndex = 0;
+        }
+        else
+        {
+            return;
+        }
+
         ItemInformation info = checkedBtn.GetComponent<ItemInformation>();
         if (info == null) return;
 
-        // 가격 검사 및 소모
-        if (!SpendGold(info.data.price)) return;
+        int price = info.data.price;
 
-        // Relic인 경우
+        // 판매 잠금 선 수행(중복 클릭 방지)
+        if (!RogueLikeData.Instance.TryMarkSold(type, slotIndex))
+            return;
+
+        // 결제 실패 시 롤백
+        if (!SpendGold(price))
+        {
+            RogueLikeData.Instance.UnmarkSold(type, slotIndex);
+            return;
+        }
+
+        // 효과 적용
         if (info.data.relicId != -1)
         {
             RogueLikeData.Instance.AcquireRelic(info.data.relicId);
         }
-        // 일반 아이템 처리
         else if (info.data.item != null)
         {
             switch (info.data.item.type)
@@ -605,6 +671,181 @@ public class StoreUI : MonoBehaviour
     {
         purchaseBtn.gameObject.SetActive(true);
         leaveBtn.gameObject.SetActive(true);
+    }
+    // 사용처: 최초 입장 시 1회 라인업 동결용
+    private List<UnitPackageOffer> RollUnitPacksOnce()
+    {
+        var unitItems = StoreManager.GetRandomUnitItems();
+        var result = new List<UnitPackageOffer>(unitItems.Count);
+
+        for (int i = 0; i < unitItems.Count; i++)
+        {
+            var item = unitItems[i];
+            var units = FilterAndSelectUnits(item);
+            int price = CalculateUnitPackagePrice(units, item);
+            // idx만 저장해 직렬화 비용 절감
+            var idxs = new int[units.Count];
+            for (int k = 0; k < units.Count; k++) idxs[k] = units[k].idx;
+
+            result.Add(new UnitPackageOffer { unitIdxs = idxs, price = price, sold = false });
+        }
+        return result;
+    }
+
+    private List<SimpleOffer> RollRelicsOnce()
+    {
+        var items = StoreManager.GetRandomRelicItems();
+        var used = new HashSet<int>();
+        var result = new List<SimpleOffer>(items.Count);
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+            int grade = int.Parse(item.value);
+            var candidates = RelicManager.GetAvailableRelicIds(grade, RelicManager.RelicAction.Acquire)
+                                         .Where(id => !used.Contains(id)).ToList();
+            if (candidates.Count == 0)
+            {
+                result.Add(new SimpleOffer { id = -1, price = 0, sold = true });
+                continue;
+            }
+            int relicId = candidates[RogueLikeData.Instance.GetRandomInt(0, candidates.Count)];
+            used.Add(relicId);
+            int price = CalculateDiscountedPrice(item);
+            result.Add(new SimpleOffer { id = relicId, price = price, sold = false });
+        }
+        return result;
+    }
+
+    private List<SimpleOffer> RollItemsOnce()
+    {
+        var items = StoreManager.GetRandomEnergyMoraleItems();
+        var result = new List<SimpleOffer>(items.Count);
+        for (int i = 0; i < items.Count; i++)
+        {
+            var it = items[i];
+            int price = CalculateDiscountedPrice(it);
+            result.Add(new SimpleOffer { id = it.itemId, price = price, sold = false });
+        }
+        return result;
+    }
+
+    private SimpleOffer RollRerollOnce()
+    {
+        var r = StoreManager.GetRandomDiceItem()[0];
+        return new SimpleOffer { id = r.itemId, price = CalculateDiscountedPrice(r), sold = false };
+    }
+    // 사용처: 유닛 패키지 슬롯 바인딩
+    private void BindUnitPackages(StoreSnapshot snap)
+    {
+        if (snap.unitPacks == null) return;
+        int childCount = unitPackage.childCount;
+        int n = Mathf.Min(childCount, snap.unitPacks.Count);
+
+        for (int i = 0; i < childCount; i++)
+        {
+            var slot = unitPackage.GetChild(i).GetComponent<UnitPackageUI>();
+            if (i >= n)
+            {
+                slot.gameObject.SetActive(false);
+                continue;
+            }
+
+            var offer = snap.unitPacks[i];
+
+            // idx → Unit 복원(캐시 기준 최소 연산)
+            var units = new List<RogueUnitDataBase>(offer.unitIdxs.Length);
+            for (int k = 0; k < offer.unitIdxs.Length; k++)
+            {
+                var u = UnitLoader.Instance.GetCloneUnitById(offer.unitIdxs[k]);
+                if (u != null) units.Add(u);
+            }
+
+            slot.SetUnitPackage(units, null, offer.price);
+            slot.gameObject.SetActive(!offer.sold);
+        }
+    }
+
+    // 사용처: 유물 슬롯 바인딩
+    private void BindRelics(StoreSnapshot snap)
+    {
+        int childCount = relicParent.childCount;
+        int n = Mathf.Min(childCount, snap.relics.Count);
+
+        for (int i = 0; i < childCount; i++)
+        {
+            var t = relicParent.GetChild(i);
+            var btn = t.GetComponent<Button>();
+            btn.onClick.RemoveAllListeners();
+
+            if (i >= n)
+            {
+                t.gameObject.SetActive(false);
+                continue;
+            }
+
+            var offer = snap.relics[i];
+            if (offer.id <= 0) { t.gameObject.SetActive(false); continue; }
+
+            // StoreItemData는 없어도 됨(정보 UI만 필요하다면 룩업 가능)
+            SetRelicUI(t, null, offer.id, offer.price);
+
+            if (offer.sold) SoldOutItemBtn(btn);
+            else
+            {
+                // 체크 선택 → 구매 버튼으로 구매
+                btn.onClick.AddListener(() => ClickItemAndCheck(btn));
+            }
+        }
+    }
+
+    // 사용처: 일반 아이템 슬롯 바인딩
+    private void BindItems(StoreSnapshot snap)
+    {
+        int childCount = itemParent.childCount;
+        int n = Mathf.Min(childCount, snap.items.Count);
+
+        for (int i = 0; i < childCount; i++)
+        {
+            var t = itemParent.GetChild(i);
+            var btn = t.GetComponent<Button>();
+            btn.onClick.RemoveAllListeners();
+
+            if (i >= n)
+            {
+                t.gameObject.SetActive(false);
+                continue;
+            }
+
+            var offer = snap.items[i];
+            var data = StoreManager.GetItemDataById(offer.id);
+            if (data == null) { t.gameObject.SetActive(false); continue; }
+
+            string path = $"ItemImages/Item{data.itemId}";
+            SetStoreSlotUI(t, data, offer.price, path, null);
+
+            if (offer.sold) SoldOutItemBtn(btn);
+            else btn.onClick.AddListener(() => ClickItemAndCheck(btn));
+        }
+    }
+
+    // 사용처: 리롤 슬롯 바인딩
+    private void BindReroll(StoreSnapshot snap)
+    {
+        if (rerollObject == null) return;
+        var btn = rerollObject.GetComponent<Button>();
+        btn.onClick.RemoveAllListeners();
+
+        var offer = snap.reroll;
+        if (offer == null) { rerollObject.gameObject.SetActive(false); return; }
+
+        var data = StoreManager.GetItemDataById(offer.id);
+        if (data == null) { rerollObject.gameObject.SetActive(false); return; }
+
+        SetStoreSlotUI(rerollObject, data, offer.price, "ItemImages/Item60", null, int.Parse(data.value));
+
+        if (offer.sold) SoldOutItemBtn(btn);
+        else btn.onClick.AddListener(() => ClickItemAndCheck(btn));
     }
 
 }

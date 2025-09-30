@@ -418,7 +418,7 @@ public class AbilityManager
         //치유
         ProcessHealing(attackers,isTeam);
         //지원 종료
-        DamageBurning(attackers[0],isTeam);
+        DamageBurning(attackers,isTeam);
 
     }
 
@@ -963,28 +963,35 @@ public class AbilityManager
         }
     }
     //작열 데미지
-    private void DamageBurning(RogueUnitDataBase unit,bool isTeam)
+    private void DamageBurning(List<RogueUnitDataBase> units, bool isTeam)
     {
         int burningId = 0;
 
-        if (!unit.effectDictionary.TryGetValue(burningId, out BuffDebuffData burningEffect) || burningEffect.Duration == 0)
-            return;
-
-        burningEffect.Duration = Mathf.Min(burningEffect.Duration, 2);
-        burningEffect.EffectGrade = Mathf.Min(burningEffect.EffectGrade, 3);
-
-        //작열 데미지 공식 추후 최대 체력을 추가해서 변경
-        float fireDamage = fireDamageValue * unit.maxHealth;
-        float damage = Mathf.Min(burningEffect.EffectGrade * fireDamage, fireDamage * 3);
-        unit.health -= damage;
-
-        burningEffect.Duration--;
-        if(burningEffect.Duration == 0)
+        foreach (var unit in units)
         {
-            unit.effectDictionary.Remove(burningId);
+            if (unit == null) continue;
+
+            if (!unit.effectDictionary.TryGetValue(burningId, out BuffDebuffData burningEffect) || burningEffect.Duration == 0)
+                continue;
+
+            burningEffect.Duration = Mathf.Min(burningEffect.Duration, 2);
+            burningEffect.EffectGrade = Mathf.Min(burningEffect.EffectGrade, 3);
+
+            float fireDamage = fireDamageValue * unit.maxHealth;
+            float damage = Mathf.Min(burningEffect.EffectGrade * fireDamage, fireDamage * 3);
+
+            unit.health -= damage;
+
+            burningEffect.Duration--;
+            if (burningEffect.Duration == 0)
+            {
+                unit.effectDictionary.Remove(burningId);
+            }
+
+            CallDamageText(damage, "작열", isTeam, false);
         }
-        CallDamageText(damage, "작열 ", isTeam, false);
     }
+
     // 치유
     private void ProcessHealing(List<RogueUnitDataBase> units,bool isTeam)
     {

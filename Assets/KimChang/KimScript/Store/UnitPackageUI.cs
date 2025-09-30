@@ -19,7 +19,7 @@ public class UnitPackageUI : MonoBehaviour
 
     private static readonly Vector2 CenterPos = new Vector2(0, 120);
     private const float AniTime = 0.5f;
-    private const float HoverOffsetX = 80f;
+    private const float HoverOffsetX = 150f;
     private const float ClickOffsetX = 365f;
     private const float ScreenMargin = 50f;
 
@@ -265,7 +265,7 @@ public class UnitPackageUI : MonoBehaviour
                 Vector2 targetPos = new Vector2(startX - ClickOffsetX * i, 0f);
                 activeChildren[i].DOAnchorPos(targetPos, AniTime).SetEase(Ease.OutCubic);
                 var ui = activeChildren[i].GetComponent<OneUnitUI>();
-                if (ui != null) ui.SetAbleUI();
+                //if (ui != null) ui.SetAbleUI();
             }
         });
         seq.OnComplete(() => isAnimating = false);
@@ -289,7 +289,7 @@ public class UnitPackageUI : MonoBehaviour
         for (int i = 0; i < activeChildren.Count; i++)
         {
             var ui = activeChildren[i].GetComponent<OneUnitUI>();
-            if (ui != null) ui.SetDisableUI();
+            //if (ui != null) ui.SetDisableUI();
             seq.Join(activeChildren[i].DOAnchorPos(Vector2.zero, AniTime).SetEase(Ease.OutCubic));
         }
 

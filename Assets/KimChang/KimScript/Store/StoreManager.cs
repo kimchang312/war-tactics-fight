@@ -85,4 +85,15 @@ public static class StoreManager
     {
         return min + (max - min) * RogueLikeData.Instance.GetRandomFloat();
     }
+
+    // 사용처: 스냅샷의 itemId → StoreItemData 복구
+    public static StoreItemData GetItemDataById(int id)
+    {
+        // 단순 순회가 가장 빠름(소수 개, 캐시된 리스트)
+        var list = storeItems;
+        for (int i = 0, n = list.Count; i < n; i++)
+            if (list[i].itemId == id) return list[i];
+        return null;
+    }
+
 }

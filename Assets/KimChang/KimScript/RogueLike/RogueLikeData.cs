@@ -74,7 +74,16 @@ public class RogueLikeData
     
     private bool isTestMode =false;
 
-    private int unitOrder = 1;
+    private int unitOrder = 0;
+
+    // 사용처: 현재 상점 세션 저장/복원
+    private StoreSnapshot currentStore;
+    private Dictionary<string, StoreSnapshot> storeSessions;
+
+    // 사용처: 상점 좌표 → 유니크 키
+    private string BuildStoreKey(int chapter, int x, int y) => $"{chapter}:{x}:{y}";
+
+
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
@@ -95,8 +104,15 @@ public class RogueLikeData
                                     .ToList(),encounteredEvent.Values.ToList(),
                                     currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,
                                     upgradeValues, sariStack,battleReward, nextUnitUniqueId,score);
+        data.currentStore = currentStore;
         return data;
     }
+    // 사용처: SaveData.LoadData()에서 로드한 스냅샷을 주입
+    public void SetCurrentStoreSnapshot(StoreSnapshot snap)
+    {
+        currentStore = snap;
+    }
+
     public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
         List<RogueUnitDataBase> savedCopy = new(savedMyUnits);
@@ -440,7 +456,7 @@ public class RogueLikeData
             actualChange = Mathf.Max(reduced, -playerMorale); // 최소 0 유지
             playerMorale += actualChange;
         }
-
+        
         UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
         UnitStateChange.ChangeStateMyUnits();
         return actualChange;
@@ -536,8 +552,10 @@ public class RogueLikeData
         this.chapter = chapter;
     }
     //챕터에 따른 이벤트 골드
-    public int GetGoldByChapter(int gold)
+    public int GetGoldByChapter(int gold,int battleResult = 0)
     {
+        //승리일때만 골드
+        if (battleResult != 0) return 0;
         float value = chapter == 1 ? 1 : (chapter == 2 ? 1.5f : 2);
         return ((int)(gold * value));
     }
@@ -861,10 +879,13 @@ public class RogueLikeData
         SetAllMyUnits(baseUnits);
 
         encounteredEvent.Clear();
-        SetRandomSeed();
+        SetRandomRandomSeed();
         ResetFinalDamage();
 
         isTestMode = false;
+        currentStore = null;
+        storeSessions = null;
+
     }
 
     public bool GetResetMap()
@@ -901,8 +922,14 @@ public class RogueLikeData
             relicIdsByType[relic.type].Add(relic.id);
         }
     }
-    //랜덤 시드 설정
-    public void SetRandomSeed()
+    //랜덤 시드 고정
+    public void SetRandomSeed(int seed)
+    {
+        randomSeed = seed;
+    }
+
+    //랜덤 시드 무작위로 설정
+    public void SetRandomRandomSeed()
     {
         int seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
         randomSeed = seed;
@@ -966,5 +993,117 @@ public class RogueLikeData
     {
         return unitOrder;
     }
+
+    // 시드 + 챕터 값으로 랜덤 시드 반환 (스테이지 제작 시 필요)
+    private int GetRandomBySeedChapter()
+    {
+        return chapter+randomSeed;
+    }
+
+    #region 상점 스냅샷
+
+    // 사용처: 상점 진입 시 최초 1회 라인업을 고정하거나, 기존 스냅샷을 되살림
+    public StoreSnapshot OpenShopAndFreezeIfNeeded(
+        int chapter, int x, int y,
+        Func<List<UnitPackageOffer>> rollUnitPacks,
+        Func<List<SimpleOffer>> rollRelics,
+        Func<List<SimpleOffer>> rollItems,
+        Func<SimpleOffer> rollReroll)
+    {
+        storeSessions ??= new Dictionary<string, StoreSnapshot>();
+        string key = BuildStoreKey(chapter, x, y);
+
+        if (!storeSessions.TryGetValue(key, out var snap))
+        {
+            snap = new StoreSnapshot
+            {
+                chapter = chapter,
+                stageX = x,
+                stageY = y,
+                stageType = StageType.Shop
+            };
+            snap.unitPacks = rollUnitPacks?.Invoke() ?? new List<UnitPackageOffer>();
+            snap.relics = rollRelics?.Invoke() ?? new List<SimpleOffer>();
+            snap.items = rollItems?.Invoke() ?? new List<SimpleOffer>();
+            snap.reroll = rollReroll?.Invoke();
+
+            storeSessions[key] = snap;
+        }
+        currentStore = snap;
+
+        SetCurrentStage(x, y, StageType.Shop);
+
+        new SaveData().SaveDataFile();
+        return snap;
+    }
+
+    // 사용처: 현재 상점 스냅샷 읽기
+    public StoreSnapshot GetCurrentStoreSnapshot() => currentStore;
+
+    // 사용처: 구매 시 슬롯을 판매 상태로 잠금(이중 클릭/재입장 방지)
+    public bool TryMarkSold(StoreSlotType type, int indexOrId)
+    {
+        if (currentStore == null) return false;
+
+        switch (type)
+        {
+            case StoreSlotType.UnitPackage:
+                if ((uint)indexOrId >= (uint)currentStore.unitPacks.Count) return false;
+                if (currentStore.unitPacks[indexOrId].sold) return false;
+                currentStore.unitPacks[indexOrId].sold = true;
+                break;
+
+            case StoreSlotType.Relic:
+                if ((uint)indexOrId >= (uint)currentStore.relics.Count) return false;
+                if (currentStore.relics[indexOrId].sold) return false;
+                currentStore.relics[indexOrId].sold = true;
+                break;
+
+            case StoreSlotType.Item:
+                if ((uint)indexOrId >= (uint)currentStore.items.Count) return false;
+                if (currentStore.items[indexOrId].sold) return false;
+                currentStore.items[indexOrId].sold = true;
+                break;
+
+            case StoreSlotType.Reroll:
+                if (currentStore.reroll == null || currentStore.reroll.sold) return false;
+                currentStore.reroll.sold = true;
+                break;
+
+            default:
+                return false;
+        }
+
+        new SaveData().SaveDataFile(); // 즉시 저장
+        return true;
+    }
+
+    // 사용처: 결제 실패 등 예외 시 롤백 필요할 때
+    public void UnmarkSold(StoreSlotType type, int indexOrId)
+    {
+        if (currentStore == null) return;
+
+        switch (type)
+        {
+            case StoreSlotType.UnitPackage:
+                if ((uint)indexOrId < (uint)currentStore.unitPacks.Count)
+                    currentStore.unitPacks[indexOrId].sold = false;
+                break;
+            case StoreSlotType.Relic:
+                if ((uint)indexOrId < (uint)currentStore.relics.Count)
+                    currentStore.relics[indexOrId].sold = false;
+                break;
+            case StoreSlotType.Item:
+                if ((uint)indexOrId < (uint)currentStore.items.Count)
+                    currentStore.items[indexOrId].sold = false;
+                break;
+            case StoreSlotType.Reroll:
+                if (currentStore.reroll != null)
+                    currentStore.reroll.sold = false;
+                break;
+        }
+    }
+
+    #endregion
 
 }

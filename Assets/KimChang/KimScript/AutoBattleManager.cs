@@ -1,13 +1,15 @@
-using System.Collections.Generic;
-using UnityEngine;
 using System;
-using System.Threading.Tasks;
 using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using UnityEngine;
 
 
 public class AutoBattleManager : MonoBehaviour
 {
     [SerializeField] private AutoBattleUI autoBattleUI;
+    [SerializeField] private BattleCrashAnimation battleAnim;
     private AbilityManager abilityManager = new AbilityManager();
     
     private float waittingTime = 500;
@@ -47,8 +49,6 @@ public class AutoBattleManager : MonoBehaviour
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private void Start()
     {
-       
-
         if (autoBattleUI == null)
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
         if (isTest)
@@ -57,6 +57,7 @@ public class AutoBattleManager : MonoBehaviour
             return;
         }
             currentState = BattleState.None;
+        if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
         InitializeRogueLike();
     }
     private async void Update()
@@ -176,46 +177,14 @@ public class AutoBattleManager : MonoBehaviour
     private void UpdateUnitCount()
     {
         int myUnitCount = 0;
+        for (int i = 0; i < myUnits.Count; i++)
+            if (myUnits[i].health > 0) myUnitCount++;
+
         int enemyUnitCount = 0;
+        for (int i = 0; i < enemyUnits.Count; i++)
+            if (enemyUnits[i].health > 0) enemyUnitCount++;
 
-        foreach (RogueUnitDataBase unitData in myUnits)
-        {
-            if (unitData.health > 0)
-            {
-                myUnitCount++;
-            }
-        }
-        foreach (RogueUnitDataBase unitData in enemyUnits)
-        {
-            if(unitData.health > 0)
-            {
-                enemyUnitCount++;
-            }
-        }
-
-         autoBattleUI.UpdateUnitCountUI(myUnitCount, enemyUnitCount);
-    }
-
-    //유닛 체력 최신화
-    private void  UpdateUnitHp()
-    {
-        //범위 확인
-        if (myUnits.Count== 0 || enemyUnits.Count==0) return;
-        float myUnitHp = myUnits[0].health;
-        float enemyHp = enemyUnits[0].health;
-        float myMAxHp = myUnits[0].maxHealth;
-        float enemyMaxHp = enemyUnits[0].maxHealth;
-       
-        if (myUnitHp < 0)
-        {
-            myUnitHp = 0;
-        }
-        if (enemyHp < 0)
-        {
-            enemyHp = 0;
-        }
-        autoBattleUI.UpateUnitHPUI(MathF.Floor(myUnitHp),MathF.Floor(enemyHp), MathF.Floor(myMAxHp), MathF.Floor(enemyMaxHp));
-
+        autoBattleUI.UpdateUnitCountUI(myUnitCount, enemyUnitCount);
     }
 
     // 유닛 생성UI 호출
@@ -239,6 +208,8 @@ public class AutoBattleManager : MonoBehaviour
                 enemyRangUnits.Add(enemyUnits[i]);
             }
         }
+
+
 
         autoBattleUI.CreateUnitBox(myUnits, enemyUnits, abilityManager.CalculateDodge(myUnits[0],true,isFirstAttack), abilityManager.CalculateDodge(enemyUnits[0],false,isFirstAttack),myRangeUnits,enemyRangUnits);
     }
@@ -368,6 +339,7 @@ public class AutoBattleManager : MonoBehaviour
         
         enemyUnits = GetUnitsById(unitIds);
         myUnits = RogueLikeData.Instance.GetMyUnits();
+
         RogueLikeData.Instance.ClearSavedMyUnits();
 
         RogueLikeData.Instance.SetBattleUnitCount(myUnits.Count);
@@ -383,6 +355,11 @@ public class AutoBattleManager : MonoBehaviour
         
         ProcessRelic();
 
+        //사기로 안한 유닛 0
+        if (myUnits.Count == 0)
+        {
+            HandleEnd(false);
+        }
         UpdateUnitUI();
         
         //로딩창 종료
@@ -493,10 +470,18 @@ public class AutoBattleManager : MonoBehaviour
     }
 
     //종료관리 전투가 끝났을때 나오게 될것들
-    private bool HandleEnd()
+    private bool HandleEnd(bool isMyUnitExist = true)
     {
-
-        int result = CheckEnd();
+        int result = 3;
+        if (!isMyUnitExist)
+        {
+            result = 1;
+            myDeathUnits = null;
+        }
+        else
+        {
+            result = CheckEnd();
+        }
         if (result == 3)
         {
             currentState = BattleState.Preparation;
@@ -510,7 +495,18 @@ public class AutoBattleManager : MonoBehaviour
                 RogueLikeData.Instance.AddScore((int)unit.maxHealth);
             }
 
-            RewardManager.AddBattleRewardByStage(result, myDeathUnits, enemyDeathUnits);
+            int gameResult = RewardManager.AddBattleRewardByStage(result, myDeathUnits, enemyDeathUnits);
+
+            if (gameResult == 1)
+            {
+                autoBattleUI.GameEnd(false);
+                return true;
+            }
+            else if (gameResult == 2)
+            {
+                autoBattleUI.GameEnd(true);
+                return true;
+            }
             UpdateUnitCount();
             UpdateUnitHp();
 
@@ -570,6 +566,77 @@ public class AutoBattleManager : MonoBehaviour
     {
         isTest = true;
     }
+
+    // 화면 표시에 필요한 것만 담은 뷰 스냅샷
+    public readonly struct HpViewData
+    {
+        public readonly bool MyActive, EnemyActive;
+        public readonly int MyHp, MyMax, EnemyHp, EnemyMax;
+        public readonly bool MySecondActive, EnemySecondActive;
+        public readonly int MySecondHp, MySecondMax, EnemySecondHp, EnemySecondMax;
+
+        public HpViewData(
+            bool myActive, int myHp, int myMax,
+            bool enemyActive, int enemyHp, int enemyMax,
+            bool mySecondActive, int mySecondHp, int mySecondMax,
+            bool enemySecondActive, int enemySecondHp, int enemySecondMax)
+        {
+            MyActive = myActive; EnemyActive = enemyActive;
+            MyHp = myHp; MyMax = myMax; EnemyHp = enemyHp; EnemyMax = enemyMax;
+            MySecondActive = mySecondActive; EnemySecondActive = enemySecondActive;
+            MySecondHp = mySecondHp; MySecondMax = mySecondMax;
+            EnemySecondHp = enemySecondHp; EnemySecondMax = enemySecondMax;
+        }
+    }
+
+    // 화면에 표시할 체력 데이터 스냅샷을 생성
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int ClampNonNegToInt(float v) => v <= 0 ? 0 : (int)v;
+
+    // 전투 중 매 프레임 호출: 뷰 스냅샷 생성 후 UI에 반영
+    private void UpdateUnitHp()
+    {
+        var data = BuildHpViewData();
+        autoBattleUI.ApplyHp(data);           // UI는 스냅샷만 받아서 그림
+    }
+
+    // 도메인 규칙(예: 2번 유닛은 체력 0 이하면 숨김)을 적용한 뷰 스냅샷 생성
+    private HpViewData BuildHpViewData()
+    {
+        var my0 = myUnits.Count > 0 ? myUnits[0] : null;
+        var en0 = enemyUnits.Count > 0 ? enemyUnits[0] : null;
+
+        bool myActive = my0 != null;
+        bool enActive = en0 != null;
+
+        int myHp = myActive ? ClampNonNegToInt(my0.health) : 0;
+        int myMax = myActive ? ClampNonNegToInt(my0.maxHealth) : 1;
+        int enHp = enActive ? ClampNonNegToInt(en0.health) : 0;
+        int enMax = enActive ? ClampNonNegToInt(en0.maxHealth) : 1;
+
+        var my1 = myUnits.Count > 1 ? myUnits[1] : null;
+        var en1 = enemyUnits.Count > 1 ? enemyUnits[1] : null;
+
+        // 규칙: 2번 유닛은 존재하고 체력 > 0일 때만 표시
+        bool mySecondActive = my1 != null && my1.health > 0;
+        bool enSecondActive = en1 != null && en1.health > 0;
+
+        int my2Hp = mySecondActive ? ClampNonNegToInt(my1.health) : 0;
+        int my2Max = mySecondActive ? ClampNonNegToInt(my1.maxHealth) : 1;
+        int en2Hp = enSecondActive ? ClampNonNegToInt(en1.health) : 0;
+        int en2Max = enSecondActive ? ClampNonNegToInt(en1.maxHealth) : 1;
+
+        return new HpViewData(
+            myActive, myHp, myMax,
+            enActive, enHp, enMax,
+            mySecondActive, my2Hp, my2Max,
+            enSecondActive, en2Hp, en2Max
+        );
+    }
+
+
+
+
 
 }
 

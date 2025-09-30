@@ -31,10 +31,11 @@ public static class RewardManager
     }
 
     //현재 스테이지와 챕터에 따른 전투 보상 
-    public static void AddBattleRewardByStage(int battleResult,List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits)
+    public static int AddBattleRewardByStage(int battleResult,List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits)
     {
         int chapter = RogueLikeData.Instance.GetChapter();
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+
         reward.battleResult = battleResult;
         var type = RogueLikeData.Instance.GetCurrentStageType();
         if (battleResult == 0 && type ==StageType.Boss && chapter==1)
@@ -46,15 +47,23 @@ public static class RewardManager
         {
             RogueLikeData.Instance.SetChapter(3);
             RogueLikeData.Instance.SetClearChapter(true);
+        } else if(battleResult == 0 && type == StageType.Boss && chapter == 2)
+        {
+            return 2;
         }
 
-
         int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
-        //RogueLikeData.Instance.ChangeMorale(morale); 
-        reward.morale += morale;
+        int currentMorale = RogueLikeData.Instance.GetMorale();
+        Debug.Log(currentMorale + " " + morale);
+        if(currentMorale + morale <= 0)
+        {
+            return 1;
+        }
 
+        reward.morale += morale;
+        
         int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
-        int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold);
+        int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold, battleResult);
         //유산 
         if (RelicManager.CheckRelicById(86) && reward.battleResult ==0)
         {
@@ -71,13 +80,9 @@ public static class RewardManager
         }
 
         RelicManager.ConquerorSeal(ref reward,type,grade);
+        return 0;
     }
 
-    //보상 실제 획득하는 함수
-    private static void GetBattleReward()
-    {
-
-    }
 
     //전투 종료 시 사기 계산
     private static int EndBattleMorale(int result, List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits,StageType type)
@@ -85,25 +90,28 @@ public static class RewardManager
         int morale = 0;
         int addMorale = 0;
         int reduceMorale = 0;
-        foreach (var unit in deadUnits)
+        if(deadUnits != null)
         {
-            switch (unit.rarity)
+            foreach (var unit in deadUnits)
             {
-                case 1:
-                    reduceMorale -= 1;
-                    break;
-                case 2:
-                    reduceMorale -= 2;
-                    break;
-                case 3:
-                    reduceMorale -= 2;
-                    break;
-                case 4:
-                    reduceMorale -= 5;
-                    break;
+                switch (unit.rarity)
+                {
+                    case 1:
+                        reduceMorale -= 1;
+                        break;
+                    case 2:
+                        reduceMorale -= 2;
+                        break;
+                    case 3:
+                        reduceMorale -= 2;
+                        break;
+                    case 4:
+                        reduceMorale -= 5;
+                        break;
+                }
             }
+            if (deadUnits.Count == 0) addMorale += 10;
         }
-        if (deadUnits.Count == 0) addMorale += 10;
         if (type == StageType.Combat)
         {
             if (result == 0)

@@ -14,6 +14,7 @@ public class OptionBtn : MonoBehaviour
     [SerializeField] private AutoBattleUI autoBattleUI;
     [SerializeField] private MoveDamageUI moveDamageUI;
     [SerializeField] private MoveAbilityUI moveAbilityUI;
+    [SerializeField] private BattleCrashAnimation battleCrashAnimation;
     [SerializeField] private Button goTest;
     private bool isPaused=false;
 
@@ -113,5 +114,6 @@ public class OptionBtn : MonoBehaviour
         autoBattleUI.ChangeWaittingTime(animationSpeed);
         moveDamageUI.ChangeWaittingTime(animationSpeed);
         moveAbilityUI.ChangeWaittingTime(animationSpeed);
+        battleCrashAnimation.ChangeWattingTime(animationSpeed);
     }
 }

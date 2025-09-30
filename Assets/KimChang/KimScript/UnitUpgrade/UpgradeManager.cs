@@ -104,7 +104,7 @@ public class UpgradeManager
                     value = 0.1f* atkLv,
                     source = SourceType.Upgrade,
                     modifierId = id,
-                    isPercent = true
+                    isPercent = false
                 });
             }
 
@@ -116,7 +116,7 @@ public class UpgradeManager
                     value = 0.1f * defLv,
                     source = SourceType.Upgrade,
                     modifierId = id,
-                    isPercent = true
+                    isPercent = false
                 });
             }
 
@@ -137,7 +137,7 @@ public class UpgradeManager
                             value = 0.15f,
                             source = SourceType.Upgrade,
                             modifierId = id,
-                            isPercent = true
+                            isPercent = false
                         });
                     }
                     break;
@@ -176,7 +176,7 @@ public class UpgradeManager
                             value = 0.15f,
                             source = SourceType.Upgrade,
                             modifierId = id,
-                            isPercent = true
+                            isPercent = false
                         });
                     }
                     break;
@@ -190,7 +190,7 @@ public class UpgradeManager
                             value = 0.15f,
                             source = SourceType.Upgrade,
                             modifierId = id,
-                            isPercent = true
+                            isPercent = false
                         });
                     }
                     if (defLv == 5)
