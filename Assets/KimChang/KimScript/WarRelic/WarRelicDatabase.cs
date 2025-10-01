@@ -17,7 +17,7 @@ public static class WarRelicDatabase
         relics.Add(new WarRelic(0, "할인쿠폰", 1, "상단의 금화 가격이 20% 감소한다.", RelicType.SpecialEffect, () => DiscountCard()));
         relics.Add(new WarRelic(1, "연구 예산 지원금", 1, "군사 아카데미의 강화 비용이 20% 감소한다.", RelicType.SpecialEffect, () => SolidAnvil()));
         relics.Add(new WarRelic(2, "이온 음료", 1, "기력이 감소할 때마다 25% 확률로 감소하지 않는다.", RelicType.SpecialEffect, () => FlagOfEndurance()));
-        //relics.Add(new WarRelic(3, "훈련 지휘봉", 1, "병영의 훈련 비용이 20% 감소한다.", RelicType.SpecialEffect, () => ExtraSupplyOrder()));
+        relics.Add(new WarRelic(3, "훈련 지휘봉", 1, "최초로 전술개량 5단계 강화를 완료하면 2000G를 얻는다.", RelicType.SpecialEffect, () => ExtraSupplyOrder()));
         relics.Add(new WarRelic(4, "도금 망원경", 1, "아군 궁병 중 가장 앞에 있는 궁병에 한해서 사거리가 1 증가한다.", RelicType.StateBoost, () => GoldPlatedTelescope()));
         relics.Add(new WarRelic(5, "행운의 금화 주머니", 1, "얻는 금화량이 15% 증가한다.", RelicType.SpecialEffect, () => LuckyCoinPouch()));
         relics.Add(new WarRelic(6, "전설의 도굴꾼의 삽", 1, "다음에 전쟁 유산 보상을 얻을때 전설 전쟁 유산이 확정으로 등장한다. 보스에선 적용되지 않는다. 전설 전쟁 유산을 얻은 이후 이 유산은 소멸한다.", RelicType.SpecialEffect, () => LegendaryDiggerShovel()));

@@ -48,8 +48,8 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private Image background;
     [SerializeField] private GameObject goTestBtn;
     [SerializeField] private BattleCrashAnimation battleAnim;
-    private Vector3 myTeam = new(270, 280, 0);               
-    private Vector3 enemyTeam = new(-270, 280, 0);          
+    private Vector3 myTeam = new(260, 280, 0);               
+    private Vector3 enemyTeam = new(-260, 280, 0);          
 
     private float waittingTime = 500f;
 
@@ -130,7 +130,7 @@ public class AutoBattleUI : MonoBehaviour
 
         yield return new WaitForSeconds(waittingTime * 0.0005f);
 
-        ShowDamageInternalWithPosition(damage, text, displayPos);
+        ShowDamageInternalWithPosition(damage, text);
     }
     private Vector2 GetUnitPosition(int unitIndex, bool isMyUnit, float offsetX)
     {
@@ -144,7 +144,7 @@ public class AutoBattleUI : MonoBehaviour
         RectTransform unitRect = unit.GetComponent<RectTransform>();
         return unitRect.anchoredPosition + new Vector2(offsetX, 0);
     }
-    private void ShowDamageInternalWithPosition(float damage, string text, Vector2 anchoredPosition)
+    private void ShowDamageInternalWithPosition(float damage, string text)
     {
         GameObject damageObj = objectPool.GetDamageText();
         damageObj.SetActive(true);
@@ -154,7 +154,7 @@ public class AutoBattleUI : MonoBehaviour
         damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
 
         RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-        rectTransform.anchoredPosition = anchoredPosition;
+        //rectTransform.anchoredPosition = anchoredPosition;
 
         StartCoroutine(HideAfterDelay(damageObj));
     }

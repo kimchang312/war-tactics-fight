@@ -153,6 +153,7 @@ public class AbilityManager
         return isTurnEffect;
     }
 
+    //폭풍우
     private bool CalculateStromMap()
     {
         int fieldId= RogueLikeData.Instance.GetFieldId();

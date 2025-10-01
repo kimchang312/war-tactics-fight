@@ -34,7 +34,7 @@ public class RogueLikeData
     //퀘스트의 상태 id, 완료 여부 퀘스트 수락시 false 퀘스트 취소되면 배열삭제
     private Dictionary<int, QuestClass> questState = new();
     private int currentStageX = 1;
-    private int currentStageY = 0;
+    private int currentStageY = 0; private int currentStageZ = 0;
     private int chapter = 1;
     private int presetID = -1;
 
