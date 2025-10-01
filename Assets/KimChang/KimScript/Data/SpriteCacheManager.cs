@@ -5,7 +5,6 @@ public static class SpriteCacheManager
 {
     private static readonly Dictionary<string, Sprite> spriteCache = new();
 
-    // 경로에 해당하는 Sprite를 가져오고 없으면 Resources에서 로드해서 캐싱
     public static Sprite GetSprite(string path)
     {
         if (spriteCache.TryGetValue(path, out var cachedSprite))

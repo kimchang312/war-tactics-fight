@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class UIGenerator : MonoBehaviour
 {
@@ -23,31 +25,103 @@ public class UIGenerator : MonoBehaviour
     // key: "level_row" -> value: StageNodeUI 인스턴스
     private Dictionary<string, StageNodeUI> stageUIMap = new Dictionary<string, StageNodeUI>();
 
-    
-
-    private bool _hasInitialized = false;
-    
 
 
     private void Start()
     {
 
-        if (!_hasInitialized)
+        if (!GameManager.Instance._hasInitialized)
         {
-            _hasInitialized = true;
+            GameManager.Instance._hasInitialized = true;
 
-            mapGenerator.GeneratePathsNonCrossing();
-            CreateUIMap();
-            LinkUIConnections();
-            DrawAllConnectionLines();
-            //챕터 확인 후 생성 추가하기
-
-            // UI 생성이 완전히 끝났으니 여기서 한 번만 락/언락
-            if (GameManager.Instance != null)
-                GameManager.Instance.InitializeStageLocks();
+            RegenerateMap();
         }
+
+    }
+    /// 외부에서 언제든 호출해서 맵 전체를 지우고 다시 생성합니다.
+    /// - New Game 버튼
+    /// - 보스 클리어 후
+    /// - 게임 재시작
+    public void RegenerateMap()
+    {
+        // 0) 기존 UI 모두 제거
+        ClearUI();
+
+        if(mapGenerator ==null)
+            mapGenerator = FindAnyObjectByType<MapGenerator>();
+        // 1) 경로 생성
+        mapGenerator.GeneratePathsNonCrossing();
+
+        // 2) 노드 UI 생성
+        CreateUIMap();
+
+        // 3) 노드 연결
+        LinkUIConnections();
+
+        // 4) 연결선 그리기
+        DrawAllConnectionLines();
+
+        // 5) 잠금/언락 초기화
+        if (GameManager.Instance != null)
+            GameManager.Instance.InitializeStageLocks();
+        EnsurePlayerMarker();
+    }
+    public void RegenerateMapFromSaveFull(StageFullSaveData savedData)
+    {
+        mapGenerator.ClearAll();
+        var dict = new Dictionary<string, StageNode>();
+
+        // 노드 생성
+        foreach (var entry in savedData.allNodes)
+        {
+            StageNode node = new(entry.level, entry.row, entry.stageType);
+            node.presetID = entry.presetID;
+            string key = $"{node.level}_{node.row}";
+            dict[key] = node;
+        }
+
+        // 연결 복원
+        foreach (var entry in savedData.allNodes)
+        {
+            string key = $"{entry.level}_{entry.row}";
+            StageNode node = dict[key];
+            foreach (var conn in entry.connections)
+            {
+                string connKey = $"{conn.level}_{conn.row}";
+                if (dict.TryGetValue(connKey, out var next))
+                    node.connectedNodes.Add(next);
+            }
+        }
+
+        mapGenerator.OverrideNodeDict(dict);
+
+        ClearUI();
+        CreateUIMap();
+        LinkUIConnections();
+        DrawAllConnectionLines();
+        GameManager.Instance.InitializeStageLocks();
+        EnsurePlayerMarker();
+
+        Debug.Log("🔁 저장된 맵으로 복원 완료");
     }
 
+    private void ClearUI()
+    {
+        for (int i = mapPanel.childCount - 1; i >= 0; i--)
+        {
+            var child = mapPanel.GetChild(i);
+            if (child.TryGetComponent<PlayerMarkerTag>(out _))
+                continue; // 마커는 유지
+
+            if (DOTween.IsTweening(child))
+                DOTween.Kill(child, true);
+
+            Destroy(child.gameObject);
+        }
+
+        for (int i = connectionParent.childCount - 1; i >= 0; i--)
+            Destroy(connectionParent.GetChild(i).gameObject);
+    }
     void CreateUIMap()
     {
         stageUIMap.Clear();
@@ -145,5 +219,23 @@ public class UIGenerator : MonoBehaviour
         rt.sizeDelta = new Vector2(dir.magnitude, lineThickness);
         rt.anchoredPosition = a + dir * 0.5f;
         rt.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
+    }
+    public void EnsurePlayerMarker()
+    {
+        if (GameManager.Instance.playerMarker != null) return;
+
+        var prefab = GameManager.Instance.playerMarkerPrefab;
+        var markerGO = Instantiate(prefab, mapPanel);
+        var markerRT = markerGO.GetComponent<RectTransform>();
+
+        markerRT.SetAsLastSibling();
+        markerRT.anchoredPosition = Vector2.zero; // 기본 위치 (후에 SetCurrentStage에서 이동)
+
+        GameManager.Instance.playerMarker = markerRT;
+
+        // ✅ 생성 직후 비활성화
+        markerRT.gameObject.SetActive(false);
+
+        Debug.Log("✅ PlayerMarker 프리팹 생성 및 mapPanel에 부착됨");
     }
 }

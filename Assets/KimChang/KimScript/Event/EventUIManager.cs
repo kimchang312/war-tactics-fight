@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -6,22 +5,20 @@ using UnityEngine.UI;
 
 public class EventUIManager : MonoBehaviour
 {
-    [SerializeField] private Image eventImage;                  //이벤트 이미지
-    [SerializeField] private TextMeshProUGUI eventNameText;        //이벤트 제목
-    [SerializeField] private TextMeshProUGUI eventDescriptionText;  //이벤트 설명
-    [SerializeField] private Transform choiceBtns;             //선택지 버튼 부모
-    [SerializeField] private Button leaveBtn;                   //떠나기
+    [SerializeField] private Image eventImage;
+    [SerializeField] private TextMeshProUGUI eventNameText;
+    [SerializeField] private TextMeshProUGUI eventDescriptionText;
+    [SerializeField] private Transform choiceBtns;
+    [SerializeField] private Button leaveBtn;
 
-    [SerializeField] private UnitSelectUI unitSelectUI;       //유닛 선택 창
+    [SerializeField] private UnitSelectUI unitSelectUI;
 
-    [SerializeField] private ObjectPool objectPool;
 
     private void Awake()
     {
         ResetUI();
-        
-        //gameObject.SetActive(false);
     }
+
     private void OnEnable()
     {
         ResetUI();
@@ -52,21 +49,41 @@ public class EventUIManager : MonoBehaviour
             if (i < eventChoiceDatas.Count)
             {
                 child.SetActive(true);
-                child.GetComponentInChildren<TextMeshProUGUI>().text = eventChoiceDatas[i].choiceText;
+
+                var choiceData = eventChoiceDatas[i];
+                string resultPart = "";
+                // choiceResultText 처리
+                if (choiceData.choiceResultText != null && choiceData.choiceResultText.Count > 0)
+                {
+                    
+                    if (choiceData.choiceResultText.Count == 1)
+                    {
+                        resultPart = $" <color=green>{choiceData.choiceResultText[0]}</color>";
+                        
+                    }
+                    else if (choiceData.choiceResultText.Count >= 2)
+                    {
+                        resultPart = $" <color=green>{choiceData.choiceResultText[0]}</color> <color=red>{choiceData.choiceResultText[1]}</color>";
+                    }
+                }
+
+                // 버튼 텍스트 = choiceText + resultPart
+                child.GetComponentInChildren<TextMeshProUGUI>().text = choiceData.choiceText + resultPart;
 
                 Button btn = child.GetComponent<Button>();
                 btn.onClick.RemoveAllListeners();
 
-                btn.interactable = EventManager.CheckChoiceRequireCondition(eventChoiceDatas[i]);
+                btn.interactable = EventManager.CheckChoiceRequireCondition(choiceData);
 
                 int index = i;
-                btn.onClick.AddListener(() => HandleChoice(eventChoiceDatas[index]));
+                btn.onClick.AddListener(() => HandleChoice(choiceData));
             }
             else
             {
                 child.SetActive(false);
             }
         }
+
     }
 
     //선택지 버튼 눌렀을때 실행
@@ -84,11 +101,10 @@ public class EventUIManager : MonoBehaviour
                 OpenSelectdUnit(choiceData);
                 return;
             }
-
         }
         EventManager.ReduceRequire(choiceData);
-        string resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
-        eventDescriptionText.text = resultText;
+        (string, bool) resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
+        eventDescriptionText.text = resultText.Item1;
         //만약 56~57 이라면
         if ((choiceData.choiceId >= 56 && choiceData.choiceId <= 57))
         {
@@ -103,48 +119,58 @@ public class EventUIManager : MonoBehaviour
         } 
 
         ResetButtonUI();
-        //이벤트 추가
         RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);
-        //저장
         SaveData saveData = new();
         saveData.SaveDataFile();
-
+        if(resultText.Item2) gameObject.SetActive(false);
         leaveBtn.gameObject.SetActive(true);
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)
     {
-        List<RogueUnitDataBase> myUnits =RogueLikeData.Instance.GetMyUnits();
+        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
         List<RogueUnitDataBase> selectUnits = new();
-        for(int i =0; i< choiceData.requireForm.Count; i++)
+
+        // Select 요구조건(첫 번째 것) 기준으로 정확히 필요한 수 계산
+        int selectIdx = choiceData.requireForm.FindIndex(f => f == RequireForm.Select);
+        int requiredCount = 1;
+        if (selectIdx >= 0 && int.TryParse(choiceData.requireCount[selectIdx], out var need))
+            requiredCount = Mathf.Max(1, need);
+
+        for (int i = 0; i < choiceData.requireForm.Count; i++)
         {
             if (choiceData.requireForm[i] != RequireForm.Select) continue;
-            switch (choiceData.requireThing[i])
+
+            var thing = choiceData.requireThing[i];
+            var val = choiceData.requireValue[i];
+
+            if (thing == RequireThing.Unit)
             {
-                case RequireThing.Unit:
-                    if (choiceData.requireValue[i].Contains("")) selectUnits = myUnits;
-                    else
-                    {
-                        if (int.TryParse(choiceData.requireValue[i], out int value))
-                        {
-                            selectUnits = myUnits.FindAll(unit => unit.rarity <= value);
-                        }
-                    }
-                    break;
-                case RequireThing.Energy:
-                    if (choiceData.requireValue[i].Contains("")) selectUnits = myUnits;
-                    else
-                    {
-                        if (int.TryParse(choiceData.requireValue[i], out int value))
-                        {
-                            selectUnits = myUnits.FindAll(unit => unit.energy <= value);
-                        }
-                    }
-                    break;
+                if (string.IsNullOrEmpty(val)) { selectUnits = myUnits; }
+                else if (val.Contains("~"))
+                {
+                    var (min, max) = EventManager.ParseRange(val);
+                    selectUnits = myUnits.FindAll(u => u.rarity >= min && u.rarity <= max);
+                }
+                else if (int.TryParse(val, out var rarityCeil))
+                {
+                    selectUnits = myUnits.FindAll(u => u.rarity <= rarityCeil);
+                }
+            }
+            else if (thing == RequireThing.Energy)
+            {
+                if (string.IsNullOrEmpty(val)) { selectUnits = myUnits; }
+                else if (int.TryParse(val, out var energyVal))
+                {
+                    // 요구조건 검사와 일치하도록: '에너지 > value' 만 선택
+                    selectUnits = myUnits.FindAll(u => u.energy > energyVal);
+                }
             }
         }
+
         unitSelectUI.gameObject.SetActive(true);
-        unitSelectUI.OpenSelectUnitWindow(()=>HandleChoice(choiceData),selectUnits);
+        unitSelectUI.OpenSelectUnitWindow(() => HandleChoice(choiceData), selectUnits, requiredCount);
     }
+
 
     //전체 초기화
     private void ResetUI()
@@ -167,5 +193,8 @@ public class EventUIManager : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
-
+    private void OnDisable()
+    {
+        GameManager.Instance.UpdateAllUI();
+    }
 }

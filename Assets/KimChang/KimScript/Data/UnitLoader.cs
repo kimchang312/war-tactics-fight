@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -6,7 +7,7 @@ using UnityEngine;
 public class UnitLoader
 {
     // 캐시를 위한 딕셔너리 (idx → RogueUnitDataBase)
-    private static Dictionary<int, RogueUnitDataBase> unitCache;
+    private static Dictionary<int, RogueUnitDataBase> unitCache=new();
 
     private static UnitLoader instance;
     public static UnitLoader Instance
@@ -25,95 +26,66 @@ public class UnitLoader
     // JSON 파일에서 유닛 데이터를 읽고 캐시함
     public void LoadUnitsFromJson()
     {
-        // 캐시가 없다면 초기화
-        if (unitCache == null)
-        {
-            unitCache = new Dictionary<int, RogueUnitDataBase>();
-        }
-        // JSON 파일을 읽어오기
-        TextAsset jsonFile = Resources.Load<TextAsset>("JsonData/UnitStatus");
-        List<Dictionary<string, object>> unitsData = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(jsonFile.text);
+        if (unitCache.Count > 0)
+            return;
 
-        // 각 유닛을 처리하고 캐시에 저장
+        //unitCache.Clear();
+
+        TextAsset jsonFile = Resources.Load<TextAsset>("JsonData/UnitStatus_Re");
+        var unitsData = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(jsonFile.text);
+
         foreach (var unitData in unitsData)
         {
-            int idx = int.Parse(unitData["idx"].ToString());
+            int idx = Convert.ToInt32(unitData["idx"]);
             string unitName = unitData["unitName"].ToString();
             string unitBranch = unitData["unitBranch"].ToString();
-            int branchIdx = int.Parse(unitData["branchIdx"].ToString());
-            string unitId = unitData["unitId"].ToString();
-            string unitExplain = unitData["unitExplain"].ToString();
-            string unitImg = unitData["unitImg"].ToString();
+            int branchIdx = Convert.ToInt32(unitData["branchIdx"]);
             string unitFaction = unitData["unitFaction"].ToString();
-            int factionIdx = int.Parse(unitData["factionIdx"].ToString());
+            int factionIdx = Convert.ToInt32(unitData["factionIdx"]);
             string tag = unitData["tag"].ToString();
-            int tagIdx = int.Parse(unitData["tagIdx"].ToString());
-            int unitPrice = int.Parse(unitData["unitPrice"].ToString());
-            int rarity = int.Parse(unitData["rarity"].ToString());
-
-            // 기본 스탯 정보
-            float health = float.Parse(unitData["health"].ToString());
-            float armor = float.Parse(unitData["armor"].ToString());
-            float attackDamage = float.Parse(unitData["attackDamage"].ToString());
-            float mobility = float.Parse(unitData["mobility"].ToString());
-            float range = float.Parse(unitData["range"].ToString());
-            float antiCavalry = float.Parse(unitData["antiCavalry"].ToString());
-            int energy = int.Parse(unitData["energy"].ToString());
+            int tagIdx = Convert.ToInt32(unitData["tagIdx"]);
+            int unitPrice = Convert.ToInt32(unitData["unitPrice"]);
+            int defaultPrice = Convert.ToInt32(unitData["defaultPrice"]);
+            int rarity = Convert.ToInt32(unitData["rarity"]);
+            float health = Convert.ToSingle(unitData["health"]);
+            float armor = Convert.ToSingle(unitData["armor"]);
+            float attackDamage = Convert.ToSingle(unitData["attackDamage"]);
+            float mobility = Convert.ToSingle(unitData["mobility"]);
+            float range = Convert.ToSingle(unitData["range"]);
+            int energy = Convert.ToInt32(unitData["energy"]);
 
             // 불리언 특성
-            bool lightArmor = bool.Parse(unitData["lightArmor"].ToString());
-            bool heavyArmor = bool.Parse(unitData["heavyArmor"].ToString());
-            bool rangedAttack = bool.Parse(unitData["rangedAttack"].ToString());
-            bool bluntWeapon = bool.Parse(unitData["bluntWeapon"].ToString());
-            bool pierce = bool.Parse(unitData["pierce"].ToString());
-            bool agility = bool.Parse(unitData["agility"].ToString());
-            bool strongCharge = bool.Parse(unitData["strongCharge"].ToString());
-            bool perfectAccuracy = bool.Parse(unitData["perfectAccuracy"].ToString());
-            bool slaughter = bool.Parse(unitData["slaughter"].ToString());
-            bool bindingForce = bool.Parse(unitData["bindingForce"].ToString());
-            bool bravery = bool.Parse(unitData["bravery"].ToString());
-            bool suppression = bool.Parse(unitData["suppression"].ToString());
-            bool plunder = bool.Parse(unitData["plunder"].ToString());
-            bool doubleShot = bool.Parse(unitData["doubleShot"].ToString());
-            bool scorching = bool.Parse(unitData["scorching"].ToString());
-            bool thorns = bool.Parse(unitData["thorns"].ToString());
-            bool endless = bool.Parse(unitData["endless"].ToString());
-            bool impact = bool.Parse(unitData["impact"].ToString());
-            bool healing = bool.Parse(unitData["healing"].ToString());
-            bool lifeDrain = bool.Parse(unitData["lifeDrain"].ToString());
+            bool GetBool(string key) => unitData.ContainsKey(key) && Convert.ToBoolean(unitData[key]);
 
-            // 추가 특성
-            bool charge = bool.Parse(unitData["charge"].ToString());
-            bool defense = bool.Parse(unitData["defense"].ToString());
-            bool throwSpear = bool.Parse(unitData["throwSpear"].ToString());
-            bool guerrilla = bool.Parse(unitData["guerrilla"].ToString());
-            bool guard = bool.Parse(unitData["guard"].ToString());
-            bool assassination = bool.Parse(unitData["assassination"].ToString());
-            bool drain = bool.Parse(unitData["drain"].ToString());
-            bool overwhelm = bool.Parse(unitData["overwhelm"].ToString());
-            bool martyrdom = bool.Parse(unitData["martyrdom"].ToString());
-            bool wounding = bool.Parse(unitData["wounding"].ToString());
-            bool vengeance = bool.Parse(unitData["vengeance"].ToString());
-            bool counter = bool.Parse(unitData["counter"].ToString());
-            bool firstStrike = bool.Parse(unitData["firstStrike"].ToString());
-            bool challenge = bool.Parse(unitData["challenge"].ToString());
-            bool smokeScreen = bool.Parse(unitData["smokeScreen"].ToString());
-
-            // RogueUnitDataBase 객체 생성
             RogueUnitDataBase newUnit = new RogueUnitDataBase(
-                idx, unitName, unitBranch, branchIdx, unitId, unitExplain, unitImg, unitFaction, factionIdx, tag, tagIdx, unitPrice, rarity,
-                health, armor, attackDamage, mobility, range, antiCavalry, energy, health, armor, attackDamage, mobility, range, antiCavalry, energy,
-                lightArmor, heavyArmor, rangedAttack, bluntWeapon, pierce, agility, strongCharge, perfectAccuracy, slaughter,
-                bindingForce, bravery, suppression, plunder, doubleShot, scorching, thorns, endless, impact, healing, lifeDrain,
-                charge, defense, throwSpear, guerrilla, guard, assassination, drain, overwhelm,
-                martyrdom, wounding, vengeance, counter, firstStrike, challenge, smokeScreen,
+                idx, unitName, unitBranch, branchIdx,
+                unitId: unitData.ContainsKey("unitId") ? unitData["unitId"].ToString() : "",
+                unitExplain: unitData.ContainsKey("unitExplain") ? unitData["unitExplain"].ToString() : "",
+                unitImg: unitData.ContainsKey("unitImg") ? unitData["unitImg"].ToString() : "",
+                unitFaction, factionIdx, tag, tagIdx, unitPrice,defaultPrice, rarity,
+                health, armor, attackDamage, mobility, range, 0, energy,
+                health, armor, attackDamage, mobility, range, 0, energy,
+
+                GetBool("lightArmor"), GetBool("heavyArmor"), GetBool("rangedAttack"),
+                GetBool("bluntWeapon"), GetBool("pierce"), GetBool("agility"),
+                GetBool("strongCharge"), GetBool("perfectAccuracy"), GetBool("slaughter"),
+                GetBool("binding"), GetBool("bravery"), GetBool("suppression"),
+                GetBool("plunder"), GetBool("doubleshot"), GetBool("scorch"),
+                GetBool("thorns"), GetBool("endless"), GetBool("impact"),
+                GetBool("healing"), GetBool("lifesteal"),
+                GetBool("charge"), GetBool("defense"), GetBool("throwSpear"),
+                GetBool("guerrilla"), GetBool("guard"), GetBool("assassination"),
+                GetBool("drain"), GetBool("overwhelm"), GetBool("martyr"),
+                GetBool("wound"), GetBool("vengeance"), GetBool("counter"),
+                GetBool("firststrike"), GetBool("challenge"), GetBool("smokescreen"),
                 health, energy, true, false, -1, new Dictionary<int, BuffDebuffData>()
             );
 
-            // 유닛을 캐시에 저장
             unitCache[idx] = newUnit;
         }
+        Console.WriteLine("e");
     }
+
 
     // id 기반으로 유닛을 복사하여 반환하는 함수
     public RogueUnitDataBase GetCloneUnitById(int id ,bool isTeam=true)
@@ -131,4 +103,9 @@ public class UnitLoader
     {
         return unitCache?.Values.ToList() ?? new List<RogueUnitDataBase>();
     }
+    public RogueUnitDataBase GetUnitById(int id)
+    {
+        return unitCache[id];
+    }
+
 }

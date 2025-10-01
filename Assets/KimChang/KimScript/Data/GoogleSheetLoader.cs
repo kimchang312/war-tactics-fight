@@ -86,21 +86,5 @@ public class GoogleSheetLoader
         unitExcel = null;
     }
 
-    public List<RogueUnitDataBase> GetAllUnitsAsObject()
-    {
-        if(allUnits !=null) return allUnits;
-        if (unitDataCache == null) return new List<RogueUnitDataBase>();
-        
-        List<RogueUnitDataBase> result = new List<RogueUnitDataBase>();
-
-        foreach (var row in unitDataCache.Values)
-        {
-            var unit = RogueUnitDataBase.ConvertToUnitDataBase(row);
-            if (unit != null)
-                result.Add(unit);
-        }
-        allUnits = result;
-        return allUnits;
-    }
 
 }

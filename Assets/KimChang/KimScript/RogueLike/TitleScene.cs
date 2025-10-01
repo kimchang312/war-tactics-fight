@@ -10,12 +10,14 @@ public class TitleScene : MonoBehaviour
     [SerializeField] private Button newGameBtn;
     [SerializeField] private Button loadBtn;
     [SerializeField] private Button exitBtn;
-    
+    [SerializeField] private Button testOptionBtn;
+
     private void Start()
     {
         UnitLoader.Instance.LoadUnitsFromJson();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
+        QuestManager.LoadQuestData();
         string filePath = Application.persistentDataPath + "/PlayerData.json";
         if (File.Exists(filePath))
         {
@@ -26,19 +28,21 @@ public class TitleScene : MonoBehaviour
         {
             loadBtn.interactable = false;
         }
-
+        RogueLikeData.Instance.ResetToDefault();
         newGameBtn.onClick.AddListener(GoRogueLike);
         exitBtn.onClick.AddListener(QuitGame);
+
     }
 
     private void GoRogueLike()
     {
         SaveData saveData = new SaveData();
-        saveData.DeleteSaveFile();
-        List<RogueUnitDataBase> units= RogueUnitDataBase.GetBaseUnits();
-        RogueLikeData.Instance.SetMyTeam(units);
-        RogueLikeData.Instance.SetAllMyUnits(units);
-        saveData.SaveDataFile();
+        saveData.ResetGameData();
+        RogueLikeData.Instance.SetResetMap(true);
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetCurrentStageNull();
+        }
         SceneManager.LoadScene("RLmap");
     }
     private void LoadRogueLike()
@@ -50,9 +54,9 @@ public class TitleScene : MonoBehaviour
     private void QuitGame()
     {
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;  // 에디터에서 중지
+        UnityEditor.EditorApplication.isPlaying = false;
 #else
-    Application.Quit();  // 빌드된 게임 종료
+    Application.Quit();
 #endif
     }
 

@@ -325,7 +325,7 @@ public static class CommenderEffect
 
         if (myUnits.Count == 0) return;
 
-        var selectedUnit = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
+        var selectedUnit = myUnits[RogueLikeData.Instance.GetRandomInt(0, myUnits.Count)];
 
         selectedUnit.attackDamage = Mathf.Round(selectedUnit.baseAttackDamage * 1.3f);
         selectedUnit.maxHealth = Mathf.RoundToInt(selectedUnit.baseHealth * 1.3f);

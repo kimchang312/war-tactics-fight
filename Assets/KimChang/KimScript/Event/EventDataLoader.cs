@@ -42,7 +42,7 @@ public static class EventDataLoader
                     choiceId = obj["choiceId"]?.ToObject<int>() ?? -1,
                     eventId = obj["eventId"]?.ToObject<int>() ?? -1,
                     choiceText = obj["choiceText"]?.ToString(),
-                    resultDescription = obj["resultDescription"]?.ToString(),
+                    resultDescription = obj["resultDescription"]?.ToString(), // 호환 유지용
 
                     requireThing = ParseEnumList<RequireThing>(obj["requireThing"]),
                     requireForm = ParseEnumList<RequireForm>(obj["requireForm"]),
@@ -52,10 +52,15 @@ public static class EventDataLoader
                     resultType = ParseEnumList<ResultType>(obj["resultType"]),
                     resultForm = ParseEnumList<ResultForm>(obj["resultForm"]),
                     resultValue = ParseStringList(obj["resultValue"]),
-                    resultCount = ParseStringList(obj["resultCount"])
+                    resultCount = ParseStringList(obj["resultCount"]),
+
+                    // 새 필드 추가
+                    choiceResultText = ParseStringList(obj["choiceResultText"]),
+                    resultText = ParseStringList(obj["resultText"])
                 };
 
                 EventChoiceDataDict[choice.choiceId] = choice;
+
             }
         }
         catch (System.Exception e)
@@ -89,7 +94,8 @@ public static class EventDataLoader
         {
             foreach (var item in array)
             {
-                list.Add(item.ToString().Trim());
+                // null -> "", 문자열은 그대로
+                list.Add(item.Type == JTokenType.Null ? "" : item.ToString());
             }
         }
         return list;

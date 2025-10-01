@@ -5,14 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
-using System.Text.RegularExpressions;
-using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
-using UnityEngine.Pool;
-
-#if UNITY_EDITOR
-using UnityEditor.Playables;
-#endif
 
 public class AutoBattleUI : MonoBehaviour
 {
@@ -37,32 +30,47 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject myRangeCount;             
     [SerializeField] private GameObject enemyRangeCount;
 
-    [SerializeField] private Transform myFirtstUnitParent;
-    [SerializeField] private Transform mySecondUnitParent;
-    [SerializeField] private Transform enemyFirstUnitParent;
-    [SerializeField] private Transform enemySecondUnitParent;
-
     [SerializeField] private Transform myBackUnitsParent;
-    [SerializeField] private Transform enemyBackUnitsParent;
-
-    [SerializeField] private GameObject loadingWindow;     
+    [SerializeField] private Transform enemyBackUnitsParent;  
 
     [SerializeField] private GameObject relicBox;
     [SerializeField] private Transform myAbilityBox;
     [SerializeField] private Transform enemyAbilityBox;
 
-    [SerializeField] private GameObject itemToolTip;    
+    [SerializeField] private GameObject itemToolTip;
+    [SerializeField] private Image background;
+    [SerializeField] private GameObject goTestBtn;
 
     private Vector3 myTeam = new(270, 280, 0);               
     private Vector3 enemyTeam = new(-270, 280, 0);          
 
     private float waittingTime = 500f;
 
-    private Dictionary<int, GameObject> myUnitCache = new();
-    private Dictionary<int, GameObject> enemyUnitCache = new();
-
     private void Start()
     {
+        goTestBtn.SetActive(false);
+
+
+        int fieldId = RogueLikeData.Instance.GetFieldId();
+        switch (fieldId) 
+        {
+            case 2:
+                {
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Forest");
+                    break;
+                }
+            case 3:
+                {
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Mountain");
+                    break;
+                }
+            case 4:
+                {
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Swampland");
+                    break;
+                }
+        }
+
         ResetUIActive();
         
         myHpBar.interactable = false;
@@ -70,14 +78,12 @@ public class AutoBattleUI : MonoBehaviour
 
         UpdateMorale();
     }
-    //유닛 갯수 
     public void UpdateUnitCountUI(int myUnitCount, int enemyUnitCount)
     {
         _myUnitCountUI.text = $"{myUnitCount}";
         _enemyUnitCountUI.text = $"{enemyUnitCount}";
 
     }
-    //유닛 체력
     public void UpateUnitHPUI(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
     {
         if (_myUnitHPUI != null && _emyUnitHPUI)
@@ -86,7 +92,6 @@ public class AutoBattleUI : MonoBehaviour
             _emyUnitHPUI.text = $"{enemyUnitHP}/{enemyMaxHp}";
         }
 
-        //체력바 업데이트
         myHpBar.maxValue = myMaxHp;
         myHpBar.value = myUnitHP;
 
@@ -94,7 +99,6 @@ public class AutoBattleUI : MonoBehaviour
         enemyHpBar.value = enemyUnitHP;
     }
 
-    // 데미지 표시
     public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
     {
         float offsetX = 50f;
@@ -110,9 +114,41 @@ public class AutoBattleUI : MonoBehaviour
 
     private IEnumerator DelayedDamageDisplay(float damage, string text, bool team, int unitIndex, float offsetX)
     {
+        Vector2 displayPos = team
+            ? (unitIndex == 0 ? myTeam : GetUnitPosition(unitIndex, !team, offsetX))
+            : (unitIndex == 0 ? enemyTeam : GetUnitPosition(unitIndex, !team, offsetX));
+
         yield return new WaitForSeconds(waittingTime * 0.0005f);
-        ShowDamageInternal(damage, text, team, unitIndex, offsetX);
+
+        ShowDamageInternalWithPosition(damage, text, displayPos);
     }
+    private Vector2 GetUnitPosition(int unitIndex, bool isMyUnit, float offsetX)
+    {
+        GameObject unit = FindUnit(unitIndex, isMyUnit);
+        if (unit == null)
+        {
+            Debug.LogWarning($"유닛을 찾을 수 없음: {unitIndex}, 팀: {isMyUnit}");
+            return Vector2.zero;
+        }
+
+        RectTransform unitRect = unit.GetComponent<RectTransform>();
+        return unitRect.anchoredPosition + new Vector2(offsetX, 0);
+    }
+    private void ShowDamageInternalWithPosition(float damage, string text, Vector2 anchoredPosition)
+    {
+        GameObject damageObj = objectPool.GetDamageText();
+        damageObj.SetActive(true);
+
+        var damagetext = damageObj.GetComponent<TextMeshProUGUI>();
+        damagetext.color = damage >= 0 ? Color.green : Color.red;
+        damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
+
+        RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
+        rectTransform.anchoredPosition = anchoredPosition;
+
+        StartCoroutine(HideAfterDelay(damageObj));
+    }
+
     private void ShowDamageImmediately(float damage, string text, bool team, int unitIndex, float offsetX)
     {
         ShowDamageInternal(damage, text, team, unitIndex, offsetX);
@@ -127,7 +163,6 @@ public class AutoBattleUI : MonoBehaviour
         damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
 
         RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-
         if (team)
         {
             if (unitIndex == 0)
@@ -135,8 +170,12 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 GameObject unit = FindUnit(unitIndex, !team);
-                RectTransform unitRect = unit.GetComponent<RectTransform>();
-                rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                if (unit != null)
+                {
+                    RectTransform unitRect = unit.GetComponent<RectTransform>();
+                    rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                } 
+                
             }
         }
         else
@@ -146,8 +185,12 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 GameObject unit = FindUnit(unitIndex, !team);
-                RectTransform unitRect = unit.GetComponent<RectTransform>();
-                rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                if(unit != null)
+                {
+                    RectTransform unitRect = unit.GetComponent<RectTransform>();
+                    rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
+                }
+                
             }
         }
 
@@ -158,24 +201,22 @@ public class AutoBattleUI : MonoBehaviour
 
     private void BattleAnimation(float damage, string text, bool team,bool isAttack)
     {
-        // team = true -> 상대 공격, false -> 나의 공격
         if (!isAttack) return;
 
         GameObject unit = FindUnit(0, team);
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
 
-        Vector2 originPos = rectTransform.anchoredPosition; // 원래 UI 위치
-        float direction = team ? 1f : -1f; // team이 true면 반대 방향
+        Vector2 originPos = rectTransform.anchoredPosition;
+        float direction = team ? 1f : -1f;
 
-        Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f); // 뒤로 이동할 위치
-        Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f); // 앞으로 이동할 위치
+        Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f);
+        Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f);
 
-        // DOTween 애니메이션 시퀀스
         DG.Tweening.Sequence attackSequence = DOTween.Sequence();
-        attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f)) // 뒤로 0.05초 이동
-                      .AppendInterval(0.2f) // 0.2초 대기
-                      .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f)) // 앞으로 0.2초 이동
-                      .Append(rectTransform.DOAnchorPos(originPos, 0.05f)); // 원래 위치로 0.05초 이동
+        attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f))
+                      .AppendInterval(0.2f)
+                      .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f))
+                      .Append(rectTransform.DOAnchorPos(originPos, 0.05f));
 
         rectTransform.DOKill();
     }
@@ -185,7 +226,6 @@ public class AutoBattleUI : MonoBehaviour
         objectPool.ReturnDamageText(damageObj);
     }
 
-    //유닛 갯수 만큼 유닛 이미지 생성
     public void CreateUnitBox(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<RogueUnitDataBase> myRangeUnits, List<RogueUnitDataBase> enemyRangeUnits)
     {
         Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0)};
@@ -215,58 +255,47 @@ public class AutoBattleUI : MonoBehaviour
 
     }
 
-    // 기존 유닛 이미지 반환 및 비활성화
     private void ClearExistingUnitImages()
     {
         foreach (var unit in objectPool.GetActiveBattleUnits())
         {
-            objectPool.ReturnBattleUnit(unit); // 유닛 비활성화 및 반환
+            objectPool.ReturnBattleUnit(unit);
         }
     }
 
-    //원거리 유닛 생성
     private void CreateRangeUnit(int rangeUnitCount, Vector3 position, GameObject number, bool isMyTeam)
     {
-        //float size = 200f;
         string myTeam = isMyTeam ? "My" : "Enemy";
 
         Image numberImg = number.GetComponent<Image>();
 
         if (rangeUnitCount == 0)
         {
-            numberImg.color = new Color(1, 1, 1, 0); // 0~1 범위로 수정
+            numberImg.color = new Color(1, 1, 1, 0);
             return;
         }
         numberImg.color = new Color(1, 1, 1, 1);
 
         GameObject unit = objectPool.GetBattleUnit();
+        unit.transform.localScale = isMyTeam ? new Vector2(1,1): new Vector2(-1,1);
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
-        //rectTransform.sizeDelta = new Vector2(size - 10, size - 10);
         rectTransform.anchoredPosition = position;
 
         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
-        // 이미지 설정 & 투명도 정상화
         Image img = unit.GetComponent<Image>();
         img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
         img.sprite = SpriteCacheManager.GetSprite("KIcon/AbilityIcon/rangedAttack");
 
-        // 자식 유닛 이미지 설정
         Transform childUnit = unit.transform.GetChild(0);
         RectTransform childRectTransform = childUnit.GetComponent<RectTransform>();
         Image childImg = childUnit.GetComponent<Image>();
-        //childRectTransform.sizeDelta = new Vector2(size, size);
         childImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}SecondUnit");
 
-        // 숫자 이미지 설정
         numberImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}X{rangeUnitCount}");
 
-        // 숫자 이미지를 가장 뒤로
-        number.transform.SetSiblingIndex(number.transform.parent.childCount - 1);
-
-        // 유닛 이름 설정
         unit.name = $"{myTeam}RangeUnit";
     }
 
@@ -280,8 +309,8 @@ public class AutoBattleUI : MonoBehaviour
 
             string unitTeam = isMyUnit ? "My" : "Enemy";
             Transform parent = isMyUnit ? myBackUnitsParent : enemyBackUnitsParent;
-
             GameObject unitImage = objectPool.GetBattleUnit();
+            unitImage.transform.localScale = isMyUnit? new(1,1,1) : new(-1,1,1);
             Transform childUnit = unitImage.transform.GetChild(0);
             RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
             Image unitFrame = childUnit.GetComponent<Image>();
@@ -308,20 +337,15 @@ public class AutoBattleUI : MonoBehaviour
                 unitImage.transform.SetParent(parent,false);
             }
 
-
-            // 유닛 본체 이미지 설정
             Image img = unitImage.GetComponent<Image>();
             img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
-            img.sprite = SpriteCacheManager.GetSprite($"UnitImages/{units[i].unitImg}");
+            img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{units[i].idx}");
 
-            // 유닛 테두리 프레임 이미지 설정
             unitFrame.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{unitTeam}");
 
-            // 유닛 이름 설정
             unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
         }
 
-        // 회피율 UI 설정
         if (isMyUnit)
         {
             _myDodge.text = $"회피율: {dodge}%";
@@ -332,18 +356,15 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
-    // 능력치 아이콘 생성
     private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
         var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool))
             .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
 
-        int i = 0;
-
         foreach (var attr in boolAttributes)
         {
-            if (!attr.Value || attr.Name == "rangedAttack" || attr.Name == "alive")
+            if (!attr.Value || attr.Name == "rangedAttack" || attr.Name == "alive" || attr.Name == "fStriked")
                 continue;
 
             GameObject iconImage = objectPool.GetAbility();
@@ -353,43 +374,35 @@ public class AutoBattleUI : MonoBehaviour
             Image img = iconImage.GetComponent<Image>();
             img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
 
-            // 이름 설정
-            itemInfo.isItem = false;
+            itemInfo.data.isItem = false;
             int? idx = GameTextData.GetIdxFromString(attr.Name);
-            if (attr.Name == "defense")
+            if (idx.HasValue)
             {
-                itemInfo.abilityId = 129;
-            }
-            else if (idx.HasValue)
-            {
-                itemInfo.abilityId = idx.Value;
+                itemInfo.data.abilityId = idx.Value;
             }
             else if (int.TryParse(attr.Name, out int parsedId))
             {
-                itemInfo.abilityId = parsedId;
+                itemInfo.data.abilityId = parsedId;
             }
             else
             {
                 Debug.LogWarning($"abilityId 파싱 실패: {attr.Name}");
-                itemInfo.abilityId = -1; // 혹은 예외 처리 또는 기본값 지정
+                itemInfo.data.abilityId = -1; // 혹은 예외 처리 또는 기본값 지정
             }
-
 
             explainItem.ItemToolTip =itemToolTip;
             Transform abilityBox = isTeam? myAbilityBox: enemyAbilityBox;
 
             iconImage.transform.SetParent(abilityBox, false);
 
-            i++;
         }
     }
 
-    //능력치 아이콘 제거
     private void ClearExistingAbilityIcons()
     {
         foreach (var unit in objectPool.GetActiveAbilitys())
         {
-            objectPool.ReturnAbility(unit); // 능력 아이콘 비활성화 및 반환
+            objectPool.ReturnAbility(unit);
         }
     }
 
@@ -397,7 +410,7 @@ public class AutoBattleUI : MonoBehaviour
     public void FightEnd()
     {
         rewardUI.gameObject.SetActive(true);
-        rewardUI.CreateRewardUI();
+        rewardUI.AnimateBattleEnd();
     }
 
     //능력 창 띄위기
@@ -436,8 +449,9 @@ public class AutoBattleUI : MonoBehaviour
     private GameObject FindUnit(int unitIndex, bool isMyUnit)
     {
         string unitName = $"{(isMyUnit ? "MyUnit" : "EnemyUnit")}{unitIndex}";
+        Transform parent = unitIndex < 2 ? canvasTransform : (isMyUnit ? myBackUnitsParent : enemyBackUnitsParent);
 
-        foreach (Transform child in canvasTransform)
+        foreach (Transform child in parent)
         {
             if (child.name == unitName && child.gameObject.activeSelf)
             {
@@ -468,58 +482,7 @@ public class AutoBattleUI : MonoBehaviour
     //유산 생성
     public void CreateWarRelic()
     {
-        var warRelics = RogueLikeData.Instance.GetAllOwnedRelics();
-
-        if (warRelics == null || warRelics.Count == 0)
-            return;
-
-        for (int i = 0; i < warRelics.Count; i++)
-        {
-            GameObject relicObject = objectPool.GetWarRelic();
-            ItemInformation itemInfo = relicObject.GetComponent<ItemInformation>();
-            ExplainItem explainItem = relicObject.GetComponent<ExplainItem>();
-
-            Image relicImg = relicObject.GetComponent<Image>();
-            relicImg.sprite = SpriteCacheManager.GetSprite($"KIcon/WarRelic/{warRelics[i].id}");
-
-            // 이름 설정
-            itemInfo.isItem =false;
-            itemInfo.relicId = warRelics[i].id;
-
-            explainItem.ItemToolTip = itemToolTip;
-
-            relicObject.transform.SetParent(relicBox.transform, false);
-
-        }
-    }
-
-    //로딩창 간단하게 구현
-    public void ToggleLoadingWindow()
-    {
-        loadingWindow.SetActive(!loadingWindow.activeSelf);
-    }
-
-    //테스트 화면으로
-    private void ClickGoTestBtn()
-    {
-        SceneManager.LoadScene("Upgrade");
-    }
-
-    //보상 창 열기+ 통계,점수,승패 창 닫기 
-    private void OpenRewardWindow()
-    {
-        SceneManager.LoadScene("RLmap");
-        /*
-        staticsWindow.SetActive(false);
-        endWindow.SetActive(false);
-        staticsToggleBtn.gameObject.SetActive(false);
-
-        rewardWindow.SetActive(true);*/
-    }
-    //보상 창 닫기
-    private void CloseRewardWindow()
-    {
-        rewardUI.gameObject.SetActive(false);
+        //WarRelicBoxUI.SetRelicBox(relicBox, itemToolTip, objectPool);
     }
 
     //ui 활성화 비활성화 초기화
@@ -535,7 +498,10 @@ public class AutoBattleUI : MonoBehaviour
         int morale = RogueLikeData.Instance.GetMorale();
         moraleText.text = $"{morale}";
     }
-
+    public void OpenGoTestBtn()
+    {
+        goTestBtn.SetActive(true);
+    }
    
 }
 

@@ -23,14 +23,13 @@ public static class StoreManager
 
     public static int CalculatePrice(StoreItemData item)
     {
-        float rate = UnityEngine.Random.Range(item.priceRateMin, item.priceRateMax);
+        float rate = RogueLikeData.Instance.GetRandomInt((int)item.priceRateMin, (int)item.priceRateMax);
         return Mathf.RoundToInt(item.price * rate);
     }
 
     public static List<StoreItemData> GetFilteredItems(Func<StoreItemData, bool> predicate, int count, bool allowDuplicate = false, Dictionary<int, int> rarityWeights = null)
     {
         var candidates = storeItems.Where(predicate).ToList();
-        int uniqueCount = candidates.Distinct().Count();
         return GetWeightedRandomItemsByRarity(candidates, count, allowDuplicate, rarityWeights);
     }
 
@@ -51,7 +50,7 @@ public static class StoreManager
         int safeGuard = 1000; // 무한 루프 방지
         while (result.Count < count && weightedItems.Count > 0 && safeGuard-- > 0)
         {
-            var selected = weightedItems[UnityEngine.Random.Range(0, weightedItems.Count)];
+            var selected = weightedItems[RogueLikeData.Instance.GetRandomInt(0, weightedItems.Count)];
             if (allowDuplicate || !result.Contains(selected))
                 result.Add(selected);
         }
@@ -59,12 +58,12 @@ public static class StoreManager
         return result;
     }
 
-
-    // 예시용 함수들: 외부에서 사용할 수 있도록 필터 조건을 넘겨 간결하게 호출 가능
-
     public static List<StoreItemData> GetRandomEnergyMoraleItems()
     {
-        return GetFilteredItems(item => item.itemId >= 30 && item.itemId <= 33, 3);
+        return GetFilteredItems(
+        item => (item.itemId >= 0 && item.itemId <= 9) || (item.itemId >= 30 && item.itemId <= 33),
+        3
+    );
     }
 
     public static List<StoreItemData> GetRandomDiceItem()
@@ -84,6 +83,6 @@ public static class StoreManager
     // 두 값 사이 무작위 값 반환
     public static float GetRandomBetweenValue(float min, float max)
     {
-        return UnityEngine.Random.Range(min, max);
+        return min + (max - min) * RogueLikeData.Instance.GetRandomFloat();
     }
 }

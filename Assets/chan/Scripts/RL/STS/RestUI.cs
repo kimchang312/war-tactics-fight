@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +11,11 @@ public class RestUI : MonoBehaviour
 
     private CanvasGroup panelCG;
 
+    [Header("페이드 설정")]
+    [SerializeField] private Image fadeImage;
+    [SerializeField] private float fadeDuration = 0.5f;
+
+
     private void Awake()
     {
         // CanvasGroup 세팅 (없으면 추가)
@@ -17,9 +23,6 @@ public class RestUI : MonoBehaviour
         if (panelCG == null) panelCG = gameObject.AddComponent<CanvasGroup>();
 
         // 처음엔 숨기고, 인터랙션 차단
-        gameObject.SetActive(false);
-        panelCG.interactable = false;
-        panelCG.blocksRaycasts = false;
 
         trainingButton.onClick.RemoveAllListeners();
         partyButton.onClick.RemoveAllListeners();
@@ -27,24 +30,14 @@ public class RestUI : MonoBehaviour
         trainingButton.onClick.AddListener(OnTraining);
         partyButton.onClick.AddListener(OnParty);
         restButton.onClick.AddListener(OnRest);
-    }
-
-    public void Show()
-    {
-        gameObject.SetActive(true);
-        panelCG.interactable = true;
-        panelCG.blocksRaycasts = true;
-
-        Debug.Log("[RestUI] Show() 호출됨");
-
+        
     }
 
     public void Hide()
     {
-        panelCG.interactable = false;
-        panelCG.blocksRaycasts = false;
         gameObject.SetActive(false);
         UIManager.Instance.UIUpdateAll();
+        GameManager.Instance.itemToolTip.SetActive(false);
         Debug.Log("[RestUI] Hide() 호출됨");
     }
 
@@ -52,30 +45,61 @@ public class RestUI : MonoBehaviour
     {
         Debug.Log("훈련");
         //다음 전술 개량의 비용을 0으로
-        RogueLikeData.Instance.SetIsFreeUpgrade();
-        Hide();
+        PlayFadeEffect(() =>
+        {
+            RogueLikeData.Instance.SetIsFreeUpgrade();
+            Hide();
+        });
     }
 
     private void OnParty()
     {
         Debug.Log("연회");
         //부대 전체의 사기를 30만큼 회복
-        RogueLikeData.Instance.ChangeMorale(30);
-        Hide();
+        PlayFadeEffect(() =>
+        {
+            RogueLikeData.Instance.ChangeMorale(30);
+            UIManager.Instance.UpdateMorale();
+            Hide();
+        });
     }
     private void OnRest()
     {
-
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
         Debug.Log("휴식");
-        //부대 전체 유닛의 기력을 2만큼 회복
-        for (int i = 0; i < myUnits.Count; i++)
+        PlayFadeEffect(() =>
         {
-            var unit = myUnits[i];
-            unit.energy = Mathf.Min(unit.maxEnergy, unit.energy + 2);
-        }
+            var myUnits = RogueLikeData.Instance.GetMyTeam();
+            foreach (var unit in myUnits)
+            {
+                unit.energy = Mathf.Min(unit.maxEnergy, unit.energy + 2);
+            }
 
-    UIManager.Instance.UpdateEnergyDisplay();
-    Hide();
+            var lineupBar = FindObjectOfType<LineUpBar>();
+            if (lineupBar != null)
+            {
+                var unitUIs = lineupBar.contentParent.GetComponentsInChildren<UnitUIPrefab>();
+                foreach (var ui in unitUIs)
+                    ui.SetupEnergy(ui.unitData);
+            }
+
+            Hide();
+        });
+    }
+    private void PlayFadeEffect(System.Action onMidFade)
+    {
+        fadeImage.gameObject.SetActive(true);
+        fadeImage.color = new Color(0, 0, 0, 0); // 완전 투명
+
+        // 어두워짐 → 중간처리 → 밝아짐
+        fadeImage.DOFade(1f, fadeDuration)
+            .OnComplete(() =>
+            {
+                onMidFade?.Invoke();
+                fadeImage.DOFade(0f, fadeDuration)
+                    .OnComplete(() =>
+                    {
+                        fadeImage.gameObject.SetActive(false);
+                    });
+            });
     }
 }

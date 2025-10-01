@@ -151,7 +151,7 @@ MonoBehaviour:
   stageType: 0
   combatSprite: {fileID: 21300000, guid: 96d945bda8ec28847afd35adcb43155f, type: 3}
   eliteSprite: {fileID: 21300000, guid: d84a732c274ae7545a7e4ef9522fee15, type: 3}
-  eventSprite: {fileID: 21300000, guid: e48147fa9abd12d4f9cbc97b5128ecac, type: 3}
+  eventSprite: {fileID: 21300000, guid: 96429f2c65da6134d842d82f2f7304d1, type: 3}
   shopSprite: {fileID: 21300000, guid: 7a4ce002793baf642ad9e17553b5afb7, type: 3}
   restSprite: {fileID: 21300000, guid: fb35d09cbf2f21241aae19f6c7a413f0, type: 3}
   treasureSprite: {fileID: 21300000, guid: 61513b3cb2b831e4396809055f9c0258, type: 3}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using Unity.VisualScripting;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,14 +14,23 @@ public class GameManager : MonoBehaviour
     public PlacePanel PlacePanelComponent => PlacePanel.GetComponent<PlacePanel>();
     public LineUpBar LineUpBarComponent => lineUpBar;
 
-    [SerializeField] private GameObject eventManager;
-    [SerializeField] private GameObject storeManager;
+    [SerializeField] public GameObject eventManager;
+    [SerializeField] public GameObject storeManager;
 
     [Header("Map UI & Enemy Info Panel")]
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
-    [SerializeField] private GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
-   
+    [SerializeField] public GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
+    [SerializeField] public GameObject restPanel;
+    [SerializeField] public RewardUI rewardUI;
+    [SerializeField] private GameObject loadingPanel;
+    [SerializeField] public ObjectPool objectPool;
+    public GameObject itemToolTip;
+    
 
+    [SerializeField] private RectTransform mapPanel;
+
+    public UIGenerator uIGenerator;
+    public UnitDetailExplain unitDetail; 
     public int currentStageX;
     public int currentStageY;
     public StageType currentStageType;
@@ -31,11 +41,13 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     public bool IsPlaceMode { get; private set; }
-    
+    public bool _hasInitialized = false;
+    public bool shouldRefreshUpgradeUI = false;
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
-    public RectTransform playerMarker;
+    [SerializeField] public GameObject playerMarkerPrefab; // ✅ 에디터에서 연결
+    public RectTransform playerMarker { get; set; }  // 생성 후 보관
 
     [Header("Rest Event")]
     public RestUI restUI;   // 에디터에서 할당
@@ -62,16 +74,19 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
+        if(objectPool == null)
+        {
+            objectPool = transform.Find("ObjectPooling").GetComponent<ObjectPool>();
+        }
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
 
-        await GoogleSheetLoader.Instance.LoadUnitSheetData();
         SaveData save = new();
         save.LoadData();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
         UnitLoader.Instance.LoadUnitsFromJson();
+        
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -79,21 +94,73 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      if (scene.name != "RLmap")
         return;
 
-     // 맵 씬에 진입했을 때만
-     allStages = FindObjectsOfType<StageNodeUI>().ToList();
-     InitializeStageLocks();
- }
+        CloseAllUI();
 
-private void Start()
+        // 맵 씬에 진입했을 때만
+        allStages = FindObjectsOfType<StageNodeUI>().ToList();
+        HideAllPanels();
+        UIManager.Instance.UIUpdateAll();
+        InitializeStageLocks();
+
+        if (playerMarker == null)
+        {
+            Debug.Log("🔄 playerMarker null → 새로 생성");
+            uIGenerator.EnsurePlayerMarker();  // ← 프리팹에서 다시 생성
+        }
+        // 마커 위치도 복원
+        if (playerMarker != null && currentStage != null)
+        {
+            MovePlayerMarkerTo(currentStage);
+        }
+
+
+        if (RogueLikeData.Instance.GetClearChpater())
+        {
+            SetCurrentStageNull();
+            RogueLikeData.Instance.SetClearChapter(false);
+            Vector2 pos = mapPanel.anchoredPosition;
+            pos.x = 0f;
+            mapPanel.anchoredPosition = pos;
+            Debug.Log("✅ mapPanel의 PosX를 0으로 초기화");
+            // 🔽 챕터 텍스트 업데이트
+            UIManager.Instance.UpdateChapter(RogueLikeData.Instance.GetChapter());
+            if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
+            uIGenerator.RegenerateMap();
+        }
+        else if (RogueLikeData.Instance.GetResetMap())
+        {
+            SetCurrentStageNull();
+            if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
+            RogueLikeData.Instance.SetResetMap(false);
+            uIGenerator.RegenerateMap();
+        }
+
+        // 전투 끝나고 돌아왔을 경우만 갱신 요청
+        GameManager.Instance.shouldRefreshUpgradeUI = true;
+
+    }
+
+    private void Start()
     {
-        // 씬에 있는 모든 StageNodeUI 컴포넌트를 수집
         allStages.AddRange(FindObjectsOfType<StageNodeUI>());
 
-        // (만약 RLmap 이 시작 씬이라면) 맵 진입 시 바로 잠금/언락 초기화
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
+        // 이어하기(불러오기) 처리
+        var save = SaveSystem.LoadFull();
+        if (save != null)
+        {
+            uIGenerator.RegenerateMapFromSaveFull(save);
+            Debug.Log("저장된 맵을 불러왔습니다.");
+        }
+        else
+        {
+            uIGenerator.RegenerateMap();
+            Debug.Log("새 맵을 생성합니다.");
+        }
+
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
             InitializeStageLocks();
     }
-    
+
     public void OnStageClicked(StageNodeUI clickedStage)
     {
         // 디버그: 클릭된 정보 찍기
@@ -108,6 +175,7 @@ private void Start()
             if (clickedStage.level == 0)
             {
                 Debug.Log(" → 첫 이동 허용 (레벨 1)");
+                changemorale();
                 SetCurrentStage(clickedStage);
                 return;
             }
@@ -122,6 +190,7 @@ private void Start()
         Debug.Log($" → 현재 스테이지({currentStage.level}) 와 clicked({clickedStage.level}) 연결 여부: {isConnected}");
         if (isConnected)
         {
+            changemorale();
             SetCurrentStage(clickedStage);
         }
         else
@@ -143,6 +212,21 @@ private void Start()
         // **currentStage를 무조건 여기서 설정**해 줍니다.
         currentStage = newStage;
 
+        // --- Relic 56: 전투가 아닌 지역 이동 시 사기 -5 ---
+        if (RelicManager.CheckRelicById(56))
+        {
+            bool isNonCombat = newStage.stageType != StageType.Combat &&
+                               newStage.stageType != StageType.Elite &&
+                               newStage.stageType != StageType.Boss;
+
+            if (isNonCombat)
+            {
+                RogueLikeData.Instance.ChangeMorale(-5);
+                UIManager.Instance.UpdateMorale();
+                Debug.Log(" 전투가 없는 지역으로 이동 → 사기 5 감소 (Relic 56 효과)");
+            }
+        }
+
         // 2) 맵 UI 전체 잠금
         foreach (var s in allStages)
             s.LockStage();
@@ -152,17 +236,37 @@ private void Start()
             newStage.stageType == StageType.Elite ||
             newStage.stageType == StageType.Boss)
         {
-
+            // 적 정보 패널과 배치 패널을 동시에 표시
             enemyInfoPanel.SetActive(true);
+            TogglePlacePanel(true);
+            PlacePanelComponent.UpdateMaxUnitText();
+
             var enemies = LoadEnemyUnits(newStage.PresetID);
             var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
 
             string cmdName = preset.Commander ?? "";
-            /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
-                              ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
-                              : "";*/
             var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
-            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName/*, cmdSkill*/);
+            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true);
+            
+            // 적 프리팹을 PlacePanel에 생성
+            PlacePanelComponent.CreateEnemyPrefabs(enemies);
+            
+            // PlacePanel에 지휘관 정보 표시
+            PlacePanelComponent.ShowCommanderInfo(cmdName);
+            
+            // PlacePanel에 전장효과 표시 (전투 스테이지만)
+            if (newStage.stageType == StageType.Combat || 
+                newStage.stageType == StageType.Elite || 
+                newStage.stageType == StageType.Boss)
+            {
+                PlacePanelComponent.ShowBattlefieldEffect(newStage.battlefieldEffect);
+                
+                // 전장 효과를 fieldId로 설정 (AbilityManager에서 사용)
+                int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
+                RogueLikeData.Instance.SetFieldId(fieldId);
+            }
+            
+            
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---
@@ -181,32 +285,67 @@ private void Start()
         // 6) 타입별 처리
         if (newStage.stageType == StageType.Rest)
         {
-            restUI.Show();
+            // 기존 restUI.Show() 대신
+            restPanel.SetActive(true);
+            currentStage?.StopSelectableEffect();
+            return;
         }
         else if (newStage.stageType == StageType.Event)
         {
+            if (RelicManager.CheckRelicById(47))
+            {
+                var relic = RogueLikeData.Instance.GetOwnedRelicById(47);
+                if (!relic.used)
+                {
+                    relic.used = true;
+                    rewardUI.gameObject.SetActive(true);
+                    rewardUI.CreateTeasureUI();
+                    return;
+                }
+            }
+            currentStage?.StopSelectableEffect();
             eventManager.SetActive(true);
         }
         else if (newStage.stageType == StageType.Shop)
         {
             storeManager.SetActive(true);
+            currentStage?.StopSelectableEffect();
         }
+        else if (newStage.stageType == StageType.Treasure)
+        {
+            rewardUI.gameObject.SetActive(true);
+            currentStage?.StopSelectableEffect();
+            rewardUI.CreateTeasureUI();
+        }
+        
+        Debug.Log($"📌 SetCurrentStage: {newStage.level}_{newStage.row}");
     }
 
 
     /// 플레이어 마커를 해당 스테이지 UI 위치로 이동시킵니다.
-
     private void MovePlayerMarkerTo(StageNodeUI target)
     {
         if (playerMarker == null)
+        {
+            Debug.Log("marker null");
             return;
-        RectTransform rt = target.GetComponent<RectTransform>();
-        playerMarker.anchoredPosition = rt.anchoredPosition;
-    }
+        }
 
+        RectTransform rt = target.GetComponent<RectTransform>();
+        Debug.Log($"📍 마커 이동 → {rt.anchoredPosition}");
+        playerMarker.anchoredPosition = rt.anchoredPosition;
+        // ✅ 첫 이동 시 마커를 활성화
+        if (!playerMarker.gameObject.activeSelf)
+        {
+            playerMarker.gameObject.SetActive(true);
+            Debug.Log("🟢 PlayerMarker 첫 활성화됨");
+        }
+
+    }
     public void InitializeStageLocks()
     {
         mapCanvas.SetActive(true);
+        loadingPanel.SetActive(false);
         // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
         var all = FindObjectsOfType<StageNodeUI>().ToList();
         // ② 일단 전부 잠급니다
@@ -228,10 +367,11 @@ private void Start()
         enemyInfoPanel.SetActive(false); //250515 적 정보 패널 false
         PlacePanel.SetActive(false);
         currentStage.UnlockStage();
+        currentStage.StopSelectableEffect();
         foreach (var nxt in currentStage.connectedStages)
             nxt.UnlockStage();
 
-        
+
     }
     private List<RogueUnitDataBase> LoadEnemyUnits(int presetID)
     {
@@ -257,9 +397,70 @@ private void Start()
     
     public void HideAllPanels()
     {
+        loadingPanel.SetActive(true);
         mapCanvas.SetActive(false);
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
+        restPanel.SetActive(false);
         IsPlaceMode = false;
     }
+    public void SetCurrentStageNull()
+    {
+        currentStage = null;
+    }
+
+    public void CloseLoading()
+    {
+        loadingPanel.SetActive(false);
+    }
+
+
+    public void CloseAllUI()
+    {
+        eventManager.SetActive(false);
+        storeManager.SetActive(false);
+        unitDetail.gameObject.SetActive(false);
+        restPanel.SetActive(false);
+        enemyInfoPanel.SetActive(false);
+        rewardUI.gameObject.SetActive(false);
+    }
+
+    public void OpenBattlePanel()
+    {
+        int presetId = RogueLikeData.Instance.GetPresetID();
+        StageType type = RogueLikeData.Instance.GetCurrentStageType();
+        enemyInfoPanel.SetActive(true);
+        var enemies = LoadEnemyUnits(presetId);
+        var preset = StagePresetLoader.I.GetByID(presetId);
+
+        string cmdName = preset.Commander ?? "";
+        /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
+                          ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
+                          : "";*/
+        var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
+        panel.ShowEnemyInfo(type, enemies, cmdName/*, cmdSkill*/);
+        
+        // PlacePanel에 지휘관 정보 표시
+        PlacePanelComponent.ShowCommanderInfo(cmdName);
+    }
+
+    private void changemorale()
+    {
+        int morale = RogueLikeData.Instance.GetMorale();
+        if (morale >= 70)
+        {
+            RogueLikeData.Instance.ChangeMorale(-10);
+            Debug.Log($"📉 사기가 70 이상이므로 -10 감소 → 현재 사기: {RogueLikeData.Instance.GetMorale()}");
+
+            // 사기 텍스트 UI 업데이트
+            UIManager.Instance.UpdateMorale();
+        }
+    }
+    public void UpdateAllUI()
+    {
+        lineUpBar.MakeUnitList();
+        UIManager.Instance.UIUpdateAll();
+    }
+
+
 }

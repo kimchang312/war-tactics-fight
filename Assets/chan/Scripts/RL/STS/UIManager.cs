@@ -1,18 +1,28 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using DG.Tweening;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
+
+    [Header("사기 이미지UI")]
+    [SerializeField] private Image moraleIconImage;
+    [SerializeField] private Sprite normalMoraleSprite;
+    [SerializeField] private Sprite mediumMoraleSprite;
+    [SerializeField] private Sprite highMoraleSprite;
 
     [Header("UI 텍스트 레퍼런스")]
 
     public TextMeshProUGUI goldText;
     public TextMeshProUGUI moraleText;
     public TextMeshProUGUI rerollText;
+    public TextMeshProUGUI chapterText;
 
-
+    private Dictionary<int, UnitUIPrefab> _unitUIs = new();
     private void Awake()
     {
         if (Instance == null)
@@ -31,6 +41,7 @@ public class UIManager : MonoBehaviour
         UIUpdateAll();
     }
 
+
     public void UIUpdateAll()
     {
         UpdateGold();
@@ -47,7 +58,16 @@ public class UIManager : MonoBehaviour
     public void UpdateMorale()
     {
         int m = RogueLikeData.Instance.GetMorale();
-        moraleText.text = m.ToString(); ;
+        moraleText.text = m.ToString();
+        if (moraleIconImage != null)
+        {
+            if (m <= 30)
+                moraleIconImage.sprite = normalMoraleSprite;
+            else if (m <= 70)
+                moraleIconImage.sprite = mediumMoraleSprite;
+            else
+                moraleIconImage.sprite = highMoraleSprite;
+        }
     }
 
     public void UpdateReroll()
@@ -55,9 +75,40 @@ public class UIManager : MonoBehaviour
         int r = RogueLikeData.Instance.GetRerollChance();
         rerollText.text = r.ToString(); ;
     }
-
-    public void UpdateEnergyDisplay()
+    public void UpdateChapter(int chapter)
     {
+        chapterText.text = $"Chapter {chapter}";
+    }
 
+
+    //금화 증감 애니메이션
+    public void AnimateGoldChange(int baseGold,int newGold)
+    {
+        int startValue = baseGold;
+        int endValue = baseGold + newGold;
+
+        // 기존 트윈이 있으면 중지 (중복 방지)
+        DOTween.Kill(this);
+
+        // 정수값을 부드럽게 증가시키는 DOTween 트윈
+        DOVirtual.Int(startValue, endValue, 0.7f, value =>
+        {
+            goldText.text = value.ToString();
+        }).SetEase(Ease.OutCubic).SetTarget(this);
+    }
+    //사기 증감 애니메이션
+    public void AnimateMoraleChange(int baseMorale,int newMorale)
+    {
+        int startValue = baseMorale;
+        int endValue = baseMorale + newMorale;
+
+        // 기존 트윈이 있으면 중지 (중복 방지)
+        DOTween.Kill(this);
+
+        // 정수값을 부드럽게 증가시키는 DOTween 트윈
+        DOVirtual.Int(startValue, endValue, 0.7f, value =>
+        {
+            moraleText.text = value.ToString();
+        }).SetEase(Ease.OutCubic).SetTarget(this);
     }
 }

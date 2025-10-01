@@ -354,6 +354,7 @@ public class ShopManager : MonoBehaviour
 
         // 유닛의 이미지와 이름을 가지고 새로운 UI 프리팹을 생성
         GameObject placeunitObject = Instantiate(placeunitPrefab, unitPlacementArea);
+        // Grid Layout Group의 Padding Right를 -800으로 설정해서 오른쪽에서 왼쪽으로 배치되도록 해결
         
 
         // PlacedUnit 스크립트 컴포넌트를 가져옴

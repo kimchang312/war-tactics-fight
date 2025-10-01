@@ -10,54 +10,44 @@ public class FightStartBtn : MonoBehaviour
     [SerializeField] private Button fightButton;               //ArranageUnitsScene에 있는 Fight 버튼과 연결
 
     // ���� ����, ���� ����
-    private List<int> myUnitIds = new List<int> {0};
-    private List<int> enemyUnitIds = new List<int> {1,1,1,1};
+    private List<int> myUnitIds = new List<int> {0,0,0};
+    private List<int> enemyUnitIds = new List<int> {6,6,6};
 
     void Start()
     {
-        //버튼을 눌렀을때 AutoBattleScene으로 이동후 전투를 실행시키라는 명령을 버튼에 추가해줌
-        fightButton.onClick.AddListener(MoveScene);
+        // 버튼 클릭 시 OnFightStartBtnClick 실행
+        fightButton.onClick.AddListener(OnFightStartBtnClick);
     }
 
-    //버튼을 눌렀을때 AutoBattleScene으로 이동후 자동전투 함수를 호출
-    void OnFightButtonClick()
+    // 버튼 클릭 시 씬 로드 + 이벤트 연결
+    void OnFightStartBtnClick()
     {
+        if (myUnitIds == null || enemyUnitIds == null)
+        {
+            Debug.LogWarning("전투 유닛 ID가 지정되지 않았습니다.");
+            return;
+        }
+
         SceneManager.sceneLoaded += OnSceneLoaded;
         SceneManager.LoadScene("AutoBattleScene");
     }
-    private void MoveScene()
-    {
-        SceneManager.LoadScene("RLmap");
-    }
 
-    //자동 전투 함수를 호출하는 함수
-    async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    // 씬 로드 완료 후 자동 전투 시작
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "AutoBattleScene")
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        AutoBattleManager manager = GameObject.FindObjectOfType<AutoBattleManager>();
+        if (manager != null)
         {
-            if(battleManager == null)
-            {
-                battleManager = FindObjectOfType<AutoBattleManager>();
-            }
-            // Inspector에서 연결된 battleManager 사용
-            if (battleManager != null)
-            {
-                if (myUnitIds.Count <= 0)
-                {
-                    myUnitIds.Add(0);
-                    Debug.Log("내 유닛에 아무것도 없음");
-                }
-                if(enemyUnitIds.Count <= 0)
-                {
-                    enemyUnitIds.Add(0);
-                    Debug.Log("상대 유닛에 아무것도 없음");
-                }
-                await battleManager.StartBattle(myUnitIds,enemyUnitIds); //자동전투 실행
-            }
-
-            SceneManager.sceneLoaded -= OnSceneLoaded;
+            manager.StartBattle(myUnitIds, enemyUnitIds);
+        }
+        else
+        {
+            Debug.LogError("AutoBattleManager를 찾을 수 없습니다.");
         }
     }
+
 
     //유닛 정보 수정
     public void SetMyFightUnits(List<int> unitIds)
