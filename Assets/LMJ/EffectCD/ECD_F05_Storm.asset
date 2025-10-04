@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_F05_Storm
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: b6379fffda1f8c14cbbaf4eb1407ec00, type: 3}
+  - {fileID: 21300000, guid: 888492c32a45b154a8fb28f9edbc4a4f, type: 3}
+  - {fileID: 21300000, guid: 26f50fc0fe255bb43b8412fc73517e40, type: 3}
+  totalDuration: 0.3
+  playReverse: 0
+  loop: 1
+  playColor: {r: 1, g: 1, b: 1, a: 1}

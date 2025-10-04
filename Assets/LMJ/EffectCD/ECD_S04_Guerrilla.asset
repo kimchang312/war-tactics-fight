@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S04_Guerrilla
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: c6fffcf1e60d2164abcc8c0583c52385, type: 3}
+  - {fileID: 21300000, guid: d532b2db795ca6448b2b19593203bbb4, type: 3}
+  - {fileID: 21300000, guid: 96140808d2c03354aaf786b379769a47, type: 3}
+  - {fileID: 21300000, guid: 71d148f8fc2ea564da6b794be483d550, type: 3}
+  - {fileID: 21300000, guid: 077d4b85399396e4a830b58316a35e95, type: 3}
+  - {fileID: 21300000, guid: e4286067f67676042a4c743b38b8f3f7, type: 3}
+  totalDuration: 0.5

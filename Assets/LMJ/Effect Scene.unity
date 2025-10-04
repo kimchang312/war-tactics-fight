@@ -15397,7 +15397,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 2136066664}
-  cd: {fileID: 11400000, guid: 6bee723d632fa8245909e1a662f87267, type: 2}
+  cd: {fileID: 11400000, guid: a6408c5a876885345bfa6d8018459e89, type: 2}
 --- !u!1 &2136066662
 GameObject:
   m_ObjectHideFlags: 0
@@ -15462,7 +15462,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S14_Challenge_effect
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: 05fad18d3577b564e8b3a6bf3c7c11a6, type: 3}
+  - {fileID: 21300000, guid: 61df371ce84a8b24e96a9f5cc0dc14cf, type: 3}
+  - {fileID: 21300000, guid: b378d6562d089714a9a97064a4e8c43a, type: 3}
+  - {fileID: 21300000, guid: 4f4d861412c67ee469612ec0c6a17b4c, type: 3}
+  - {fileID: 21300000, guid: 4479800db8c7af44c8fb13f7b78394e0, type: 3}
+  - {fileID: 21300000, guid: 22e3eb3770227b64fa2ed4c6bc543034, type: 3}
+  totalDuration: 0.5

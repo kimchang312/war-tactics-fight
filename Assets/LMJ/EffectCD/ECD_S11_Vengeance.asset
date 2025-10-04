@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S11_Vengeance
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: a185c22346a445440ac2459cd2f474eb, type: 3}
+  - {fileID: 21300000, guid: 52361aaba2a400b40aeebe4d64afbcfe, type: 3}
+  - {fileID: 21300000, guid: 1de4d8466fc03ce458a91ab68b009399, type: 3}
+  - {fileID: 21300000, guid: 7ae57ad23bf9b1a48910e5cefad1b96e, type: 3}
+  - {fileID: 21300000, guid: 05e01c133755b114aa580e153e950040, type: 3}
+  - {fileID: 21300000, guid: a52d0ed8401cba34a80d626c20dda463, type: 3}
+  totalDuration: 0.5

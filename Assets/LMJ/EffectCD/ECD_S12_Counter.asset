@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S12_Counter
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: 9acba3500107d9548aa0177f3a450b85, type: 3}
+  - {fileID: 21300000, guid: efa70e3e88a3f9540a3238c7c0477dae, type: 3}
+  - {fileID: 21300000, guid: 6cdc7876da05979419504ba005b92a87, type: 3}
+  - {fileID: 21300000, guid: e546e446bafb80845a5993b5900e79a4, type: 3}
+  - {fileID: 21300000, guid: a10ccaa937f9c9e40a98e61ce5c09064, type: 3}
+  - {fileID: 21300000, guid: 4da1af3468f6fae42842268caff9bce9, type: 3}
+  totalDuration: 0.5

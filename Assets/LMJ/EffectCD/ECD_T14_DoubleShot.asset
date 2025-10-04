@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_T14_DoubleShot
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: 6b7f6ea88463f7344a6a26bb6faee3c5, type: 3}
+  - {fileID: 21300000, guid: 45af7dceb8cabda48b0faa8af36dec26, type: 3}
+  - {fileID: 21300000, guid: 6735d89e44267d940a7debdae064e1c4, type: 3}
+  - {fileID: 21300000, guid: cfff425371709a34888bf5b4bfca8fb1, type: 3}
+  - {fileID: 21300000, guid: e65343845e49434418a5e36d6e505fa2, type: 3}
+  - {fileID: 21300000, guid: f6f1a945a3c164b4d9a883340b4b04d4, type: 3}
+  totalDuration: 0.5

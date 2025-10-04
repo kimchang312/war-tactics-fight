@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S07_Drain
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: 2f52caafc977bee41884e6523093a011, type: 3}
+  - {fileID: 21300000, guid: 63b09d9ec89bf254895569239ee3f3fa, type: 3}
+  - {fileID: 21300000, guid: ff22e2659f8b56c4981b2ec91aa9ec0a, type: 3}
+  - {fileID: 21300000, guid: 0fead0ea8db6e764d8c986a679496303, type: 3}
+  - {fileID: 21300000, guid: 8884f88a9ac604b4290cea6798c34314, type: 3}
+  - {fileID: 21300000, guid: 9381d3722c50e354e82d2d70fe9661fe, type: 3}
+  totalDuration: 0.5

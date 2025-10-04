@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S10_Wounding
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: 7f287bfbff352c045b25e7736fa767d2, type: 3}
+  - {fileID: 21300000, guid: df935b77213309f4296178ba7dac690f, type: 3}
+  - {fileID: 21300000, guid: 7bc0622dae36eae4e9293fc37e03032b, type: 3}
+  - {fileID: 21300000, guid: 83663020ccc99cd43b50490e4ee4ba58, type: 3}
+  - {fileID: 21300000, guid: 4b52be03fe9491b4b9652128e2578144, type: 3}
+  - {fileID: 21300000, guid: fd062f7232a69ce4e938bbf6f9c7c191, type: 3}
+  totalDuration: 0.5

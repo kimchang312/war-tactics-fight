@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_T15_Scorching
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: b4054b26155abc74f97adf6ec09a9171, type: 3}
+  - {fileID: 21300000, guid: ece4cba03abd88f4bac514cbddfad73c, type: 3}
+  - {fileID: 21300000, guid: 82d7e43ce3e31f34e88d6eabb8378211, type: 3}
+  - {fileID: 21300000, guid: 1a953572f5f05e343b1513341816e558, type: 3}
+  - {fileID: 21300000, guid: c43f689a1fd87c2499344af0fe6fb38a, type: 3}
+  - {fileID: 21300000, guid: 88bfb8eb950b1534cbfa406369f155ca, type: 3}
+  totalDuration: 0.5
