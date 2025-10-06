@@ -73,6 +73,149 @@ public class MapGenerator : MonoBehaviour
     {
         nodeDict = loadedDict;
     }
+
+    // ─── 특수 프리셋 190, 191, 192번 관리 ─────────────────
+    private static Dictionary<int, List<int>> specialPresetUnits = new Dictionary<int, List<int>>();
+    private static bool specialPresetsInitialized = false;
+
+    void Start()
+    {
+        // 게임 시작 시 특수 프리셋 초기화
+        InitializeSpecialPresets();
+    }
+
+    /// <summary>
+    /// 게임 시작 시 특수 프리셋 190, 191, 192번의 유닛 구성을 초기화합니다.
+    /// </summary>
+    public void InitializeSpecialPresets()
+    {
+        if (specialPresetsInitialized)
+        {
+            Debug.Log("[MapGenerator] 특수 프리셋이 이미 초기화되었습니다.");
+            return;
+        }
+
+        Debug.Log("[MapGenerator] 특수 프리셋 190, 191, 192번 초기화 시작");
+
+        // UnitLoader 초기화 확인
+        if (UnitLoader.Instance == null)
+        {
+            Debug.LogError("[MapGenerator] UnitLoader가 초기화되지 않았습니다.");
+            return;
+        }
+
+        // 유닛 데이터 로드
+        UnitLoader.Instance.LoadUnitsFromJson();
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
+        
+        if (allUnits == null || allUnits.Count == 0)
+        {
+            Debug.LogError("[MapGenerator] 유닛 데이터를 로드할 수 없습니다.");
+            return;
+        }
+
+        // branchIdx=7(지원병)을 제외한 유닛들만 필터링
+        var availableUnits = allUnits.Where(unit => unit.branchIdx != 7).ToList();
+        Debug.Log($"[MapGenerator] 사용 가능한 유닛 수: {availableUnits.Count}");
+
+        // 각 프리셋별 유닛 구성 생성
+        for (int presetId = 190; presetId <= 192; presetId++)
+        {
+            int budget = presetId switch
+            {
+                190 => 2000,
+                191 => 4500,
+                192 => 7000,
+                _ => 2000
+            };
+
+            var selectedUnits = GenerateRandomUnitComposition(availableUnits, budget);
+            specialPresetUnits[presetId] = selectedUnits;
+            
+            Debug.Log($"[MapGenerator] 프리셋 {presetId}번 구성 완료 - 유닛 수: {selectedUnits.Count}, 예산: {budget}");
+        }
+
+        specialPresetsInitialized = true;
+        Debug.Log("[MapGenerator] 특수 프리셋 초기화 완료");
+    }
+
+    /// <summary>
+    /// 예산 내에서 무작위로 유닛을 선택하여 구성합니다.
+    /// </summary>
+    /// <param name="availableUnits">사용 가능한 유닛 리스트</param>
+    /// <param name="budget">예산</param>
+    /// <returns>선택된 유닛 ID 리스트</returns>
+    private List<int> GenerateRandomUnitComposition(List<RogueUnitDataBase> availableUnits, int budget)
+    {
+        var selectedUnits = new List<int>();
+        int remainingBudget = budget;
+        var random = RogueLikeData.Instance.GetRandomBySeed();
+
+        // 최대 100번 시도하여 예산을 최대한 활용
+        for (int attempt = 0; attempt < 100 && remainingBudget > 0; attempt++)
+        {
+            // 예산 내에서 구매 가능한 유닛들 필터링
+            var affordableUnits = availableUnits.Where(unit => unit.unitPrice <= remainingBudget).ToList();
+            
+            if (affordableUnits.Count == 0)
+                break;
+
+            // 무작위로 유닛 선택
+            int randomIndex = random.Next(0, affordableUnits.Count);
+            var selectedUnit = affordableUnits[randomIndex];
+            
+            // 선택된 유닛을 리스트에 추가하고 예산 차감
+            selectedUnits.Add(selectedUnit.idx);
+            remainingBudget -= selectedUnit.unitPrice;
+        }
+
+        return selectedUnits;
+    }
+
+    /// <summary>
+    /// 특수 프리셋의 유닛 구성을 가져옵니다.
+    /// </summary>
+    /// <param name="presetId">프리셋 ID (190, 191, 192)</param>
+    /// <returns>유닛 ID 리스트</returns>
+    public List<int> GetSpecialPresetUnits(int presetId)
+    {
+        if (!specialPresetsInitialized)
+        {
+            Debug.LogWarning($"[MapGenerator] 특수 프리셋이 초기화되지 않았습니다. 프리셋 {presetId}번 초기화 중...");
+            InitializeSpecialPresets();
+        }
+
+        if (specialPresetUnits.ContainsKey(presetId))
+        {
+            return specialPresetUnits[presetId];
+        }
+
+        Debug.LogError($"[MapGenerator] 프리셋 {presetId}번의 유닛 구성을 찾을 수 없습니다.");
+        return new List<int>();
+    }
+
+    /// <summary>
+    /// 특수 프리셋 데이터를 저장용 딕셔너리로 반환합니다.
+    /// </summary>
+    /// <returns>저장용 딕셔너리</returns>
+    public Dictionary<int, List<int>> GetSpecialPresetDataForSave()
+    {
+        return new Dictionary<int, List<int>>(specialPresetUnits);
+    }
+
+    /// <summary>
+    /// 저장된 특수 프리셋 데이터를 로드합니다.
+    /// </summary>
+    /// <param name="savedData">저장된 데이터</param>
+    public void LoadSpecialPresetData(Dictionary<int, List<int>> savedData)
+    {
+        if (savedData != null)
+        {
+            specialPresetUnits = new Dictionary<int, List<int>>(savedData);
+            specialPresetsInitialized = true;
+            Debug.Log($"[MapGenerator] 특수 프리셋 데이터 로드 완료 - 프리셋 수: {savedData.Count}");
+        }
+    }
     // ─── Combat/Elite/Boss 에 맞춰 presetID 선정 함수 ─────────────────
     private int PickPresetID(int level, StageType stageType)
     {
@@ -100,7 +243,62 @@ public class MapGenerator : MonoBehaviour
         // Combat, Elite, Boss 모두 후보 중 랜덤 선택
         var random = RogueLikeData.Instance.GetRandomBySeed();
         int idx = random.Next(0, candidates.Count);
-        return candidates[idx].PresetID;
+        int selectedPresetID = candidates[idx].PresetID;
+
+        // 특수 프리셋 190, 191, 192번이 선택된 경우 동적 업데이트
+        if (selectedPresetID == 190 || selectedPresetID == 191 || selectedPresetID == 192)
+        {
+            UpdateSpecialPresetForStage(selectedPresetID);
+        }
+
+        return selectedPresetID;
+    }
+
+    /// <summary>
+    /// 특수 프리셋이 선택된 경우 StagePresetLoader를 업데이트합니다.
+    /// </summary>
+    /// <param name="presetId">선택된 프리셋 ID</param>
+    private void UpdateSpecialPresetForStage(int presetId)
+    {
+        if (StagePresetLoader.I == null)
+        {
+            Debug.LogError("[MapGenerator] StagePresetLoader가 초기화되지 않았습니다.");
+            return;
+        }
+
+        // 특수 프리셋의 유닛 구성을 가져옴
+        var unitList = GetSpecialPresetUnits(presetId);
+        if (unitList.Count > 0)
+        {
+            // StagePresetLoader의 프리셋 업데이트
+            var preset = StagePresetLoader.I.GetByID(presetId);
+            if (preset != null)
+            {
+                preset.UnitList = new List<int>(unitList);
+                preset.UnitCount = unitList.Count;
+                
+                // 총 가치 계산
+                if (UnitLoader.Instance != null)
+                {
+                    int totalValue = 0;
+                    foreach (int unitId in unitList)
+                    {
+                        var unit = UnitLoader.Instance.GetUnitById(unitId);
+                        if (unit != null)
+                        {
+                            totalValue += unit.unitPrice;
+                        }
+                    }
+                    preset.Value = totalValue;
+                }
+                
+                Debug.Log($"[MapGenerator] 프리셋 {presetId}번이 스테이지용으로 업데이트되었습니다 - 유닛 수: {unitList.Count}, 총 가치: {preset.Value}");
+            }
+        }
+        else
+        {
+            Debug.LogError($"[MapGenerator] 프리셋 {presetId}번의 유닛 구성을 가져올 수 없습니다.");
+        }
     }
 
     // ─── 전장효과 생성 함수 ─────────────────
@@ -489,5 +687,88 @@ public class MapGenerator : MonoBehaviour
                     lastNode.connectedNodes.Add(bossNode);
             }
         }
+    }
+
+    /// <summary>
+    /// 특수 프리셋 생성 로직을 테스트합니다.
+    /// </summary>
+    [ContextMenu("테스트: 특수 프리셋 생성")]
+    public void TestSpecialPresetGeneration()
+    {
+        Debug.Log("=== 특수 프리셋 190, 191, 192번 생성 테스트 시작 ===");
+        
+        // 특수 프리셋 초기화
+        InitializeSpecialPresets();
+        
+        // 각 프리셋별 결과 확인
+        for (int presetId = 190; presetId <= 192; presetId++)
+        {
+            var units = GetSpecialPresetUnits(presetId);
+            int budget = presetId switch { 190 => 2000, 191 => 4500, 192 => 7000, _ => 2000 };
+            
+            Debug.Log($"프리셋 {presetId}번: 유닛 수 {units.Count}, 예산 {budget}");
+            Debug.Log($"선택된 유닛 ID들: [{string.Join(", ", units)}]");
+            
+            // 예산 사용률 계산
+            if (UnitLoader.Instance != null)
+            {
+                int totalValue = 0;
+                foreach (int unitId in units)
+                {
+                    var unit = UnitLoader.Instance.GetUnitById(unitId);
+                    if (unit != null)
+                    {
+                        totalValue += unit.unitPrice;
+                    }
+                }
+                float usageRate = (float)totalValue / budget * 100f;
+                Debug.Log($"예산 사용률: {usageRate:F1}% ({totalValue}/{budget})");
+            }
+        }
+        
+        Debug.Log("=== 테스트 완료 ===");
+    }
+
+    /// <summary>
+    /// 특수 프리셋 저장/불러오기 테스트
+    /// </summary>
+    [ContextMenu("테스트: 특수 프리셋 저장/불러오기")]
+    public void TestSpecialPresetSaveLoad()
+    {
+        Debug.Log("=== 특수 프리셋 저장/불러오기 테스트 시작 ===");
+        
+        // 1. 특수 프리셋 초기화
+        InitializeSpecialPresets();
+        
+        // 2. 현재 데이터 확인
+        Debug.Log("초기화된 특수 프리셋 데이터:");
+        for (int presetId = 190; presetId <= 192; presetId++)
+        {
+            var units = GetSpecialPresetUnits(presetId);
+            Debug.Log($"프리셋 {presetId}: 유닛 수 {units.Count}, 유닛 ID들: [{string.Join(", ", units)}]");
+        }
+        
+        // 3. 저장용 데이터 생성
+        var saveData = GetSpecialPresetDataForSave();
+        Debug.Log($"저장용 데이터 생성 완료 - 프리셋 수: {saveData.Count}");
+        
+        // 4. 데이터 초기화 (불러오기 시뮬레이션)
+        specialPresetUnits.Clear();
+        specialPresetsInitialized = false;
+        Debug.Log("데이터 초기화 완료");
+        
+        // 5. 저장된 데이터 로드
+        LoadSpecialPresetData(saveData);
+        Debug.Log("저장된 데이터 로드 완료");
+        
+        // 6. 로드된 데이터 확인
+        Debug.Log("로드된 특수 프리셋 데이터:");
+        for (int presetId = 190; presetId <= 192; presetId++)
+        {
+            var units = GetSpecialPresetUnits(presetId);
+            Debug.Log($"프리셋 {presetId}: 유닛 수 {units.Count}, 유닛 ID들: [{string.Join(", ", units)}]");
+        }
+        
+        Debug.Log("=== 저장/불러오기 테스트 완료 ===");
     }
 }
