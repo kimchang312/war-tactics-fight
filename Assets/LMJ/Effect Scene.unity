@@ -15397,7 +15397,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 2136066664}
-  cd: {fileID: 11400000, guid: a6408c5a876885345bfa6d8018459e89, type: 2}
+  cd: {fileID: 11400000, guid: 6bee723d632fa8245909e1a662f87267, type: 2}
 --- !u!1 &2136066662
 GameObject:
   m_ObjectHideFlags: 0
@@ -15434,7 +15434,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 200}
+  m_SizeDelta: {x: 400, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2136066664
 MonoBehaviour:

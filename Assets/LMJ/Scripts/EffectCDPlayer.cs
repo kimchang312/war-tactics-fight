@@ -8,11 +8,24 @@ public class EffectCDPlayer : MonoBehaviour
 {
     [SerializeField] private Image image; // 프레임을 보여줄 이미지 슬롯
 
+    [SerializeField] public bool flipX = false; // 적 초상화 위에 생성할 경우 좌우반전 활성화
+    [SerializeField] private RectTransform flipRoot;
+
     private Sequence seq;
 
     /// <summary>
     /// CD를 받아 재생한다.
     /// </summary>
+
+    private void ApplyFlipX(bool flip)
+    {
+        var rt = flipRoot != null ? flipRoot : image.rectTransform;
+        var s = rt.localScale;
+        float absX = Mathf.Abs(s.x);
+        rt.localScale = new Vector3(flip ? -absX : absX, s.y, s.z);
+    }
+
+
     public void Play(EffectCD cd, System.Action onComplete = null)
     {
         if (cd == null || cd.frames == null || cd.frames.Length == 0)
@@ -24,6 +37,9 @@ public class EffectCDPlayer : MonoBehaviour
         // 이전 시퀀스 종료
         seq?.Kill();
         seq = DOTween.Sequence();
+
+        bool effectiveFlip = flipX && cd.AllowFlip;
+        ApplyFlipX(effectiveFlip);
 
         int frameCount = cd.frames.Length;
         float frameTime = Mathf.Max(0f, cd.totalDuration) / frameCount;

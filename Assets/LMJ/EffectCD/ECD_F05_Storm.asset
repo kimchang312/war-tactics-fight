@@ -20,3 +20,4 @@ MonoBehaviour:
   playReverse: 0
   loop: 1
   playColor: {r: 1, g: 1, b: 1, a: 1}
+  allowFlip: 0

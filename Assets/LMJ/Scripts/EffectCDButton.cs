@@ -7,6 +7,8 @@ public class EffectCDButton : MonoBehaviour
     [SerializeField] private EffectCDPlayer player; // 플레이어 지정
     [SerializeField] private EffectCD cd;           // 재생할 CD 지정
 
+    public bool flipX = false;
+
     // 버튼 클릭 시 호출
     public void PlayCD()
     {
@@ -16,6 +18,7 @@ public class EffectCDButton : MonoBehaviour
             return;
         }
 
+        player.flipX = this.flipX;
         player.Play(cd);
     }
 }

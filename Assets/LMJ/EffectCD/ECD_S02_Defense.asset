@@ -20,3 +20,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 284b70fd623e997419663cbd48d44dba, type: 3}
   - {fileID: 21300000, guid: 826993d02d3d0894fb96ece1b38b812c, type: 3}
   totalDuration: 0.5
+  playReverse: 0
+  loop: 0
+  playColor: {r: 1, g: 1, b: 1, a: 1}
+  allowFlip: 1

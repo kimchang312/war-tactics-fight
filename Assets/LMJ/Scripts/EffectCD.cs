@@ -20,4 +20,8 @@ public class EffectCD : ScriptableObject
 
     [Tooltip("재생 동안 이미지 색상")]
     public Color playColor = Color.white;
+
+    [Tooltip("이 이펙트가 좌우 반전을 허용하는지 여부(기본: 허용)")]
+    [SerializeField] private bool allowFlip = true;
+    public bool AllowFlip => allowFlip; // 읽기 전용 공개
 }
