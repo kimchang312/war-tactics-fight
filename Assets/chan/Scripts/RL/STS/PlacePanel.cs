@@ -225,25 +225,28 @@ public class PlacePanel : MonoBehaviour
     // 지휘관 정보를 표시하는 메서드
     public void ShowCommanderInfo(string commanderName)
     {
-        if (string.IsNullOrEmpty(commanderName))
-        {
-            // 지휘관이 없으면 패널 숨기기
-            if (commanderInfoPanel != null)
-                commanderInfoPanel.SetActive(false);
-            return;
-        }
-
-        // 지휘관이 있으면 패널 표시
+        // 지휘관이 없어도 패널은 항상 표시
         if (commanderInfoPanel != null)
             commanderInfoPanel.SetActive(true);
 
-        // 지휘관 이름 설정
-        if (commanderNameText != null)
-            commanderNameText.text = $"지휘관: {commanderName}";
+        if (string.IsNullOrEmpty(commanderName))
+        {
+            // 지휘관이 없을 때의 기본 텍스트
+            if (commanderNameText != null)
+                commanderNameText.text = "지휘관: 없음";
+            
+            if (commanderSkillText != null)
+                commanderSkillText.text = "스킬: 없음";
+        }
+        else
+        {
+            // 지휘관이 있을 때의 정상 처리
+            if (commanderNameText != null)
+                commanderNameText.text = $"지휘관: {commanderName}";
 
-        // 지휘관 스킬 효과 설정
-        if (commanderSkillText != null)
-            commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
+            if (commanderSkillText != null)
+                commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
+        }
 
         // 전장 효과는 별도로 설정해야 함 (ShowBattlefieldEffect 메서드 사용)
         if (battlefieldEffectText != null)

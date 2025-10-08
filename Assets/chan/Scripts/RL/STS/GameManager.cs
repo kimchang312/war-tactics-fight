@@ -383,8 +383,29 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             return new List<RogueUnitDataBase>();
         }
 
+        // 특수 프리셋 190, 191, 192번인 경우 MapGenerator에서 동적 유닛 구성 가져오기
+        List<int> unitIdList;
+        if (presetID == 190 || presetID == 191 || presetID == 192)
+        {
+            var mapGenerator = FindObjectOfType<MapGenerator>();
+            if (mapGenerator != null)
+            {
+                unitIdList = mapGenerator.GetSpecialPresetUnits(presetID);
+                Debug.Log($"[GameManager] 특수 프리셋 {presetID}번의 동적 유닛 구성 사용 - 유닛 수: {unitIdList.Count}");
+            }
+            else
+            {
+                Debug.LogError($"[GameManager] MapGenerator를 찾을 수 없습니다. 프리셋 {presetID}번의 기본 UnitList 사용");
+                unitIdList = preset.UnitList;
+            }
+        }
+        else
+        {
+            unitIdList = preset.UnitList;
+        }
+
         // 2) 프리셋의 UnitList(int idx 리스트) → UnitLoader로부터 복제해서 반환
-        return preset.UnitList
+        return unitIdList
                      .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, /*isTeam=*/ false))
                      .Where(u => u != null)
                      .ToList();

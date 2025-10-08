@@ -63,13 +63,17 @@ public class EnemyInfoPanel : MonoBehaviour
             case StageType.Boss: battleTypeText.text = "보스 전투"; break;
             default: battleTypeText.text = ""; break;
         }
-        // 2) 지휘관 정보
-        bool hasCommander = !string.IsNullOrEmpty(commanderName);
-        commanderInfo.SetActive(hasCommander);
-        if (hasCommander)
+        // 2) 지휘관 정보 (항상 표시)
+        commanderInfo.SetActive(true);
+        if (!string.IsNullOrEmpty(commanderName))
         {
             commanderNameText.text = commanderName;
             commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
+        }
+        else
+        {
+            commanderNameText.text = "없음";
+            commanderSkillText.text = "없음";
         }
         // 2) 기존 표시 지우기
         foreach (Transform child in enemyContainer)
