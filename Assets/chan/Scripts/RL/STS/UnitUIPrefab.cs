@@ -50,7 +50,6 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
         unitId = unit.idx;
         this.uniqueId = unit.UniqueId;
         PrefabType = ctx;
-        Debug.Log(unit.unitImg);
         // unitImage null 체크
         if (unitImage != null)
         {
