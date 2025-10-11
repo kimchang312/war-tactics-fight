@@ -72,8 +72,8 @@ public class UIManager : MonoBehaviour
 
     public void UpdateReroll()
     {
-        int r = RogueLikeData.Instance.GetRerollChance();
-        rerollText.text = r.ToString(); ;
+        (int, bool) r = RogueLikeData.Instance.GetRerollChance();
+        rerollText.text = r.Item1.ToString();
     }
     public void UpdateChapter(int chapter)
     {

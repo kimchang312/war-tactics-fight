@@ -82,13 +82,11 @@ public class UpgradeUI : MonoBehaviour
             }
         }
 
-        // 3) 랜덤 셔플 후 최대 3개 선택
         var random = RogueLikeData.Instance.GetRandomBySeed();
         _currentChoices = options
             .OrderBy(_ => (float)random.NextDouble())
             .Take(3)
             .ToList();
-        // 무료업그레이드 라면
         if (RogueLikeData.Instance.isFreeUpgrade == true)
         {
             foreach (var opt in _currentChoices)
@@ -117,8 +115,6 @@ public class UpgradeUI : MonoBehaviour
                 var sprite = Resources.Load<Sprite>(path);
                 if (sprite != null)
                 iconImage.sprite = sprite;
-                else
-                    Debug.LogWarning($"[UpgradeUI] 스프라이트 못찾음: UpgradeIcons/{spriteName}"); 
             }
             var nameTxt = go.transform.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
             var costTxt = go.transform.Find("UpgradeCost")?.GetComponent<TextMeshProUGUI>();
@@ -135,29 +131,17 @@ public class UpgradeUI : MonoBehaviour
     private void OnOptionClicked(UpgradeOption opt)
     {
         int cost = opt.cost;
-        if (cost > 0)
+        if (cost > 0 && !RogueLikeData.Instance.CanSpendGold(cost))
         {
-            int currentGold = RogueLikeData.Instance.GetCurrentGold();
-            if (currentGold < cost)
-            {
-                Debug.Log("골드가 부족합니다.");
-                return;
-            }
+            return;
         }
 
-        // 기존 레벨 확인
         int before = RogueLikeData.Instance.GetUpgrade(opt.unitType, opt.isAttack);
-        Debug.Log($"🛠️ 업그레이드 전: {UpgradeOption.UnitTypeNames[opt.unitType]} {(opt.isAttack ? "공격" : "방어")} 레벨 {before}");
 
-        // 2) 강화 수행 (isPurchase=false 로 내부 중복 차감 방지)
         RogueLikeData.Instance.IncreaseUpgrade(opt.unitType, opt.isAttack, true);
 
-        // 이후 레벨 확인
         int after = RogueLikeData.Instance.GetUpgrade(opt.unitType, opt.isAttack);
-        Debug.Log($"✅ 업그레이드 후: {UpgradeOption.UnitTypeNames[opt.unitType]} {(opt.isAttack ? "공격" : "방어")} 레벨 {after}");
 
-
-        // 버튼 찾기: 현재 선택된 opt와 동일한 버튼 찾아서 비활성화
         foreach (Transform child in optionContainer)
         {
             var nameTxt = child.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
@@ -186,27 +170,25 @@ public class UpgradeUI : MonoBehaviour
                 break;
             }
         }
-        // 3) UI 갱신
         UIManager.Instance.UIUpdateAll();
     }
     private void OnRerollClicked()
     {
-        int rr = RogueLikeData.Instance.GetRerollChance();
-        if (rr <= 0)
+        (int, bool) rr = RogueLikeData.Instance.GetRerollChance();
+        if (rr.Item1 <= 0 && !rr.Item2)
         {
-            Debug.Log("리롤 횟수가 없습니다.");
             return;
         }
 
         // 리롤 차감
-        RogueLikeData.Instance.SetRerollChance(rr - 1);
-        ShowRandomChoices();        // 옵션만 갱신
+        RogueLikeData.Instance.AddReroll(- 1);
+        ShowRandomChoices();
         UIManager.Instance.UIUpdateAll();
     }
 
     private void UpdateRerollButton()
     {
-        // 남은 리롤이 1 이상일 때만 활성화
-        rerollButton.interactable = RogueLikeData.Instance.GetRerollChance() > 0;
+        (int, bool) reroll = RogueLikeData.Instance.GetRerollChance();
+        rerollButton.interactable = (reroll.Item1 > 0 && reroll.Item2);
     }
 }

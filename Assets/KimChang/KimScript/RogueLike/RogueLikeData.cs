@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class RogueLikeData
@@ -82,7 +83,10 @@ public class RogueLikeData
 
     // 사용처: 상점 좌표 → 유니크 키
     private string BuildStoreKey(int chapter, int x, int y) => $"{chapter}:{x}:{y}";
+    
+    private bool isStageClear = false;
 
+    private bool isDataLoading = false;
 
     private RogueLikeData()
     {
@@ -122,13 +126,13 @@ public class RogueLikeData
             var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
             if (savedUnit == null) continue;
             
-            if (unit.energy < 1)
+            if (unit.Energy < 1)
             {
                 savedCopy.Remove(savedUnit);
             }
             else
             {
-                savedUnit.energy = unit.energy;
+                savedUnit.Energy = unit.Energy;
             }
         }
 
@@ -161,7 +165,7 @@ public class RogueLikeData
         myUnits = new List<RogueUnitDataBase>(units);
     }
     //내 유닛 하나 추가
-    public void AddMyUnis(RogueUnitDataBase unit)
+    public void AddMyTeam(RogueUnitDataBase unit)
     {
         int heroCount = 0;
         int maxHeroCount = GetMaxHero();
@@ -178,14 +182,6 @@ public class RogueLikeData
                         return;
                     }
                 }
-            }
-            if (unit.idx == 55)
-            {
-                AcquireRelic(78);
-            }
-            else if (unit.idx == 51)
-            {
-                RogueUnitDataBase.AddBizarreBishopMyTeam();
             }
         }
        
@@ -217,9 +213,16 @@ public class RogueLikeData
         {
             if (!relicIdsByType[relic.type].Contains(relicId))
             {
-                if (relicId == 53 && GetRandomFloat() <= 0.75f)
+                if (relicId == 53 )
                 {
-                    RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
+                    var vals = relic.GetAllValuesAsFloatListOrNull();
+                    if (vals != null)
+                    {
+                        if(GetRandomFloat() <= vals[1])
+                        {
+                            RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
+                        }
+                    }
                 }
 
                 relicsByType[relic.type].Add(relic);
@@ -228,7 +231,7 @@ public class RogueLikeData
                 //획득 시 발동
                 if (relic.type == RelicType.GetEffect)
                 {
-                    relic.executeAction();
+                    relic.Execute();
                 }
 
             }
@@ -381,12 +384,41 @@ public class RogueLikeData
     {
         return currentGold;
     }
+    //골드 사용 가능한지 채크
+    public bool CanSpendGold(int reduceGold)
+    {
+        int gold = GetCurrentGold();
+        if (RelicManager.CheckRelicById(49))
+        {
+            WarRelic creditAuthorization = RelicManager.GetRelicById(49);
+            if (creditAuthorization != null)
+            {
+                var vals = creditAuthorization.GetAllValuesAsFloatListOrNull();
+                if (vals != null)
+                {
+                    gold += (int)vals[0];
+                }
+            }
+        }
+
+        return gold >= reduceGold;
+    }
+
     //골드 획득
     public void EarnGold(int gold)
     {
         int baseGold =currentGold;
-        float addGold = GetOwnedRelicById(5) == null ? 0 : 0.15f;
-        gold = (int)((addGold+1)*gold);
+        float addGold = 1;
+        if (RelicManager.CheckRelicById(5))
+        {
+            WarRelic relic = RelicManager.GetRelicById(5);
+            var vals = relic.GetAllValuesAsFloatListOrNull();
+            if(vals != null)
+            {
+                addGold += vals[0];
+            }
+        }
+        gold = (int)(addGold*gold);
         currentGold += gold;
 
         //골드 애니메이션
@@ -395,25 +427,14 @@ public class RogueLikeData
     //골드 감소
     public void ReduceGold(int gold)
     {
-        bool hasLoanRelic = RelicManager.CheckRelicById(49);
-        int minGold = hasLoanRelic ? -500 : 0;
+        if (!CanSpendGold(gold)) return;
+
         int baseGold = currentGold;
-        int availableGold = currentGold - gold;
 
-        if (availableGold < minGold)
-        {
-            // 초과 사용한 만큼 차감 불가능
-            int allowedUsage = currentGold - minGold;
-            spentGold += allowedUsage;
-            currentGold = minGold;
-        }
-        else
-        {
-            spentGold += gold;
-            currentGold = availableGold;
+        spentGold += gold;                  
+        currentGold -= gold;              
 
-            UIManager.Instance.AnimateGoldChange(baseGold, -gold);
-        }
+        UIManager.Instance.AnimateGoldChange(baseGold, -gold); 
     }
 
 
@@ -450,7 +471,17 @@ public class RogueLikeData
         }
         else
         {
-            float reductionModifier = GetOwnedRelicById(33) == null ? 1f : 0.8f;
+            float reductionModifier = 1f;
+            if (RelicManager.CheckRelicById(33))
+            {
+                WarRelic relic = RelicManager.GetRelicById(33);
+                var vals = relic.GetAllValuesAsFloatListOrNull();
+                if (vals != null)
+                {
+                    reductionModifier += vals[0];
+                }
+            }
+
             int reduced = Mathf.RoundToInt(value * reductionModifier); // value < 0
 
             actualChange = Mathf.Max(reduced, -playerMorale); // 최소 0 유지
@@ -626,9 +657,25 @@ public class RogueLikeData
     {
         battleReward.rerollChance += addReroll;
     }
+    //리롤의 추가 및 사용
     public void AddReroll(int addReroll)
     {
         rerollChance += addReroll;
+        if(addReroll < 0)
+        {
+            if (RelicManager.CheckRelicById(60))
+            {
+                WarRelic relic = RelicManager.GetRelicById(60);
+                var vals = relic.GetAllValuesAsFloatListOrNull();
+                if (vals != null)
+                {
+                    var unit = RogueUnitDataBase.GetRandomUnitByRarity((int)vals[0]);
+                    unit.SetEnergyDirect((int)vals[1]);
+                    AddMyTeam(unit);
+                }
+            }
+        }
+
     }
     public void AddRelicReward(int setRelicId)
     {
@@ -666,9 +713,15 @@ public class RogueLikeData
         return costTable[level];
     }
 
-    public int GetRerollChance()
+    public (int,bool) GetRerollChance()
     {
-        return rerollChance;
+        bool canReroll = true;
+        if (RelicManager.CheckRelicById(64))
+        {
+            canReroll = false;
+        }
+
+        return (rerollChance, canReroll);
     }
     public void SetRerollChance(int reroll)
     {
@@ -707,7 +760,7 @@ public class RogueLikeData
     }
 
     // 강화 수치 증가 (강화 비용 차감 포함)
-    public void IncreaseUpgrade(int unitTypeIndex, bool isAttack,bool isPurchase=true)
+    public void IncreaseUpgrade(int unitTypeIndex, bool isAttack, bool isPurchase = true)
     {
         if (unitTypeIndex < 0 || unitTypeIndex >= upgradeValues.Length)
             return;
@@ -723,28 +776,74 @@ public class RogueLikeData
         {
             if (!isFreeUpgrade)
             {
-                // 단계별 비용 테이블
-                float isSale = RelicManager.CheckRelicById(1) ? 0.2f : 0;
-                isSale += RelicManager.CheckRelicById(58) ? -0.2f : 0;
+                float isSale = 1f;
+                
+                if (RelicManager.CheckRelicById(58))
+                {
+                    WarRelic relic58 = RelicManager.GetRelicById(58);
+                    var vals = relic58.GetAllValuesAsFloatListOrNull();
+                    if (vals != null)
+                        isSale += vals[0];
+                }
 
-                int cost = costTable[currentLevel];
-                int lental = RelicManager.CheckRelicById(49) ? 500 : 0;
-                if (currentGold + lental < cost)
-                    return; // 금화 부족
-
-                // 금화 차감
-                currentGold -= cost;
+                int cost = Mathf.RoundToInt(costTable[currentLevel] * isSale);
+                currentGold -= cost; // 실제 비용 차감
             }
+
             isFreeUpgrade = false;
         }
 
-        // 강화 수치 증가
         if (isAttack)
             upgradeValues[unitTypeIndex].attackLevel++;
         else
             upgradeValues[unitTypeIndex].defenseLevel++;
+
+        //유산 51
+        if (RelicManager.CheckRelicById(51))
+        {
+            WarRelic relic = RelicManager.GetRelicById(51);
+            var vals = relic.GetAllValuesAsFloatListOrNull();
+            if(vals != null)
+            {
+                if(GetRandomFloat() >= vals[0])
+                {
+                    RogueUnitDataBase addUnit = RogueUnitDataBase.GetRandomUnitByBranchAndRarity(unitTypeIndex, (int)vals[1]);
+                    AddMyTeam(addUnit);
+                }
+            }
+
+        }
+
+        TryTriggerRelic3Reward(unitTypeIndex, isAttack);
     }
 
+    private void TryTriggerRelic3Reward(int unitTypeIndex, bool isAttack)
+    {
+        // 유산 3번 없으면 즉시 종료
+        WarRelic relic = RelicManager.GetRelicById(3);
+        if (relic == null || relic.used)
+            return;
+
+        // 현재 강화 상태 확인
+        int atkLv = upgradeValues[unitTypeIndex].attackLevel;
+        int defLv = upgradeValues[unitTypeIndex].defenseLevel;
+
+        // 최초로 레벨 5 도달한 경우만
+        if (atkLv == 5 || defLv == 5)
+        {
+            var vals = relic.GetAllValuesAsFloatListOrNull();
+            if (vals != null && vals.Count > 1)
+            {
+                int gold = Mathf.RoundToInt(vals[1]);
+                if (gold > 0)
+                {
+                    RogueLikeData.Instance.EarnGold(gold);
+                }
+            }
+
+            relic.used = true; // 유산 사용 처리 (1회만)
+        }
+    }
     public (int unitType, bool isAttack) GetRandomUpgradeTarget()
     {
         // 총 16개 항목 중 하나 선택
@@ -773,13 +872,18 @@ public class RogueLikeData
     {
         int maxCount = maxUnits;
         int addMax = 0;
-        if (RelicManager.CheckRelicById(66)) addMax += 1;
-        if (RelicManager.CheckRelicById(67)) addMax += 3;
-        if (RelicManager.CheckRelicById(89)) addMax -= 2;
-        if(GetMyTeam().Find((e)=> e.idx ==56 ) !=null) addMax += 3;
+        float multy = 1;
+        addMax += RelicManager.RunPantheonModel();              //유산 12
+        addMax += RelicManager.RunBlindWarriorsEyepatch();      //유산 36
+        addMax += RelicManager.RunMistakenOrderReceipt();       //유산 44
+        addMax += RelicManager.RunExpandedFormationDiagram();   //유산 66
+        addMax += RelicManager.RunWarlordsInsignia();           //유산 67
+        addMax += RelicManager.RunTornList();                   //유산 89
+        if (GetMyTeam().Find((e)=> e.idx ==56 ) !=null) addMax += 3;
         addMax += 5 * (chapter-1);
         maxCount = maxCount +addMax;
-        if (RelicManager.CheckRelicById(107)) maxCount /= 2;
+        multy += RelicManager.RunPileOfMedals();
+        maxCount = (int)(maxCount * multy);
 
         return maxCount;
     }
@@ -801,13 +905,45 @@ public class RogueLikeData
         int addHero = 0;
         if (RelicManager.CheckRelicById(57))
         {
-            addHero += 1;
+            WarRelic relic57 = RelicManager.GetRelicById(57);
+            var vals = relic57.GetAllValuesAsFloatListOrNull();
+            if(vals != null)
+            {
+                addHero += (int)vals[0];
+            }
         }
-        if (RelicManager.CheckRelicById(110))
+        WarRelic deliciousSpecialMeal = RelicManager.GetRelicById(93);
+        if (deliciousSpecialMeal != null)
         {
-            addHero += 2;
+            var vals = deliciousSpecialMeal.GetAllValuesAsFloatListOrNull();
+            if (vals != null)
+            {
+                if (deliciousSpecialMeal.used)
+                {
+                    addHero += (int)vals[2];
+                }
+                else
+                {
+                    int haveHero = 0;
+                    var myTeamUnits = GetMyTeam();
+                    foreach (var unit in myTeamUnits)
+                    {
+                        if(haveHero >= 2)
+                        {
+                            addHero += (int)vals[2];
+                            break;
+                        }
+                        if(unit.rarity == 4)
+                        {
+                            haveHero++;
+                        }
+                    }
+                }
+            }
         }
-        
+
+        addHero += RelicManager.RunEpic();
+
         return maxHero+addHero;
     }
     public void SetMaxHero(int maxHero)
@@ -1105,5 +1241,11 @@ public class RogueLikeData
     }
 
     #endregion
+
+    public void SetIsDataLoading(bool isLoad)
+    {
+        isDataLoading = isLoad;
+    }
+
 
 }

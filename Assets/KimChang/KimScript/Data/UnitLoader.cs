@@ -48,10 +48,10 @@ public class UnitLoader
             int defaultPrice = Convert.ToInt32(unitData["defaultPrice"]);
             int rarity = Convert.ToInt32(unitData["rarity"]);
             float health = Convert.ToSingle(unitData["health"]);
-            float armor = Convert.ToSingle(unitData["armor"]);
+            int armor = Convert.ToInt32(unitData["armor"]);
             float attackDamage = Convert.ToSingle(unitData["attackDamage"]);
-            float mobility = Convert.ToSingle(unitData["mobility"]);
-            float range = Convert.ToSingle(unitData["range"]);
+            int mobility = Convert.ToInt32(unitData["mobility"]);
+            int range = Convert.ToInt32(unitData["range"]);
             int energy = Convert.ToInt32(unitData["energy"]);
 
             // 불리언 특성

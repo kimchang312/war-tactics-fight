@@ -27,7 +27,7 @@ public class OneUnitUI : MonoBehaviour, IPointerClickHandler
     public void SetOneUnit(RogueUnitDataBase _unit)
     {
         unit = _unit;
-        energyText.text = $"{unit.energy}/{unit.maxEnergy}";
+        energyText.text = $"{unit.Energy}/{unit.MaxEnergy}";
         unitNameText.text = $"{unit.unitName}";
         UIMaker.CreateSelectUnitEnergy(unit, this.gameObject);
     }

@@ -323,16 +323,10 @@ public class RewardUI : MonoBehaviour
             relicResult.gameObject.SetActive(false);
         }
 
-        int reroll = RogueLikeData.Instance.GetRerollChance();
+        (int,bool) reroll = RogueLikeData.Instance.GetRerollChance();
         var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
-        if (reroll < 1)
-        {
-            rerollBtn.interactable = false;
-        }
-        else
-        {
-            rerollBtn.interactable = true;
-        }
+        rerollBtn.interactable = (reroll.Item1 > 0 && reroll.Item2);
+        
         countText.text = $"{reroll}";
 
         rewardSelectObj.SetActive(true);
@@ -349,7 +343,7 @@ public class RewardUI : MonoBehaviour
         if (info.data.type == RewardType.UnitGrade || info.data.type == RewardType.NewUnit || info.data.type == RewardType.ChangeUnit)
         {
             RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(info.data.unitId);
-            RogueLikeData.Instance.AddMyUnis(unit);
+            RogueLikeData.Instance.AddMyTeam(unit);
         }
         else if (info.data.type == RewardType.RelicGrade || info.data.type == RewardType.NewRelic)
         {
@@ -381,15 +375,15 @@ public class RewardUI : MonoBehaviour
     // 이 함수는 보상 리롤 버튼을 눌렀을 때 사용한다.
     private void RerollReward()
     {
-        int reroll = RogueLikeData.Instance.GetRerollChance();
+        var reroll = RogueLikeData.Instance.GetRerollChance();
 
-        if (reroll > 0)
+        if (reroll.Item1 > 0 && reroll.Item2)
         {
             var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
             countText.text = $"{reroll}";
             var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
             OpenReward(info.data.unitId > -1);
-            RogueLikeData.Instance.SetRerollChance(--reroll);
+            RogueLikeData.Instance.AddReroll(-1);
             countText.text = $"{reroll}";
             rerollBtn.interactable = true;
             return;

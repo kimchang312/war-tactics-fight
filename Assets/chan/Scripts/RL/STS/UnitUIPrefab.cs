@@ -103,7 +103,7 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
         // 기력 텍스트 "현재/최대"
         if (energyText != null)
         {
-            energyText.text = $"{unit.energy}";
+            energyText.text = $"{unit.Energy}";
         }
         else
         {

@@ -175,6 +175,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         if (clickedStage.IsLocked)
             return;
 
+        //유산99
+        RelicManager.RunJarOfDesire();
+
         // 첫 이동이거나, 현재 스테이지와 연결된 경우에만 이동
         if (currentStage == null)
             // 첫 이동엔 레벨 1만 허용
@@ -300,7 +303,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             if (RelicManager.CheckRelicById(47))
             {
-                var relic = RogueLikeData.Instance.GetOwnedRelicById(47);
+                var relic = RelicManager.GetRelicById(47);
                 if (!relic.used)
                 {
                     relic.used = true;
@@ -309,6 +312,19 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                     return;
                 }
             }
+            if (RelicManager.CheckRelicById(52))
+            {
+                var relic = RelicManager.GetRelicById(52);
+                var vals = relic.GetAllValuesAsFloatListOrNull();
+                if (vals != null)
+                {
+                    if (RogueLikeData.Instance.GetRandomFloat() >= vals[0])
+                    {
+                        RogueLikeData.Instance.AddReroll(1);
+                    }
+                }
+
+            }
             currentStage?.StopSelectableEffect();
             eventManager.SetActive(true);
         }
@@ -316,6 +332,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             storeManager.SetActive(true);
             currentStage?.StopSelectableEffect();
+
+            //유산40
+            RelicManager.GetRelicById(40)?.Execute();
         }
         else if (newStage.stageType == StageType.Treasure)
         {

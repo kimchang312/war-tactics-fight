@@ -76,15 +76,17 @@ public class SaveData
     public void LoadData()
     {
         if (RogueLikeData.Instance.GetTestMode()) return;
+        RogueLikeData.Instance.SetIsDataLoading(true);
+
         _filePath = Application.persistentDataPath + "/PlayerData.json";
         try
         {
             string jsonData = File.ReadAllText(_filePath);
             SavePlayerData savePlayerData = JsonUtility.FromJson<SavePlayerData>(jsonData);
 
-            List<RogueUnitDataBase> myUnits = new(savePlayerData.myUnits);
-            RogueLikeData.Instance.SetMyTeam(myUnits);
-            foreach (var unit in myUnits)
+            List<RogueUnitDataBase> myTeam = new(savePlayerData.myUnits);
+            RogueLikeData.Instance.SetMyTeam(myTeam);
+            foreach (var unit in myTeam)
             {
                 unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
             }
@@ -102,6 +104,8 @@ public class SaveData
         {
             Debug.LogError($"데이터 로드 실패: {ex.Message}");
         }
+
+        RogueLikeData.Instance.SetIsDataLoading(false);
     }
 
     public void DeleteSaveFile()

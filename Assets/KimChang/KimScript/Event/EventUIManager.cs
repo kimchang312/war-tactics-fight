@@ -162,7 +162,7 @@ public class EventUIManager : MonoBehaviour
                 else if (int.TryParse(val, out var energyVal))
                 {
                     // 요구조건 검사와 일치하도록: '에너지 > value' 만 선택
-                    selectUnits = myUnits.FindAll(u => u.energy > energyVal);
+                    selectUnits = myUnits.FindAll(u => u.Energy > energyVal);
                 }
             }
         }

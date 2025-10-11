@@ -309,8 +309,7 @@ public class UnitPackageUI : MonoBehaviour
     // 사용처: 골드 등 조건 변경 시 버튼 활성/리스너 세팅
     public void UpdateUnitPackage()
     {
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        bool canBuy = gold >= itemInfo.price;
+        bool canBuy = RogueLikeData.Instance.CanSpendGold(itemInfo.price);
 
         SetChildButtonsInteractable(canBuy);
 

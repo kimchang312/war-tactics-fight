@@ -88,8 +88,23 @@ public class StoreUI : MonoBehaviour
     {
         int cost =  (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
         float sale = 1;
-        sale += RelicManager.CheckRelicById(0) ? 0.2f : 0;
-        sale += RelicManager.CheckRelicById(58) ? -0.2f : 0;
+        if (RelicManager.CheckRelicById(0)) {
+            WarRelic discountCoupon = RelicManager.GetRelicById(0);
+            var vals = discountCoupon.GetAllValuesAsFloatListOrNull();
+            if (vals != null)
+            {
+                sale += vals[0];
+            }
+        }
+        if(RelicManager.CheckRelicById(58))
+        {
+            WarRelic evidenceOfEmbezzlement = RelicManager.GetRelicById(58);
+            var vals = evidenceOfEmbezzlement.GetAllValuesAsFloatListOrNull();
+            if (vals != null)
+            {
+                sale += vals[0];
+            }
+        }
         cost = (int)(cost * sale);
         return cost;
     }
@@ -281,7 +296,7 @@ public class StoreUI : MonoBehaviour
             RogueUnitDataBase baseUnit = filtered[rand];
             RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(baseUnit.idx);
 
-            unit.energy = Math.Max(1, (int)((unit.energy * item.price) * 0.01f));
+            unit.Energy = Math.Max(1, (int)((unit.Energy * item.price) * 0.01f));
             result.Add(unit);
         }
         return result;
@@ -295,20 +310,17 @@ public class StoreUI : MonoBehaviour
 
     private bool SetButtonState(Button btn, int price)
     {
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        if (RogueLikeData.Instance.GetOwnedRelicById(49) != null)
+        bool canSpend = RogueLikeData.Instance.CanSpendGold(price);
+        if (btn.interactable != canSpend)
         {
-            gold += 500;
+            btn.interactable = canSpend;
         }
-        btn.interactable = gold >= price;
-        return btn.interactable;
+        return canSpend;
     }
 
     private bool SpendGold(int cost)
     {
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        int lental = RelicManager.CheckRelicById(49)?500:0;
-        if (gold+ lental < cost) return false;
+        if (!RogueLikeData.Instance.CanSpendGold(cost)) return false;
         RogueLikeData.Instance.ReduceGold(cost);
         SaveData saveData = new();
         saveData.SaveDataFile();
@@ -335,10 +347,7 @@ public class StoreUI : MonoBehaviour
     // 사용처: 패키지 결제/소유 반영/스냅샷 판매 잠금
     private void PurchaseUnitPackage(GameObject obj, List<RogueUnitDataBase> units, int price)
     {
-        // 사전 검증(금화 UI 체크는 되어 있지만 한번 더)
-        int gold = RogueLikeData.Instance.GetCurrentGold();
-        int lental = RelicManager.CheckRelicById(49) ? 500 : 0;
-        if (gold + lental < price) return;
+        if (!RogueLikeData.Instance.CanSpendGold(price)) return;
 
         int slotIndex = obj.transform.GetSiblingIndex();
 
@@ -525,7 +534,7 @@ public class StoreUI : MonoBehaviour
             if (selected == null || selected.Count < item.count)
             {
                 List<RogueUnitDataBase> canSelectUnits = RogueLikeData.Instance.GetMyTeam()
-                .Where(u => u.energy < u.maxEnergy)
+                .Where(u => u.Energy < u.MaxEnergy)
                 .ToList();
 
             if (canSelectUnits.Count < item.count)
@@ -537,14 +546,14 @@ public class StoreUI : MonoBehaviour
             }
             foreach (var unit in selected)
             {
-                unit.energy = Math.Min(unit.maxEnergy, unit.energy + int.Parse(item.value));
+                unit.Energy = Math.Min(unit.MaxEnergy, unit.Energy + int.Parse(item.value));
             }
 
         }
         else if (item.form == "Random")
         {
             int amount = int.Parse(item.value);
-            List<RogueUnitDataBase> units = RogueLikeData.Instance.GetMyTeam().Where(u => u.energy < u.maxEnergy).ToList();
+            List<RogueUnitDataBase> units = RogueLikeData.Instance.GetMyTeam().Where(u => u.Energy < u.MaxEnergy).ToList();
             if (units.Count == 0) return;
 
             for (int i = 0; i < units.Count; i++)
@@ -555,7 +564,7 @@ public class StoreUI : MonoBehaviour
 
             for (int i = 0; i < Mathf.Min(item.count, units.Count); i++)
             {
-                units[i].energy = Math.Min(units[i].maxEnergy, units[i].energy + amount);
+                units[i].Energy = Math.Min(units[i].MaxEnergy, units[i].Energy + amount);
             }
         }
     }
@@ -570,14 +579,13 @@ public class StoreUI : MonoBehaviour
         leavePackageBtn.onClick.AddListener(() => ClickLeavePackageBtn(unitPackageUI));
 
         packageGoldText.text = $"{price}";
-
-        int gold = RogueLikeData.Instance.GetCurrentGold();
         purchasePackageBtn.onClick.RemoveAllListeners();
-        if (gold < price)
+
+        bool canSpend = RogueLikeData.Instance.CanSpendGold(price);
+        if (purchasePackageBtn.interactable != canSpend)
         {
-            purchasePackageBtn.interactable = false; 
+            purchasePackageBtn.interactable = canSpend;
         }
-        else purchasePackageBtn.interactable=true;
 
         purchasePackageBtn.onClick.AddListener(() => PurchaseUnitPackage(unitPackageUI.gameObject, units, price));
 

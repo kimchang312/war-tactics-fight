@@ -222,45 +222,45 @@ public class UnitListUI : MonoBehaviour
             case 2: // 희귀도 오름
                 ordered = units.OrderBy(u => u.rarity)
                                .ThenBy(u => u.idx)
-                               .ThenBy(u => u.energy)
+                               .ThenBy(u => u.Energy)
                                .ThenBy(u => u.acquiredDate);
                 break;
             case 3: // 희귀도 내림
                 ordered = units.OrderByDescending(u => u.rarity)
                                .ThenBy(u => u.idx)
-                               .ThenBy(u => u.energy)
+                               .ThenBy(u => u.Energy)
                                .ThenBy(u => u.acquiredDate);
                 break;
             case 4: // 병종 오름
                 ordered = units.OrderBy(u => u.branchIdx)
                                .ThenBy(u => u.idx)
-                               .ThenBy(u => u.energy)
+                               .ThenBy(u => u.Energy)
                                .ThenBy(u => u.acquiredDate);
                 break;
             case 5: // 병종 내림
                 ordered = units.OrderByDescending(u => u.branchIdx)
                                .ThenBy(u => u.idx)
-                               .ThenBy(u => u.energy)
+                               .ThenBy(u => u.Energy)
                                .ThenBy(u => u.acquiredDate);
                 break;
             case 6: // 기력 오름
-                ordered = units.OrderBy(u => u.energy)
+                ordered = units.OrderBy(u => u.Energy)
                                .ThenBy(u => u.idx)
                                .ThenBy(u => u.acquiredDate);
                 break;
             case 7: // 기력 내림
-                ordered = units.OrderByDescending(u => u.energy)
+                ordered = units.OrderByDescending(u => u.Energy)
                                .ThenBy(u => u.idx)
                                .ThenBy(u => u.acquiredDate);
                 break;
             case 8: // 이름 오름
                 ordered = units.OrderBy(u => u.unitName)
-                               .ThenBy(u => u.energy)
+                               .ThenBy(u => u.Energy)
                                .ThenBy(u => u.acquiredDate);
                 break;
             case 9: // 이름 내림
                 ordered = units.OrderByDescending(u => u.unitName)
-                               .ThenBy(u => u.energy)
+                               .ThenBy(u => u.Energy)
                                .ThenBy(u => u.acquiredDate);
                 break;
             default: // 기본값: 획득 오름
