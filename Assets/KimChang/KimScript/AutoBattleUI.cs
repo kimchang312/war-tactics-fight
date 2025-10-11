@@ -1,11 +1,13 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using DG.Tweening;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using static AutoBattleManager;
 
 public class AutoBattleUI : MonoBehaviour
 {
@@ -18,6 +20,9 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _enemyUnitCountUI;
     [SerializeField] private TextMeshProUGUI _myUnitHPUI;
     [SerializeField] private TextMeshProUGUI _emyUnitHPUI;
+    [SerializeField] private TextMeshProUGUI _mySecondHpText;
+    [SerializeField] private TextMeshProUGUI _enemySecondHpText;
+
 
     [SerializeField] private TextMeshProUGUI moraleText;       
     [SerializeField] private ObjectPool objectPool;          
@@ -26,7 +31,9 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _myDodge;       
     [SerializeField] private TextMeshProUGUI _enemyDodge;      
     [SerializeField] private Slider myHpBar;                    
-    [SerializeField] private Slider enemyHpBar;                
+    [SerializeField] private Slider enemyHpBar;
+    [SerializeField] private Slider mySecondHpBar;
+    [SerializeField] private Slider enemySecondHpBar;
     [SerializeField] private GameObject myRangeCount;             
     [SerializeField] private GameObject enemyRangeCount;
 
@@ -40,14 +47,15 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private GameObject itemToolTip;
     [SerializeField] private Image background;
     [SerializeField] private GameObject goTestBtn;
-
-    private Vector3 myTeam = new(270, 280, 0);               
-    private Vector3 enemyTeam = new(-270, 280, 0);          
+    [SerializeField] private BattleCrashAnimation battleAnim;
+    private Vector3 myTeam = new(260, 280, 0);               
+    private Vector3 enemyTeam = new(-260, 280, 0);          
 
     private float waittingTime = 500f;
 
     private void Start()
     {
+        if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
         goTestBtn.SetActive(false);
 
 
@@ -75,6 +83,8 @@ public class AutoBattleUI : MonoBehaviour
         
         myHpBar.interactable = false;
         enemyHpBar.interactable = false;
+        if (mySecondHpBar != null) mySecondHpBar.interactable = false;
+        if (enemySecondHpBar != null) enemySecondHpBar.interactable = false;
 
         UpdateMorale();
     }
@@ -84,9 +94,10 @@ public class AutoBattleUI : MonoBehaviour
         _enemyUnitCountUI.text = $"{enemyUnitCount}";
 
     }
-    public void UpateUnitHPUI(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
+    public void UpdateUnitHPUI(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
     {
-        if (_myUnitHPUI != null && _emyUnitHPUI)
+        // 널 체크 버그 수정
+        if (_myUnitHPUI != null && _emyUnitHPUI != null)
         {
             _myUnitHPUI.text = $"{myUnitHP}/{myMaxHp}";
             _emyUnitHPUI.text = $"{enemyUnitHP}/{enemyMaxHp}";
@@ -98,7 +109,6 @@ public class AutoBattleUI : MonoBehaviour
         enemyHpBar.maxValue = enemyMaxHp;
         enemyHpBar.value = enemyUnitHP;
     }
-
     public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
     {
         float offsetX = 50f;
@@ -120,7 +130,7 @@ public class AutoBattleUI : MonoBehaviour
 
         yield return new WaitForSeconds(waittingTime * 0.0005f);
 
-        ShowDamageInternalWithPosition(damage, text, displayPos);
+        ShowDamageInternalWithPosition(damage, text);
     }
     private Vector2 GetUnitPosition(int unitIndex, bool isMyUnit, float offsetX)
     {
@@ -134,7 +144,7 @@ public class AutoBattleUI : MonoBehaviour
         RectTransform unitRect = unit.GetComponent<RectTransform>();
         return unitRect.anchoredPosition + new Vector2(offsetX, 0);
     }
-    private void ShowDamageInternalWithPosition(float damage, string text, Vector2 anchoredPosition)
+    private void ShowDamageInternalWithPosition(float damage, string text)
     {
         GameObject damageObj = objectPool.GetDamageText();
         damageObj.SetActive(true);
@@ -144,7 +154,7 @@ public class AutoBattleUI : MonoBehaviour
         damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
 
         RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-        rectTransform.anchoredPosition = anchoredPosition;
+        //rectTransform.anchoredPosition = anchoredPosition;
 
         StartCoroutine(HideAfterDelay(damageObj));
     }
@@ -199,12 +209,17 @@ public class AutoBattleUI : MonoBehaviour
     }
 
 
-    private void BattleAnimation(float damage, string text, bool team,bool isAttack)
+    private void BattleAnimation(float damage, string text, bool team, bool isAttack)
     {
         if (!isAttack) return;
 
         GameObject unit = FindUnit(0, team);
+        if (unit == null) return;
+
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
+
+        // 트윈 시작 전에 정리해야 트윈이 바로 죽지 않음
+        rectTransform.DOKill(false);   // 수정 포인트
 
         Vector2 originPos = rectTransform.anchoredPosition;
         float direction = team ? 1f : -1f;
@@ -212,30 +227,65 @@ public class AutoBattleUI : MonoBehaviour
         Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f);
         Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f);
 
-        DG.Tweening.Sequence attackSequence = DOTween.Sequence();
+        Sequence attackSequence = DOTween.Sequence();
         attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f))
                       .AppendInterval(0.2f)
                       .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f))
                       .Append(rectTransform.DOAnchorPos(originPos, 0.05f));
 
-        rectTransform.DOKill();
+        StartCoroutine(RunCrashAnimation(team));
     }
+    private IEnumerator RunCrashAnimation(bool team)
+    {
+        if (battleAnim == null || objectPool == null) yield break;
+
+        // 전열 기준 오브젝트 찾기
+        GameObject myFrontObj = FindUnit(0, true);
+        GameObject enFrontObj = FindUnit(0, false);
+        if (myFrontObj == null || enFrontObj == null) yield break;
+
+        RectTransform myAttach = myFrontObj.GetComponent<RectTransform>();
+        RectTransform enAttach = enFrontObj.GetComponent<RectTransform>();
+
+        // 테스트: 페이즈=충돌(4), id=1만 사용
+        var myIds = new List<int> { 1 };
+        var enIds = new List<int> { 1 };
+
+        // Task를 코루틴으로 대기
+        var task = battleAnim.PlayPhaseAsync(
+            phase: 4,                  // 내부 매핑에서 4=충돌
+            myAttach: myAttach,
+            enemyAttach: enAttach,
+            pool: objectPool,
+            myStyleIds: myIds,
+            enemyStyleIds: enIds
+        );
+
+        while (!task.IsCompleted) yield return null;
+    }
+
     private IEnumerator HideAfterDelay(GameObject damageObj)
     {
         yield return new WaitForSeconds(waittingTime/1000f);
         objectPool.ReturnDamageText(damageObj);
     }
 
-    public void CreateUnitBox(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, float myDodge, float enemyDodge, List<RogueUnitDataBase> myRangeUnits, List<RogueUnitDataBase> enemyRangeUnits)
+    //유닛 생성 코드
+    public void CreateUnitBox(
+     List<RogueUnitDataBase> myUnits,
+     List<RogueUnitDataBase> enemyUnits,
+     float myDodge, float enemyDodge,
+     List<RogueUnitDataBase> myRangeUnits,
+     List<RogueUnitDataBase> enemyRangeUnits)
     {
-        Vector3[] myPositions = { new Vector3(-180, 94, 0), new Vector3(-131, -385, 0)};
-        Vector3[] enemyPositions = { new Vector3(200, 94, 0), new Vector3(152, -385, 0) };
-        Vector3 myRangeUnitPos = new Vector3(-833, -95, 0);
-        Vector3 enemyRangeUnitPos = new Vector3(837, -95, 0);
+        Vector3[] myPositions = { new Vector3(-290, 60, 0), new Vector3(-575, 110, 0) };
+        Vector3[] enemyPositions = { new Vector3(290, 60, 0), new Vector3(575, 110, 0) };
+        Vector3 myRangeUnitPos = new Vector3(-830, -220, 0);
+        Vector3 enemyRangeUnitPos = new Vector3(830, -220, 0);
 
-        float firstSize = 250;
-        float secondSize = 200;
-        float unitInterval = 210;
+        // 변경: 첫 유닛 240, 이후 140
+        float firstSize = 240f;
+        float secondSize = 140f;
 
         ClearExistingUnitImages();
 
@@ -245,11 +295,11 @@ public class AutoBattleUI : MonoBehaviour
 
         CreateAbilityIcons(enemyUnits[0], false);
 
-        CreateUnitImages(myUnits, myPositions, firstSize, secondSize, unitInterval, true, myDodge);
+        CreateUnitImages(myUnits, myPositions, firstSize, secondSize, true, myDodge);
 
         CreateRangeUnit(myRangeUnits.Count, myRangeUnitPos, myRangeCount, true);
 
-        CreateUnitImages(enemyUnits, enemyPositions, firstSize, secondSize, unitInterval, false, enemyDodge);
+        CreateUnitImages(enemyUnits, enemyPositions, firstSize, secondSize, false, enemyDodge);
 
         CreateRangeUnit(enemyRangeUnits.Count, enemyRangeUnitPos, enemyRangeCount, false);
 
@@ -299,32 +349,43 @@ public class AutoBattleUI : MonoBehaviour
         unit.name = $"{myTeam}RangeUnit";
     }
 
-    //유닛 이미지 생성
-    private void CreateUnitImages(List<RogueUnitDataBase> units, Vector3[] positions, float firstSize, float secondSize, float unitInterval, bool isMyUnit, float dodge)
+    // 유닛 이미지 생성
+    private void CreateUnitImages(
+        List<RogueUnitDataBase> units,
+        Vector3[] positions,
+        float firstSize, float secondSize,
+        bool isMyUnit, float dodge)
     {
         for (int i = 0; i < units.Count; i++)
         {
-            if (units[i].health <= 0)
-                continue;
+            if (units[i].health <= 0) continue;
 
             string unitTeam = isMyUnit ? "My" : "Enemy";
             Transform parent = isMyUnit ? myBackUnitsParent : enemyBackUnitsParent;
+
             GameObject unitImage = objectPool.GetBattleUnit();
-            unitImage.transform.localScale = isMyUnit? new(1,1,1) : new(-1,1,1);
+            unitImage.transform.localScale = isMyUnit ? new(1, 1, 1) : new(-1, 1, 1);
+
             Transform childUnit = unitImage.transform.GetChild(0);
             RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
+            RectTransform frameRect = childUnit.GetComponent<RectTransform>(); // unitFrame의 RectTransform
             Image unitFrame = childUnit.GetComponent<Image>();
 
-            // 위치 설정
+            // 추가: 오브젝트 풀 재사용 대비, 매번 크기 강제 갱신
+            float unitSize = (i == 0) ? firstSize : secondSize;      // 첫 유닛 240, 이후 140
+            float frameSize = unitSize + 10f;                         // frame은 +10
+
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, unitSize);
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, unitSize);
+
+            frameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, frameSize);
+            frameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, frameSize);
+
+            // 위치 및 앵커 설정
             if (i < positions.Length)
             {
                 rectTransform.anchoredPosition = positions[i];
-                unitTeam += i switch
-                {
-                    0 => "FirstUnit",
-                    1 => "SecondUnit",
-                    _ => "BackUnit"
-                };
+                unitTeam += i switch { 0 => "FirstUnit", 1 => "SecondUnit", _ => "BackUnit" };
 
                 rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
                 rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
@@ -333,28 +394,22 @@ public class AutoBattleUI : MonoBehaviour
             else
             {
                 unitTeam += "BackUnit";
-
-                unitImage.transform.SetParent(parent,false);
+                unitImage.transform.SetParent(parent, false);
             }
 
+            // 스프라이트 및 보이기
             Image img = unitImage.GetComponent<Image>();
             img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
             img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{units[i].idx}");
 
             unitFrame.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{unitTeam}");
-
             unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
         }
 
-        if (isMyUnit)
-        {
-            _myDodge.text = $"회피율: {dodge}%";
-        }
-        else
-        {
-            _enemyDodge.text = $"회피율: {dodge}%";
-        }
+        if (isMyUnit) _myDodge.text = $"회피율: {dodge}%";
+        else _enemyDodge.text = $"회피율: {dodge}%";
     }
+
 
     private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
@@ -409,10 +464,12 @@ public class AutoBattleUI : MonoBehaviour
     //전투 종료
     public void FightEnd()
     {
-        rewardUI.gameObject.SetActive(true);
         rewardUI.AnimateBattleEnd();
     }
-
+    public void GameEnd(bool isWin)
+    {
+        rewardUI.StartGameOverSequence(isWin);
+    }
     //능력 창 띄위기
     public void CreateAbility(string ability, bool myTeam)
     {
@@ -485,11 +542,45 @@ public class AutoBattleUI : MonoBehaviour
         //WarRelicBoxUI.SetRelicBox(relicBox, itemToolTip, objectPool);
     }
 
-    //ui 활성화 비활성화 초기화
+    public void ApplyHp(in HpViewData d)
+    {
+        // 1번 체력바 갱신
+        UpdateUnitHPUI(d.MyHp, d.EnemyHp, d.MyMax, d.EnemyMax);
+
+        // 2번 체력바 갱신/토글
+        ToggleAndSet(mySecondHpBar, _mySecondHpText, d.MySecondActive, d.MySecondHp, d.MySecondMax);
+        ToggleAndSet(enemySecondHpBar, _enemySecondHpText, d.EnemySecondActive, d.EnemySecondHp, d.EnemySecondMax);
+    }
+
+    // 체력바/텍스트를 토글하고 값 세팅
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ToggleAndSet(Slider bar, TMP_Text txt, bool active, int hp, int max)
+    {
+        if (bar == null) return;
+
+        var barGo = bar.gameObject;
+        if (barGo.activeSelf != active) barGo.SetActive(active);
+
+        if (txt != null)
+        {
+            var txtGo = txt.gameObject;
+            if (txtGo.activeSelf != active) txtGo.SetActive(active);
+        }
+
+        if (active)
+        {
+            bar.maxValue = max;
+            bar.value = hp;
+            if (txt != null) txt.text = $"{hp}/{max}";
+        }
+    }
+
+    // 초기화: 두 번째 체력바/텍스트 비활성
     private void ResetUIActive()
     {
-        rewardUI.gameObject.SetActive(false);
-        //staticsToggleBtn.gameObject.SetActive(true);
+        if (rewardUI != null) rewardUI.InitializeAsIdle();
+        if (mySecondHpBar != null) mySecondHpBar.gameObject.SetActive(false);
+        if (enemySecondHpBar != null) enemySecondHpBar.gameObject.SetActive(false);
     }
 
     //사기 값 수정
@@ -502,6 +593,47 @@ public class AutoBattleUI : MonoBehaviour
     {
         goTestBtn.SetActive(true);
     }
-   
+    public void UpdateSecondHPUI(bool myActive, float myHp, float myMax, bool enemyActive, float enemyHp, float enemyMax)
+    {
+        // 내 2번 유닛
+        if (mySecondHpBar != null)
+        {
+            var barGo = mySecondHpBar.gameObject;
+            if (barGo.activeSelf != myActive) barGo.SetActive(myActive);
+
+            if (_mySecondHpText != null)
+            {
+                var txtGo = _mySecondHpText.gameObject;
+                if (txtGo.activeSelf != myActive) txtGo.SetActive(myActive);
+            }
+
+            if (myActive)
+            {
+                mySecondHpBar.maxValue = myMax;
+                mySecondHpBar.value = myHp;
+                if (_mySecondHpText != null) _mySecondHpText.text = $"{myHp}/{myMax}";
+            }
+        }
+
+        // 적 2번 유닛
+        if (enemySecondHpBar != null)
+        {
+            var barGo = enemySecondHpBar.gameObject;
+            if (barGo.activeSelf != enemyActive) barGo.SetActive(enemyActive);
+
+            if (_enemySecondHpText != null)
+            {
+                var txtGo = _enemySecondHpText.gameObject;
+                if (txtGo.activeSelf != enemyActive) txtGo.SetActive(enemyActive);
+            }
+
+            if (enemyActive)
+            {
+                enemySecondHpBar.maxValue = enemyMax;
+                enemySecondHpBar.value = enemyHp;
+                if (_enemySecondHpText != null) _enemySecondHpText.text = $"{enemyHp}/{enemyMax}";
+            }
+        }
+    }
 }
 

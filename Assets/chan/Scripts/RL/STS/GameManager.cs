@@ -60,6 +60,8 @@ public class GameManager : MonoBehaviour
     private List<StageNodeUI> allStages = new List<StageNodeUI>();
     // 현재 플레이어가 위치한 스테이지
     private StageNodeUI currentStage;
+
+    [SerializeField] private UnitDetailExplain unitDetailExplain;
     private async void Awake()
     {
         if (Instance == null)
@@ -76,7 +78,11 @@ public class GameManager : MonoBehaviour
         }
         if(objectPool == null)
         {
-            objectPool = transform.Find("ObjectPooling").GetComponent<ObjectPool>();
+            objectPool = GetComponentInChildren<ObjectPool>();
+        }
+        if(unitDetailExplain == null)
+        {
+            unitDetailExplain = GetComponentInChildren<UnitDetailExplain>(true);
         }
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -168,6 +174,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 잠겨 있으면 아무 동작 안 함
         if (clickedStage.IsLocked)
             return;
+
+        //유산99
+        RelicManager.RunJarOfDesire();
 
         // 첫 이동이거나, 현재 스테이지와 연결된 경우에만 이동
         if (currentStage == null)
@@ -294,7 +303,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             if (RelicManager.CheckRelicById(47))
             {
-                var relic = RogueLikeData.Instance.GetOwnedRelicById(47);
+                var relic = RelicManager.GetRelicById(47);
                 if (!relic.used)
                 {
                     relic.used = true;
@@ -303,6 +312,19 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                     return;
                 }
             }
+            if (RelicManager.CheckRelicById(52))
+            {
+                var relic = RelicManager.GetRelicById(52);
+                var vals = relic.GetAllValuesAsFloatListOrNull();
+                if (vals != null)
+                {
+                    if (RogueLikeData.Instance.GetRandomFloat() >= vals[0])
+                    {
+                        RogueLikeData.Instance.AddReroll(1);
+                    }
+                }
+
+            }
             currentStage?.StopSelectableEffect();
             eventManager.SetActive(true);
         }
@@ -310,6 +332,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             storeManager.SetActive(true);
             currentStage?.StopSelectableEffect();
+
+            //유산40
+            RelicManager.GetRelicById(40)?.Execute();
         }
         else if (newStage.stageType == StageType.Treasure)
         {

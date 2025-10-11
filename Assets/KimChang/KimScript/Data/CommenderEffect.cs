@@ -22,7 +22,7 @@ public static class CommenderEffect
         {
             if(unit.branchIdx == 5)
             {
-                unit.mobility = Math.Max(1, unit.mobility - 1);
+                unit.Mobility = Math.Max(1, unit.Mobility - 1);
 
             }
             else if(unit.branchIdx == 4)
@@ -52,7 +52,7 @@ public static class CommenderEffect
         {
             if (unit.branchIdx == 5 || unit.branchIdx == 6)
             {
-                unit.mobility -= 2;
+                unit.Mobility -= 2;
             }
         }
         foreach (var unit in enemyUnits)
@@ -64,7 +64,7 @@ public static class CommenderEffect
             }
             else if (unit.branchIdx == 5 || unit.branchIdx == 6)
             {
-                unit.mobility -= 2;
+                unit.Mobility -= 2;
             }
 
         }
@@ -81,7 +81,7 @@ public static class CommenderEffect
         {
             var myUnits = RogueLikeData.Instance.GetMyUnits();
             RogueUnitDataBase unit = myUnits[index];
-            unit.armor = Math.Max(0, unit.armor - 2);
+            unit.Armor = Math.Max(0, unit.Armor - 2);
         }
     }
     public static void CalculateOzzy() { }
@@ -235,14 +235,14 @@ public static class CommenderEffect
         var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
         foreach (var unit in myUnits)
         {
-            unit.armor = Mathf.Max(0, unit.armor - 2);
+            unit.Armor = Mathf.Max(0, unit.Armor - 2);
         }
         foreach (var unit in enemyUnits)
         {
             if (unit.branchIdx == 3)
             {
                 unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.15f);
-                unit.armor += Mathf.Round(unit.baseArmor*0.15f);
+                unit.Armor += (int)((float)unit.baseArmor*0.15f);
             }
         }
     }
@@ -282,7 +282,7 @@ public static class CommenderEffect
         allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
         foreach (var unit in allUnits)
         {
-            unit.mobility = 1;
+            unit.Mobility = 1;
         }
         //구현
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 
@@ -23,21 +24,84 @@ public class RogueUnitDataBase
     public int rarity;        
 
     public float baseHealth;
-    public float baseArmor;
+    public int baseArmor;
     public float baseAttackDamage;
-    public float baseMobility;
-    public float baseRange;
+    public int baseMobility;
+    public int baseRange;
     public float baseAntiCavalry;
     public int baseEnergy;
 
     public float health;
-    public float armor;
-    public float attackDamage;
-    public float mobility;
-    public float range;
-    public float antiCavalry;
-    public int energy;
+    private int _armor;
+    public int Armor
+    {
+        get => _armor;
+        set
+        {
+            if(value < 1)
+                _armor = 1;
+            else
+                _armor = value;
+        }
+    }
 
+    public float attackDamage;
+    private int _mobility;
+    public int Mobility
+    {
+        get => _mobility;
+        set
+        {
+            if (value < 1)
+                _mobility = 1;
+            else
+                _mobility = value;
+        }
+    }
+    public int range;
+    public float antiCavalry;
+    private int _energy;
+    public int Energy
+    {
+        get => _energy;
+        set
+        {
+            if (_energy == value) return;
+
+            int oldValue = _energy;
+            int newValue = value;
+
+            if (newValue < oldValue)
+            {
+                WarRelic ion = RelicManager.GetRelicById(2);
+                if (ion != null)
+                {
+                    var vals = ion.GetAllValuesAsFloatListOrNull();
+                    if (vals != null && RogueLikeData.Instance.GetRandomFloat() < vals[0])
+                    {
+                        return;
+                    }
+                }
+
+                int diff = oldValue - newValue;
+                WarRelic heavy = RelicManager.GetRelicById(105);
+                if(heavy != null)
+                {
+                    var vals = heavy.GetAllValuesAsFloatListOrNull();
+                    if (vals != null && RogueLikeData.Instance.GetRandomFloat() < vals[1])
+                    {
+                        diff *= (int)vals[2];
+                        newValue = oldValue - diff;
+                    }
+                }
+            }
+
+            if (newValue < 0) newValue = 0;
+            if (newValue > MaxEnergy) newValue = MaxEnergy;
+
+            _energy = newValue;
+        }
+    }
     public bool lightArmor; 
     public bool heavyArmor;   
     public bool rangedAttack;  
@@ -76,7 +140,32 @@ public class RogueUnitDataBase
     public bool smokeScreen;
 
     public float maxHealth;
-    public int maxEnergy;
+
+    private int _maxEnergy;
+    public int MaxEnergy
+    {
+        get
+        {
+            int result = _maxEnergy;
+
+            if (RelicManager.CheckRelicById(30))
+            {
+                WarRelic relic = RelicManager.GetRelicById(30);
+                var vals = relic.GetAllValuesAsFloatListOrNull();
+                if (vals != null && vals.Count > 0)
+                {
+                    result += (int)vals[0];
+                }
+            }
+
+            return result;
+        }
+        set
+        {
+            _maxEnergy = value;
+        }
+    }
+
     public bool alive;
     public bool fStriked;
     public int UniqueId;
@@ -90,7 +179,7 @@ public class RogueUnitDataBase
     int idx, string unitName, string unitBranch, int branchIdx,string unitId,
     string unitExplain, string unitImg,
     string unitFaction, int factionIdx, string tag, int tagIdx, int unitPrice,int defaultPrice, int rarity,
-    float health, float armor, float attackDamage, float mobility, float range,float antiCavalry, int energy,
+    float health, int armor, float attackDamage, int mobility, int range,float antiCavalry, int energy,
     float baseHealth,float baseArmor,float baseAttackDamage,float baseMobility,float baseRange,float baseAntiCavalry,int baseEnergy,
     bool lightArmor, bool heavyArmor, bool rangedAttack,
     bool bluntWeapon, bool pierce, bool agility, bool strongCharge, bool perfectAccuracy,
@@ -126,12 +215,12 @@ public class RogueUnitDataBase
         this.baseEnergy = energy;
 
         this.health = health;
-        this.armor = armor;
+        this.Armor = armor;
         this.attackDamage = attackDamage;
-        this.mobility = mobility;
+        this.Mobility = mobility;
         this.range = range;
         this.antiCavalry = antiCavalry;
-        this.energy = energy;
+        SetEnergyDirect(energy);
 
         this.lightArmor = lightArmor;
         this.heavyArmor = heavyArmor;
@@ -169,7 +258,7 @@ public class RogueUnitDataBase
         this.challenge = challenge;
         this.smokeScreen = smokeScreen;
         this.maxHealth = maxHealth;
-        this.maxEnergy = maxEnergy;
+        this.MaxEnergy = maxEnergy;
         this.alive = alive;
         this.fStriked = fStriked;
         this.UniqueId = uniqueId;
@@ -182,18 +271,25 @@ public class RogueUnitDataBase
         return new RogueUnitDataBase(
             this.idx, this.unitName, this.unitBranch, this.branchIdx, this.unitId, this.unitExplain, this.unitImg, this.unitFaction, this.factionIdx,
             this.tag, this.tagIdx, this.unitPrice,this.defaultPrice, this.rarity,
-            this.health, this.armor, this.attackDamage, this.mobility, this.range, this.antiCavalry, this.energy,
+            this.health, this.Armor, this.attackDamage, this.Mobility, this.range, this.antiCavalry, this.Energy,
             this.baseHealth, this.baseArmor, this.baseAttackDamage, this.baseMobility, this.baseRange, this.baseAntiCavalry, this.baseEnergy,
             this.lightArmor, this.heavyArmor, this.rangedAttack, this.bluntWeapon, this.pierce, this.agility,
             this.strongCharge, this.perfectAccuracy, this.slaughter, this.bindingForce, this.bravery, this.suppression,
             this.plunder, this.doubleShot, this.scorching, this.thorns, this.endless, this.impact, this.healing,
             this.lifeDrain, this.charge, this.defense, this.throwSpear, this.guerrilla, this.guard, this.assassination,
             this.drain, this.overwhelm, this.martyrdom, this.wounding, this.vengeance, this.counter, this.firstStrike,
-            this.challenge, this.smokeScreen, this.maxHealth, this.maxEnergy, this.alive, this.fStriked, this.UniqueId,
+            this.challenge, this.smokeScreen, this.maxHealth, this.MaxEnergy, this.alive, this.fStriked, this.UniqueId,
             new Dictionary<int, BuffDebuffData>(this.effectDictionary), DateTime.Now 
         );
     }
-
+    public void SetEnergyDirect(int value)
+    {
+        _energy = Mathf.Clamp(value, 0, MaxEnergy);
+    }
+    public void SetManxEnergyDirect(int value)
+    {
+        _maxEnergy = value;
+    }
     public static int BuildUnitUniqueId(int branchIdx, int unitIdx, bool isTeam=true)
     {
         int serial = RogueLikeData.Instance.GetNextUnitUniqueId();
@@ -289,7 +385,6 @@ public class RogueUnitDataBase
 
     public void NormalizeStateModifiers()
     {
-        //NormalizeStatBlock();
         RogueUnitDataBase unitEx = UnitLoader.Instance.GetUnitById(idx);
         
         lightArmor = unitEx.lightArmor;
@@ -347,9 +442,9 @@ public class RogueUnitDataBase
             health = Mathf.Round(stats.GetStat(StatType.Health));
         }
         maxHealth = newMaxHealth;
-        armor = Mathf.Round(stats.GetStat(StatType.Armor));
+        Armor = (int)stats.GetStat(StatType.Armor);
         attackDamage = Mathf.Round(stats.GetStat(StatType.AttackDamage));
-        mobility = Mathf.Min(1,(int)stats.GetStat(StatType.Mobility));
+        Mobility = (int)stats.GetStat(StatType.Mobility);
         range = (int)stats.GetStat(StatType.Range);
     }
 
@@ -385,4 +480,142 @@ public class RogueUnitDataBase
         }
     }
 
+    public static List<RogueUnitDataBase> OrderStrongUnits(List<RogueUnitDataBase> units)
+    {
+        if (units == null || units.Count == 0)
+            return new List<RogueUnitDataBase>();
+
+        var ordered = units
+            .OrderByDescending(u => u.unitPrice)
+            .ThenByDescending(u => u.Energy)
+            .ThenBy(u => u.idx)
+            .ToList();
+        
+        return ordered;
+    }
+
+    public static RogueUnitDataBase GetRandomUnitByBranchAndRarity(int branchIdx, int rarity)
+    {
+        // 모든 유닛 캐시에서 조건에 맞는 유닛만 필터링
+        var allUnits = UnitLoader.Instance.GetAllCachedUnits();
+        var filtered = allUnits
+            .Where(u => u.branchIdx == branchIdx && u.rarity == rarity)
+            .ToList();
+
+        if (filtered.Count == 0)
+            return null;
+
+        // 무작위 선택
+        int randomIndex = RogueLikeData.Instance.GetRandomInt(0, filtered.Count);
+        RogueUnitDataBase selected = filtered[randomIndex];
+
+        return UnitLoader.Instance.GetCloneUnitById(selected.idx);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float GetRarity1Reduce()
+    {
+        var r = RelicManager.GetRelicById(85);
+        if (r == null) return 0f;
+        var vals = r.GetAllValuesAsFloatListOrNull();
+        if (vals == null || vals.Count == 0) return 0f;
+        float v = vals[0];
+        if (v <= 0f) return 0f;
+        if (v >= 1f) return 1f;
+        return v;
+    }
+
+    // 사용처: 희귀도1 가중치 감소를 반영한 룰렛 선택(리스트 인덱스 반환)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int PickIndexWithRarity1Penalty(List<RogueUnitDataBase> list, float reduce)
+    {
+        float r1w = 1f - reduce;              // rarity==1 가중치
+        float total = 0f;
+        for (int i = 0; i < list.Count; i++)
+            total += (list[i].rarity == 1) ? r1w : 1f;
+
+        if (total <= 0f)
+            return RogueLikeData.Instance.GetRandomInt(0, list.Count);
+
+        float roll = RogueLikeData.Instance.GetRandomFloat() * total;
+        for (int i = 0; i < list.Count; i++)
+        {
+            roll -= (list[i].rarity == 1) ? r1w : 1f;
+            if (roll <= 0f) return i;
+        }
+        return list.Count - 1;
+    }
+    // 사용처: 유닛에게 부여 가능한 15개 특성 중 현재 false인 것들에서 count개를 무작위로 true로 바꿀 때 호출
+    public int SetRandomTraits(int count = 1)
+    {
+        Span<int> buf = stackalloc int[15];
+        int n = 0;
+        for (int i = 0; i < 15; i++)
+        {
+            if (!IsGrantableTraitSet(i))
+                buf[n++] = i;
+        }
+
+        if (n == 0 || count <= 0)
+            return 0;
+
+        int k = count < n ? count : n;
+        for (int i = 0; i < k; i++)
+        {
+            int r = RogueLikeData.Instance.GetRandomInt(i, n);
+            (buf[i], buf[r]) = (buf[r], buf[i]);
+            SetGrantableTraitTrue(buf[i]);
+        }
+        return k;
+    }
+
+    // 사용처: 내부 헬퍼 – 인덱스별로 현재 true 여부 확인
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    private bool IsGrantableTraitSet(int i)
+    {
+        switch (i)
+        {
+            case 0: return bluntWeapon;
+            case 1: return pierce;
+            case 2: return agility;
+            case 3: return strongCharge;
+            case 4: return perfectAccuracy;
+            case 5: return slaughter;
+            case 6: return bravery;
+            case 7: return suppression;
+            case 8: return plunder;
+            case 9: return doubleShot;
+            case 10: return scorching;
+            case 11: return thorns;
+            case 12: return endless;
+            case 13: return impact;
+            case 14: return lifeDrain;
+            default: return false;
+        }
+    }
+
+    // 사용처: 내부 헬퍼 – 인덱스별로 true 설정
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    private void SetGrantableTraitTrue(int i)
+    {
+        switch (i)
+        {
+            case 0: bluntWeapon = true; break;
+            case 1: pierce = true; break;
+            case 2: agility = true; break;
+            case 3: strongCharge = true; break;
+            case 4: perfectAccuracy = true; break;
+            case 5: slaughter = true; break;
+            case 6: bravery = true; break;
+            case 7: suppression = true; break;
+            case 8: plunder = true; break;
+            case 9: doubleShot = true; break;
+            case 10: scorching = true; break;
+            case 11: thorns = true; break;
+            case 12: endless = true; break;
+            case 13: impact = true; break;
+            case 14: lifeDrain = true; break;
+            default: break;
+        }
+    }
 }

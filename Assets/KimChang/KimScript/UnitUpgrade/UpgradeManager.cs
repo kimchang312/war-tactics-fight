@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class UpgradeManager
@@ -43,41 +44,6 @@ public class UpgradeManager
         }
     }
 
-    // 특정 병종의 특정 강화 수치를 증가시키는 함수
-    public void Upgrade(int branchIdx, int stat, float increment=5)
-    {
-        switch (stat)
-        {
-            case 0:
-                upgradeValues[branchIdx].healthBoost += increment;
-                break;
-            case 1:
-                upgradeValues[branchIdx].armorBoost += increment;
-                break;
-            case 2:
-                upgradeValues[branchIdx].attackDamageBoost += increment;
-                break;
-            case 3:
-                upgradeValues[branchIdx].mobilityBoost += increment;
-                break;
-            case 4:
-                upgradeValues[branchIdx].rangeBoost += increment;
-                break;
-            case 5:
-                upgradeValues[branchIdx].antiCavalryBoost += increment;
-                break;
-            default:
-                Debug.LogError("Invalid stat type!");
-                break;
-        }
-    }
-
-    // 특정 병종의 강화 수치를 초기화하는 함수
-    public void ResetUpgrade(int branchIdx)
-    {
-        upgradeValues[branchIdx] = new UpgradeValues();
-    }
-
     // 특정 병종의 현재 강화 수치를 반환하는 함수
     public UpgradeValues GetUpgradeValues(int branchIdx)
     {
@@ -88,6 +54,7 @@ public class UpgradeManager
     {
         int id = 1;
         var myUnits = RogueLikeData.Instance.GetMyTeam();
+        int helmetValue = RelicManager.CheckRelicById(64) ? 2 : 1;
 
         foreach (var unit in myUnits)
         {
@@ -95,16 +62,24 @@ public class UpgradeManager
             int atkLv = RogueLikeData.Instance.GetUpgrade(idx, true);
             int defLv = RogueLikeData.Instance.GetUpgrade(idx, false);
 
+            bool isRunChess = RelicManager.RunChessboard();
+
+            if (isRunChess)
+            {
+                atkLv = Mathf.Min(atkLv + 1, 5);
+                defLv = Mathf.Min(defLv + 1, 5);
+            }
+
             // 기본 강화 적용
             if (atkLv > 0)
             {
                 unit.stats.AddModifier(new StatModifier
                 {
                     stat = StatType.AttackDamage,
-                    value = 0.1f* atkLv,
+                    value = 0.1f * atkLv* helmetValue,
                     source = SourceType.Upgrade,
                     modifierId = id,
-                    isPercent = true
+                    isPercent = false
                 });
             }
 
@@ -113,10 +88,10 @@ public class UpgradeManager
                 unit.stats.AddModifier(new StatModifier
                 {
                     stat = StatType.Health,
-                    value = 0.1f * defLv,
+                    value = 0.1f * defLv * helmetValue,
                     source = SourceType.Upgrade,
                     modifierId = id,
-                    isPercent = true
+                    isPercent = false
                 });
             }
 
@@ -125,7 +100,7 @@ public class UpgradeManager
             {
                 case 0:
                     //if (atkLv == 5)
-                        //unit.antiCavalry += Mathf.Floor(unit.baseAntiCavalry * 0.3f);
+                    //unit.antiCavalry += Mathf.Floor(unit.baseAntiCavalry * 0.3f);
                     break;
 
                 case 1:
@@ -134,10 +109,10 @@ public class UpgradeManager
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.AttackDamage,
-                            value = 0.15f,
+                            value = unit.baseAttackDamage * 0.15f * helmetValue,
                             source = SourceType.Upgrade,
                             modifierId = id,
-                            isPercent = true
+                            isPercent = false
                         });
                     }
                     break;
@@ -148,7 +123,7 @@ public class UpgradeManager
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.Range,
-                            value = 1,
+                            value = 1 * helmetValue,
                             source = SourceType.Upgrade,
                             modifierId = id,
                             isPercent = false
@@ -159,7 +134,7 @@ public class UpgradeManager
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.Mobility,
-                            value = 5,
+                            value = 5 * helmetValue,
                             source = SourceType.Upgrade,
                             modifierId = id,
                             isPercent = false
@@ -173,10 +148,10 @@ public class UpgradeManager
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.AttackDamage,
-                            value = 0.15f,
+                            value = unit.baseAttackDamage * 0.15f * helmetValue,
                             source = SourceType.Upgrade,
                             modifierId = id,
-                            isPercent = true
+                            isPercent = false
                         });
                     }
                     break;
@@ -187,10 +162,10 @@ public class UpgradeManager
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.AttackDamage,
-                            value = 0.15f,
+                            value = unit.baseAttackDamage * 0.15f * helmetValue,
                             source = SourceType.Upgrade,
                             modifierId = id,
-                            isPercent = true
+                            isPercent = false
                         });
                     }
                     if (defLv == 5)
@@ -198,7 +173,7 @@ public class UpgradeManager
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.Mobility,
-                            value = 5,
+                            value = 5 * helmetValue,
                             source = SourceType.Upgrade,
                             modifierId = id,
                             isPercent = false
@@ -213,7 +188,7 @@ public class UpgradeManager
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.Mobility,
-                            value = 5,
+                            value = 5 * helmetValue,
                             source = SourceType.Upgrade,
                             modifierId = id,
                             isPercent = false
@@ -227,7 +202,7 @@ public class UpgradeManager
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.Range,
-                            value = 1,
+                            value = 1 * helmetValue,
                             source = SourceType.Upgrade,
                             modifierId = id,
                             isPercent = false
@@ -235,7 +210,11 @@ public class UpgradeManager
                     }
                     break;
             }
+
         }
+
+
+
     }
     private const int ClassCount = 8;
 
@@ -265,13 +244,95 @@ public class UpgradeManager
         return affinity;
     }
     // 공격자와 방어자의 병종 인덱스를 입력받아 상성 배율 반환
-    public static float GetAffinityMultiplier(int attackerClass, int defenderClass)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float GetAffinityMultiplier(int attackerClass, int defenderClass,bool isTeam)
     {
         if (attackerClass < 0 || attackerClass >= ClassCount ||
             defenderClass < 0 || defenderClass >= ClassCount)
             return 0f;
 
-        return affinity[attackerClass, defenderClass];
+        var value = affinity[attackerClass, defenderClass];
+        if (RelicManager.CheckRelicById(118))
+        {
+            WarRelic relic = RelicManager.GetRelicById(118);
+            var vals = relic.GetAllValuesAsFloatListOrNull();
+            if(vals != null)
+            {
+                if (isTeam && defenderClass == 1)
+                {
+                    value += vals[0];
+                }else if(!isTeam && (attackerClass == 5 || attackerClass == 6))
+                {
+                    value += vals[1];
+                }
+            }
+        }
+        if (RelicManager.CheckRelicById(119))
+        {
+            WarRelic relic = RelicManager.GetRelicById(119);
+            if (relic.used)
+            {
+                var vals = relic.GetAllValuesAsFloatListOrNull();
+                if (vals != null)
+                {
+                    if (isTeam && defenderClass == 0)
+                    {
+                        value += vals[1];
+                    }
+                }
+            }
+        }
+        if (RelicManager.CheckRelicById(121) && isTeam)
+        {
+            WarRelic relic = RelicManager.GetRelicById(121);
+            var vals = relic.GetAllValuesAsFloatListOrNull();
+            if (vals != null)
+            {
+                if (attackerClass == 1 && defenderClass == 3)
+                {
+                    value += vals[0];
+                }
+            }
+        }
+        if (RelicManager.CheckRelicById(122) && !isTeam)
+        {
+            WarRelic relic = RelicManager.GetRelicById(122);
+            var vals = relic.GetAllValuesAsFloatListOrNull();
+            if(vals != null)
+            {
+                value += vals[0];
+            }
+        }
+        if(RelicManager.CheckRelicById(131) && isTeam)
+        {
+            if(attackerClass == 5 &&  defenderClass == 6)
+            {
+                WarRelic relic = RelicManager.GetRelicById(131);
+                var vals = relic?.GetAllValuesAsFloatListOrNull();
+                if (vals != null)
+                {
+                    value += vals[0];
+                }
+            }
+        }
+        if (RelicManager.CheckRelicById(134))
+        {
+            WarRelic relic = RelicManager.GetRelicById(131);
+            var vals = relic?.GetAllValuesAsFloatListOrNull();
+            if (vals != null)
+            {
+                if (isTeam && attackerClass == 3 && defenderClass == 0)
+                {
+                    value += vals[0];
+                }
+                else if(!isTeam && attackerClass == 0  && defenderClass == 3)
+                {
+                    value += vals[1];
+                }
+            }
+        }
+
+        return value;
     }
     public static void SetAffinityMultiplier(int attackerClass, int defenderClass, float multiplier)
     {
@@ -281,6 +342,8 @@ public class UpgradeManager
 
         affinity[attackerClass, defenderClass] = multiplier;
     }
+
+
 }
 [System.Serializable]
 public class UnitUpgrade

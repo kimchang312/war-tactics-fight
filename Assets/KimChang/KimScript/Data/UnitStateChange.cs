@@ -28,7 +28,6 @@ public static class UnitStateChange
 
         //강화 계산
         UpgradeManager.Instance.ProcessUpgrade();
-        
     }
     //사기 계산 함수
     public static void ApplyMoralState()
@@ -51,14 +50,14 @@ public static class UnitStateChange
                 stat = StatType.AttackDamage,
                 value = m,
                 source = SourceType.Morale,
-                isPercent = false
+                isPercent = true
             });
             unit.stats.AddModifier(new StatModifier
             {
                 stat = StatType.Health,
                 value = m,
                 source = SourceType.Morale,
-                isPercent = false
+                isPercent = true
             });
         }
     }
@@ -72,15 +71,14 @@ public static class UnitStateChange
         return 0f;
     }
 
-
+    //사기 계산
     public static RogueUnitDataBase CalculateRunMorale()
     {
         int morale = RogueLikeData.Instance.GetMorale();
         if (morale > 10) return null;
         var myUnits = RogueLikeData.Instance.GetMyUnits();
 
-        // 탈주할 유닛이 있으면 무작위로 한 유닛 선택하여 제거
-        if (myUnits.Count > 0)
+        if (myUnits.Count > 1)
         {
             RogueUnitDataBase leavingUnit = myUnits[UnityEngine.Random.Range(0, myUnits.Count)];
             if(leavingUnit.bravery) return null;

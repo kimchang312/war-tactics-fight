@@ -72,8 +72,8 @@ public class UIManager : MonoBehaviour
 
     public void UpdateReroll()
     {
-        int r = RogueLikeData.Instance.GetRerollChance();
-        rerollText.text = r.ToString(); ;
+        (int, bool) r = RogueLikeData.Instance.GetRerollChance();
+        rerollText.text = r.Item1.ToString();
     }
     public void UpdateChapter(int chapter)
     {
@@ -87,10 +87,8 @@ public class UIManager : MonoBehaviour
         int startValue = baseGold;
         int endValue = baseGold + newGold;
 
-        // 기존 트윈이 있으면 중지 (중복 방지)
         DOTween.Kill(this);
 
-        // 정수값을 부드럽게 증가시키는 DOTween 트윈
         DOVirtual.Int(startValue, endValue, 0.7f, value =>
         {
             goldText.text = value.ToString();
@@ -102,10 +100,10 @@ public class UIManager : MonoBehaviour
         int startValue = baseMorale;
         int endValue = baseMorale + newMorale;
 
-        // 기존 트윈이 있으면 중지 (중복 방지)
+        Debug.Log(startValue + "시작" + endValue);
+
         DOTween.Kill(this);
 
-        // 정수값을 부드럽게 증가시키는 DOTween 트윈
         DOVirtual.Int(startValue, endValue, 0.7f, value =>
         {
             moraleText.text = value.ToString();

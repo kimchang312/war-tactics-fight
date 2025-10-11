@@ -73,7 +73,7 @@ public class UnitUpgradeUI : MonoBehaviour
         toggleUpgradeBtn.onClick.AddListener(ToggleAllUpgradeWindow);
          // closeAllUpgradeBtn.onClick.AddListener(CloseAllUpgradeWindows);
         closeOneUpgradeBtn.onClick.AddListener(CloseOneUpgradeWindow);
-        upgradeBtn.onClick.AddListener(ClickUpgradeBtn);
+        //upgradeBtn.onClick.AddListener(ClickUpgradeBtn);
 
         goMainBtn.onClick.AddListener(GoMain);
     }
@@ -375,7 +375,7 @@ public class UnitUpgradeUI : MonoBehaviour
     //강화 버튼 클릭 시 이벤트
     private void ClickUpgradeBtn()
     {
-        UpgradeManager.Instance.Upgrade(selectUnitIndex, (int)selectState);
+        //UpgradeManager.Instance.Upgrade(selectUnitIndex, (int)selectState);
 
         ViewUpgradeState();
     }

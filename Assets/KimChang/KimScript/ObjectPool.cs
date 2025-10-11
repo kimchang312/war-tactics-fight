@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ObjectPool : MonoBehaviour
 {
@@ -11,7 +12,11 @@ public class ObjectPool : MonoBehaviour
     [SerializeField] private GameObject onlyUnitPrefab;     //배경 없는 유닛
     [SerializeField] private GameObject selectUnitPrefab;   //선택 가능한 유닛
     [SerializeField] private GameObject orderUnitPrefab;
+    [SerializeField] private GameObject weaponImagePrefab;   // 무기(이미지) 프리팹
+    [SerializeField] private GameObject crashEffectPrefab;   // 크래시(이미지) 프리팹
 
+    private readonly Queue<GameObject> weaponImagePool = new();
+    private readonly Queue<GameObject> crashEffectPool = new();
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();
     private readonly Queue<GameObject> abilityPool = new();
@@ -31,7 +36,14 @@ public class ObjectPool : MonoBehaviour
         {
             orderUnitPrefab = Resources.Load<GameObject>("Prefabs/OrderUnit");
         }
-
+        if (weaponImagePrefab == null)
+        {
+            weaponImagePrefab = Resources.Load<GameObject>("Prefabs/WeaponImage");
+        }
+        if (crashEffectPrefab == null)
+        {
+            crashEffectPrefab = Resources.Load<GameObject>("Prefabs/CrashEffect");
+        }
         for (int i = 0; i < poolSize; i++)
         {
             GameObject damageInstance = Instantiate(damageTextPrefab, transform);
@@ -62,6 +74,14 @@ public class ObjectPool : MonoBehaviour
                 onlyUnitPool.Enqueue(onlyUnitInstance);
             }
 
+            GameObject weaponImgInstance = Instantiate(weaponImagePrefab, transform);
+            GameObject crashImgInstance = Instantiate(crashEffectPrefab, transform);
+
+            weaponImgInstance.SetActive(false);
+            crashImgInstance.SetActive(false);
+
+            weaponImagePool.Enqueue(weaponImgInstance);
+            crashEffectPool.Enqueue(crashImgInstance);
         }
     }
 
@@ -298,4 +318,81 @@ public class ObjectPool : MonoBehaviour
         orderUnit.transform.SetParent(canvasTransform, false);
         orderUnitPool.Enqueue(orderUnit);
     }
+
+    // 3) 무기 이미지 가져오기/반환
+    public GameObject GetWeaponImage()
+    {
+        GameObject instance = weaponImagePool.Count > 0
+            ? weaponImagePool.Dequeue()
+            : Instantiate(weaponImagePrefab, transform);
+
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, false);
+
+        // 초기화(성능 우선: 필수만)
+        var rt = (RectTransform)instance.transform;
+        rt.anchoredPosition = Vector2.zero;
+        rt.localScale = Vector3.one;
+        rt.localRotation = Quaternion.identity;
+
+        var img = instance.GetComponent<Image>();
+        if (img != null) img.enabled = true;
+
+        return instance;
+    }
+
+    public void ReturnWeaponImage(GameObject go)
+    {
+        if (go == null) return;
+        go.SetActive(false);
+        go.transform.SetParent(canvasTransform, false);
+
+        // 안전 초기화
+        var rt = (RectTransform)go.transform;
+        rt.anchoredPosition = Vector2.zero;
+        rt.localScale = Vector3.one;
+        rt.localRotation = Quaternion.identity;
+
+        var img = go.GetComponent<Image>();
+        if (img != null) img.sprite = null;
+
+        weaponImagePool.Enqueue(go);
+    }
+
+    // 4) 크래시 이미지 가져오기/반환
+    public GameObject GetCrashEffect()
+    {
+        GameObject instance = crashEffectPool.Count > 0
+            ? crashEffectPool.Dequeue()
+            : Instantiate(crashEffectPrefab, transform);
+
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, false);
+
+        var rt = (RectTransform)instance.transform;
+        rt.anchoredPosition = Vector2.zero;
+        rt.localScale = Vector3.one;
+        rt.localRotation = Quaternion.identity;
+
+        var img = instance.GetComponent<Image>();
+        if (img != null) img.enabled = false; // 표시 타이밍은 연출측에서 on
+
+        return instance;
+    }
+
+    public void ReturnCrashEffect(GameObject go)
+    {
+        if (go == null) return;
+        go.SetActive(false);
+        go.transform.SetParent(canvasTransform, false);
+
+        var img = go.GetComponent<Image>();
+        if (img != null) img.enabled = false;
+
+        crashEffectPool.Enqueue(go);
+    }
+
+
+
 }
+

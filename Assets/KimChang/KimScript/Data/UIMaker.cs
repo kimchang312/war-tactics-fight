@@ -18,7 +18,7 @@ public static class UIMaker
             TextMeshProUGUI energyText = energyObj.GetComponent<TextMeshProUGUI>();
             if (energyText != null)
             {
-                energyText.text = $"{unit.energy}/{unit.maxEnergy}";
+                energyText.text = $"{unit.Energy}/{unit.MaxEnergy}";
             }
         }
 

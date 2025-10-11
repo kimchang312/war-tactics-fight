@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
@@ -27,14 +28,19 @@ public static class RewardManager
         int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
         int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold);
         int relicGrade = 7;
+        if (RelicManager.CheckRelicById(7))
+        {
+            RogueLikeData.Instance.AddReroll(3);
+        }
         return (gold,relicGrade);
     }
 
     //현재 스테이지와 챕터에 따른 전투 보상 
-    public static void AddBattleRewardByStage(int battleResult,List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits)
+    public static int AddBattleRewardByStage(int battleResult,List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits)
     {
         int chapter = RogueLikeData.Instance.GetChapter();
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+
         reward.battleResult = battleResult;
         var type = RogueLikeData.Instance.GetCurrentStageType();
         if (battleResult == 0 && type ==StageType.Boss && chapter==1)
@@ -46,22 +52,99 @@ public static class RewardManager
         {
             RogueLikeData.Instance.SetChapter(3);
             RogueLikeData.Instance.SetClearChapter(true);
+        } else if(battleResult == 0 && type == StageType.Boss && chapter == 2)
+        {
+            return 2;
         }
-
 
         int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
-        //RogueLikeData.Instance.ChangeMorale(morale); 
-        reward.morale += morale;
-
-        int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
-        int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold);
-        //유산 
-        if (RelicManager.CheckRelicById(86) && reward.battleResult ==0)
+        int currentMorale = RogueLikeData.Instance.GetMorale();
+        if(currentMorale + morale <= 0)
         {
-            int battleUnitCount = RogueLikeData.Instance.GetBattleUnitCount();
-            int maxUnit = RogueLikeData.Instance.GetMaxUnits();
-            if (battleUnitCount <= maxUnit - 3) gold *= 2;
+            return 1;
         }
+
+        reward.morale += morale;
+        
+        int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
+        int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold, battleResult);
+        //유산 
+        if(reward.battleResult == 0)
+        {
+            WarRelic relic86 = RelicManager.GetRelicById(86);
+            var vals = relic86?.GetAllValuesAsFloatListOrNull();
+            if (vals != null)
+            {
+                int battleUnitCount = RogueLikeData.Instance.GetBattleUnitCount();
+                int maxUnit = RogueLikeData.Instance.GetMaxUnits();
+                if (battleUnitCount <= maxUnit - vals[0]) gold *= 1 + (int)vals[1];
+            }
+            if (RelicManager.CheckRelicById(6))
+            {
+                int roll = RogueLikeData.Instance.GetRandomInt(0,3);
+
+                if (roll == 0)
+                {
+                    int relicGold = RogueLikeData.Instance.GetRandomInt(1, 201);
+                    gold += relicGold;
+                }
+                else if (roll == 1)
+                {
+                    reward.relicGrade.Add(1);
+                }
+            }
+            if (type == StageType.Elite)
+            {
+                if (RelicManager.CheckRelicById(7))
+                {
+                    RogueLikeData.Instance.AddReroll(1);
+                }
+                if (RelicManager.CheckRelicById(35))
+                {
+                    reward.relicGrade.Add(5);
+                }
+                if (RelicManager.CheckRelicById(106))
+                {
+                    WarRelic relic = RelicManager.GetRelicById(106);
+                    var relicValue = relic.GetAllValuesAsFloatListOrNull();
+                    if (relicValue != null)
+                    {
+                        relicValue[1] += relicValue[0];
+                        string[] updated = relicValue.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray();
+                        relic.SetValues(updated);
+
+                    }
+                }
+                if (RelicManager.CheckRelicById(120))
+                {
+                    WarRelic relic = RelicManager.GetRelicById(120);
+                    var relicValue = relic.GetAllValuesAsFloatListOrNull();
+                    if (relicValue != null)
+                    {
+                        relicValue[0] += relicValue[1];
+                        string[] updated = relicValue.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray();
+                        relic.SetValues(updated);
+                    }
+                }
+            }
+
+            if (RelicManager.CheckRelicById(122))
+            {
+                WarRelic relic = RelicManager.GetRelicById(122);
+                var relicValue = relic.GetAllValuesAsFloatListOrNull();
+                if (relicValue != null && relicValue[3] < relicValue[1])
+                {
+                    relicValue[3] ++;
+                    string[] updated = relicValue.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray();
+                    relic.SetValues(updated);
+                }
+            }
+
+        }
+        //유산94
+        gold += RelicManager.RunCastIronHelmet();
+        RelicManager.RunTrainingSandbagsOfWar();
+
         reward.gold += gold;
         int grade = stageTypeGrade.TryGetValue(type,out var val)? val: 0;
         reward.unitGrade.Add(grade);
@@ -69,15 +152,9 @@ public static class RewardManager
         {
             reward.relicGrade.Add(grade);
         }
-
-        RelicManager.ConquerorSeal(ref reward,type,grade);
+        return 0;
     }
 
-    //보상 실제 획득하는 함수
-    private static void GetBattleReward()
-    {
-
-    }
 
     //전투 종료 시 사기 계산
     private static int EndBattleMorale(int result, List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits,StageType type)
@@ -85,25 +162,28 @@ public static class RewardManager
         int morale = 0;
         int addMorale = 0;
         int reduceMorale = 0;
-        foreach (var unit in deadUnits)
+        if(deadUnits != null)
         {
-            switch (unit.rarity)
+            foreach (var unit in deadUnits)
             {
-                case 1:
-                    reduceMorale -= 1;
-                    break;
-                case 2:
-                    reduceMorale -= 2;
-                    break;
-                case 3:
-                    reduceMorale -= 2;
-                    break;
-                case 4:
-                    reduceMorale -= 5;
-                    break;
+                switch (unit.rarity)
+                {
+                    case 1:
+                        reduceMorale -= 1;
+                        break;
+                    case 2:
+                        reduceMorale -= 2;
+                        break;
+                    case 3:
+                        reduceMorale -= 2;
+                        break;
+                    case 4:
+                        reduceMorale -= 5;
+                        break;
+                }
             }
+            if (deadUnits.Count == 0) addMorale += 10;
         }
-        if (deadUnits.Count == 0) addMorale += 10;
         if (type == StageType.Combat)
         {
             if (result == 0)
@@ -121,20 +201,26 @@ public static class RewardManager
         else if (type == StageType.Boss)
         {
             if (result == 0)
+            {
                 addMorale += 35;
+
+                //유산59
+                if (RelicManager.CheckRelicById(59))
+                {
+                    List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
+                    foreach (var unit in myUnits)
+                    {
+                        unit.Energy = unit.MaxEnergy;
+                    }
+                }
+
+            }
             else if (result == 1)
                 reduceMorale -= 150;
         }
-        if (RelicManager.CheckRelicById(33)) addMorale = (int)(reduceMorale * 1.2);
+
         if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
-        if (RelicManager.CheckRelicById(59) && type ==StageType.Boss) 
-        {
-            List<RogueUnitDataBase> myUnits =RogueLikeData.Instance.GetMyUnits();
-            foreach (var unit in myUnits)
-            {
-                unit.energy = unit.maxEnergy;
-            }
-        }
+        
         morale += addMorale + reduceMorale;
 
         return morale;
@@ -143,12 +229,20 @@ public static class RewardManager
     // 등급에 따라 유닛 3명을 반환하는 함수
     public static List<RogueUnitDataBase> GetRandomUnitsByGrade(int grade)
     {
+        int rarity1Rate = 0;
+        WarRelic relic = RelicManager.GetRelicById(85);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+        if(vals != null)
+        {
+            rarity1Rate = (int)(vals[0]*100);
+        }
+
         var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
         Dictionary<int, int> rarityWeights = grade switch
         {
-            1 => new() { { 1, 60 }, { 2, 37 }, { 3, 3 }, { 4, 0 } },
-            5 => new() { { 1, 40 }, { 2, 35 }, { 3, 15 }, { 4, 10 } },
+            1 => new() { { 1, 60+ rarity1Rate }, { 2, 37 }, { 3, 3 }, { 4, 0 } },
+            5 => new() { { 1, 40+ rarity1Rate }, { 2, 35 }, { 3, 15 }, { 4, 10 } },
             10 => new() { { 1, 0 }, { 2, 40}, { 3, 40 }, { 4, 20 } },
             _ => new() { { 1, 100 } }
         };
@@ -200,15 +294,13 @@ public static class RewardManager
         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
-            if (unit.energy > 0) return false; 
+            if (unit.Energy > 0) return false; 
         }
         return true;
     }
 
     public static void AcquireReward()
     {
-        Debug.Log("적용");
         UnitStateChange.ChangeStateMyUnits();
-
     }
 }

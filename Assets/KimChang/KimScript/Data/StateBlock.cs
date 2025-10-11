@@ -36,7 +36,19 @@ public class StatBlock
         var mod = modifiers.FirstOrDefault(m => m.source == source && m.stat == stat);
         if (mod != null) mod.value = newValue;
     }
+    public  void RemoveModifiersBySourceAndId(SourceType source, int modifierId)
+    {
+        var list = modifiers;
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            var m = list[i];
+            if (m.source == source && m.modifierId == modifierId)
+            {
+                list.RemoveAt(i);
+            }
+        }
 
+    }
     public float GetStat(StatType type)
     {
         float baseValue = type switch
@@ -56,5 +68,9 @@ public class StatBlock
     }
     public IEnumerable<StatModifier> GetAllModifiers() => modifiers;
 
-
+    public static bool HasModifier(StatBlock state, SourceType source, int modifierId)
+    {
+        return state.GetAllModifiers()
+                    .Any(m => m.source == source && m.modifierId == modifierId);
+    }
 }

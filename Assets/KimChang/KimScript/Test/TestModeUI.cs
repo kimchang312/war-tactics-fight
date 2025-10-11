@@ -27,6 +27,8 @@ public class TestModeUI : MonoBehaviour
     [SerializeField] private TMP_InputField warRelicIdInput;
     [SerializeField] private TMP_InputField moraleInput;
     [SerializeField] private TMP_InputField goldInput;
+    [SerializeField] private TMP_InputField chapterInput;
+    [SerializeField] private TMP_InputField randomSeedInput;
 
     [SerializeField] private GameObject testUnitWindow;
     [SerializeField] private GameObject testRelicWindow;
@@ -40,6 +42,8 @@ public class TestModeUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI warRelicIdListText;
     [SerializeField] private TextMeshProUGUI moraleText;
     [SerializeField] private TextMeshProUGUI goldText;
+    [SerializeField] private TextMeshProUGUI chapterText;
+    [SerializeField] private TextMeshProUGUI randomSeedText;
 
     [SerializeField] private TextMeshProUGUI myAllPriceText;
     [SerializeField] private TextMeshProUGUI enemyAllPriceText;
@@ -54,6 +58,8 @@ public class TestModeUI : MonoBehaviour
     List<int> warRelicIds = new List<int>();
 
     int gold = 500;
+    string randomSeed = null;
+
     private void Start()
     { 
 
@@ -86,6 +92,8 @@ public class TestModeUI : MonoBehaviour
         warRelicIdInput.onSubmit.AddListener(AddWarRelic);
         moraleInput.onEndEdit.AddListener((_) => UpdateMorale());
         goldInput.onSubmit.AddListener(UpdateGold);
+        randomSeedInput.onSubmit.AddListener(SetRandomSeed);
+        chapterInput.onSubmit.AddListener(SetChacpter);
 
         gameStartBtn.onClick.AddListener(GameStartByTestOption);
 
@@ -106,7 +114,7 @@ public class TestModeUI : MonoBehaviour
             GameManager.Instance.SetCurrentStageNull();
         }
         List<RogueUnitDataBase> units = new List<RogueUnitDataBase>();
-        if (units.Count == 0)
+        if (myUnitIds.Count == 0)
         {
             units.Add(UnitLoader.Instance.GetCloneUnitById(0));
             units.Add(UnitLoader.Instance.GetCloneUnitById(1));
@@ -126,6 +134,10 @@ public class TestModeUI : MonoBehaviour
         RogueLikeData.Instance.SetMyTeam(units);
         RogueLikeData.Instance.SetTestMode(true);
         RogueLikeData.Instance.SetCurrentGold(gold);
+        if (string.IsNullOrEmpty(randomSeed))
+        {
+            RogueLikeData.Instance.SetRandomRandomSeed();
+        }
         SceneManager.LoadScene("RLmap");
 
     }
@@ -419,6 +431,56 @@ public class TestModeUI : MonoBehaviour
         {
             goldText.text = "0"; // int 범위를 벗어나면 0 처리
         }
+        this.gold = gold;
     }
+    private void SetRandomSeed(string seed)
+    {
+        randomSeed = seed;
+
+        if (string.IsNullOrEmpty(seed))
+        {
+            randomSeedText.text = "0";
+            return;
+        }
+
+        string digitsOnly = new string(seed.Where(char.IsDigit).ToArray());
+
+        if (string.IsNullOrEmpty(digitsOnly))
+        {
+            randomSeedText.text = "0";
+            return;
+        }
+
+        if (int.TryParse(digitsOnly, out int _randomSeed))
+        {
+            randomSeedText.text = _randomSeed.ToString();
+        }
+        
+        RogueLikeData.Instance.SetRandomSeed(_randomSeed);
+    }
+    private void SetChacpter(string chacpter)
+    {
+        if (string.IsNullOrEmpty(chacpter))
+        {
+            chapterText.text = "0";
+            return;
+        }
+
+        string digitsOnly = new string(chacpter.Where(char.IsDigit).ToArray());
+
+        if (string.IsNullOrEmpty(digitsOnly))
+        {
+            chapterText.text = "0";
+            return;
+        }
+
+        if (int.TryParse(digitsOnly, out int ci))
+        {
+            chapterText.text = ci.ToString();
+        }
+        ci = ci > 3 ? 3 : ci < 1 ? 1:1;
+        RogueLikeData.Instance.SetChapter(ci);
+    }
+
 
 }

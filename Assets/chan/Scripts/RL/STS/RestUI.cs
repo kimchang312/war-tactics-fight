@@ -71,7 +71,7 @@ public class RestUI : MonoBehaviour
             var myUnits = RogueLikeData.Instance.GetMyTeam();
             foreach (var unit in myUnits)
             {
-                unit.energy = Mathf.Min(unit.maxEnergy, unit.energy + 2);
+                unit.Energy = Mathf.Min(unit.MaxEnergy, unit.Energy + 2);
             }
 
             var lineupBar = FindObjectOfType<LineUpBar>();
