@@ -139,12 +139,12 @@ public class RewardUI : MonoBehaviour
         AbleRewardWindow();
 
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
-        bool isGameOver = RewardManager.CheckGameOver();
-        if (isGameOver) reward.battleResult = 5;
+        //bool isGameOver = RewardManager.CheckGameOver();
+        //if (isGameOver) reward.battleResult = 5;
 
         resultText.text = reward.battleResult switch
         {
-            5 => "전멸",
+            //5 => "전멸",
             2 => "무승부",
             1 => "패배",
             _ => resultText.text
@@ -179,6 +179,7 @@ public class RewardUI : MonoBehaviour
 
             RogueLikeData.Instance.AddReroll(reward.rerollChance);
         }
+        /*
         else if (isGameOver)
         {
             retryBtn.onClick.RemoveAllListeners();
@@ -190,7 +191,7 @@ public class RewardUI : MonoBehaviour
             goTitleBtn.gameObject.SetActive(true);
             leaveBtn.gameObject.SetActive(false);
             return;
-        }
+        }*/
 
         int moraeReward = reward.morale;
         RogueLikeData.Instance.ChangeMorale(moraeReward);

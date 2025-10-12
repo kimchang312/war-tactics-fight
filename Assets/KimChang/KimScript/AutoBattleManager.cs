@@ -629,8 +629,8 @@ public class AutoBattleManager : MonoBehaviour
     {
         myUnits = null;
         enemyUnits = null;
-        myDeathUnits = null;
-        enemyDeathUnits = null;
+        myDeathUnits = new();
+        enemyDeathUnits = new();
         myFrontUnit = null;
         enemyFrontUnit = null;
 

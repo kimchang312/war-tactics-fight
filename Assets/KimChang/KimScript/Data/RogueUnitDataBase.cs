@@ -60,7 +60,7 @@ public class RogueUnitDataBase
     }
     public int range;
     public float antiCavalry;
-    private int _energy;
+    [SerializeField] private int _energy;
     public int Energy
     {
         get => _energy;
@@ -141,7 +141,7 @@ public class RogueUnitDataBase
 
     public float maxHealth;
 
-    private int _maxEnergy;
+    [SerializeField] private int _maxEnergy;
     public int MaxEnergy
     {
         get
@@ -157,7 +157,6 @@ public class RogueUnitDataBase
                     result += (int)vals[0];
                 }
             }
-
             return result;
         }
         set
@@ -220,7 +219,7 @@ public class RogueUnitDataBase
         this.Mobility = mobility;
         this.range = range;
         this.antiCavalry = antiCavalry;
-        SetEnergyDirect(energy);
+        this._energy = energy;
 
         this.lightArmor = lightArmor;
         this.heavyArmor = heavyArmor;
@@ -286,7 +285,7 @@ public class RogueUnitDataBase
     {
         _energy = Mathf.Clamp(value, 0, MaxEnergy);
     }
-    public void SetManxEnergyDirect(int value)
+    public void SetMaxEnergyDirect(int value)
     {
         _maxEnergy = value;
     }
@@ -618,4 +617,5 @@ public class RogueUnitDataBase
             default: break;
         }
     }
+
 }

@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using static RogueLikeData;
 
 [System.Serializable]
 public class SavePlayerData 
@@ -115,6 +112,7 @@ public class SaveData
         {
             if (File.Exists(_filePath))
             {
+                Debug.Log("삭제");
                 File.Delete(_filePath);
             }
 

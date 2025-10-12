@@ -20,7 +20,7 @@ public class RelicManager
     /// <summary>
     /// 사용처: 게임 시작 시 1회 호출(카탈로그 캐시 준비)
     /// </summary>
-    public static bool InitializeRelicCatalog(string resourcePath = "JsonDat/WarRelicsList")
+    public static bool InitializeRelicCatalog(string resourcePath = "JsonData/WarRelicsList")
     {
         if (_catalogReady) return true;
         if (!WarRelicLoader.TryLoadFromResources(resourcePath, out var map))
@@ -583,7 +583,7 @@ public class RelicManager
     {
         int max = 0;
         WarRelic relic = GetRelicById(89);
-        var vals = relic.GetAllValuesAsFloatListOrNull();
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
         if (vals != null)
         {
             max = (int)vals[0];

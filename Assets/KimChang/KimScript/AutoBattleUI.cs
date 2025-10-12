@@ -111,26 +111,36 @@ public class AutoBattleUI : MonoBehaviour
     }
     public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
     {
+        // 사용처: 데미지 표시 색상/문구 판정. 표기는 절댓값, 색은 부호로.
         float offsetX = 50f;
         float damage = -_damage;
 
         BattleAnimation(damage, text, team, isAttack);
 
+        // team은 "피격 팀"으로 온다. 그대로 그 팀의 유닛을 찾는다.
+        Vector2 pos = GetDamageAnchor(unitIndex, team, offsetX);
+
         if (isAttack)
-            StartCoroutine(DelayedDamageDisplay(damage, text, team, unitIndex, offsetX));
+            StartCoroutine(DelayedDamageDisplay(damage, text, pos));
         else
-            ShowDamageImmediately(damage, text, team, unitIndex, offsetX);
+            ShowDamageInternalWithPosition(damage, text, pos);
     }
 
-    private IEnumerator DelayedDamageDisplay(float damage, string text, bool team, int unitIndex, float offsetX)
+    private IEnumerator DelayedDamageDisplay(float damage, string text, Vector2 displayPos)
     {
-        Vector2 displayPos = team
-            ? (unitIndex == 0 ? myTeam : GetUnitPosition(unitIndex, !team, offsetX))
-            : (unitIndex == 0 ? enemyTeam : GetUnitPosition(unitIndex, !team, offsetX));
-
         yield return new WaitForSeconds(waittingTime * 0.0005f);
-
-        ShowDamageInternalWithPosition(damage, text);
+        ShowDamageInternalWithPosition(damage, text, displayPos);
+    }
+    private Vector2 GetDamageAnchor(int unitIndex, bool isMyUnit, float offsetX)
+    {
+        GameObject unit = FindUnit(unitIndex, isMyUnit);
+        if (unit != null)
+        {
+            RectTransform r = unit.GetComponent<RectTransform>();
+            return r.anchoredPosition + new Vector2(offsetX, 0f);
+        }
+        // 유닛을 못 찾은 예외 상황에선 전열 기본값으로 폴백
+        return isMyUnit ? myTeam : enemyTeam; // 필요시 프로젝트 좌표계에 맞게 조정
     }
     private Vector2 GetUnitPosition(int unitIndex, bool isMyUnit, float offsetX)
     {
@@ -158,10 +168,41 @@ public class AutoBattleUI : MonoBehaviour
 
         StartCoroutine(HideAfterDelay(damageObj));
     }
+    private void ShowDamageInternalWithPosition(float damage, string text, Vector2 anchoredPosition)
+    {
+        GameObject go = objectPool.GetDamageText();
+        // damageText는 UI이므로 반드시 캔버스 아래에 두기
+        var rt = go.GetComponent<RectTransform>();
+        if (rt.transform.parent != canvasTransform) go.transform.SetParent(canvasTransform, false);
+        go.SetActive(true);
 
+        var tmp = go.GetComponent<TMPro.TextMeshProUGUI>();
+
+        // 중복 트윈 방지 및 할당 최소화
+        rt.DOKill(true);
+        tmp.DOKill(true);
+
+        tmp.color = (damage >= 0) ? Color.green : Color.red;
+        tmp.text = (damage == 0) ? $"{text}" : $"{Mathf.Abs(damage)} {text}";
+
+        rt.anchoredPosition = anchoredPosition;
+
+        // 올라가는 연출 + 페이드아웃
+        float dur = Mathf.Max(0.15f, waittingTime * 0.0012f); // 500f → 0.6s
+        DOTween.Sequence()
+            .Join(rt.DOAnchorPosY(anchoredPosition.y + 80f, dur))
+            .Join(tmp.DOFade(0f, dur))
+            .OnComplete(() =>
+            {
+                // 풀로 돌려주기 전에 알파 복구
+                var c = tmp.color; tmp.color = new Color(c.r, c.g, c.b, 1f);
+                objectPool.ReturnDamageText(go);
+            });
+    }
     private void ShowDamageImmediately(float damage, string text, bool team, int unitIndex, float offsetX)
     {
-        ShowDamageInternal(damage, text, team, unitIndex, offsetX);
+        Vector2 pos = GetDamageAnchor(unitIndex, team, offsetX);
+        ShowDamageInternalWithPosition(damage, text, pos);
     }
     private void ShowDamageInternal(float damage, string text, bool team, int unitIndex, float offsetX)
     {
@@ -466,6 +507,7 @@ public class AutoBattleUI : MonoBehaviour
     {
         rewardUI.AnimateBattleEnd();
     }
+    //true 승리, false 패배
     public void GameEnd(bool isWin)
     {
         rewardUI.StartGameOverSequence(isWin);
