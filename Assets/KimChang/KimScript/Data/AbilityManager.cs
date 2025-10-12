@@ -2,11 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks.Sources;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public class AbilityManager
 {
@@ -352,14 +348,15 @@ public class AbilityManager
 
             float damage = frontAttacker.attackDamage * multiplier;
 
-            //관통
-            if (!frontAttacker.pierce || !isPierce)
+            // 변경: 관통이면 방어력 보정 미적용. 보정식 괄호 수정.
+            if (!(frontAttacker.pierce || isPierce))
             {
-                damage *= ((1 - frontDefender.Armor) / (frontDefender.Armor + 10));
+                float ar = frontDefender.Armor;
+                damage *= 1f - (ar / (ar + 10f));
             }
-            else
+            else if (i == 0)
             {
-                if(i==0) text += "관통 ";  
+                text += "관통 ";
             }
             damage = (damage - reduceDamage) * finalDamage;
 
@@ -380,7 +377,8 @@ public class AbilityManager
                             break;
                         }
                     }
-                    float impactDamage = MathF.Round(normalDamage * ((1 - target.Armor) / (target.Armor + 10)));
+                    float ar = target.Armor;
+                    float impactDamage = MathF.Round(normalDamage * (1f - (ar / (ar + 10f))));
 
                     impactDamage = ChangeBackMultiple(frontAttacker,target,impactDamage,isTeam);
 
@@ -399,7 +397,7 @@ public class AbilityManager
                         relicReduceDamage = impactDamage;
                         unitIndex = 0;
                         RelicManager.RunGuardiansCloak(attackers, isTeam, ref unitIndex, ref relicReduceDamage);
-                        target = defenders[unitIndex];
+                        target = attackers[unitIndex];
 
                         target.health -= relicReduceDamage;
 
@@ -817,7 +815,7 @@ public class AbilityManager
             //유산 127
             RelicManager.RunGuardiansCloak(defenders, !isTeam,ref minHealthIndex,ref damage);
 
-            MathF.Round(damage);
+            damage = MathF.Round(damage);
             defenders[minHealthIndex].health -= damage;
             CallDamageText(damage, "선제타격 ", !isTeam, false, minHealthIndex);
         }
@@ -831,7 +829,7 @@ public class AbilityManager
             //유산 127
             RelicManager.RunGuardiansCloak(defenders, !isTeam, ref unitIndex, ref damage);
 
-            MathF.Round(damage);
+            damage = MathF.Round(damage);
             target.health -= damage;
 
             CallDamageText(damage, "선제타격 수호 ", !isTeam, false, unitIndex);
@@ -879,7 +877,7 @@ public class AbilityManager
             //유산 127
             RelicManager.RunGuardiansCloak(defenders, !isTeam, ref unitIndex, ref damage);
 
-            Mathf.Round(damage);
+            damage = MathF.Round(damage);
             defenders[unitIndex].health -= damage;
 
             CallDamageText(damage, "투창 ", !isTeam, false, unitIndex);
@@ -899,17 +897,14 @@ public class AbilityManager
         //전열공격
         if (target != null) 
         {
+            float ar = target.Armor;
+            damage *= 1f - (ar / (ar + 10f));              // 방어 보정
+            damage *= SetMultipleDamage(attacker, target, isTeam); // 상성/배수
             int unitIndex = 0;
-            //유산 127
             RelicManager.RunGuardiansCloak(defenders, !isTeam, ref unitIndex, ref damage);
             target = defenders[unitIndex];
-
-            target.health -= damage * (1 - (target.Armor / (target.Armor + 10)));
-            _damage += damage;
-            float finalDamage = SetMultipleDamage(attacker, target, isTeam);
-            damage += finalDamage;
-            MathF.Round(damage);
-
+            damage = MathF.Round(damage);
+            target.health -= damage;
             CallDamageText(damage, "암살 수호 ", !isTeam, true, unitIndex);
 
             // 33% 확률로 한 번 더 실행
@@ -932,7 +927,7 @@ public class AbilityManager
             }
 
             damage = ChangeBackMultiple(attacker, defenders[minHealthIndex],damage, isTeam);
-            Mathf.Round(damage);
+            damage = MathF.Round(damage);
 
             //유산 127
             RelicManager.RunGuardiansCloak(defenders, !isTeam, ref minHealthIndex, ref damage);
@@ -1057,7 +1052,6 @@ public class AbilityManager
         {
             { unit => unit.bluntWeapon && defender.heavyArmor, () => CalculateBluntWeapon(attacker,isTeam,ref reduceDamage,ref text) }, // 둔기
             { unit => unit.slaughter && defender.lightArmor, () => CalculateSlaughter(ref reduceDamage,ref text) }, // 도살
-            //{ unit => (defender.branchIdx == 5 || defender.branchIdx == 6) && unit.antiCavalry > 0, () => CalculateAntiCavalry(ref reduceDamage,ref text, attacker) }, // 대기병
             { unit => unit.suppression && reduceDamage < 0, () => CalculateSuppression(defender,ref reduceDamage,ref text) } // 제압
         };
 
@@ -1139,7 +1133,8 @@ public class AbilityManager
             { 12,() => addDodge +=5 },
         };
             //폭풍의 창
-            CalculateSpearOfStormDodge(unit, isTeam, isFirstAttack);
+            float extra = CalculateSpearOfStormDodge(unit, isTeam, isFirstAttack);
+            dodge = (2 + ((mulityDodge / 9) * (unit.Mobility - 1))) + (unit.agility ? 10f : 0) + addDodge + extra;
             foreach (var key in dodgeEffects.Keys)
             {
                 if (unit.effectDictionary.ContainsKey(key)) dodgeEffects[key]();
@@ -1178,7 +1173,7 @@ public class AbilityManager
             }
             else if(!isTeam && myHeroUnits.TryGetValue(58, out List<RogueUnitDataBase> myHeroList))
             {
-                float damage = 20 * myHeroUnits.Count;
+                float damage = 20 * myHeroList.Count;
                 attacker.health -= damage;
 
                 CallDamageText(damage, "암살단장 ", !isTeam, true, _unitIndex);
@@ -1250,7 +1245,7 @@ public class AbilityManager
                 int scarId = 1, sType = 1, sRank =1, sDuration = -1;
                 if (!defender.effectDictionary.TryGetValue(burningId, out BuffDebuffData sEffect))
                 {
-                    defender.effectDictionary[burningId] = new BuffDebuffData(scarId, sType, sRank, sDuration);
+                    defender.effectDictionary[scarId] = new BuffDebuffData(scarId, sType, sRank, sDuration);
                     text += "상흔 ";
                 }
 
@@ -1258,8 +1253,8 @@ public class AbilityManager
                 int oId = 8, oType = 1, oRank = 1, oDuration = -1;
                 if (!defender.effectDictionary.TryGetValue(burningId, out BuffDebuffData oEffect))
                 {
-                    defender.effectDictionary[burningId] = new BuffDebuffData(oId, oType, oRank, oDuration);
-                    text += "위압";
+                    defender.effectDictionary[oId] = new BuffDebuffData(oId, oType, oRank, oDuration);
+                    text += "위압 ";
                 }
             }
         }
@@ -1401,10 +1396,9 @@ public class AbilityManager
                 if (CalculateAccuracy(defenders[0], attacker,attackers,isTeam, isFirstAttack,i))
                     continue;
 
-                if (damage > 0 &&defenders[0].heavyArmor && !defenders[0].pierce)
+                if (damage > 0 &&defenders[0].heavyArmor && !attacker.pierce)
                 {
                     damage = Mathf.Max(0, damage - heavyArmorValue);
-                    
                 }
                 
                 CalculateBurning(attacker, defenders,isTeam, ref text);
@@ -2066,7 +2060,7 @@ public class AbilityManager
         // 첫 번째로 살아있는 유닛을 찾음
         foreach (var defender in defenders)
         {
-            if (defender.health > 1) // 체력이 0보다 크다면 살아있는 유닛
+            if (defender.health > 0) // 체력이 0보다 크다면 살아있는 유닛
             {
                 return defender.guard ? defender : null; // guard가 있다면 해당 유닛 반환, 없다면 null 반환
             }

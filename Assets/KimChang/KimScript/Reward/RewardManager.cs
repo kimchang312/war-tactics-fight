@@ -43,6 +43,7 @@ public static class RewardManager
 
         reward.battleResult = battleResult;
         var type = RogueLikeData.Instance.GetCurrentStageType();
+
         if (battleResult == 0 && type ==StageType.Boss && chapter==1)
         {
             RogueLikeData.Instance.SetChapter(2);
@@ -60,6 +61,10 @@ public static class RewardManager
         int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
         int currentMorale = RogueLikeData.Instance.GetMorale();
         if(currentMorale + morale <= 0)
+        {
+            return 1;
+        }
+        if (CheckGameOver())
         {
             return 1;
         }
@@ -289,8 +294,6 @@ public static class RewardManager
 
     public static bool CheckGameOver()
     {
-        int morale = RogueLikeData.Instance.GetMorale();
-        if (morale < 1) return true;
         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
