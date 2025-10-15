@@ -6,6 +6,11 @@ public class StageFullSaveData
 {
     public int chapter;
     public List<StageNodeSaveEntry> allNodes = new();
+    
+    // 플레이어의 현재 위치 (불러오기 시 복원용)
+    public int currentLevel = -1;
+    public int currentRow = -1;
+    public StageType currentStageType = StageType.Unknown;
 }
 
 [Serializable]

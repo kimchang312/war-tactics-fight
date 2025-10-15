@@ -19,23 +19,30 @@ public static class SaveSystem
                 allNodes = new List<StageNodeSaveEntry>()
             };
 
-            foreach (var node in allNodes.Values)
+        foreach (var node in allNodes.Values)
+        {
+            StageNodeSaveEntry entry = new()
             {
-                StageNodeSaveEntry entry = new()
-                {
-                    level = node.level,
-                    row = node.row,
-                    stageType = node.stageType, // enum 그대로 저장
-                    presetID = node.presetID,
-                    connections = node.connectedNodes
-                        .ConvertAll(n => new StageConnectionData { level = n.level, row = n.row })
-                };
-                data.allNodes.Add(entry);
-            }
+                level = node.level,
+                row = node.row,
+                stageType = node.stageType, // enum 그대로 저장
+                presetID = node.presetID,
+                connections = node.connectedNodes
+                    .ConvertAll(n => new StageConnectionData { level = n.level, row = n.row })
+            };
+            data.allNodes.Add(entry);
+        }
 
-            string json = JsonUtility.ToJson(data, true);
-            File.WriteAllText(GetPath(fileName), json);
-            Debug.Log($"📁 전체 맵 저장 완료: {GetPath(fileName)}");
+        // RogueLikeData에서 현재 플레이어 위치 가져와서 저장
+        var currentStage = RogueLikeData.Instance.GetCurrentStage();
+        data.currentLevel = currentStage.x;
+        data.currentRow = currentStage.y;
+        data.currentStageType = currentStage.type;
+
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(GetPath(fileName), json);
+        Debug.Log($"📁 전체 맵 저장 완료: {GetPath(fileName)}");
+        Debug.Log($"📍 플레이어 위치 저장: Level {currentStage.x}, Row {currentStage.y}, Type {currentStage.type}");
         }
         catch (Exception ex)
         {

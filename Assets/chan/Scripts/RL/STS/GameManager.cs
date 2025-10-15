@@ -149,6 +149,10 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         if (save != null)
         {
             uIGenerator.RegenerateMapFromSaveFull(save);
+            
+            // RogueLikeData에 저장된 플레이어 위치로 currentStage 복원
+            RestorePlayerPosition();
+            
             Debug.Log("저장된 맵을 불러왔습니다.");
         }
         else
@@ -346,13 +350,15 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         mapCanvas.SetActive(true);
         loadingPanel.SetActive(false);
+        
         // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
         var all = FindObjectsOfType<StageNodeUI>().ToList();
-        // ② 일단 전부 잠급니다
+        
+        // 2) 일단 전부 잠급니다 (이것이 "지나온 곳 잠금" 효과)
         foreach (var s in all)
             s.LockStage();
 
-        // 첫 맵 진입(아직 어느 스테이지도 찍지 않았다면) → level==0·Combat 만 언락
+        // 3) 첫 맵 진입(아직 어느 스테이지도 찍지 않았다면) → level==0·Combat 만 언락
         if (currentStage == null)
         {
             // 레벨 0 & Combat 타입인 노드를 전부 찾아서 언락
@@ -360,21 +366,59 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             {
                 s.UnlockStage();
             }
+            Debug.Log("🆕 첫 진입: 레벨 0 전투 스테이지 해제");
             return;
         }
 
-        // 그 외(맵 복귀) → 마지막 찍힌 currentStage + 연결된 다음 노드만 언락
-        enemyInfoPanel.SetActive(false); //250515 적 정보 패널 false
-        PlacePanel.SetActive(false);
+        // 4) 불러오기 또는 맵 복귀 시: 지나온 곳은 잠금, 현재+다음만 해제
+        int currentLevel = currentStage.level;
+        
+        // 4-1) 현재 레벨 이전의 모든 스테이지는 잠김 상태 유지 (지나온 곳)
+        //      → 이미 위에서 모두 잠갔으므로 추가 작업 불필요
+        
+        // 4-2) 현재 위치는 해제하지만 선택 효과는 중지 (이미 있는 위치)
         currentStage.UnlockStage();
         currentStage.StopSelectableEffect();
+        
+        // 4-3) 현재 위치와 연결된 다음 스테이지만 해제 (앞으로 진행 가능)
         foreach (var nxt in currentStage.connectedStages)
-            nxt.UnlockStage();
-
-
+        {
+            // 다음 스테이지가 현재보다 높은 레벨인 경우만 해제
+            if (nxt.level > currentLevel)
+            {
+                nxt.UnlockStage(); // 선택 가능 효과도 자동 시작
+            }
+            else
+            {
+                // 같은 레벨의 다른 경로는 잠금 유지 (되돌아가기 방지)
+                nxt.LockStage();
+            }
+        }
+        
+        Debug.Log($"🔓 레벨 {currentLevel} 이전 스테이지 잠금, 다음 스테이지 해제");
+        
+        enemyInfoPanel.SetActive(false);
+        PlacePanel.SetActive(false);
     }
     private List<RogueUnitDataBase> LoadEnemyUnits(int presetID)
     {
+        int chapter = RogueLikeData.Instance.GetChapter();
+        StageType stageType = RogueLikeData.Instance.GetCurrentStageType();
+        
+        // ✅ 챕터 2 이상 + normal 스테이지일 때만 예산 기반 구성 사용
+        if (chapter >= 2 && stageType == StageType.Combat)
+        {
+            Debug.Log($"[GameManager] 챕터 {chapter} Normal 스테이지 - 예산 기반 구성 사용");
+            
+            int budget = CalculateEnemyBudget(chapter, currentStage?.level ?? 0);
+            var composition = EnemyBudgetComposer.Instance.ComposeEnemyArmy(budget);
+            
+            return composition.finalComposition;
+        }
+        
+        // ✅ 그 외(챕터 1, 엘리트, 보스) - 기존 방식: StagePresets.json 사용
+        Debug.Log($"[GameManager] 챕터 {chapter} {stageType} 스테이지 - 기존 프리셋 방식 사용");
+        
         // 1) StagePresetLoader에서 프리셋 가져오기
         var preset = StagePresetLoader.I.GetByID(presetID);
         if (preset == null)
@@ -409,6 +453,29 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                      .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, /*isTeam=*/ false))
                      .Where(u => u != null)
                      .ToList();
+    }
+    
+    /// <summary>
+    /// 챕터와 레벨에 따른 적 부대 예산 계산 (임시 값)
+    /// </summary>
+    private int CalculateEnemyBudget(int chapter, int level)
+    {
+        // 챕터별 기본 예산
+        int baseBudget = chapter switch
+        {
+            2 => 2000,
+            3 => 3500,
+            _ => 2000
+        };
+        
+        // 레벨당 추가 예산
+        int levelBonus = level * 150;
+        
+        int totalBudget = baseBudget + levelBonus;
+        
+        Debug.Log($"[예산 계산] 챕터 {chapter}, 레벨 {level} → 예산: {totalBudget}");
+        
+        return totalBudget;
     }
     public void TogglePlacePanel(bool open)
     {
@@ -483,5 +550,41 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         UIManager.Instance.UIUpdateAll();
     }
 
+    /// <summary>
+    /// RogueLikeData에 저장된 플레이어 위치를 기반으로 currentStage를 복원합니다.
+    /// </summary>
+    private void RestorePlayerPosition()
+    {
+        // RogueLikeData에서 저장된 위치 가져오기
+        var (x, y, type) = RogueLikeData.Instance.GetCurrentStage();
+        
+        // 위치가 유효한지 확인 (초기값 -1이 아닌 경우)
+        if (x < 0 || y < 0)
+        {
+            Debug.Log("💡 저장된 플레이어 위치가 없습니다. 새 게임으로 시작합니다.");
+            return;
+        }
+        
+        // 해당 위치의 StageNodeUI 찾기
+        var allStages = FindObjectsOfType<StageNodeUI>();
+        foreach (var stageUI in allStages)
+        {
+            if (stageUI.level == x && stageUI.row == y)
+            {
+                currentStage = stageUI;
+                Debug.Log($"✅ 플레이어 위치 복원: Level {x}, Row {y}, Type {type}");
+                
+                // 마커도 해당 위치로 이동
+                if (playerMarker != null)
+                {
+                    MovePlayerMarkerTo(currentStage);
+                }
+                
+                return;
+            }
+        }
+        
+        Debug.LogWarning($"⚠️ Level {x}, Row {y}에 해당하는 스테이지를 찾을 수 없습니다.");
+    }
 
 }
