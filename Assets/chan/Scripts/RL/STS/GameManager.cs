@@ -144,7 +144,19 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         allStages.AddRange(FindObjectsOfType<StageNodeUI>());
 
-        // 이어하기(불러오기) 처리
+        // 새 게임은 항상 새 맵 생성
+        uIGenerator.RegenerateMap();
+        Debug.Log("새 맵을 생성합니다.");
+
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
+            InitializeStageLocks();
+    }
+    
+    /// <summary>
+    /// 저장된 게임을 불러옵니다. (불러오기 버튼에서 호출)
+    /// </summary>
+    public void LoadSavedGame()
+    {
         var save = SaveSystem.LoadFull();
         if (save != null)
         {
@@ -153,22 +165,26 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             // RogueLikeData에 저장된 플레이어 위치로 currentStage 복원
             RestorePlayerPosition();
             
-            Debug.Log("저장된 맵을 불러왔습니다.");
+            // 잠금 상태 업데이트
+            InitializeStageLocks();
+            
+            Debug.Log("✅ 저장된 맵을 불러왔습니다.");
         }
         else
         {
-            uIGenerator.RegenerateMap();
-            Debug.Log("새 맵을 생성합니다.");
+            Debug.LogWarning("⚠️ 불러올 저장 데이터가 없습니다.");
         }
-
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
-            InitializeStageLocks();
     }
 
     public void OnStageClicked(StageNodeUI clickedStage)
     {
         // 디버그: 클릭된 정보 찍기
-        Debug.Log($"OnStageClicked → level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
+        Debug.Log($"OnStageClicked → chapter:{clickedStage.chapter}, level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
+        
+        // 스테이지의 챕터 정보로 설정
+        RogueLikeData.Instance.SetChapter(clickedStage.chapter);
+        Debug.Log($"📌 챕터를 {clickedStage.chapter}로 설정했습니다.");
+        
         // 잠겨 있으면 아무 동작 안 함
         if (clickedStage.IsLocked)
             return;
@@ -410,6 +426,24 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             Debug.Log($"[GameManager] 챕터 {chapter} Normal 스테이지 - 예산 기반 구성 사용");
             
+            // EnemyBudgetComposer 존재 확인
+            if (EnemyBudgetComposer.Instance == null)
+            {
+                Debug.LogError("❌ [GameManager] EnemyBudgetComposer가 씬에 없습니다! GameManager 오브젝트에 EnemyBudgetComposer 컴포넌트를 추가해주세요.");
+                Debug.LogError("→ 임시로 프리셋 기반 구성을 사용합니다.");
+                
+                // 프리셋 기반으로 폴백
+                var fallbackPreset = StagePresetLoader.I.GetByID(presetID);
+                if (fallbackPreset != null && fallbackPreset.UnitList != null)
+                {
+                    return fallbackPreset.UnitList
+                        .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, false))
+                        .Where(u => u != null)
+                        .ToList();
+                }
+                return new List<RogueUnitDataBase>();
+            }
+            
             int budget = CalculateEnemyBudget(chapter, currentStage?.level ?? 0);
             var composition = EnemyBudgetComposer.Instance.ComposeEnemyArmy(budget);
             
@@ -456,24 +490,60 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     }
     
     /// <summary>
-    /// 챕터와 레벨에 따른 적 부대 예산 계산 (임시 값)
+    /// 챕터와 레벨에 따른 적 부대 예산 계산
     /// </summary>
     private int CalculateEnemyBudget(int chapter, int level)
     {
-        // 챕터별 기본 예산
-        int baseBudget = chapter switch
+        // 챕터 2 예산 테이블 (0-based: 레벨 0~12)
+        var chapter2Budgets = new Dictionary<int, int>
         {
-            2 => 2000,
-            3 => 3500,
-            _ => 2000
+            { 0, 1200 },   // 레벨 1 (표시용)
+            { 1, 1300 },   // 레벨 2
+            { 2, 1400 },   // 레벨 3
+            { 3, 1500 },   // 레벨 4
+            { 4, 1650 },   // 레벨 5
+            { 5, 1800 },   // 레벨 6
+            { 6, 1950 },   // 레벨 7
+            { 8, 2150 },   // 레벨 9 (레벨 8은 비전투)
+            { 9, 2300 },   // 레벨 10
+            { 10, 2450 },  // 레벨 11
+            { 11, 2600 },  // 레벨 12
+            { 12, 2750 }   // 레벨 13
         };
         
-        // 레벨당 추가 예산
-        int levelBonus = level * 150;
+        // 챕터 3 예산 테이블 (0-based: 레벨 0~12)
+        var chapter3Budgets = new Dictionary<int, int>
+        {
+            { 0, 3000 },   // 레벨 1 (표시용)
+            { 1, 3200 },   // 레벨 2
+            { 2, 3400 },   // 레벨 3
+            { 3, 3600 },   // 레벨 4
+            { 4, 3800 },   // 레벨 5
+            { 5, 4000 },   // 레벨 6
+            { 6, 4000 },   // 레벨 7
+            { 8, 4250 },   // 레벨 9 (레벨 8은 비전투)
+            { 9, 4250 },   // 레벨 10
+            { 10, 4500 },  // 레벨 11
+            { 11, 4500 },  // 레벨 12
+            { 12, 4750 }   // 레벨 13
+        };
         
-        int totalBudget = baseBudget + levelBonus;
+        int totalBudget = 2000; // 기본값
         
-        Debug.Log($"[예산 계산] 챕터 {chapter}, 레벨 {level} → 예산: {totalBudget}");
+        if (chapter == 2 && chapter2Budgets.ContainsKey(level))
+        {
+            totalBudget = chapter2Budgets[level];
+        }
+        else if (chapter == 3 && chapter3Budgets.ContainsKey(level))
+        {
+            totalBudget = chapter3Budgets[level];
+        }
+        else
+        {
+            Debug.LogWarning($"[예산 계산] 챕터 {chapter}, 레벨 {level}에 대한 예산이 정의되지 않음 → 기본값 사용: {totalBudget}");
+        }
+        
+        Debug.Log($"[예산 계산] 챕터 {chapter}, 레벨 {level} (표시: 레벨 {level + 1}) → 예산: {totalBudget}");
         
         return totalBudget;
     }
