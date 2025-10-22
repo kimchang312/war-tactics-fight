@@ -783,7 +783,7 @@ public class RelicManager
     public static void RunPartingShot(List<RogueUnitDataBase> myDeadMyUnits, RogueUnitDataBase enemyFront, RogueUnitDataBase myFront)
     {
         WarRelic relic = GetRelicById(124);
-        var vals = relic.GetAllValuesAsFloatListOrNull();
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
         if(vals == null) return;
 
         foreach (var unit in myDeadMyUnits)

@@ -100,8 +100,6 @@ public class UIManager : MonoBehaviour
         int startValue = baseMorale;
         int endValue = baseMorale + newMorale;
 
-        Debug.Log(startValue + "시작" + endValue);
-
         DOTween.Kill(this);
 
         DOVirtual.Int(startValue, endValue, 0.7f, value =>

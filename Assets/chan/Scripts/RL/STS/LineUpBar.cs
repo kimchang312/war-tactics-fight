@@ -20,9 +20,9 @@ public class LineUpBar : MonoBehaviour
         // 하단바 활성화 및 유닛 리스트 생성
         gameObject.SetActive(true);
         RefreshUnitList();
-        
+
         //유닛 리스트 가져오기
-        unitListUI = FindObjectOfType<UnitListUI>(true);
+        unitListUI = GameManager.Instance.unitListUI;
 
         GameObject.Find("CloseBTn").SetActive(false);
     }
@@ -39,7 +39,7 @@ public class LineUpBar : MonoBehaviour
             unitListUI = FindObjectOfType<UnitListUI>(true);
         }
         openUnitSort.onClick.RemoveAllListeners();
-        openUnitSort.onClick.AddListener(() => unitListUI.gameObject.SetActive(true));
+        openUnitSort.onClick.AddListener(() => unitListUI.Show());
     }
 
     // 유닛 리스트 새로고침

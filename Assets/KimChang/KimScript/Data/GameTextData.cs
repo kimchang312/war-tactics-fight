@@ -199,7 +199,7 @@ public class GameTextData
     // idx로 데이터 가져오기
     public static (string Name, string Description,string AddOne,string AddTwo) GetLocalizedTextFull(int idx)
     {
-        int language = LanguageManager.GetLanguage();
+        int language = 0;
         if (dataMap.TryGetValue(idx, out var values))
         {
             string name = language >= 0 && language < values.Names.Length ? values.Names[language] : "Invalid language index.";
@@ -213,7 +213,7 @@ public class GameTextData
     // idx로 데이터 가져오기
     public static (string Name, string Description) GetLocalizedText(int idx)
     {
-        int language = LanguageManager.GetLanguage();
+        int language = 0;
         if (dataMap.TryGetValue(idx, out var values))
         {
             string name = language >= 0 && language < values.Names.Length ? values.Names[language] : "Invalid language index.";
@@ -233,6 +233,7 @@ public class GameTextData
         }
         return null; // 매칭되는 idx가 없는 경우
     }
+   
 
 }
 

@@ -11,8 +11,7 @@ public class EventUIManager : MonoBehaviour
     [SerializeField] private Transform choiceBtns;
     [SerializeField] private Button leaveBtn;
 
-    [SerializeField] private UnitSelectUI unitSelectUI;
-
+    [SerializeField] private UnitListUI unitListUI;
 
     private void Awake()
     {
@@ -167,8 +166,7 @@ public class EventUIManager : MonoBehaviour
             }
         }
 
-        unitSelectUI.gameObject.SetActive(true);
-        unitSelectUI.OpenSelectUnitWindow(() => HandleChoice(choiceData), selectUnits, requiredCount);
+        unitListUI.Show(requiredCount, null, () =>HandleChoice(choiceData));
     }
 
 
@@ -176,7 +174,7 @@ public class EventUIManager : MonoBehaviour
     private void ResetUI()
     {
         ResetButtonUI();
-        unitSelectUI.gameObject.SetActive(false);
+        unitListUI.gameObject.SetActive(false);
         leaveBtn.onClick.AddListener(ClickLeaveBtn);
         leaveBtn.gameObject.SetActive(false);
     }

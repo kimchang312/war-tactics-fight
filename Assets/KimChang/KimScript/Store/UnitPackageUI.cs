@@ -1,70 +1,64 @@
 using DG.Tweening;
+using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+// 사용처: 상점 패키지(유닛 묶음) UI – 호버로 펼치고 클릭으로 열기/닫기
 public class UnitPackageUI : MonoBehaviour
 {
-    [SerializeField] private StoreUI storeUI;
-    [SerializeField] private Vector2 originPos;
-    [SerializeField] private Transform unitBox;
-    [SerializeField] private TextMeshProUGUI packageName;
-    [SerializeField] private TextMeshProUGUI packagePrice;
+    [Header("Refs")]
+    [SerializeField] private StoreUI storeUI;                 // 사용처: 상점 상위 UI 연동
+    [SerializeField] private Vector2 originPos;               // 사용처: 패키지 기본 위치(닫힐 때 돌아갈 위치)
+    [SerializeField] private Transform unitBox;               // 사용처: 유닛 슬롯 부모
+    [SerializeField] private TextMeshProUGUI packageName;     // 사용처: 패키지명 표시
+    [SerializeField] private TextMeshProUGUI packagePrice;    // 사용처: 가격 표시
 
-    private ItemInfoData itemInfo = new();
-    private List<RogueUnitDataBase> units = new();
+    // 데이터
+    private ItemInfoData itemInfo = new();                    // 사용처: 가격/상품정보 캐시
+    private List<RogueUnitDataBase> units = new();            // 사용처: 이 패키지에 포함된 유닛 목록
+
+    // 캐시
     private RectTransform rect;
+    private readonly List<RectTransform> activeChildren = new(8); // 사용처: 현재 활성 유닛 슬롯 RT 캐시
+    private readonly List<Button> childButtons = new(8);          // 사용처: 유닛 슬롯 버튼 캐시
 
-    private static readonly Vector2 CenterPos = new Vector2(0, 120);
+    // 상태
+    private static UnitPackageUI currentHover;                // 사용처: 호버 소유자(다른 패키지 접기용)
+    private bool isAnimating = false;                         // 사용처: 어떤 트윈이라도 수행 중일 때
+    private bool isPackageOpened = false;                     // 사용처: 클릭으로 펼쳐진 상태 여부
+    private int hoverRefCount = 0;                            // 사용처: 자식 단위 호버 누적 카운트
+    private bool canBuyCached = false;                        // 사용처: 구매 가능 여부 캐시(클릭 가드에 사용)
+    private bool hoverLocked = false;
+    // 상수(애니/배치)
+    private static readonly Vector2 CenterPos = new(0, 120);
     private const float AniTime = 0.5f;
     private const float HoverOffsetX = 150f;
     private const float ClickOffsetX = 365f;
     private const float ScreenMargin = 50f;
-
-    // 상태
-    private bool isAnimating = false;     // 사용처: 어떤 트윈이라도 수행 중일 때 true
-    private bool isPackageOpened = false; // 사용처: 클릭 펼침으로 열린 상태일 때 true
-    private int hoverRefCount = 0;        // 사용처: 자식 단위의 호버 누적 카운트
-
-    // 사용처: 다른 패키지로 호버 이동 시 이전 패키지를 접기 위한 전역 호버 소유자
-    private static UnitPackageUI currentHover;
-
-    // 캐시
-    private readonly List<RectTransform> activeChildren = new(8);
-    private readonly List<Button> childButtons = new(8);
-
     private const float ExpandThresholdX = 720f;
+
     private void Awake()
     {
-        rect = transform as RectTransform;
+        rect = (RectTransform)transform;
         if (storeUI == null) storeUI = FindObjectOfType<StoreUI>(true);
 
         childButtons.Clear();
 
-        // 사용처: 유닛 자식에 호버/클릭 릴레이 구성
         for (int i = 0; i < unitBox.childCount; i++)
         {
             var tr = unitBox.GetChild(i);
 
-            // 호버 릴레이
             var relay = tr.GetComponent<ChildHoverRelay>();
             if (relay == null) relay = tr.gameObject.AddComponent<ChildHoverRelay>();
             relay.Init(this);
 
-            // 버튼 캐시
-            var btn = tr.GetComponent<Button>();
+            Button btn = tr.GetComponent<Button>();
+            if (btn == null) btn = tr.GetComponentInChildren<Button>(true);
             if (btn != null) childButtons.Add(btn);
-
-            // 클릭 보강: 버튼이 막혀도 동작하도록 PointerClick 트리거 추가
-            var trigger = tr.GetComponent<EventTrigger>();
-            if (trigger == null) trigger = tr.gameObject.AddComponent<EventTrigger>();
-
-            var clickEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
-            // 사용처: 자식 클릭 → 부모 클릭 로직 호출
-            clickEntry.callback.AddListener(_ => OnUnitClick(btn));
-            trigger.triggers.Add(clickEntry);
         }
     }
 
@@ -72,27 +66,24 @@ public class UnitPackageUI : MonoBehaviour
     {
         if (currentHover == this) currentHover = null;
         hoverRefCount = 0;
+        isAnimating = false;
     }
 
-    // 사용처: 상점에서 데이터 세팅 시 호출
+    // 사용처: 상점에서 패키지 데이터 세팅 시 호출
     public void SetUnitPackage(List<RogueUnitDataBase> _units, StoreItemData storeItem, int price)
     {
         if (rect != null) rect.anchoredPosition = originPos;
-
-        // 초기 위치 리셋
-        for (int i = 0; i < transform.childCount; i++)
-            if (transform.GetChild(i) is RectTransform r) r.anchoredPosition = Vector2.zero;
+        ResetChildrenAnchorsToZero();
 
         units = _units;
         itemInfo.item = storeItem;
         itemInfo.price = price;
-  
+
         packageName.text = itemInfo.item.itemName;
         packagePrice.text = itemInfo.price.ToString();
         packageName.gameObject.SetActive(true);
         packagePrice.gameObject.SetActive(true);
 
-        // 유닛 슬롯 세팅
         int slotCount = unitBox.childCount;
         int unitCount = units.Count;
         for (int i = 0; i < slotCount; i++)
@@ -101,25 +92,46 @@ public class UnitPackageUI : MonoBehaviour
             if (i < unitCount)
             {
                 child.SetActive(true);
-                child.GetComponent<OneUnitUI>().SetOneUnit(units[i]);
+                var ui = child.GetComponent<OneUnitUI>();
+                if (ui != null)
+                {
+                    ui.SetOneUnit(units[i]);
+                    ui.SetDisableEnergyName(); // 사용처: 클릭 전까지 이름/에너지 숨김
+                }
             }
-            else
-            {
-                child.SetActive(false);
-            }
+            else child.SetActive(false);
         }
 
+        // 버튼 재수집 생략 ...
         isPackageOpened = false;
+        hoverLocked = false;
         hoverRefCount = 0;
+
+        ToggleUnitDetailLabels(false); // 안전망(활성 슬롯 모두 숨김 유지)
         UpdateUnitPackage();
     }
 
-    // 사용처: 자식 중 첫 진입 시(hoverRefCount 0->1) 패키지 호버 시작
-    private void OnPackageHoverBegin()
+    // 사용처: 골드 등 조건 변경 시 버튼 활성/리스너 갱신
+    public void UpdateUnitPackage()
     {
-        if (isPackageOpened) return;
+        canBuyCached = RogueLikeData.Instance.CanSpendGold(itemInfo.price);
 
-        // 다른 패키지가 호버 중이면 강제 접기
+        for (int i = 0; i < childButtons.Count; i++)
+        {
+            var btn = childButtons[i];
+            if (btn == null) continue;
+
+            btn.interactable = btn.gameObject.activeSelf;
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() => OnUnitClick(btn));
+        }
+    }
+
+    // 사용처: 자식 중 첫 진입 시(hoverRefCount 0->1) 패키지 호버 시작
+    internal void OnPackageHoverBegin()
+    {
+        if (hoverLocked || isPackageOpened || isAnimating) return;
+
         if (currentHover != null && currentHover != this && !currentHover.isPackageOpened)
         {
             currentHover.hoverRefCount = 0;
@@ -131,15 +143,15 @@ public class UnitPackageUI : MonoBehaviour
         SpreadUnits(force: true);
     }
 
-    // 사용처: 마지막 이탈 시(hoverRefCount 1->0) 패키지 호버 종료
-    private void OnPackageHoverEnd()
+    internal void OnPackageHoverEnd()
     {
-        if (isPackageOpened) return;
+        if (hoverLocked || isPackageOpened || isAnimating) return;
         CollapseUnits(force: true);
         if (currentHover == this) currentHover = null;
     }
 
-    // 사용처: 호버 펼침(위치 기준 단방향/대칭 모드)
+
+    // 사용처: 호버 펼침(위치 기준 단방향/대칭)
     private void SpreadUnits(bool force)
     {
         if (!force && isAnimating) return;
@@ -150,17 +162,14 @@ public class UnitPackageUI : MonoBehaviour
         int n = activeChildren.Count;
         if (n == 0) { isAnimating = false; return; }
 
-        // this의 현재 X 위치
         float anchorX = rect != null ? rect.anchoredPosition.x : ((RectTransform)transform).anchoredPosition.x;
         float halfWidth = GetCanvasHalfWidth();
 
-        // 단방향/대칭 분기: x > +750 → 오른쪽으로만, x < -750 → 왼쪽으로만, 그 외는 기존 대칭
         if (anchorX > ExpandThresholdX)
         {
-            // 오른쪽으로만: 마지막 유닛이 0, 그 앞 유닛들이 +1*HoverOffsetX, +2*HoverOffsetX ...
             for (int i = 0; i < n; i++)
             {
-                int offsetIndex = (n - 1 - i); // 역순
+                int offsetIndex = (n - 1 - i);
                 float x = -HoverOffsetX * offsetIndex;
                 x = Mathf.Clamp(x, -halfWidth + ScreenMargin, halfWidth - ScreenMargin);
                 activeChildren[i].DOAnchorPos(new Vector2(x, 0f), AniTime).SetEase(Ease.OutCubic);
@@ -168,10 +177,9 @@ public class UnitPackageUI : MonoBehaviour
         }
         else if (anchorX < -ExpandThresholdX)
         {
-            // 왼쪽으로만: 마지막 유닛이 0, 그 앞 유닛들이 -1*HoverOffsetX, -2*HoverOffsetX ...
             for (int i = 0; i < n; i++)
             {
-                int offsetIndex = (n - 1 - i); // 역순
+                int offsetIndex = (n - 1 - i);
                 float x = HoverOffsetX * offsetIndex;
                 x = Mathf.Clamp(x, -halfWidth + ScreenMargin, halfWidth - ScreenMargin);
                 activeChildren[i].DOAnchorPos(new Vector2(x, 0f), AniTime).SetEase(Ease.OutCubic);
@@ -179,7 +187,6 @@ public class UnitPackageUI : MonoBehaviour
         }
         else
         {
-            // 중앙 영역: 기존처럼 대칭으로 펼침(첫 번째도 살짝 퍼지길 원하면 여기만 조정)
             float startX = HoverOffsetX * (n - 1) * 0.5f;
             for (int i = 0; i < n; i++)
             {
@@ -191,7 +198,6 @@ public class UnitPackageUI : MonoBehaviour
 
         DOVirtual.DelayedCall(AniTime, () => isAnimating = false);
     }
-
 
     // 사용처: 호버 접기
     private void CollapseUnits(bool force)
@@ -209,33 +215,32 @@ public class UnitPackageUI : MonoBehaviour
         DOVirtual.DelayedCall(AniTime, () => isAnimating = false);
     }
 
-    // 사용처: 유닛 클릭(언제든 클릭 보장)
+    // 사용처: 유닛 클릭(패키지 열기 트리거)
     private void OnUnitClick(Button btn)
     {
         if (isPackageOpened) return;
 
-        // 경합 제거
-        KillAllAnimations();
-
+        // 호버 종료 및 호버 잠금
+        hoverLocked = true;
+        KillAllAnimations();     // 진행 중인 호버 트윈 즉시 중단
+        isAnimating = true;      // 열기 전까지 입력/호버 억제
         hoverRefCount = 0;
         if (currentHover == this) currentHover = null;
 
         CollectActiveChildren();
-        if (activeChildren.Count == 0) return;
+        if (activeChildren.Count == 0) { isAnimating = false; return; }
 
-        // 먼저 모으기(짧게)
-        float collapseDur = 0.25f;
+        float collapseDur = 0.15f;
         var seq = DOTween.Sequence();
         for (int i = 0; i < activeChildren.Count; i++)
             seq.Join(activeChildren[i].DOAnchorPos(Vector2.zero, collapseDur).SetEase(Ease.OutCubic));
-
-        seq.OnComplete(() => ClickUnitPackage(btn));
+        seq.OnComplete(() => ClickUnitPackage());
     }
 
-    // 사용처: 클릭 펼침(방향 반전 적용)
-    private void ClickUnitPackage(Button clickedBtn)
+
+    // 사용처: 클릭 펼침(좌우로 벌리며 중앙 이동)
+    private void ClickUnitPackage()
     {
-        isAnimating = true;
         isPackageOpened = true;
 
         KillAllAnimations();
@@ -253,7 +258,6 @@ public class UnitPackageUI : MonoBehaviour
         int n = activeChildren.Count;
         if (n == 0) { isAnimating = false; return; }
 
-        // 반전: 오른쪽에서 왼쪽으로
         float startX = ClickOffsetX * (n - 1) * 0.5f;
 
         var seq = DOTween.Sequence();
@@ -262,16 +266,14 @@ public class UnitPackageUI : MonoBehaviour
         {
             for (int i = 0; i < n; i++)
             {
-                Vector2 targetPos = new Vector2(startX - ClickOffsetX * i, 0f);
+                Vector2 targetPos = new(startX - ClickOffsetX * i, 0f);
                 activeChildren[i].DOAnchorPos(targetPos, AniTime).SetEase(Ease.OutCubic);
-                var ui = activeChildren[i].GetComponent<OneUnitUI>();
-                //if (ui != null) ui.SetAbleUI();
             }
+            ToggleUnitDetailLabels(true); // 사용처: 펼침 시 이름/에너지 보이기
         });
-        seq.OnComplete(() => isAnimating = false);
+        seq.OnComplete(() => { isAnimating = false; });
     }
 
-    // 사용처: 외부에서 패키지를 닫을 때 호출
     public void ReturnUnitPackage()
     {
         if (isAnimating) return;
@@ -283,57 +285,48 @@ public class UnitPackageUI : MonoBehaviour
 
         CollectActiveChildren();
         if (activeChildren.Count == 0) { isAnimating = false; return; }
-
+        ToggleUnitDetailLabels(false);
         var seq = DOTween.Sequence();
 
         for (int i = 0; i < activeChildren.Count; i++)
-        {
-            var ui = activeChildren[i].GetComponent<OneUnitUI>();
-            //if (ui != null) ui.SetDisableUI();
             seq.Join(activeChildren[i].DOAnchorPos(Vector2.zero, AniTime).SetEase(Ease.OutCubic));
-        }
 
         seq.Append(rect.DOAnchorPos(originPos, AniTime).SetEase(Ease.OutCubic))
            .OnComplete(() =>
            {
+
                packageName.gameObject.SetActive(true);
                packagePrice.gameObject.SetActive(true);
+
                isAnimating = false;
                isPackageOpened = false;
+               hoverLocked = false;
                currentHover = null;
                hoverRefCount = 0;
                storeUI.VisiblePurchaseLeaveBtn();
            });
     }
 
-    // 사용처: 골드 등 조건 변경 시 버튼 활성/리스너 세팅
-    public void UpdateUnitPackage()
+    // 사용처: 유닛 카드의 이름/에너지 레이블 토글(접힘/펼침 전환)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ToggleUnitDetailLabels(bool show)
     {
-        bool canBuy = RogueLikeData.Instance.CanSpendGold(itemInfo.price);
-
-        SetChildButtonsInteractable(canBuy);
-
-        if (canBuy)
+        int total = unitBox.childCount;
+        for (int i = 0; i < total; i++)
         {
-            for (int i = 0; i < childButtons.Count; i++)
-            {
-                var btn = childButtons[i];
-                if (btn == null || !btn.gameObject.activeSelf) continue;
-                btn.onClick.RemoveAllListeners();
-                btn.onClick.AddListener(() => OnUnitClick(btn));
-            }
-        }
-        else
-        {
-            for (int i = 0; i < childButtons.Count; i++)
-            {
-                var btn = childButtons[i];
-                if (btn != null) btn.onClick.RemoveAllListeners();
-            }
+            var t = unitBox.GetChild(i);
+            if (!t.gameObject.activeSelf) continue;
+
+            var ui = t.GetComponent<OneUnitUI>();
+            if (ui == null) continue;
+
+            if (show) ui.SetAbleEnergyName();
+            else ui.SetDisableEnergyName();
         }
     }
 
     // 사용처: 현재 활성 유닛 RectTransform 수집
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void CollectActiveChildren()
     {
         activeChildren.Clear();
@@ -346,17 +339,9 @@ public class UnitPackageUI : MonoBehaviour
         }
     }
 
-    // 사용처: 버튼 상호작용 설정
-    private void SetChildButtonsInteractable(bool enabled)
-    {
-        for (int i = 0; i < childButtons.Count; i++)
-        {
-            var btn = childButtons[i];
-            if (btn != null) btn.interactable = enabled && btn.gameObject.activeSelf;
-        }
-    }
 
     // 사용처: 관련 트윈 중단
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void KillAllAnimations()
     {
         DOTween.Kill(rect);
@@ -368,33 +353,53 @@ public class UnitPackageUI : MonoBehaviour
         }
     }
 
-    // 사용처: 화면 이탈 방지 기준
+    // 사용처: 자식 앵커 위치 0으로 리셋(초기화)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ResetChildrenAnchorsToZero()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            if (transform.GetChild(i) is RectTransform r)
+                r.anchoredPosition = Vector2.zero;
+        }
+    }
+
+    // 사용처: 화면 이탈 방지 기준(좌/우 여백 고려)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private float GetCanvasHalfWidth()
     {
         var canvas = GetComponentInParent<Canvas>();
         return canvas != null ? canvas.pixelRect.width * 0.5f : Screen.width * 0.5f;
     }
 
-    // 사용처: 유닛 자식에서 포인터 이벤트를 부모로 안정 전달
-    private sealed class ChildHoverRelay : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    private sealed class ChildHoverRelay :
+        MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         private UnitPackageUI owner;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Init(UnitPackageUI ui) => owner = ui;
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (owner == null || owner.isPackageOpened) return;
+            if (owner == null || owner.hoverLocked || owner.isPackageOpened) return;
             if (owner.hoverRefCount == 0) owner.OnPackageHoverBegin();
             owner.hoverRefCount++;
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (owner == null || owner.isPackageOpened) return;
+            if (owner == null || owner.hoverLocked || owner.isPackageOpened) return;
             if (owner.hoverRefCount <= 0) return;
             owner.hoverRefCount--;
             if (owner.hoverRefCount == 0) owner.OnPackageHoverEnd();
         }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (owner == null) return;
+            owner.OnUnitClick(null);
+        }
     }
+
 }

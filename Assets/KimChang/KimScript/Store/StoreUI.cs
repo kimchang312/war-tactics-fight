@@ -12,7 +12,7 @@ public class StoreUI : MonoBehaviour
     [SerializeField] private Button purchaseBtn;
     [SerializeField] private Button leaveBtn;
     [SerializeField] private Transform unitParent, relicParent, itemParent, rerollObject;
-    [SerializeField] private UnitSelectUI unitSelectUI;
+    [SerializeField] private UnitListUI unitListUI;
     [SerializeField] private Transform unitPackage;
 
     [SerializeField] private GameObject packagePanel;
@@ -33,6 +33,14 @@ public class StoreUI : MonoBehaviour
     private Button checkedBtn;
     
     private const float aniTime = 0.5f;
+
+    private void Awake()
+    {
+        if (unitListUI == null)
+        {
+            unitListUI = GameManager.Instance.unitListUI;
+        }
+    }
 
     private void OnEnable()
     {
@@ -74,7 +82,7 @@ public class StoreUI : MonoBehaviour
 
 
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
-        unitSelectUI.gameObject.SetActive(false);
+        unitListUI.gameObject.SetActive(false);
         ClosePackageBack();
         UnCheckAllItem();
         AddClickEventItemToCheck();
@@ -258,8 +266,11 @@ public class StoreUI : MonoBehaviour
 
         child.name = item.itemId.ToString();
         btn.onClick.RemoveAllListeners();
-        btn.onClick.AddListener(() => ClickItemAndCheck(btn));
 
+        if (onClick != null)
+            btn.onClick.AddListener(() => onClick());
+        else
+            btn.onClick.AddListener(() => ClickItemAndCheck(btn));
     }
 
     private List<RogueUnitDataBase> FilterAndSelectUnits(StoreItemData item)
@@ -531,29 +542,24 @@ public class StoreUI : MonoBehaviour
         if (item.form == "Select")
         {
             List<RogueUnitDataBase> selected = RogueLikeData.Instance.GetSelectedUnits();
-            if (selected == null || selected.Count < item.count)
+            List<RogueUnitDataBase> canSelect = RogueLikeData.Instance.GetMyTeam();
+            var filtered = new List<RogueUnitDataBase>(canSelect.Count);
+            for (int i = 0; i < canSelect.Count; i++)
             {
-                List<RogueUnitDataBase> canSelectUnits = RogueLikeData.Instance.GetMyTeam()
-                .Where(u => u.Energy < u.MaxEnergy)
-                .ToList();
-
-            if (canSelectUnits.Count < item.count)
-                return;
-
-                unitSelectUI.gameObject.SetActive(true);
-                unitSelectUI.OpenSelectUnitWindow(() => PurChaseItem(btn, item, int.Parse(item.price.ToString())),null,item.count);
-                return;
+                var u = canSelect[i];
+                if (u.Energy < u.MaxEnergy) filtered.Add(u);
             }
-            foreach (var unit in selected)
-            {
-                unit.Energy = Math.Min(unit.MaxEnergy, unit.Energy + int.Parse(item.value));
-            }
+            if (filtered.Count < item.count) return;
 
+            int shownPrice = btn.TryGetComponent<ItemInformation>(out var info) ? info.data.price : CalculateDiscountedPrice(item);
+
+            unitListUI.Show(item.count, filtered, () => PurChaseItem(btn, item, shownPrice));
+            return;
         }
         else if (item.form == "Random")
         {
             int amount = int.Parse(item.value);
-            List<RogueUnitDataBase> units = RogueLikeData.Instance.GetMyTeam().Where(u => u.Energy < u.MaxEnergy).ToList();
+            var units = RogueLikeData.Instance.GetMyTeam().Where(u => u.Energy < u.MaxEnergy).ToList();
             if (units.Count == 0) return;
 
             for (int i = 0; i < units.Count; i++)
@@ -561,10 +567,10 @@ public class StoreUI : MonoBehaviour
                 int r = RogueLikeData.Instance.GetRandomInt(i, units.Count);
                 (units[i], units[r]) = (units[r], units[i]);
             }
-
             for (int i = 0; i < Mathf.Min(item.count, units.Count); i++)
             {
-                units[i].Energy = Math.Min(units[i].MaxEnergy, units[i].Energy + amount);
+                var u = units[i];
+                u.Energy = Math.Min(u.MaxEnergy, u.Energy + amount);
             }
         }
     }
@@ -746,13 +752,26 @@ public class StoreUI : MonoBehaviour
     // 사용처: 유닛 패키지 슬롯 바인딩
     private void BindUnitPackages(StoreSnapshot snap)
     {
-        if (snap.unitPacks == null) return;
-        int childCount = unitPackage.childCount;
-        int n = Mathf.Min(childCount, snap.unitPacks.Count);
+        if (snap == null || snap.unitPacks == null) return;
 
+        // 실제 바인딩 대상 슬롯만 수집
+        int childCount = unitPackage.childCount;
+        var slots = new List<UnitPackageUI>(childCount);
         for (int i = 0; i < childCount; i++)
         {
-            var slot = unitPackage.GetChild(i).GetComponent<UnitPackageUI>();
+            var comp = unitPackage.GetChild(i).GetComponent<UnitPackageUI>();
+            if (comp != null) slots.Add(comp);
+        }
+
+        int slotCount = slots.Count;
+        int packCount = snap.unitPacks.Count;
+        int n = Mathf.Min(slotCount, packCount);
+
+        // 슬롯 채우기 또는 비활성
+        for (int i = 0; i < slotCount; i++)
+        {
+            var slot = slots[i];
+
             if (i >= n)
             {
                 slot.gameObject.SetActive(false);
@@ -761,19 +780,55 @@ public class StoreUI : MonoBehaviour
 
             var offer = snap.unitPacks[i];
 
-            // idx → Unit 복원(캐시 기준 최소 연산)
-            var units = new List<RogueUnitDataBase>(offer.unitIdxs.Length);
-            for (int k = 0; k < offer.unitIdxs.Length; k++)
+            // idx → Unit 복원
+            var ids = offer.unitIdxs;
+            var units = new List<RogueUnitDataBase>(ids.Length);
+            for (int k = 0; k < ids.Length; k++)
             {
-                var u = UnitLoader.Instance.GetCloneUnitById(offer.unitIdxs[k]);
+                var u = UnitLoader.Instance.GetCloneUnitById(ids[k]);
                 if (u != null) units.Add(u);
             }
 
-            slot.SetUnitPackage(units, null, offer.price);
+            // 패키지명 구성
+            string packName;
+            if (units.Count > 0)
+            {
+                string first = units[0].unitName;
+                int etc = units.Count - 1;
+                if (etc > 0)
+                {
+                    string fmt = GameTextDB.Get("store.pack.name"); // "{0} 외 {1}종"
+                    packName = (fmt != "store.pack.name") ? string.Format(fmt, first, etc) : $"{first} 외 {etc}종";
+                }
+                else packName = first;
+            }
+            else
+            {
+                packName = GameTextDB.Get("store.pack.empty");
+                if (string.IsNullOrEmpty(packName) || packName == "store.pack.empty") packName = "빈 패키지";
+            }
+
+            // StoreItemData 최소 구조(Null 방지)
+            var fakeItem = new StoreItemData
+            {
+                itemId = -1,
+                itemName = packName,
+                price = offer.price,
+                priceRateMin = 1f,
+                priceRateMax = 1f,
+                rarity = 0,
+                type = "Unit",
+                form = "Fixed",
+                value = "",
+                count = units.Count,
+                condition = "",
+                description = packName
+            };
+
+            slot.SetUnitPackage(units, fakeItem, offer.price);
             slot.gameObject.SetActive(!offer.sold);
         }
     }
-
     // 사용처: 유물 슬롯 바인딩
     private void BindRelics(StoreSnapshot snap)
     {

@@ -4,12 +4,12 @@ using System.IO;
 using UnityEngine;
 
 [System.Serializable]
-public class SavePlayerData 
+public class SavePlayerData
 {
     public int id;
     public List<RogueUnitDataBase> myUnits;
-    public List<WarRelic> warRelics= new();
-    public List<int> eventIds= new();
+    public List<WarRelic> warRelics = new();
+    public List<int> eventIds = new();
     public int currentGold;
     public int spentGold = 0;
     public int playerMorale;
@@ -17,16 +17,26 @@ public class SavePlayerData
     public int currentStageY;
     public int chapter;
     public StageType currentStageType;
-    public UnitUpgrade[] unitUpgrades; 
+    public UnitUpgrade[] unitUpgrades;
     public int sariStack;
     public BattleRewardData battleReward;
     public int nextUniqueId;
     public int score;
-    public StoreSnapshot currentStore;   // 사용처: 상점 스냅샷 저장
+    public StoreSnapshot currentStore;
 
-    public SavePlayerData(int id ,List<RogueUnitDataBase> myUnits,List<WarRelic> warRelics, List<int> eventIds,
-        int currentGold,int spentGold,int playerMorale,int currentStageX,int currentStageY,int chapter,
-        StageType currentStageType, UnitUpgrade[] unitUpgrades,int sariStack,BattleRewardData battleReward,int nextUniqueId,int score)
+    // 추가: 누락 필드
+    public int language;     // RogueLikeData.language (0=kr,1=en,2=jp)
+    public int fieldId;      // RogueLikeData.fieldId
+    public int presetID;     // RogueLikeData.presetID
+    public int rerollChance; // RogueLikeData.rerollChance
+    public int unitOrder;    // RogueLikeData.unitOrder
+
+    public SavePlayerData(
+        int id, List<RogueUnitDataBase> myUnits, List<WarRelic> warRelics, List<int> eventIds,
+        int currentGold, int spentGold, int playerMorale, int currentStageX, int currentStageY, int chapter,
+        StageType currentStageType, UnitUpgrade[] unitUpgrades, int sariStack, BattleRewardData battleReward, int nextUniqueId, int score,
+        // 추가 파라미터
+        int language, int fieldId, int presetID, int rerollChance, int unitOrder)
     {
         this.id = id;
         this.myUnits = myUnits;
@@ -44,6 +54,13 @@ public class SavePlayerData
         this.battleReward = battleReward;
         this.nextUniqueId = nextUniqueId;
         this.score = score;
+
+        // 추가
+        this.language = language;
+        this.fieldId = fieldId;
+        this.presetID = presetID;
+        this.rerollChance = rerollChance;
+        this.unitOrder = unitOrder;
     }
 }
 
@@ -81,21 +98,32 @@ public class SaveData
             string jsonData = File.ReadAllText(_filePath);
             SavePlayerData savePlayerData = JsonUtility.FromJson<SavePlayerData>(jsonData);
 
+            // 유닛/유물/기본 스냅샷 복원
             List<RogueUnitDataBase> myTeam = new(savePlayerData.myUnits);
             RogueLikeData.Instance.SetMyTeam(myTeam);
             foreach (var unit in myTeam)
-            {
                 unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
-            }
-            List<WarRelic> warRelics = new(savePlayerData.warRelics);
-            RogueLikeData.Instance.SetRelicBySaveData(warRelics);
+            RogueLikeData.Instance.SetRelicBySaveData(new List<WarRelic>(savePlayerData.warRelics));
 
-            RogueLikeData.Instance.SetLoadData(savePlayerData.eventIds,savePlayerData.currentGold, savePlayerData.spentGold,
-                savePlayerData.playerMorale, savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,
-                savePlayerData.currentStageType, savePlayerData.sariStack, savePlayerData.battleReward,savePlayerData.nextUniqueId,savePlayerData.score);
-           
-            RogueLikeData.Instance.SetCurrentStoreSnapshot(savePlayerData.currentStore); // 사용처: 상점 스냅샷 복원
+            RogueLikeData.Instance.SetLoadData(
+                savePlayerData.eventIds,
+                savePlayerData.currentGold, savePlayerData.spentGold, savePlayerData.playerMorale,
+                savePlayerData.currentStageX, savePlayerData.currentStageY, savePlayerData.chapter,
+                savePlayerData.currentStageType, savePlayerData.sariStack, savePlayerData.battleReward,
+                savePlayerData.nextUniqueId, savePlayerData.score
+            );
 
+            // 추가 필드 복원 (기본값 0이어도 안전)
+            RogueLikeData.Instance.SetLanguage(savePlayerData.language);
+            RogueLikeData.Instance.SetFieldId(savePlayerData.fieldId);
+            RogueLikeData.Instance.SetPresetID(savePlayerData.presetID);
+            RogueLikeData.Instance.SetRerollChance(savePlayerData.rerollChance);
+            RogueLikeData.Instance.SetUnitOrder(savePlayerData.unitOrder);
+
+            RogueLikeData.Instance.SetCurrentStoreSnapshot(savePlayerData.currentStore);
+
+            // 언어 반영: 텍스트 DB 재로딩
+            GameTextDB.LoadFromRogueLike();
         }
         catch (Exception ex)
         {
@@ -112,7 +140,6 @@ public class SaveData
         {
             if (File.Exists(_filePath))
             {
-                Debug.Log("삭제");
                 File.Delete(_filePath);
             }
 
