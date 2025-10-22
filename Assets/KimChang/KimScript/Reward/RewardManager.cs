@@ -157,6 +157,7 @@ public static class RewardManager
         {
             reward.relicGrade.Add(grade);
         }
+        Debug.Log(reward.gold);
         return 0;
     }
 

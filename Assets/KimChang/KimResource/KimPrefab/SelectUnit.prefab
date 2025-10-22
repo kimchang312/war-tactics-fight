@@ -346,9 +346,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e037f9e7f2a67d47b0f21cd74807266, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energyObj: {fileID: 8403574787826356979}
+  unitImg: {fileID: 7015428939007701101}
+  energyImg: {fileID: 6999853480345872700}
   energyText: {fileID: 5895661121157636095}
   unitNameText: {fileID: 6071018935668774621}
+  unitFramImg: {fileID: 2295550064116676712}
+  selectFrame: {fileID: 0}
   unit:
     idx: 0
     unitName: 
@@ -362,6 +365,7 @@ MonoBehaviour:
     tag: 
     tagIdx: 0
     unitPrice: 0
+    defaultPrice: 0
     rarity: 0
     baseHealth: 0
     baseArmor: 0
@@ -371,12 +375,10 @@ MonoBehaviour:
     baseAntiCavalry: 0
     baseEnergy: 0
     health: 0
-    armor: 0
     attackDamage: 0
-    mobility: 0
     range: 0
     antiCavalry: 0
-    energy: 0
+    _energy: 0
     lightArmor: 0
     heavyArmor: 0
     rangedAttack: 0
@@ -413,7 +415,7 @@ MonoBehaviour:
     challenge: 0
     smokeScreen: 0
     maxHealth: 0
-    maxEnergy: 0
+    _maxEnergy: 0
     alive: 0
     fStriked: 0
     UniqueId: 0

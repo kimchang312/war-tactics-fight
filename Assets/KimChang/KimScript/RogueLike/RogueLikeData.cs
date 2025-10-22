@@ -88,6 +88,7 @@ public class RogueLikeData
 
     private bool isDataLoading = false;
 
+    private int language = 0;
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
@@ -103,11 +104,17 @@ public class RogueLikeData
     }
     public SavePlayerData GetRogueLikeData()
     {
-        SavePlayerData data = new(0, myUnits, relicsByType.Values
-                                    .SelectMany(hashSet => hashSet)
-                                    .ToList(),encounteredEvent.Values.ToList(),
-                                    currentGold,spentGold,playerMorale,currentStageX,currentStageY,chapter,currentStageType,
-                                    upgradeValues, sariStack,battleReward, nextUnitUniqueId,score);
+        SavePlayerData data = new(
+            0,
+            myUnits,
+            relicsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            encounteredEvent.Values.ToList(),
+            currentGold, spentGold, playerMorale,
+            currentStageX, currentStageY, chapter, currentStageType,
+            upgradeValues, sariStack, battleReward, nextUnitUniqueId, score,
+            // 추가 필드
+            language, fieldId, presetID, rerollChance, unitOrder
+        );
         data.currentStore = currentStore;
         return data;
     }
@@ -120,20 +127,12 @@ public class RogueLikeData
     public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
         List<RogueUnitDataBase> savedCopy = new(savedMyUnits);
-
         foreach (var unit in units.Concat(deadUnits))
         {
             var savedUnit = savedCopy.Find(u => u.UniqueId == unit.UniqueId);
             if (savedUnit == null) continue;
-            
-            if (unit.Energy < 1)
-            {
-                savedCopy.Remove(savedUnit);
-            }
-            else
-            {
-                savedUnit.Energy = unit.Energy;
-            }
+            if (unit.Energy < 1) savedCopy.Remove(savedUnit);
+            else savedUnit.Energy = unit.Energy;
         }
 
         SavePlayerData data = new(
@@ -141,24 +140,16 @@ public class RogueLikeData
             savedCopy,
             relicsByType.Values.SelectMany(hashSet => hashSet).ToList(),
             encounteredEvent.Values.ToList(),
-            currentGold,
-            spentGold,
-            playerMorale,
-            currentStageX,
-            currentStageY,
-            chapter,
-            currentStageType,
-            upgradeValues,
-            sariStack,
-            battleReward,
-            nextUnitUniqueId,
-            score
+            currentGold, spentGold, playerMorale,
+            currentStageX, currentStageY, chapter, currentStageType,
+            upgradeValues, sariStack, battleReward, nextUnitUniqueId, score,
+            // 추가 필드
+            language, fieldId, presetID, rerollChance, unitOrder
         );
         myTeam = savedCopy;
         savedMyUnits.Clear();
         return data;
     }
-
     //내 유닛 전부 수정하기
     public void SetAllMyUnits(List<RogueUnitDataBase> units)
     {
@@ -1247,5 +1238,14 @@ public class RogueLikeData
         isDataLoading = isLoad;
     }
 
+    public void SetLanguage(int _language)
+    {
+        language = _language;
+        GameTextDB.LoadFromRogueLike();
+    }
+    public int GetLanguage()
+    {
+        return language;
+    }
 
 }

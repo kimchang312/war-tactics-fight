@@ -61,7 +61,8 @@ public class GameManager : MonoBehaviour
     // 현재 플레이어가 위치한 스테이지
     private StageNodeUI currentStage;
 
-    [SerializeField] private UnitDetailExplain unitDetailExplain;
+    //[SerializeField] private UnitDetailExplain unitDetailExplain;
+    public UnitListUI unitListUI;
     private async void Awake()
     {
         if (Instance == null)
@@ -80,9 +81,13 @@ public class GameManager : MonoBehaviour
         {
             objectPool = GetComponentInChildren<ObjectPool>();
         }
-        if(unitDetailExplain == null)
+        if(unitDetail == null)
         {
-            unitDetailExplain = GetComponentInChildren<UnitDetailExplain>(true);
+            unitDetail = GetComponentInChildren<UnitDetailExplain>(true);
+        }
+        if(unitListUI == null)
+        {
+            unitListUI = GetComponentInChildren<UnitListUI>(true);
         }
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -92,7 +97,7 @@ public class GameManager : MonoBehaviour
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
         UnitLoader.Instance.LoadUnitsFromJson();
-        
+        GameTextDB.Boot();
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)

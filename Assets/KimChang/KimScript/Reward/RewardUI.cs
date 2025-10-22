@@ -3,16 +3,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
-using System;
 using DG.Tweening;
 
 public class RewardUI : MonoBehaviour
 {
     [SerializeField] private Image backgroundImg;
     [SerializeField] private GameObject backFrame;
-    [SerializeField] private TextMeshProUGUI resultText;
-    [SerializeField] private GameObject goldResult;
-    [SerializeField] private GameObject moraleResult;
+    //[SerializeField] private TextMeshProUGUI resultText;
+    [SerializeField] private Button goldResult;
     [SerializeField] private Button unitResult;
     [SerializeField] private Button relicResult;
     [SerializeField] private Button retryBtn;
@@ -23,17 +21,18 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private GameObject selectRewards;
     [SerializeField] private Button rerollBtn;
     [SerializeField] private Button skipBtn;
-    [SerializeField] private UnitSelectUI unitSelectUI;
-    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private UnitListUI unitListUI;
+
+    //[SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private GameObject itemToolTip;
     [SerializeField] private Image teasureBox;
     [SerializeField] private Button teasureBtn;
 
-    [SerializeField] private GameObject stageEndObj;
+    [SerializeField] private GameObject rewardWindow;
 
     // GameOver 루트는 이것 하나만 사용
-    [SerializeField] private GameObject gameOverPanel;          // = GameOverPanel (루트)
-    [SerializeField] private Image gameOverBackgroundImg;        // = GameOverDark 하위 Image
+    [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private Image gameOverBackgroundImg;
 
     [SerializeField] private GameObject winPanel;
     [SerializeField] private Image winImg;
@@ -45,11 +44,11 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private Button retryGameBtn;
     [SerializeField] private Button goTitleGameBtn;
 
-    [SerializeField] private GameObject moraleFlag;
+    [SerializeField] private GameObject endAnimation;
 
-    [Header("GameOver Timings")]
-    [SerializeField] private float blackoutDuration = 3f; // 암전 시간(초)
-    [SerializeField] private float revealDuration = 2f; // 승/패+버튼 표시 시간(초)
+
+    private float blackoutDuration = 3f;
+    private float revealDuration = 2f;
 
     SaveData saveData = new SaveData();
     private bool isEnd = false;
@@ -60,14 +59,22 @@ public class RewardUI : MonoBehaviour
     {
         // 이 함수는 버튼 루트 하위 Graphic을 캐시해 페이드 시 반복 탐색을 방지한다.
         if (btns != null)
+        {
             _btnGraphics = btns.GetComponentsInChildren<Graphic>(true);
+        }
+        if (unitListUI == null)
+        {
+            unitListUI = GameManager.Instance.unitListUI;
+        }
+        if(itemToolTip == null)
+        {
+            itemToolTip = GameManager.Instance.itemToolTip;
+        }
     }
-
 
     private void OnEnable()
     {
         ResetUI();
-        
     }
     public void InitializeAsIdle()
     {
@@ -109,17 +116,21 @@ public class RewardUI : MonoBehaviour
         reward.gold = gold;
         reward.relicGrade.Add(relicGrade);
 
-        resultText.text = "전리품";
-        goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {gold}";
-        RogueLikeData.Instance.EarnGold(gold);
+        goldResult.onClick.RemoveAllListeners();
+        goldResult.gameObject.SetActive(gold > 0);
+        goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"{gold} 금화";
+        goldResult.onClick.AddListener(() => ClickGoldResult(gold));
+
         RogueLikeData.Instance.SetBattleReward(reward);
+
+        relicResult.onClick.RemoveAllListeners();
         relicResult.onClick.AddListener(() => OpenReward(false));
-        goldResult.SetActive(true);
         relicResult.gameObject.SetActive(true);
 
         leaveBtn.onClick.RemoveAllListeners();
         leaveBtn.onClick.AddListener(LeaveReward);
     }
+
 
     // 이 함수는 전투 종료 애니메이션(사기 깃발 이동)을 실행할 때 사용한다.
     public void AnimateBattleEnd()
@@ -133,34 +144,28 @@ public class RewardUI : MonoBehaviour
     {
         ResetUI();
 
-        SafeSetActive(stageEndObj, true);
+        SafeSetActive(rewardWindow, true);
         SafeSetActive(gameOverPanel, false);
 
         AbleRewardWindow();
 
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
-        //bool isGameOver = RewardManager.CheckGameOver();
-        //if (isGameOver) reward.battleResult = 5;
-
-        resultText.text = reward.battleResult switch
-        {
-            //5 => "전멸",
-            2 => "무승부",
-            1 => "패배",
-            _ => resultText.text
-        };
 
         if (reward.battleResult == 0)
         {
-            goldResult.SetActive(true);
-            goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"  금화 {reward.gold}";
+            int gold = reward.gold;
+
+            goldResult.onClick.RemoveAllListeners();
+            goldResult.gameObject.SetActive(gold > 0);
+            goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"{gold} 금화";
+            goldResult.onClick.AddListener(() => ClickGoldResult(gold));
 
             int chapter = RogueLikeData.Instance.GetChapter();
             var type = RogueLikeData.Instance.GetCurrentStageType();
             if (chapter == 3 && type == StageType.Boss)
             {
                 isEnd = true;
-                scoreText.text = $"점수: {RogueLikeData.Instance.GetScore()}";
+                //scoreText.text = $"점수: {RogueLikeData.Instance.GetScore()}";
             }
 
             if (HasUnitReward(reward))
@@ -179,23 +184,12 @@ public class RewardUI : MonoBehaviour
 
             RogueLikeData.Instance.AddReroll(reward.rerollChance);
         }
-        /*
-        else if (isGameOver)
-        {
-            retryBtn.onClick.RemoveAllListeners();
-            goTitleBtn.onClick.RemoveAllListeners();
-            retryBtn.onClick.AddListener(ClickRetryBtn);
-            goTitleBtn.onClick.AddListener(ClickGoTitleBtn);
 
-            retryBtn.gameObject.SetActive(true);
-            goTitleBtn.gameObject.SetActive(true);
-            leaveBtn.gameObject.SetActive(false);
-            return;
-        }*/
+        //int moraeReward = reward.morale;
+        //RogueLikeData.Instance.ChangeMorale(moraeReward);
 
-        int moraeReward = reward.morale;
-        RogueLikeData.Instance.ChangeMorale(moraeReward);
-        RogueLikeData.Instance.EarnGold(reward.gold);
+        //Debug.Log(reward.gold);
+        //RogueLikeData.Instance.EarnGold(reward.gold);
     }
 
     private void ResetUI()
@@ -203,8 +197,9 @@ public class RewardUI : MonoBehaviour
         transform.SetAsLastSibling();
         btns.gameObject.SetActive(false);
         DisableRewardWindow();
-        goldResult.SetActive(false);
-        moraleResult.SetActive(false);
+        goldResult.gameObject.SetActive(false);
+        goldResult.onClick.RemoveAllListeners();
+        //moraleResult.SetActive(false);
 
         unitResult.onClick.RemoveAllListeners();
         unitResult.gameObject.SetActive(false);
@@ -226,12 +221,12 @@ public class RewardUI : MonoBehaviour
         rerollBtn.onClick.AddListener(RerollReward);
         skipBtn.onClick.AddListener(SkipSelectReward);
 
-        unitSelectUI.gameObject.SetActive(false);
-        moraleFlag.SetActive(false);
+        //unitListUI.gameObject.SetActive(false);
+        endAnimation.SetActive(false);
 
         // 추가 초기화 (게임 종료 UI 전용)
         SafeSetActive(gameOverPanel, false);
-        SafeSetActive(stageEndObj, false);
+        SafeSetActive(rewardWindow, false);
 
         SetAlpha(gameOverBackgroundImg, 0f);
 
@@ -328,7 +323,7 @@ public class RewardUI : MonoBehaviour
         var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
         rerollBtn.interactable = (reroll.Item1 > 0 && reroll.Item2);
         
-        countText.text = $"{reroll}";
+        countText.text = $"{reroll.Item1}";
 
         rewardSelectObj.SetActive(true);
         rerollBtn.gameObject.SetActive(true);
@@ -352,8 +347,9 @@ public class RewardUI : MonoBehaviour
             RewardManager.AcquireReward();
             if (info.data.relicId == 79)
             {
-                unitSelectUI.gameObject.SetActive(true);
-                unitSelectUI.OpenSelectUnitWindow(SelectUnitEndless, null, 1);
+                //일단 안쓰는걸로
+                unitListUI.Show(1, null, SelectUnitEndless);
+
                 return;
             }
         }
@@ -512,7 +508,7 @@ public class RewardUI : MonoBehaviour
     // 이 함수는 보물 상자를 열린 스프라이트로 바꿀 때 사용한다.
     private void OpenTeasureBox()
     {
-        teasureBox.sprite = SpriteCacheManager.GetSprite("KIcon/TeasuerOpen");
+        teasureBox.sprite = SpriteCacheManager.GetSprite("KIcon/TeasureOpen");
     }
 
     // 이 함수는 보상 UI 배경을 보이게 할 때 사용한다.
@@ -534,11 +530,10 @@ public class RewardUI : MonoBehaviour
     // 이 함수는 보상 UI 프레임을 활성화할 때 사용한다.
     private void AbleRewardWindow()
     {
-        // 변경 없음: 보상 프레임 켬
         if (backFrame != null)
         {
             var root = backFrame.transform.parent ? backFrame.transform.parent.gameObject : null;
-            if (root != null) root.SetActive(true); // stageEndObj라면 켜짐 유지
+            if (root != null) root.SetActive(true);
             backFrame.SetActive(true);
         }
     }
@@ -553,24 +548,61 @@ public class RewardUI : MonoBehaviour
     }
 
     // 이 함수는 전투 후 사기 깃발 연출을 재생할 때 사용한다.
-    public void AnimateMoraleFlag(int morale = 10)
+    // 사용처: 전투 종료 시 깃발 연출. 결과 아이콘은 1번째 자식에 세팅, 실제 이동은 2번째 자식을 이동.
+    public void AnimateMoraleFlag()
     {
-        RectTransform rect = moraleFlag.GetComponent<RectTransform>();
-        moraleFlag.GetComponentInChildren<TextMeshProUGUI>().text = morale > 0 ? $"+ {morale}" : $"- {morale}";
+        var reward = RogueLikeData.Instance.GetBattleReward();
+        if (endAnimation == null || reward == null) return;
 
-        rect.anchoredPosition = Vector2.zero;
-        moraleFlag.SetActive(true);
+        // 1) 결과 스프라이트 교체: endAnimation의 첫 번째 자식의 image-ui(Image) 또는 최상단 Image
+        Transform root = endAnimation.transform;
+        Transform header = root.childCount > 0 ? root.GetChild(0) : null;
+        if (header != null)
+        {
+            // image-ui 라는 자식을 우선 탐색, 없으면 가장 가까운 Image를 사용
+            Image headerImg =
+                header.Find("image-ui")?.GetComponent<Image>()
+                ?? header.GetComponent<Image>()
+                ?? header.GetComponentInChildren<Image>(true);
 
-        DOTween.Kill(rect);
+            if (headerImg != null)
+            {
+                string key =
+                    reward.battleResult == 0 ? "KIcon/RewardUI/Reward_Win" :
+                    reward.battleResult == 1 ? "KIcon/RewardUI/Reward_Defeat" :
+                    "KIcon/RewardUI/Reward_Draw";
+                headerImg.sprite = SpriteCacheManager.GetSprite(key);
+            }
+        }
+
+        // 2) 실제로 움직일 컨테이너: endAnimation의 두 번째 자식
+        RectTransform mover = (root.childCount > 1 ? root.GetChild(1) : null) as RectTransform;
+        if (mover == null)
+        {
+            mover = endAnimation.GetComponent<RectTransform>();
+            if (mover == null) return;
+        }
+
+        var morale = reward.morale;
+        var moraleTmp = mover.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (moraleTmp != null)
+            moraleTmp.text = morale >= 0 ? $"+ {morale}" : $"- {Mathf.Abs(morale)}";
+
+        endAnimation.SetActive(true);
+        DOTween.Kill(mover);
+        mover.anchoredPosition = Vector2.zero;
 
         Sequence seq = DOTween.Sequence();
         seq.AppendInterval(0.4f);
-        seq.Append(rect.DOAnchorPos(new Vector2(-466f, 580f), 0.6f).SetEase(Ease.InOutSine));
-        seq.OnComplete(() => {
-            moraleFlag.SetActive(false);
+        seq.Append(mover.DOAnchorPos(new Vector2(-466f, 580f), 0.6f).SetEase(Ease.InOutSine));
+        seq.OnComplete(() =>
+        {
+            RogueLikeData.Instance.ChangeMorale(reward.morale);
+            endAnimation.SetActive(false);
             CreateRewardUI();
         });
     }
+
 
     // 이 함수는 게임 종료 연출(암전→승/패+버튼 표시)을 재생할 때 사용한다.
     public void StartGameOverSequence(bool isWin)
@@ -580,7 +612,7 @@ public class RewardUI : MonoBehaviour
 
         // 활성 루트 세팅
         SafeSetActive(gameOverPanel, true);
-        SafeSetActive(stageEndObj, false);
+        SafeSetActive(rewardWindow, false);
 
         // 알파 초기값
         SetAlpha(gameOverBackgroundImg, 0f);
@@ -675,11 +707,14 @@ public class RewardUI : MonoBehaviour
             var c = g.color; c.a = a; g.color = c;
         }
     }
-    private void BringToFront()
+
+
+    private void ClickGoldResult(int gold)
     {
-        // RewardUI 루트와 stageEndObj를 모두 최상단으로 올림
-        transform.SetAsLastSibling();
-        if (stageEndObj != null) stageEndObj.transform.SetAsLastSibling();
+        if(gold <= 0) return;
+        RogueLikeData.Instance.EarnGold(gold);
+        goldResult.onClick.RemoveAllListeners();
+        goldResult.gameObject.SetActive(false);
     }
 
 }
