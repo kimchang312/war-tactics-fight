@@ -8,6 +8,7 @@ using DG.Tweening;
 public class StageNodeUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("Node Data")]
+    public int chapter = 1;
     public int level;
     public int row;
     public StageType stageType;
