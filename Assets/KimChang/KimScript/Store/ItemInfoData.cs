@@ -17,6 +17,7 @@ public class ItemInfoData
 
     public bool isUpgrade = false;
     public int upgradeId = -1;
+    public int gameTextId = -1;
 }
 public enum RewardType
 {

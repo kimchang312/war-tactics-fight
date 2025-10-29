@@ -24,7 +24,7 @@ public class LineUpBar : MonoBehaviour
         //유닛 리스트 가져오기
         unitListUI = GameManager.Instance.unitListUI;
 
-        GameObject.Find("CloseBTn").SetActive(false);
+        //GameObject.Find("CloseBTn").SetActive(false);
     }
 
     private void OnEnable()

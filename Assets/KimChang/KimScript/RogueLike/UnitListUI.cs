@@ -10,18 +10,18 @@ using UnityEngine.UI;
 
 public class UnitListUI : MonoBehaviour
 {
-    [Header("Refs")]
-    [SerializeField] private Transform unitList;            // 사용처: 유닛 아이템 부모
-    [SerializeField] private GameObject buttons;            // 사용처: 정렬 버튼 루트
-    [SerializeField] private Button dateOrderBtn;           // 사용처: 정렬-획득일
-    [SerializeField] private Button rarityOrderBtn;         // 사용처: 정렬-희귀도
-    [SerializeField] private Button branchOrderBtn;         // 사용처: 정렬-병종
-    [SerializeField] private Button energyOrderBtn;         // 사용처: 정렬-기력
-    [SerializeField] private Button nameOrderBtn;           // 사용처: 정렬-이름
-    [SerializeField] private Button closeBtn;               // 사용처: 패널 닫기
-    [SerializeField] private GameObject selectUnitObj;      // 사용처: 선택 모드 안내 UI 루트
-    [SerializeField] private TextMeshProUGUI selectUnitText;// 사용처: “n 명 남음” 텍스트
-    [SerializeField] private ObjectPool objectPool;         // 사용처: 유닛 아이템 풀
+    [SerializeField] private Transform unitList;
+    [SerializeField] private GameObject buttons;
+    [SerializeField] private Button dateOrderBtn;
+    [SerializeField] private Button rarityOrderBtn;
+    [SerializeField] private Button branchOrderBtn;
+    [SerializeField] private Button energyOrderBtn;
+    [SerializeField] private Button nameOrderBtn;
+    [SerializeField] private Button closeBtn;
+    [SerializeField] private GameObject selectUnitObj;
+    [SerializeField] private TextMeshProUGUI selectUnitText;
+    [SerializeField] private ObjectPool objectPool;
+    
 
     // 애니메이션 파라미터
     private float openAnimTime = 0.5f;
@@ -85,8 +85,7 @@ public class UnitListUI : MonoBehaviour
         _sourceUnits = null;
     }
 
-    // 사용처: 외부 진입점. unitCount>0이면 선택 모드, 0이면 열람 모드
-    // source/onSelected는 선택 모드에서만 의미 있음
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Show(int unitCount = 0, List<RogueUnitDataBase> source = null, Action onSelected = null)
     {
@@ -486,4 +485,6 @@ public class UnitListUI : MonoBehaviour
             .SetEase(Ease.InCubic)
             .OnComplete(() => gameObject.SetActive(false));
     }
+
+ 
 }

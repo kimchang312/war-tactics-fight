@@ -9,7 +9,6 @@ public class RewardUI : MonoBehaviour
 {
     [SerializeField] private Image backgroundImg;
     [SerializeField] private GameObject backFrame;
-    //[SerializeField] private TextMeshProUGUI resultText;
     [SerializeField] private Button goldResult;
     [SerializeField] private Button unitResult;
     [SerializeField] private Button relicResult;
@@ -23,7 +22,6 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private Button skipBtn;
     [SerializeField] private UnitListUI unitListUI;
 
-    //[SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private GameObject itemToolTip;
     [SerializeField] private Image teasureBox;
     [SerializeField] private Button teasureBtn;

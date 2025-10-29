@@ -390,7 +390,7 @@ GameObject:
   - component: {fileID: 193020980}
   - component: {fileID: 193020979}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: NewText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -669,7 +669,7 @@ GameObject:
   - component: {fileID: 441833356}
   - component: {fileID: 441833355}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: LoadText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1271,7 +1271,7 @@ GameObject:
   - component: {fileID: 1636685820}
   - component: {fileID: 1636685819}
   m_Layer: 5
-  m_Name: Text (TMP) (1)
+  m_Name: EndText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1741,6 +1741,9 @@ MonoBehaviour:
   loadBtn: {fileID: 1170826700}
   exitBtn: {fileID: 1829842205}
   testOptionBtn: {fileID: 0}
+  newText: {fileID: 193020979}
+  loadText: {fileID: 441833355}
+  endText: {fileID: 1636685819}
 --- !u!1001 &3859987665613238740
 PrefabInstance:
   m_ObjectHideFlags: 0

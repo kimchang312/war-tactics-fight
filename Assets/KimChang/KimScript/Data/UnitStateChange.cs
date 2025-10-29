@@ -94,18 +94,20 @@ public static class UnitStateChange
 
     public static StringBuilder GetUnitStatusDetail(RogueUnitDataBase unit, int stateId)
     {
+
         StringBuilder result = new();
         StatBlock statBlock = unit.stats;
         IEnumerable<StatModifier> modifiers = statBlock.GetAllModifiers();
 
+
         // stateId를 StatType으로 변환
         StatType statType = stateId switch
         {
-            0 => StatType.Mobility,
-            1 => StatType.Health,
-            2 => StatType.Armor,
-            3 => StatType.AttackDamage,
-            4 => StatType.Range,
+            -1 => StatType.Mobility,
+            100 => StatType.Health,
+            101 => StatType.Armor,
+            102 => StatType.AttackDamage,
+            103 => StatType.Range,
             _ => throw new ArgumentOutOfRangeException(nameof(stateId), $"Invalid stateId: {stateId}")
         };
 
@@ -141,8 +143,14 @@ public static class UnitStateChange
 
         float finalValue = (baseValue + flatBonus) * (1 + percentBonus);
 
-        // 결과 조립 (괄호는 한 번만)
-        result.Append($"{GameTextData.GetLocalizedTextFull(stateId + 100).Name}: {finalValue:0.#} (");
+        if(stateId == -1)
+        {
+            result.Append($"기동력: {finalValue:0.#} (");
+        }
+        else
+        {
+            result.Append($"{GameTextDB.Get(stateId)}: {finalValue:0.#} (");
+        }
         result.Append($"{baseValue:0.#}");
 
         foreach (var kvp in sourceValues)

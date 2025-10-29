@@ -7,7 +7,6 @@ using UnityEngine.UI;
 public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public GameObject ItemToolTip;
-    //[SerializeField] private GameObject unitPackageToolTip;
     private static readonly Dictionary<int, string> gradeText = new() 
     {
         {0,"저주" },
@@ -22,49 +21,16 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         if (ItemToolTip == null)
         {
             ItemToolTip = GameManager.Instance.itemToolTip;
-        }/*
-        if (unitPackageToolTip == null)
-        {
-            unitPackageToolTip = FindInactiveObject("UnitPackageToolTip");
-        }*/
+        }
         ItemInformation info = GetComponent<ItemInformation>();
         if (info == null)
         {
             Debug.LogWarning("ItemInformation 컴포넌트를 찾을 수 없습니다.");
             return;
         }
-
+        
         StoreItemData item = info.data.item;
-        /*
-        if (info.units.Count != 0)
-        {
-            unitPackageToolTip.SetActive(true);
-            ItemToolTip.SetActive(false);
-
-            Transform unitPackage = unitPackageToolTip.transform.GetChild(0);
-            int totalChildren = unitPackage.childCount;
-            int activeCount = info.units.Count;
-
-            for (int i = 0; i < totalChildren; i++)
-            {
-                GameObject child = unitPackage.GetChild(i).gameObject;
-
-                if (i < activeCount)
-                {
-                    RogueUnitDataBase unit = info.units[i];
-                    child.SetActive(true);
-                    UIMaker.CreateSelectUnitEnergy(unit, child);
-                }
-                else
-                {
-                    child.SetActive(false);
-                }
-            }
-
-            unitPackageToolTip.transform.SetAsLastSibling();
-            return;
-
-        }*/
+        
         TextMeshProUGUI textComponent = ItemToolTip.GetComponentInChildren<TextMeshProUGUI>();
 
         textComponent.text = "설정되지 않은 아이템";
@@ -115,14 +81,23 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
         else
         {
+            //특성 기술
             if (info.data.abilityId != -1)
             {
-                var (name, description) = GameTextData.GetLocalizedText(info.data.abilityId);
+                int id = info.data.abilityId;
+                string name = GameTextDB.Get(id);
+                string description = GameTextDB.FTitle(id.ToString());
+
                 textComponent.text = $"{name}\n{description}";
             }
             else if (info.data.unitId > -1)
             {
                 return;
+            }
+            else if(info.data.gameTextId != -1) //UI 마우스오버 텍스트
+            {
+                string text = GameTextDB.Get(info.data.gameTextId);
+                textComponent.text = $"{text}";
             }
         }
         RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
@@ -153,27 +128,16 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         tooltipRect.anchoredPosition = desiredPosition;
 
-        Canvas.ForceUpdateCanvases(); // ← 꼭 추가!
+        Canvas.ForceUpdateCanvases();
 
         ItemToolTip.SetActive(true);
-        //unitPackageToolTip.SetActive(false);
         ItemToolTip.transform.SetAsLastSibling();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         ItemToolTip.SetActive(false);
-        //unitPackageToolTip.SetActive(false);
     }
 
-    private GameObject FindInactiveObject(string name)
-    {
-        Transform[] allTransforms = Resources.FindObjectsOfTypeAll<Transform>();
-        foreach (var t in allTransforms)
-        {
-            if (t.name == name && t.gameObject.hideFlags == HideFlags.None)
-                return t.gameObject;
-        }
-        return null;
-    }
+
 }
