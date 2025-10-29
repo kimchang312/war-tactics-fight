@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using System.Linq;
 using Unity.VisualScripting;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -63,6 +64,7 @@ public class GameManager : MonoBehaviour
 
     //[SerializeField] private UnitDetailExplain unitDetailExplain;
     public UnitListUI unitListUI;
+    [SerializeField] private Button openUnitOrderBtn;
     private async void Awake()
     {
         if (Instance == null)
@@ -89,6 +91,9 @@ public class GameManager : MonoBehaviour
         {
             unitListUI = GetComponentInChildren<UnitListUI>(true);
         }
+        openUnitOrderBtn.onClick.RemoveAllListeners();
+        openUnitOrderBtn.onClick.AddListener(ClickOpenUnitOrderUI);
+
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -687,4 +692,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         Debug.LogWarning($"⚠️ Level {x}, Row {y}에 해당하는 스테이지를 찾을 수 없습니다.");
     }
 
+    private void ClickOpenUnitOrderUI()
+    {
+        unitListUI.gameObject.SetActive(true);
+    }
 }

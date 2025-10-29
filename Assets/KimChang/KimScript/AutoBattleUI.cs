@@ -451,46 +451,65 @@ public class AutoBattleUI : MonoBehaviour
         else _enemyDodge.text = $"회피율: {dodge}%";
     }
 
-
     private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
-        var boolAttributes = unit.GetType().GetFields()
-            .Where(f => f.FieldType == typeof(bool))
-            .Select(f => new { Name = f.Name, Value = (bool)f.GetValue(unit) });
+        var fields = unit.GetType().GetFields();
 
-        foreach (var attr in boolAttributes)
+        for (int i = 0; i < fields.Length; i++)
         {
-            if (!attr.Value || attr.Name == "rangedAttack" || attr.Name == "alive" || attr.Name == "fStriked")
+            var f = fields[i];
+            if (f.FieldType != typeof(bool))
                 continue;
 
-            GameObject iconImage = objectPool.GetAbility();
-            ItemInformation itemInfo = iconImage.GetComponent<ItemInformation>();
-            ExplainItem explainItem = iconImage.GetComponent<ExplainItem>();
+            bool hasTrait = (bool)f.GetValue(unit);
+            if (!hasTrait)
+                continue;
 
-            Image img = iconImage.GetComponent<Image>();
-            img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{attr.Name}");
+            string abilityKey = f.Name;
 
+            if (abilityKey == "rangedAttack" || abilityKey == "alive" || abilityKey == "fStriked")
+                continue;
+
+            int abilityIdx = AbilityIdMap.GetIdx(abilityKey);
+
+            if (abilityIdx < 0)
+            {
+                if (int.TryParse(abilityKey, out int parsedId))
+                {
+                    abilityIdx = parsedId;
+                }
+                else
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning($"[CreateAbilityIcons] abilityId 매핑 실패: {abilityKey}");
+#endif
+                    abilityIdx = -1;
+                }
+            }
+
+            GameObject iconGO = objectPool.GetAbility();
+
+            Sprite sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{abilityKey}");
+            if (sprite == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"[CreateAbilityIcons] 아이콘 스프라이트 없음: {abilityKey}");
+#endif
+                objectPool.ReturnAbility(iconGO);
+            }
+
+            Image img = iconGO.GetComponent<Image>();
+            img.sprite = sprite;
+
+            ItemInformation itemInfo = iconGO.GetComponent<ItemInformation>();
             itemInfo.data.isItem = false;
-            int? idx = GameTextData.GetIdxFromString(attr.Name);
-            if (idx.HasValue)
-            {
-                itemInfo.data.abilityId = idx.Value;
-            }
-            else if (int.TryParse(attr.Name, out int parsedId))
-            {
-                itemInfo.data.abilityId = parsedId;
-            }
-            else
-            {
-                Debug.LogWarning($"abilityId 파싱 실패: {attr.Name}");
-                itemInfo.data.abilityId = -1; // 혹은 예외 처리 또는 기본값 지정
-            }
+            itemInfo.data.abilityId = abilityIdx;
 
-            explainItem.ItemToolTip =itemToolTip;
-            Transform abilityBox = isTeam? myAbilityBox: enemyAbilityBox;
+            ExplainItem explainItem = iconGO.GetComponent<ExplainItem>();
+            explainItem.ItemToolTip = itemToolTip;
 
-            iconImage.transform.SetParent(abilityBox, false);
-
+            Transform abilityBox = isTeam ? myAbilityBox : enemyAbilityBox;
+            iconGO.transform.SetParent(abilityBox, false);
         }
     }
 
