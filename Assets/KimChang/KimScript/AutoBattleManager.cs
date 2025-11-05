@@ -56,6 +56,7 @@ public class AutoBattleManager : MonoBehaviour
             currentState = BattleState.None;
         if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
         InitializeRogueLike();
+        //RelicManager.HandleRandomRelic()
     }
     private async void Update()
     {
