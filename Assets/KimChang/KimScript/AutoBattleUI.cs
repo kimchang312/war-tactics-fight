@@ -14,7 +14,7 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private Transform canvasTransform;
     [SerializeField] private GameObject canvas;
 
-    [SerializeField] private RewardUI rewardUI;
+    private RewardUI rewardUI;
 
     [SerializeField] private TextMeshProUGUI _myUnitCountUI;
     [SerializeField] private TextMeshProUGUI _enemyUnitCountUI;
@@ -57,7 +57,10 @@ public class AutoBattleUI : MonoBehaviour
     {
         if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
         goTestBtn.SetActive(false);
-
+        if (rewardUI == null)
+        {
+            rewardUI = GameManager.Instance.rewardUI;
+        }
 
         int fieldId = RogueLikeData.Instance.GetFieldId();
         switch (fieldId) 
@@ -524,6 +527,11 @@ public class AutoBattleUI : MonoBehaviour
     //전투 종료
     public void FightEnd()
     {
+        if(rewardUI == null)
+        {
+            rewardUI = GameManager.Instance.rewardUI;
+        }
+
         rewardUI.AnimateBattleEnd();
     }
     //true 승리, false 패배

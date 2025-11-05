@@ -147,7 +147,9 @@ public static class GameTextDB
         return string.Empty;
     }
 
-    // 사용처: TitleKey로 텍스트 조회 (UI 타이틀/팝업 타이틀 등)
+    /// <summary>
+    /// GameText의 id
+    /// </summary>
     public static string GetByTitleKey(string titleKey)
     {
         if (titleKey != null && _byTitleKeyCur != null && _byTitleKeyCur.TryGetValue(titleKey, out var v)) return v;
@@ -158,7 +160,9 @@ public static class GameTextDB
         return titleKey ?? string.Empty;
     }
 
-    // 사용처: ForeignKey로 텍스트 조회 (외부 시스템/데이터시트 연동 키)
+   /// <summary>
+   /// 유닛idx,유산idx,이벤트idx,아이템idx 등
+   /// </summary>
     public static string GetByForeignKey(string foreignKey)
     {
         if (foreignKey != null && _byForeignKeyCur != null && _byForeignKeyCur.TryGetValue(foreignKey, out var v)) return v;

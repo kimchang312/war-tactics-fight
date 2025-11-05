@@ -431,17 +431,14 @@ public class AutoBattleManager : MonoBehaviour
         {
             if (enemyUnits.Count == 0 && myUnits.Count > 0)
             {
-                Debug.Log("나의 승리");
                 return 0;
             }
             else if (enemyUnits.Count > 0 && myUnits.Count == 0)
             {
-                Debug.Log("나의 패배");
                 return 1;
             }
             else
             {
-                Debug.Log("무승부");
                 return 2;
             }
         }
@@ -497,6 +494,7 @@ public class AutoBattleManager : MonoBehaviour
             }
             UpdateUnitCount();
             UpdateUnitHp();
+
 
             // 0.5초 뒤에 실행되도록 코루틴 시작
             StartCoroutine(DelayedBattleEnd(result));

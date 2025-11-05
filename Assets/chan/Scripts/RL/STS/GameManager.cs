@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine.UI;
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -91,8 +92,7 @@ public class GameManager : MonoBehaviour
         {
             unitListUI = GetComponentInChildren<UnitListUI>(true);
         }
-        openUnitOrderBtn.onClick.RemoveAllListeners();
-        openUnitOrderBtn.onClick.AddListener(ClickOpenUnitOrderUI);
+      
 
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -103,10 +103,14 @@ public class GameManager : MonoBehaviour
         StoreManager.LoadStoreData();
         UnitLoader.Instance.LoadUnitsFromJson();
         GameTextDB.Boot();
+
+        openUnitOrderBtn.onClick.RemoveAllListeners();
+        openUnitOrderBtn.onClick.AddListener(ClickOpenUnitOrderUI);
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
  {
+        openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
      if (scene.name != "RLmap")
         return;
 
@@ -337,7 +341,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 if (!relic.used)
                 {
                     relic.used = true;
-                    rewardUI.gameObject.SetActive(true);
+                    //rewardUI.gameObject.SetActive(true);
                     rewardUI.CreateTeasureUI();
                     return;
                 }
@@ -368,7 +372,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         }
         else if (newStage.stageType == StageType.Treasure)
         {
-            rewardUI.gameObject.SetActive(true);
+            //rewardUI.gameObject.SetActive(true);
             currentStage?.StopSelectableEffect();
             rewardUI.CreateTeasureUI();
         }
@@ -615,7 +619,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         unitDetail.gameObject.SetActive(false);
         restPanel.SetActive(false);
         enemyInfoPanel.SetActive(false);
-        rewardUI.gameObject.SetActive(false);
+        //rewardUI.gameObject.SetActive(false);
     }
 
     public void OpenBattlePanel()
@@ -694,6 +698,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
     private void ClickOpenUnitOrderUI()
     {
-        unitListUI.gameObject.SetActive(true);
+        bool active = unitListUI.gameObject.activeSelf;
+        if (active) {
+            unitListUI.CloseWithAnimation();
+        }
+        else
+        {
+            unitListUI.gameObject.SetActive(true);
+        }
+        
     }
 }
