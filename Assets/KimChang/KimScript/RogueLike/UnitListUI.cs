@@ -79,6 +79,7 @@ public class UnitListUI : MonoBehaviour
 
     private void OnDisable()
     {
+        CloseWithAnimation();
         RemoveSelectionListeners();
         _selectedUnits.Clear();
         _onSelectAction = null;
@@ -470,11 +471,11 @@ public class UnitListUI : MonoBehaviour
         branchOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(branchOrderBtn, 4));
         energyOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(energyOrderBtn, 6));
         nameOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(nameOrderBtn, 8));
-        closeBtn.onClick.AddListener(CloseWithAnimation);
+        //closeBtn.onClick.AddListener(CloseWithAnimation);
     }
 
     // 사용처: 닫기 애니메이션
-    private void CloseWithAnimation()
+    public void CloseWithAnimation()
     {
         var rect = (RectTransform)transform;
         rect.DOKill(false);

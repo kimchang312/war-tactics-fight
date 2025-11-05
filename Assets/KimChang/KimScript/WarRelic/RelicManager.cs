@@ -172,11 +172,10 @@ public class RelicManager
     /// </summary>
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
     {
-
-        var available = GetAvailableRelics(grade, action);
+        List<WarRelic> available = GetAvailableRelics(grade, action);
         if (available.Count == 0) return null;
-
-        var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
+        Debug.Log(available.Count);
+        WarRelic selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
         {

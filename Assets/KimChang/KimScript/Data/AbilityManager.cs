@@ -646,7 +646,10 @@ public class AbilityManager
             myDeathUnits.AddRange(tempMyDeathUnits);
 
             //유산 124
-            RelicManager.RunPartingShot(tempMyDeathUnits, enemyUnits[0], myFrontUnit);
+            if(enemyUnits.Count > 0)
+            {
+                RelicManager.RunPartingShot(tempMyDeathUnits, enemyUnits[0], myFrontUnit);
+            }
 
         } 
         if (tempEnemyDeathUnits.Count > 0)
@@ -1654,6 +1657,7 @@ public class AbilityManager
         foreach (var unit in units)
         {
             unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
+            unit.PassiveBizarreBishop();
         }
     }
     //불사 효과
@@ -2073,7 +2077,7 @@ public class AbilityManager
     {
         //team? 나의 공격 : 상대 공격
         CommenderEffect.CalculateZander(team, unitIndex);
-        autoBattleUI.ShowDamage(MathF.Round(damage), text, !team, isAttack,unitIndex);
+        autoBattleUI.ShowDamage(MathF.Round(damage), text, team, isAttack,unitIndex);
     }
 
     //사리유산

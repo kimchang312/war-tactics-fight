@@ -163,9 +163,12 @@ public static class UnitStateChange
         return result;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     private static void ApplyUnitAbility()
     {
-        RogueUnitDataBase.PassiveBizarreBishop();
+        //RogueUnitDataBase.PassiveBizarreBishop();
     }
 
 }

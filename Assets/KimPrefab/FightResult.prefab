@@ -879,8 +879,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1820, y: 987}
+  m_AnchoredPosition: {x: 0, y: 19.3557}
+  m_SizeDelta: {x: 1954.8457, y: 1147.1035}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1593151586496440171
 CanvasRenderer:
@@ -1298,7 +1298,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3511888253447226077}
-  - {fileID: 8328234785072008843}
   m_Father: {fileID: 1366665419480259100}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -2037,7 +2036,7 @@ MonoBehaviour:
   selectRewards: {fileID: 7773676253318414746}
   rerollBtn: {fileID: 5826310500395714521}
   skipBtn: {fileID: 2127593946704720924}
-  unitSelectUI: {fileID: 0}
+  unitListUI: {fileID: 0}
   itemToolTip: {fileID: 0}
   teasureBox: {fileID: 1961309091557947621}
   teasureBtn: {fileID: 3877699569891585020}
@@ -2867,7 +2866,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &404989874364187258
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2884,7 +2883,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1191857402249262630
@@ -3494,6 +3493,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6983877127655468933}
+  - {fileID: 8328234785072008843}
   - {fileID: 7831854549734839988}
   m_Father: {fileID: 4368553387844478532}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3792,11 +3792,11 @@ RectTransform:
   m_Children:
   - {fileID: 7911380788969366861}
   - {fileID: 1227595948857391753}
-  m_Father: {fileID: 6983877127655468933}
+  m_Father: {fileID: 1366665419480259100}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.0010986328, y: -35.18451}
+  m_AnchoredPosition: {x: -0.0009765625, y: -3.5000916}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &7874009528125325495
@@ -5068,6 +5068,7 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    gameTextId: -1
 --- !u!1001 &5788921353205370888
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5218,3 +5219,4 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    gameTextId: -1

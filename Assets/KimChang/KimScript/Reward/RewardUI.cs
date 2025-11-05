@@ -1,9 +1,10 @@
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
-using UnityEngine.SceneManagement;
 using DG.Tweening;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class RewardUI : MonoBehaviour
 {
@@ -183,11 +184,6 @@ public class RewardUI : MonoBehaviour
             RogueLikeData.Instance.AddReroll(reward.rerollChance);
         }
 
-        //int moraeReward = reward.morale;
-        //RogueLikeData.Instance.ChangeMorale(moraeReward);
-
-        //Debug.Log(reward.gold);
-        //RogueLikeData.Instance.EarnGold(reward.gold);
     }
 
     private void ResetUI()
@@ -197,7 +193,6 @@ public class RewardUI : MonoBehaviour
         DisableRewardWindow();
         goldResult.gameObject.SetActive(false);
         goldResult.onClick.RemoveAllListeners();
-        //moraleResult.SetActive(false);
 
         unitResult.onClick.RemoveAllListeners();
         unitResult.gameObject.SetActive(false);
@@ -219,7 +214,6 @@ public class RewardUI : MonoBehaviour
         rerollBtn.onClick.AddListener(RerollReward);
         skipBtn.onClick.AddListener(SkipSelectReward);
 
-        //unitListUI.gameObject.SetActive(false);
         endAnimation.SetActive(false);
 
         // 추가 초기화 (게임 종료 UI 전용)
@@ -413,6 +407,8 @@ public class RewardUI : MonoBehaviour
             rewardSelectObj.SetActive(false);
             unitResult.gameObject.SetActive(false);
             relicResult.gameObject.SetActive(false);
+
+            TryLeaveReward();
         }
     }
 
@@ -469,8 +465,9 @@ public class RewardUI : MonoBehaviour
         {
             SceneManager.LoadScene("RLmap");
         }
-        else
-            gameObject.SetActive(false);
+        //else
+        //    gameObject.SetActive(false);
+        ResetUI();
         return;
     }
 
@@ -713,6 +710,30 @@ public class RewardUI : MonoBehaviour
         RogueLikeData.Instance.EarnGold(gold);
         goldResult.onClick.RemoveAllListeners();
         goldResult.gameObject.SetActive(false);
+
+        TryLeaveReward();
+    }
+
+    // 사용처: 보상 UI가 전부 꺼졌는지 검사할 때 사용
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool AreAllRewardChildrenOff()
+    {
+        if (backFrame == null || backFrame.transform.childCount == 0) return false;
+
+        Transform root = backFrame.transform.GetChild(0);
+        for (int i = 0, n = root.childCount; i < n; i++)
+        {
+            if (root.GetChild(i).gameObject.activeSelf)
+                return false;
+        }
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void TryLeaveReward()
+    {
+        if (AreAllRewardChildrenOff())
+            LeaveReward();
     }
 
 }

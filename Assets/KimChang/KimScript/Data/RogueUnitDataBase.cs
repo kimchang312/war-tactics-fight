@@ -465,17 +465,15 @@ public class RogueUnitDataBase
         RogueLikeData.Instance.SetMyTeam(myTeam);
     }
 
-    public static void PassiveBizarreBishop()
+    /// <summary>
+    /// 기괴한 주교 
+    /// </summary>
+    public void PassiveBizarreBishop()
     {
-        List<RogueUnitDataBase> myTeam = RogueLikeData.Instance.GetMyTeam();
-        foreach (var unit in myTeam)
+        if(branchIdx == 1)
         {
-            if(unit.branchIdx == 1)
-            {
-                unit.wounding = true;
-                unit.counter=true;
-            }
-
+            wounding = true;
+            counter = true;
         }
     }
 
