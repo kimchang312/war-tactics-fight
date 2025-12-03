@@ -754,7 +754,7 @@ public class StoreUI : MonoBehaviour
     {
         if (snap == null || snap.unitPacks == null) return;
 
-        // 실제 바인딩 대상 슬롯만 수집
+        // UI 슬롯 수집
         int childCount = unitPackage.childCount;
         var slots = new List<UnitPackageUI>(childCount);
         for (int i = 0; i < childCount; i++)
@@ -765,50 +765,62 @@ public class StoreUI : MonoBehaviour
 
         int slotCount = slots.Count;
         int packCount = snap.unitPacks.Count;
-        int n = Mathf.Min(slotCount, packCount);
+        int n = slotCount < packCount ? slotCount : packCount;
 
-        // 슬롯 채우기 또는 비활성
+        // 사용처: UI 텍스트 TitleKey (전역 X, 이 메서드 한정)
+        // TK_PACK_NAME  : "{0} 외 {1}종" 같은 포맷 문자열
+        // TK_PACK_EMPTY : "빈 패키지"
+        const int TK_PACK_NAME = 1001;
+        const int TK_PACK_EMPTY = 1002;
+
         for (int i = 0; i < slotCount; i++)
         {
             var slot = slots[i];
 
             if (i >= n)
             {
-                slot.gameObject.SetActive(false);
+                if (slot.gameObject.activeSelf) slot.gameObject.SetActive(false);
                 continue;
             }
 
             var offer = snap.unitPacks[i];
 
-            // idx → Unit 복원
+            // 사용처: idx 목록으로 유닛 복원
             var ids = offer.unitIdxs;
-            var units = new List<RogueUnitDataBase>(ids.Length);
-            for (int k = 0; k < ids.Length; k++)
+            int idLen = (ids != null) ? ids.Length : 0;
+            var units = new List<RogueUnitDataBase>(idLen);
+            for (int k = 0; k < idLen; k++)
             {
                 var u = UnitLoader.Instance.GetCloneUnitById(ids[k]);
                 if (u != null) units.Add(u);
             }
 
-            // 패키지명 구성
+            // 사용처: 패키지명 구성
             string packName;
-            if (units.Count > 0)
+            int count = units.Count;
+
+            if (count <= 0)
             {
-                string first = units[0].unitName;
-                int etc = units.Count - 1;
-                if (etc > 0)
-                {
-                    string fmt = GameTextDB.Get("store.pack.name"); // "{0} 외 {1}종"
-                    packName = (fmt != "store.pack.name") ? string.Format(fmt, first, etc) : $"{first} 외 {etc}종";
-                }
-                else packName = first;
+                // 빈 패키지: UI/TK_PACK_EMPTY 조회 → 없으면 기본값
+                string s = GameTextDB.GetByTitleKey(TextKind.UI, TK_PACK_EMPTY);
+                packName = string.IsNullOrEmpty(s) ? "빈 패키지" : s;
+            }
+            else if (count == 1)
+            {
+                // 유닛 1개: 이름만
+                packName = units[0].unitName;
             }
             else
             {
-                packName = GameTextDB.Get("store.pack.empty");
-                if (string.IsNullOrEmpty(packName) || packName == "store.pack.empty") packName = "빈 패키지";
+                // 유닛 2개+: 포맷 조회 → 없으면 기본 규칙
+                string fmt = GameTextDB.GetByTitleKey(TextKind.UI, TK_PACK_NAME);
+                int etc = count - 1;
+                packName = string.IsNullOrEmpty(fmt)
+                    ? (units[0].unitName + " 외 " + etc + "종")
+                    : string.Format(fmt, units[0].unitName, etc);
             }
 
-            // StoreItemData 최소 구조(Null 방지)
+            // 사용처: 슬롯에 바인딩할 최소 아이템 정보(Null 방지)
             var fakeItem = new StoreItemData
             {
                 itemId = -1,
@@ -820,13 +832,16 @@ public class StoreUI : MonoBehaviour
                 type = "Unit",
                 form = "Fixed",
                 value = "",
-                count = units.Count,
+                count = count,
                 condition = "",
                 description = packName
             };
 
             slot.SetUnitPackage(units, fakeItem, offer.price);
-            slot.gameObject.SetActive(!offer.sold);
+
+            bool active = !offer.sold;
+            if (slot.gameObject.activeSelf != active)
+                slot.gameObject.SetActive(active);
         }
     }
     // 사용처: 유물 슬롯 바인딩

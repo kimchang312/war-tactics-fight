@@ -22,11 +22,10 @@ public class AbilityManager
     private float fireDamageValue = 0.05f;                    
     private float bloodSuckingValue = 0.2f;                
     private float martyrdomValue = 1.2f;
-    private float mybindingHealth = 15;
-    private float eneymybindingHealth = 15;
+    //private float mybindingHealth = 15;
+    //private float eneymybindingHealth = 15;
     private float mybindingAttackDamage = 5;                  
     private float enemybindingAttackDamage = 5;
-    private float moraleMultiplier = 0f;
     private int plunderGold = 20;                     
 
     private AutoBattleUI autoBattleUI;

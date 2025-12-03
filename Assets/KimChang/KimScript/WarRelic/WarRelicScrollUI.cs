@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.UIElements;
 
 public class WarRelicScrollUI : MonoBehaviour
 {
@@ -18,10 +19,10 @@ public class WarRelicScrollUI : MonoBehaviour
         {
             objectPool = GameManager.Instance.objectPool;
         }
-        CreateRelicList();
+
     }
 
-    private void CreateRelicList()
+    private void Update()
     {
         WarRelicBoxUI.SetRelicBox(this.gameObject, itemToolTip, objectPool);
     }

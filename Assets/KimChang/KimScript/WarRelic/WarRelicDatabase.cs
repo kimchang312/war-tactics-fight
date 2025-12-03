@@ -280,6 +280,42 @@ public static class WarRelicDatabase
                 r.BindConfig(vals);
         }
     }
+    public static void InitializeFromJson(string resourcePath = "JsonData/WarRelicsList")
+    {
+        if (relics.Count > 0)
+            return; // 이미 로드됨
+
+        if (!WarRelicLoader.TryLoadFromResources(resourcePath, out var dict))
+        {
+            Debug.LogError($"[WarRelicDatabase] Failed to load relic JSON from {resourcePath}");
+            return;
+        }
+
+        relics.Clear();
+        var valuesById = new Dictionary<int, string[]>(dict.Count);
+
+        foreach (var kv in dict)
+        {
+            var rec = kv.Value;
+            var relic = new WarRelic
+            {
+                id = rec.id,
+                grade = rec.grade,
+                used = false,
+                type = RelicType.AllEffect, // JSON에 타입 문자열이 있다면 파싱 가능
+                name = rec.name,
+                description = rec.description
+            };
+            relic.BindConfig(rec.value);
+            relics.Add(relic);
+            valuesById[rec.id] = rec.value;
+        }
+
+        // 값/액션 바인딩
+        BindValuesFromCatalog(valuesById);
+        BindExecOnAllRelics();
+
+    }
 
     #endregion
 

@@ -17,19 +17,23 @@ public class RelicManager
     private static Dictionary<int, List<int>> _idsByGrade;           // grade → id 리스트
     private static bool _catalogReady;
 
-    /// <summary>
-    /// 사용처: 게임 시작 시 1회 호출(카탈로그 캐시 준비)
-    /// </summary>
+    // 사용처: 게임 시작 시 1회 호출(카탈로그 캐시 준비)
     public static bool InitializeRelicCatalog(string resourcePath = "JsonData/WarRelicsList")
     {
+        if (WarRelicDatabase.relics == null || WarRelicDatabase.relics.Count == 0)
+        {
+            WarRelicDatabase.InitializeFromJson("JsonData/WarRelicsList");
+        }
         if (_catalogReady) return true;
         if (!WarRelicLoader.TryLoadFromResources(resourcePath, out var map))
+        {
+            Debug.LogError($"[RelicManager] Catalog load failed. Check Resources/{resourcePath}.json exists.");
             return false;
+        }
 
         _catalogById = map;
         _idsByGrade = new Dictionary<int, List<int>>(8);
 
-        // 사용처: grade 인덱스 구성 + value 전달용 버퍼
         var valuesById = new Dictionary<int, string[]>(map.Count);
         foreach (var kv in map)
         {
@@ -37,39 +41,22 @@ public class RelicManager
             var r = kv.Value;
 
             if (!_idsByGrade.TryGetValue(r.grade, out var list))
-            {
-                list = new List<int>(16);
-                _idsByGrade[r.grade] = list;
-            }
+                _idsByGrade[r.grade] = list = new List<int>(16);
             list.Add(id);
 
             if (r.value != null && r.value.Length > 0)
                 valuesById[id] = r.value;
         }
 
-        // 사용처: DB에 value 일괄 바인딩(이미 생성된 객체들도 주입)
         WarRelicDatabase.BindValuesFromCatalog(valuesById);
-
         _catalogReady = true;
 
-        // 사용처: 실행 함수가 이미 등록돼 있다면 모든 유산에 실행/값 바인딩 보정
         WarRelicDatabase.BindExecOnAllRelics();
         WarRelicDatabase.BindValuesOnAllRelics();
 
         return true;
     }
 
-    /// <summary>
-    /// 사용처: id로 카탈로그(정적 정보) 단건 조회
-    /// </summary>
-    public static bool TryGetRelicInfoById(int id, out WarRelicRecord info)
-    {
-        if (!_catalogReady) InitializeRelicCatalog();
-        if (_catalogById != null && _catalogById.TryGetValue(id, out info))
-            return true;
-        info = null;
-        return false;
-    }
 
     /// <summary>
     /// 사용처: grade로 카탈로그 id 리스트 조회(읽기전용 참조 성격)
@@ -128,33 +115,43 @@ public class RelicManager
     /// </summary>
     public static List<WarRelic> GetAvailableRelics(int grade, RelicAction action)
     {
+        // 카탈로그 초기화 보장
+        if (!_catalogReady)
+            InitializeRelicCatalog();
+
+        // 5, 7 → 희귀도 변환 로직 유지
         var random = RogueLikeData.Instance.GetRandomBySeed();
         if (grade == 5) grade = random.Next(0, 10) < 2 ? 10 : 1; // 20% 전설
         else if (grade == 7) grade = random.Next(0, 10) < 5 ? 10 : 1; // 50% 전설
 
-      
         var srcIds = GetRelicIdsByGrade(grade);
-        if (srcIds.Count == 0) return new List<WarRelic>(0);
-
-        // 보유 집합을 HashSet으로 1회 구성
-        var owned = RogueLikeData.Instance.GetAllOwnedRelicIds();
-        HashSet<int> ownedSet = owned != null ? new HashSet<int>(owned) : null;
-
-        // 필터 후 런타임 WarRelic로 매핑
-        var result = new List<WarRelic>(srcIds.Count);
-        for (int i = 0; i < srcIds.Count; i++)
+        if (srcIds == null || srcIds.Count == 0)
         {
-            int id = srcIds[i];
-            bool isOwned = ownedSet != null && ownedSet.Contains(id);
+            return new List<WarRelic>(0);
+        }
+
+        // 보유 유산 id 목록 → 항상 유효한 HashSet
+        var owned = RogueLikeData.Instance.GetAllOwnedRelicIds();
+        var ownedSet = (owned != null) ? new HashSet<int>(owned) : new HashSet<int>();
+
+        // 후보 필터링
+        var result = new List<WarRelic>(srcIds.Count);
+        foreach (int id in srcIds)
+        {
+            bool isOwned = ownedSet.Contains(id);
+
+            // 획득은 미보유만, 제거는 보유만
             if ((action == RelicAction.Acquire && !isOwned) ||
                 (action == RelicAction.Remove && isOwned))
             {
                 var wr = WarRelicDatabase.GetRelicById(id);
-                if (wr != null) result.Add(wr);
+                if (wr != null)
+                    result.Add(wr);
             }
         }
         return result;
     }
+
 
     /// <summary>
     /// 사용처: 랜덤 유산 id 하나 반환(등급/획득/삭제 공용)
@@ -162,6 +159,7 @@ public class RelicManager
     public static int GetRandomRelicId(int grade, RelicAction action)
     {
         var available = GetAvailableRelics(grade, action);
+        
         if (available.Count == 0) return -1;
 
         return available[RogueLikeData.Instance.GetRandomInt(0, available.Count)].id;
@@ -173,15 +171,17 @@ public class RelicManager
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
     {
         List<WarRelic> available = GetAvailableRelics(grade, action);
+
         if (available.Count == 0) return null;
-        Debug.Log(available.Count);
         WarRelic selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
         {
             RogueLikeData.Instance.AcquireRelic(selected.id);
             if (!ownedRelics.ContainsKey(selected.id))
+            {
                 ownedRelics.Add(selected.id, selected);
+            }
         }
         else // Remove
         {
@@ -189,6 +189,7 @@ public class RelicManager
             ownedRelics.Remove(selected.id);
         }
 
+      
         return selected;
     }
 
@@ -507,7 +508,9 @@ public class RelicManager
     /// </summary>
     public static WarRelic HandleRandomRelicAllGrades(RelicAction action)
     {
+        Debug.Log(action);
         var available = GetAvailableRelicsAllGrades(action);
+        Debug.Log(available.Count);
         if (available.Count == 0) return null;
 
         var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];

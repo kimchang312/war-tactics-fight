@@ -86,7 +86,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             {
                 int id = info.data.abilityId;
                 string name = GameTextDB.Get(id);
-                string description = GameTextDB.FTitle(id.ToString());
+                string description = GameTextDB.GetByTitleKey(TextKind.Ability,id);
 
                 textComponent.text = $"{name}\n{description}";
             }

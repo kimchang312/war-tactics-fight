@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+/// <summary>
+/// 안쓰는 코드
+/// </summary>
 public class UnitSelectUI : MonoBehaviour
 {
     [SerializeField] private GameObject selectUnitParent;

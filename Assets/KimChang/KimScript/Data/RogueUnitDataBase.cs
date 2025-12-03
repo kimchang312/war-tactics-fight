@@ -366,7 +366,8 @@ public class RogueUnitDataBase
         {
             UnitLoader.Instance.GetCloneUnitById(0),
             UnitLoader.Instance.GetCloneUnitById(1),
-            UnitLoader.Instance.GetCloneUnitById(2)
+            UnitLoader.Instance.GetCloneUnitById(2),
+
         };
         return units;
     }

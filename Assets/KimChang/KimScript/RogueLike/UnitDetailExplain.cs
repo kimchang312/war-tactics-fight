@@ -57,7 +57,7 @@ public class UnitDetailExplain : MonoBehaviour
         if (cacheData == unit) return;
 
         nameText.text = unit.unitName;
-        tagText.text = $"{GameTextDB.FForeign(unit.branchIdx.ToString())}: {unit.tag}";
+        tagText.text = $"{GameTextDB.Get(32)}: {GameTextDB.GetByForeignKey(TextKind.Tag,unit.tagIdx)}";
         branchText.text = $"{GameTextDB.Get(34)}: {branchName[unit.branchIdx]}";
         rarityText.text = $"{GameTextDB.Get(33)}: {unit.rarity}";
         energyText.text = $"현재 기력: {unit.Energy}";
