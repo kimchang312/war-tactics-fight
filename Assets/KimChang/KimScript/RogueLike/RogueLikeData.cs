@@ -200,6 +200,7 @@ public class RogueLikeData
     public void AcquireRelic(int relicId)
     {
         WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
+
         if (relic != null && relicsByType.ContainsKey(relic.type))
         {
             if (!relicIdsByType[relic.type].Contains(relicId))
@@ -219,6 +220,7 @@ public class RogueLikeData
                 relicsByType[relic.type].Add(relic);
                 relicIdsByType[relic.type].Add(relicId);
 
+           
                 //획득 시 발동
                 if (relic.type == RelicType.GetEffect)
                 {
@@ -227,6 +229,7 @@ public class RogueLikeData
 
             }
         }
+
     }
     //특정 타입 유물만 가져오기
     public List<WarRelic> GetRelicsByType(RelicType type)
@@ -309,7 +312,6 @@ public class RogueLikeData
         {
             allRelics.AddRange(relicList);
         }
-
         return allRelics;
     }
 

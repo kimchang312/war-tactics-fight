@@ -103,6 +103,7 @@ public class GameManager : MonoBehaviour
         StoreManager.LoadStoreData();
         UnitLoader.Instance.LoadUnitsFromJson();
         GameTextDB.Boot();
+        RelicManager.InitializeRelicCatalog();
 
         openUnitOrderBtn.onClick.RemoveAllListeners();
         openUnitOrderBtn.onClick.AddListener(ClickOpenUnitOrderUI);

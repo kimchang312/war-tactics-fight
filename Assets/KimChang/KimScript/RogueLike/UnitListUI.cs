@@ -21,8 +21,14 @@ public class UnitListUI : MonoBehaviour
     [SerializeField] private GameObject selectUnitObj;
     [SerializeField] private TextMeshProUGUI selectUnitText;
     [SerializeField] private ObjectPool objectPool;
-    
 
+    private readonly List<RogueUnitDataBase> _selectedUnits = new List<RogueUnitDataBase>(8);
+    private readonly Dictionary<Button, UnityAction> _unitClickMap = new Dictionary<Button, UnityAction>(64);
+    private Action _onSelectAction;
+    private List<RogueUnitDataBase> _sourceUnits; // 선택 후보군(null이면 보유 전체)
+
+    // 현재 UI 세션에서 사용하는 정렬 기준 캐시 (닫힐 때 RogueLikeData에 반영)
+    private int _unitOrder = -1;
     // 애니메이션 파라미터
     private float openAnimTime = 0.5f;
     private float sortAnimTime = 0.5f;
@@ -39,11 +45,6 @@ public class UnitListUI : MonoBehaviour
     // 선택 모드 상태
     private int _selectionRemain = 0; // 0이면 열람 모드
     private bool IsSelectionMode => _selectionRemain > 0;
-
-    private readonly List<RogueUnitDataBase> _selectedUnits = new List<RogueUnitDataBase>(8); // 현재 선택 모음
-    private readonly Dictionary<Button, UnityAction> _unitClickMap = new Dictionary<Button, UnityAction>(64); // per-item 클릭 리스너
-    private Action _onSelectAction;                             // 선택 완료 콜백
-    private List<RogueUnitDataBase> _sourceUnits;               // 선택 후보군(null이면 보유 전체)
 
     private void Awake()
     {
@@ -79,13 +80,17 @@ public class UnitListUI : MonoBehaviour
 
     private void OnDisable()
     {
+        // 정렬 상태를 닫힐 때 한 번만 저장
+        if (_unitOrder >= 0)
+            RogueLikeData.Instance.SetUnitOrder(_unitOrder);
+
         CloseWithAnimation();
         RemoveSelectionListeners();
         _selectedUnits.Clear();
         _onSelectAction = null;
         _sourceUnits = null;
+        _unitOrder = -1; // 다음 세션에서 다시 로드
     }
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Show(int unitCount = 0, List<RogueUnitDataBase> source = null, Action onSelected = null)
@@ -171,15 +176,18 @@ public class UnitListUI : MonoBehaviour
         // 선택 모드라면 source 우선, 아니면 보유 전체
         List<RogueUnitDataBase> units = _sourceUnits != null
             ? new List<RogueUnitDataBase>(_sourceUnits)
-            : RogueLikeData.Instance.GetMyUnits();
+            : RogueLikeData.Instance.GetMyTeam(); // 항상 현재 보유 유닛 기준
 
-        GetSortedUnits(ref units);
+
+        // 캐시된 정렬 기준으로 정렬
+        GetSortedUnits(ref units, GetUnitOrderCached());
 
         if (objectPool == null)
             objectPool = GameManager.Instance.objectPool;
 
         if (!IsSelectionMode)
             ResetOrderBtn();
+
 
         listSeq?.Kill();
         var content = (RectTransform)unitList;
@@ -383,9 +391,8 @@ public class UnitListUI : MonoBehaviour
     }
 
     // 사용처: 정렬 로직
-    public static void GetSortedUnits(ref List<RogueUnitDataBase> units)
+    public static void GetSortedUnits(ref List<RogueUnitDataBase> units, int order)
     {
-        int order = RogueLikeData.Instance.GetUnitOrder();
         IOrderedEnumerable<RogueUnitDataBase> ordered;
 
         switch (order)
@@ -405,10 +412,16 @@ public class UnitListUI : MonoBehaviour
         units = ordered.ToList();
     }
 
+    // 기존 외부 코드 호환용 – 필요하면 계속 사용 가능
+    public static void GetSortedUnits(ref List<RogueUnitDataBase> units)
+    {
+        int order = RogueLikeData.Instance.GetUnitOrder();
+        GetSortedUnits(ref units, order);
+    }
     // 사용처: 정렬 버튼 상태 초기화
     private void ResetOrderBtn()
     {
-        int unitOrder = RogueLikeData.Instance.GetUnitOrder();
+        int unitOrder = GetUnitOrderCached();
         DisableAllOrderImages();
 
         if (orderButtonMap.TryGetValue(unitOrder, out var targetBtn))
@@ -446,8 +459,7 @@ public class UnitListUI : MonoBehaviour
             scale.y *= -1f;
             imgTr.localScale = scale;
 
-            int newOrder = (scale.y > 0f) ? baseOrder : baseOrder + 1;
-            RogueLikeData.Instance.SetUnitOrder(newOrder);
+            _unitOrder = (scale.y > 0f) ? baseOrder : baseOrder + 1;
         }
         else
         {
@@ -457,12 +469,11 @@ public class UnitListUI : MonoBehaviour
             scale.y = 1f;
             imgTr.localScale = scale;
 
-            RogueLikeData.Instance.SetUnitOrder(baseOrder);
+            _unitOrder = baseOrder;
         }
 
         CreateUnitList();
     }
-
     // 사용처: 정렬 버튼 리스너 등록
     private void AddOrderButtonListeners()
     {
@@ -487,5 +498,13 @@ public class UnitListUI : MonoBehaviour
             .OnComplete(() => gameObject.SetActive(false));
     }
 
- 
+    // 사용처: 정렬 기준 캐시 조회
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int GetUnitOrderCached()
+    {
+        if (_unitOrder < 0)
+            _unitOrder = RogueLikeData.Instance.GetUnitOrder();
+        return _unitOrder;
+    }
+
 }

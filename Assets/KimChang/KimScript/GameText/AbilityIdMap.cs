@@ -15,7 +15,7 @@ public static class AbilityIdMap
         { "agility", 110 },
         { "strongCharge", 111 },
         { "perfectAccuracy", 112 },
-        { "slaugther", 113 },
+        { "slaughter", 113 },
 
         { "charge", 123 },
         { "defense", 124 },
