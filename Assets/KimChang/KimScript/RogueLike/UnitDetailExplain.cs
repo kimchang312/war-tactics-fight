@@ -11,12 +11,13 @@ public class UnitDetailExplain : MonoBehaviour
     [SerializeField] private TextMeshProUGUI branchText;
     [SerializeField] private TextMeshProUGUI rarityText;
     [SerializeField] private TextMeshProUGUI energyText;
+    [SerializeField] private TextMeshProUGUI unitExplain;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI armorText;
     [SerializeField] private TextMeshProUGUI attackText;
     [SerializeField] private TextMeshProUGUI mobilityText;
     [SerializeField] private TextMeshProUGUI ranageText;
-    [SerializeField] private TextMeshProUGUI anitText;
+    //[SerializeField] private TextMeshProUGUI anitText;
     [SerializeField] private TextMeshProUGUI maxEnergyText;
 
     [SerializeField] private Image unitImg;
@@ -56,11 +57,14 @@ public class UnitDetailExplain : MonoBehaviour
 
         if (cacheData == unit) return;
 
-        nameText.text = unit.unitName;
+        int titleKey = GameTextDB.GetIdxByForeignKey(TextKind.Unit, unit.idx);
+
+        nameText.text = GameTextDB.GetByTitleKey(TextKind.Unit, titleKey);
         tagText.text = $"{GameTextDB.Get(32)}: {GameTextDB.GetByForeignKey(TextKind.Tag,unit.tagIdx)}";
         branchText.text = $"{GameTextDB.Get(34)}: {branchName[unit.branchIdx]}";
         rarityText.text = $"{GameTextDB.Get(33)}: {unit.rarity}";
         energyText.text = $"현재 기력: {unit.Energy}";
+        unitExplain.text = $"{GameTextDB.Get(TextKind.Unit, titleKey, unit.idx)}";
         healthText.text = UnitStateChange.GetUnitStatusDetail(unit, 100).ToString();
         armorText.text = UnitStateChange.GetUnitStatusDetail(unit, 101).ToString();
         attackText.text = UnitStateChange.GetUnitStatusDetail(unit, 102).ToString();
@@ -69,6 +73,10 @@ public class UnitDetailExplain : MonoBehaviour
         //anitText.text = $"대기병: {unit.antiCavalry}";
         maxEnergyText.text = $"기력: {unit.MaxEnergy}";
         unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
+
+        
+
+
 
         var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool) && (bool)f.GetValue(unit))

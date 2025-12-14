@@ -3250,7 +3250,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   data:
-    isItem: 1
+    isItem: 0
     item:
       itemId: -1
       itemName: 
@@ -4638,6 +4638,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2627131625733377178, guid: 5f01f273701614649b410af8b9c4ef01, type: 3}
   m_PrefabInstance: {fileID: 515791092}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &528549279 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1999927650770080140, guid: 2a5295f387b8898448466aa170be423d, type: 3}
+  m_PrefabInstance: {fileID: 1855116622}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &528897186
 GameObject:
   m_ObjectHideFlags: 0
@@ -11744,7 +11755,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   data:
-    isItem: 1
+    isItem: 0
     item:
       itemId: -1
       itemName: 
@@ -12928,7 +12939,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   data:
-    isItem: 1
+    isItem: 0
     item:
       itemId: -1
       itemName: 
@@ -15493,6 +15504,10 @@ PrefabInstance:
       propertyPath: itemToolTip
       value: 
       objectReference: {fileID: 1701487200}
+    - target: {fileID: 1281087862747196878, guid: 2a5295f387b8898448466aa170be423d, type: 3}
+      propertyPath: unitExplain
+      value: 
+      objectReference: {fileID: 528549279}
     - target: {fileID: 1813254736781550983, guid: 2a5295f387b8898448466aa170be423d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -15697,6 +15712,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -313.14722
       objectReference: {fileID: 0}
+    - target: {fileID: 8815902642523282785, guid: 2a5295f387b8898448466aa170be423d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8883330088787066252, guid: 2a5295f387b8898448466aa170be423d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -15810,7 +15829,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   data:
-    isItem: 1
+    isItem: 0
     item:
       itemId: -1
       itemName: 

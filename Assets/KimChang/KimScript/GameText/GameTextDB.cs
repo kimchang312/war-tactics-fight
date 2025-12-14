@@ -22,7 +22,6 @@ public enum TextKind
     Stat = 52,
     BattlefieldEffect = 55,
     Commander = 56,
-
 }
 
 public static class GameTextDB
@@ -55,6 +54,10 @@ public static class GameTextDB
     static Dictionary<long, string> _byKindForeignCur;
     static Dictionary<long, string> _byKindForeignFb;
 
+    // 2-key: (kind, ForeignKey) -> Entry.Idx
+    // 사용처: foreignKey 기반으로 idx 역조회가 필요할 때 (보통 kind와 함께 사용)
+    static Dictionary<long, int> _idxByKindForeign;
+
     // 3-key: (kind, TitleKey, ForeignKey)
     struct TripleKey : IEquatable<TripleKey>
     {
@@ -64,7 +67,6 @@ public static class GameTextDB
         public override bool Equals(object obj) => obj is TripleKey t && Equals(t);
         public override int GetHashCode()
         {
-            // 간단하고 충돌 적은 혼합
             unchecked
             {
                 int h = a;
@@ -80,15 +82,13 @@ public static class GameTextDB
     static readonly Dictionary<string, TextKind> _kindMap =
       new Dictionary<string, TextKind>(StringComparer.OrdinalIgnoreCase)
       {
-          // 기본
           ["None"] = TextKind.None,
           ["UI"] = TextKind.UI,
           ["System"] = TextKind.System,
           ["Tutorial"] = TextKind.Tutorial,
 
-          // 신규/통합
           ["Unit"] = TextKind.Unit,
-          ["Ability"] = TextKind.Ability, 
+          ["Ability"] = TextKind.Ability,
           ["Tag"] = TextKind.Tag,
           ["UnitRarity"] = TextKind.UnitRarity,
           ["RelicRarity"] = TextKind.RelicRarity,
@@ -98,9 +98,8 @@ public static class GameTextDB
           ["Stat"] = TextKind.Stat,
           ["BattlefieldEffect"] = TextKind.BattlefieldEffect,
           ["Commander"] = TextKind.Commander,
-  
-          // 필요하면 여기에 ItemName/ItemDesc, EventDescription 등도 매핑 가능
       };
+
     static string _curLang = "kr";
     static string _fbLang = "en";
     static string _resourcePath = "JsonData/GameTextData"; // Resources 경로(확장자 제외)
@@ -129,6 +128,7 @@ public static class GameTextDB
             _byKindTitleCur = new Dictionary<long, string>(0);
             _byKindForeignCur = new Dictionary<long, string>(0);
             _byKindTitleForeignCur = new Dictionary<TripleKey, string>(0);
+            _idxByKindForeign = new Dictionary<long, int>(0);
 
             _byIdxFb = null;
             _byKindTitleFb = null;
@@ -145,6 +145,7 @@ public static class GameTextDB
         _byKindTitleCur = new Dictionary<long, string>(cap);
         _byKindForeignCur = new Dictionary<long, string>(cap);
         _byKindTitleForeignCur = new Dictionary<TripleKey, string>(cap);
+        _idxByKindForeign = new Dictionary<long, int>(cap);
 
         bool useFb = _fbLang != null;
         _byIdxFb = useFb ? new Dictionary<int, string>(cap) : null;
@@ -178,6 +179,19 @@ public static class GameTextDB
                 long k2f = Pack2(e.kind, e.ForeignKey);
                 if (cur != null) _byKindForeignCur[k2f] = cur;
                 else if (useFb && fb != null) _byKindForeignFb[k2f] = fb;
+            }
+
+            // (kind, ForeignKey) -> Idx (역조회)
+            // 사용처: foreignKey로 해당 Entry의 Idx가 필요할 때
+            // 주의: ForeignKey == 0은 데이터상 '미지정'인 경우가 많아서 역조회에서 제외(충돌 위험 큼)
+            if (e.ForeignKey != 0)
+            {
+                long k2fIdx = Pack2(e.kind, e.ForeignKey);
+#if UNITY_EDITOR
+                if (_idxByKindForeign.ContainsKey(k2fIdx))
+                    Debug.LogWarning($"[GameTextDB] Duplicated (kind,ForeignKey) for Idx map: ({e.kind},{e.ForeignKey})");
+#endif
+                _idxByKindForeign[k2fIdx] = e.Idx;
             }
 
             // (kind, TitleKey, ForeignKey)
@@ -249,6 +263,39 @@ public static class GameTextDB
         Debug.LogWarning($"[GameTextDB] Missing (kind,TitleKey,ForeignKey): ({kind},{titleKey},{foreignKey})");
 #endif
         return string.Empty;
+    }
+
+    // 사용처: (kind, foreignKey)로 Entry.Idx 역조회
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int GetIdxByForeignKey(TextKind kind, int foreignKey, int notFound = -1)
+    {
+        if (foreignKey == 0) return notFound;
+
+        long k = Pack2((int)kind, foreignKey);
+        return (_idxByKindForeign != null && _idxByKindForeign.TryGetValue(k, out int idx))
+            ? idx
+            : notFound;
+    }
+
+    // 사용처: (kindName, foreignKey)로 Entry.Idx 역조회(편의)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int GetIdxByForeign(string kindName, int foreignKey, int notFound = -1)
+    {
+        if (string.IsNullOrEmpty(kindName) || foreignKey == 0) return notFound;
+        return _kindMap.TryGetValue(kindName, out var k)
+            ? GetIdxByForeignKey(k, foreignKey, notFound)
+            : notFound;
+    }
+
+    // 사용처: (kind, foreignKey)로 Entry.Idx 역조회 시 bool로 성공 여부가 필요할 때
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGetIdxByForeignKey(TextKind kind, int foreignKey, out int idx)
+    {
+        idx = -1;
+        if (foreignKey == 0 || _idxByKindForeign == null) return false;
+
+        long k = Pack2((int)kind, foreignKey);
+        return _idxByKindForeign.TryGetValue(k, out idx);
     }
 
     // 사용처: 문자열 kindName + TitleKey로 조회
@@ -323,7 +370,7 @@ public static class GameTextDB
 
         string s = line;
 
-        // {require[i]} 치환 (이벤트 유닛 이름용)
+        // 사용처: {require[i]} 치환 (이벤트 유닛 이름용)
         if (requireNames != null)
         {
             for (int i = 0; i < requireNames.Count; i++)
@@ -332,7 +379,7 @@ public static class GameTextDB
             }
         }
 
-        // {result[i]} 치환 (이벤트 결과 토큰용)
+        // 사용처: {result[i]} 치환 (이벤트 결과 토큰용)
         if (resultTokens != null)
         {
             for (int i = 0; i < resultTokens.Count; i++)
@@ -340,12 +387,12 @@ public static class GameTextDB
                 string val = resultTokens[i] ?? "";
                 s = s.Replace($"{{result[{i}]}}", val);
 
-                // {text[i]}를 resultTokens와 동기로 쓰고 싶다면 여기서도 같이 치환
+                // 사용처: {text[i]}를 resultTokens와 동기로 쓰고 싶을 때
                 s = s.Replace($"{{text[{i}]}}", val);
             }
         }
 
-        // 별도로 넘겨주는 textTokens가 있으면 그것도 {text[i]}에 매핑
+        // 사용처: 별도 textTokens를 {text[i]}에 매핑할 때
         if (textTokens != null)
         {
             for (int i = 0; i < textTokens.Count; i++)
@@ -386,26 +433,5 @@ public static class GameTextDB
         return sb.ToString();
     }
 
-    public static string GetFormattedByForeignKey(
-    TextKind kind,
-    int foreignKey,
-    params string[] textTokens)
-    {
-        string raw = GetByForeignKey(kind, foreignKey);
-        if (string.IsNullOrEmpty(raw) || textTokens == null || textTokens.Length == 0)
-            return raw;
-
-        // textTokens를 List로 래핑해서 {text[i]} 치환
-        var textList = new List<string>(textTokens.Length);
-        for (int i = 0; i < textTokens.Length; i++)
-            textList.Add(textTokens[i]);
-
-        // 한 줄짜리 텍스트라서 lines = new[] { raw } 로 넘김
-        return ComposeLines(
-            new[] { raw },   // lines
-            null,            // requireNames 없음
-            null,            // resultTokens 없음
-            textList         // {text[i]}에 들어갈 값
-        );
-    }
+ 
 }

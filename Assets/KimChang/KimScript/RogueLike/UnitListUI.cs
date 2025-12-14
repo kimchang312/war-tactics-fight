@@ -61,7 +61,6 @@ public class UnitListUI : MonoBehaviour
         orderButtonMap[8] = nameOrderBtn;
         orderButtonMap[9] = nameOrderBtn;
 
-        gameObject.SetActive(false);
     }
 
     private void Start()
