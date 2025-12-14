@@ -48,6 +48,12 @@ public class RestUI : MonoBehaviour
         PlayFadeEffect(() =>
         {
             RogueLikeData.Instance.SetIsFreeUpgrade();
+            // UpgradeUI가 활성화되어 있으면 즉시 UI 업데이트
+            var upgradeUI = FindObjectOfType<UpgradeUI>();
+            if (upgradeUI != null && upgradeUI.gameObject.activeInHierarchy)
+            {
+                upgradeUI.ShowRandomChoices();
+            }
             Hide();
         });
     }
