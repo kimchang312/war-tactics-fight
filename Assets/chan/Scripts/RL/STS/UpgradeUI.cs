@@ -61,6 +61,43 @@ public class UpgradeUI : MonoBehaviour
         UpdateRerollButton();
     }
 
+    private void OnEnable()
+    {
+        // 활성화될 때 isFreeUpgrade 상태를 확인하고 UI 업데이트
+        if (RogueLikeData.Instance.isFreeUpgrade && _currentChoices != null && _currentChoices.Count > 0)
+        {
+            // 기존 옵션들의 가격을 0으로 업데이트
+            foreach (var opt in _currentChoices)
+            {
+                if (opt.cost != 0)
+                {
+                    opt.cost = 0;
+                    opt.upgradeCost = "0";
+                }
+            }
+            // UI 텍스트 업데이트
+            UpdateCostTexts();
+        }
+    }
+
+    private void UpdateCostTexts()
+    {
+        // 현재 표시된 옵션들의 가격 텍스트를 업데이트
+        foreach (Transform child in optionContainer)
+        {
+            var nameTxt = child.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
+            var costTxt = child.Find("UpgradeCost")?.GetComponent<TextMeshProUGUI>();
+            if (nameTxt != null && costTxt != null && _currentChoices != null)
+            {
+                var matched = _currentChoices.FirstOrDefault(o => o.upgradeName == nameTxt.text);
+                if (matched != null)
+                {
+                    costTxt.text = matched.upgradeCost;
+                }
+            }
+        }
+    }
+
     public void ShowRandomChoices()
     {
         // 1) 후보 리스트 다시 구성할 때, 매번 GetUpgrade 호출
