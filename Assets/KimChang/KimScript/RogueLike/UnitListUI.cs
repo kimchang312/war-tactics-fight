@@ -61,7 +61,6 @@ public class UnitListUI : MonoBehaviour
         orderButtonMap[8] = nameOrderBtn;
         orderButtonMap[9] = nameOrderBtn;
 
-        gameObject.SetActive(false);
     }
 
     private void Start()
@@ -211,6 +210,7 @@ public class UnitListUI : MonoBehaviour
 
         for (int i = 0; i < units.Count; i++)
         {
+            var unit = units[i];
             GameObject unitObj;
             if (i < childCount)
             {
@@ -225,13 +225,14 @@ public class UnitListUI : MonoBehaviour
 
             // 데이터 바인딩
             OneUnitUI oneUnit = unitObj.GetComponent<OneUnitUI>();
-            oneUnit.unit = units[i];
-            UIMaker.CreateSelectUnitEnergy(units[i], unitObj);
+            oneUnit.unit = unit;
+            oneUnit.SetOneUnit(unit);
+            //UIMaker.CreateSelectUnitEnergy(units[i], unitObj);
 
             // 선택 프레임 초기화/복원
             if (oneUnit.selectFrame != null)
             {
-                bool preSelected = selectionMode && _selectedUnits.Contains(units[i]);
+                bool preSelected = selectionMode && _selectedUnits.Contains(unit);
                 oneUnit.selectFrame.SetActive(preSelected);
             }
 

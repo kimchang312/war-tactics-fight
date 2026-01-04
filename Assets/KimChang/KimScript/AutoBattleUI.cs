@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static AutoBattleManager;
 
@@ -402,7 +401,8 @@ public class AutoBattleUI : MonoBehaviour
     {
         for (int i = 0; i < units.Count; i++)
         {
-            if (units[i].health <= 0) continue;
+            var unit = units[i];
+            if (unit.health <= 0) continue;
 
             string unitTeam = isMyUnit ? "My" : "Enemy";
             Transform parent = isMyUnit ? myBackUnitsParent : enemyBackUnitsParent;
@@ -411,13 +411,16 @@ public class AutoBattleUI : MonoBehaviour
             unitImage.transform.localScale = isMyUnit ? new(1, 1, 1) : new(-1, 1, 1);
 
             Transform childUnit = unitImage.transform.GetChild(0);
-            RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
-            RectTransform frameRect = childUnit.GetComponent<RectTransform>(); // unitFrame의 RectTransform
             Image unitFrame = childUnit.GetComponent<Image>();
+            unitFrame.sprite = SpriteCacheManager.GetFrameByRarity(unit.rarity);
+            RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
+            RectTransform frameRect = unitFrame.rectTransform;
+
+            //RectTransform frameRect = childUnit.GetComponent<RectTransform>();
 
             // 추가: 오브젝트 풀 재사용 대비, 매번 크기 강제 갱신
             float unitSize = (i == 0) ? firstSize : secondSize;      // 첫 유닛 240, 이후 140
-            float frameSize = unitSize + 10f;                         // frame은 +10
+            float frameSize = unitSize * (unit.rarity == 4 ? 1.185f : 1.17f);                         // frame은 +10
 
             rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, unitSize);
             rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, unitSize);
@@ -429,7 +432,7 @@ public class AutoBattleUI : MonoBehaviour
             if (i < positions.Length)
             {
                 rectTransform.anchoredPosition = positions[i];
-                unitTeam += i switch { 0 => "FirstUnit", 1 => "SecondUnit", _ => "BackUnit" };
+                //unitTeam += i switch { 0 => "FirstUnit", 1 => "SecondUnit", _ => "BackUnit" };
 
                 rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
                 rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
@@ -437,16 +440,15 @@ public class AutoBattleUI : MonoBehaviour
             }
             else
             {
-                unitTeam += "BackUnit";
+                //unitTeam += "BackUnit";
                 unitImage.transform.SetParent(parent, false);
             }
 
             // 스프라이트 및 보이기
             Image img = unitImage.GetComponent<Image>();
             img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
-            img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{units[i].idx}");
+            img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
 
-            unitFrame.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{unitTeam}");
             unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
         }
 
