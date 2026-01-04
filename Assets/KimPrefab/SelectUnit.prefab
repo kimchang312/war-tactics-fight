@@ -350,7 +350,7 @@ MonoBehaviour:
   energyImg: {fileID: 6999853480345872700}
   energyText: {fileID: 5895661121157636095}
   unitNameText: {fileID: 6071018935668774621}
-  unitFramImg: {fileID: 2295550064116676712}
+  unitFrameImg: {fileID: 2295550064116676712}
   selectFrame: {fileID: 0}
   unit:
     idx: 0

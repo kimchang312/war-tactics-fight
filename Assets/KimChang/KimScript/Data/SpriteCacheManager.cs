@@ -23,9 +23,27 @@ public static class SpriteCacheManager
         return loadedSprite;
     }
 
-    // 필요시 캐시 비우기 (예: 씬 전환 시)
-    public static void Clear()
+    public static Sprite GetFrameByRarity(int rarity)
     {
-        spriteCache.Clear();
+        string path = "KIcon/Frame/border_rarity_" + rarity.ToString();
+
+        if (spriteCache.TryGetValue(path, out var cachedSprite))
+        {
+            return cachedSprite;
+        }
+
+        var loadedSprite = Resources.Load<Sprite>(path);
+        if (loadedSprite == null)
+        {
+            Debug.LogWarning($"[SpriteCacheManager] Sprite not found at path: {path}");
+            return null;
+        }
+
+        spriteCache[path] = loadedSprite;
+        return loadedSprite;
+
+
+
     }
+
 }

@@ -15421,6 +15421,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ItemToolTip: {fileID: 0}
+--- !u!114 &1811332377 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5569356281220686738, guid: 2a5295f387b8898448466aa170be423d, type: 3}
+  m_PrefabInstance: {fileID: 1855116622}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1853016724 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3046970399296226553, guid: 2a5295f387b8898448466aa170be423d, type: 3}
@@ -15492,6 +15503,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 146
       objectReference: {fileID: 0}
+    - target: {fileID: 1281087862747196878, guid: 2a5295f387b8898448466aa170be423d, type: 3}
+      propertyPath: unitFrame
+      value: 
+      objectReference: {fileID: 1811332377}
     - target: {fileID: 1281087862747196878, guid: 2a5295f387b8898448466aa170be423d, type: 3}
       propertyPath: branchText
       value: 

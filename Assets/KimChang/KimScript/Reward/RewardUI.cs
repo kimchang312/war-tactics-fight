@@ -424,6 +424,8 @@ public class RewardUI : MonoBehaviour
         btn.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
         btn.GetComponentInChildren<TextMeshProUGUI>().text = unit.unitName;
 
+        //Image unitFrame = ;
+
         var info = btn.GetComponent<ItemInformation>();
         info.data.unitId = unit.idx;
         info.data.relicId = -1;

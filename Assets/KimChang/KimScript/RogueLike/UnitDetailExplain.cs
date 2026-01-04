@@ -19,6 +19,7 @@ public class UnitDetailExplain : MonoBehaviour
     [SerializeField] private TextMeshProUGUI ranageText;
     //[SerializeField] private TextMeshProUGUI anitText;
     [SerializeField] private TextMeshProUGUI maxEnergyText;
+    [SerializeField] private Image unitFrame;
 
     [SerializeField] private Image unitImg;
     
@@ -59,7 +60,7 @@ public class UnitDetailExplain : MonoBehaviour
 
         int titleKey = GameTextDB.GetIdxByForeignKey(TextKind.Unit, unit.idx);
 
-        nameText.text = GameTextDB.GetByTitleKey(TextKind.Unit, titleKey);
+        nameText.text = GameTextDB.GetByForeignKey(TextKind.Unit, unit.idx);
         tagText.text = $"{GameTextDB.Get(32)}: {GameTextDB.GetByForeignKey(TextKind.Tag,unit.tagIdx)}";
         branchText.text = $"{GameTextDB.Get(34)}: {branchName[unit.branchIdx]}";
         rarityText.text = $"{GameTextDB.Get(33)}: {unit.rarity}";
@@ -73,10 +74,13 @@ public class UnitDetailExplain : MonoBehaviour
         //anitText.text = $"대기병: {unit.antiCavalry}";
         maxEnergyText.text = $"기력: {unit.MaxEnergy}";
         unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
+        unitFrame.sprite = SpriteCacheManager.GetFrameByRarity(unit.rarity);
 
-        
 
-
+        float frameSize = unit.rarity == 4 ? 200 * 1.185f : 200 * 1.17f;
+        RectTransform frameRect = unitFrame.rectTransform;
+         
+        frameRect.sizeDelta = new Vector2(frameSize, frameSize);
 
         var boolAttributes = unit.GetType().GetFields()
             .Where(f => f.FieldType == typeof(bool) && (bool)f.GetValue(unit))
