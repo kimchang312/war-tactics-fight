@@ -219,6 +219,7 @@ MonoBehaviour:
     tag: 
     tagIdx: 0
     unitPrice: 0
+    defaultPrice: 0
     rarity: 0
     baseHealth: 0
     baseArmor: 0
@@ -228,12 +229,10 @@ MonoBehaviour:
     baseAntiCavalry: 0
     baseEnergy: 0
     health: 0
-    armor: 0
     attackDamage: 0
-    mobility: 0
     range: 0
     antiCavalry: 0
-    energy: 0
+    _energy: 0
     lightArmor: 0
     heavyArmor: 0
     rangedAttack: 0
@@ -270,10 +269,16 @@ MonoBehaviour:
     challenge: 0
     smokeScreen: 0
     maxHealth: 0
-    maxEnergy: 0
+    _maxEnergy: 0
     alive: 0
     fStriked: 0
     UniqueId: 0
+    stats:
+      baseHealth: 0
+      baseAttackDamage: 0
+      baseArmor: 0
+      baseRange: 0
+      baseMobility: 0
 --- !u!1 &4301364976155505636
 GameObject:
   m_ObjectHideFlags: 0
