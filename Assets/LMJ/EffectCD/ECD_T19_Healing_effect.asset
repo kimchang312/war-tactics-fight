@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_T19_Healing_effect
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: ec1658ca4fa6d6743aa8e6bc5ebe4a55, type: 3}
+  - {fileID: 21300000, guid: 34e8dea5f49f36e4e9c5522204c639aa, type: 3}
+  - {fileID: 21300000, guid: 8cd4b657500e95d44bf699d363911297, type: 3}
+  - {fileID: 21300000, guid: 53c7bb08479a39149afe978e9fdb76c6, type: 3}
+  - {fileID: 21300000, guid: 95be27ac16967ed4389fa0bdb6fd5da6, type: 3}
+  - {fileID: 21300000, guid: 2a123b8b7e9950c45958f5374cd5bcfe, type: 3}
+  totalDuration: 0.5

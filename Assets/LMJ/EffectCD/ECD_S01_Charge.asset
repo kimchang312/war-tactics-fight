@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S01_Charge
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: 81406eb4468adfd46ba16e79e1bbe753, type: 3}
+  - {fileID: 21300000, guid: 8c3ec2ad7f99cfd408391490a6990bcc, type: 3}
+  - {fileID: 21300000, guid: 36a560483a68563439eb92726be76614, type: 3}
+  totalDuration: 0.5

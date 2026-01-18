@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S06_Assassination
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: 0077a20645e1a27408782fcfb0c0b813, type: 3}
+  - {fileID: 21300000, guid: 43a5863184ad6eb489932feb2e59424f, type: 3}
+  - {fileID: 21300000, guid: 9c5cebbeae1a341489a227d39ae97beb, type: 3}
+  - {fileID: 21300000, guid: 5aae411093832a2429f3110a2ad7847b, type: 3}
+  - {fileID: 21300000, guid: 98340d7fd8eedf543b9e87fe2d5dd214, type: 3}
+  - {fileID: 21300000, guid: a22a7253265a84c4f86c731177767bc3, type: 3}
+  totalDuration: 0.5
+  playReverse: 0
+  loop: 0
+  playColor: {r: 1, g: 1, b: 1, a: 1}
+  allowFlip: 0
