@@ -231,8 +231,7 @@ public class AutoBattleUI : MonoBehaviour
 
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
 
-        // 트윈 시작 전에 정리해야 트윈이 바로 죽지 않음
-        rectTransform.DOKill(false);   // 수정 포인트
+        rectTransform.DOKill(false);
 
         Vector2 originPos = rectTransform.anchoredPosition;
         float direction = team ? 1f : -1f;
@@ -240,14 +239,23 @@ public class AutoBattleUI : MonoBehaviour
         Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f);
         Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f);
 
-        Sequence attackSequence = DOTween.Sequence();
-        attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f))
-                      .AppendInterval(0.2f)
-                      .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f))
-                      .Append(rectTransform.DOAnchorPos(originPos, 0.05f));
+        const float backSec = 0.05f;
+        const float waitSec = 0.20f;
+        const float forwardSec = 0.20f;
+        const float returnSec = 0.05f;
 
+        // 전투 애니 시작 시점에 검을 먼저 "생성"
         StartCoroutine(RunCrashAnimation(team));
+
+        Sequence attackSequence = DOTween.Sequence();
+        attackSequence
+            .Append(rectTransform.DOAnchorPos(moveBackPos, backSec))
+            .AppendInterval(waitSec)
+            .Append(rectTransform.DOAnchorPos(moveForwardPos, forwardSec))
+            .Append(rectTransform.DOAnchorPos(originPos, returnSec));
     }
+
+
     private IEnumerator RunCrashAnimation(bool team)
     {
         if (battleAnim == null || objectPool == null) yield break;

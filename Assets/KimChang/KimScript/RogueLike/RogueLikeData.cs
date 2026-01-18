@@ -89,6 +89,47 @@ public class RogueLikeData
     private bool isDataLoading = false;
 
     private int language = 0;
+
+    private float masterVolume =0;
+    private float bgmVolume = 0;
+    private float sfxVolume = 0;
+
+    public float MasterVolume
+    {
+        get => masterVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(masterVolume, v)) return;
+
+            masterVolume = v;
+        }
+    }
+
+    public float BgmVolume
+    {
+        get => bgmVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(bgmVolume, v)) return;
+
+            bgmVolume = v;
+        }
+    }
+
+    public float SfxVolume
+    {
+        get => sfxVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(sfxVolume, v)) return;
+
+            sfxVolume = v;
+        }
+    }
+
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
