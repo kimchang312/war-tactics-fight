@@ -58,6 +58,11 @@ public class UnitDetailExplain : MonoBehaviour
 
         if (cacheData == unit) return;
 
+        if (unitFrame == null)
+        {
+            unitFrame = transform.GetChild(1).GetChild(6).transform.Find("UnitFrame").GetComponent<Image>();
+        }
+
         int titleKey = GameTextDB.GetIdxByForeignKey(TextKind.Unit, unit.idx);
 
         nameText.text = GameTextDB.GetByForeignKey(TextKind.Unit, unit.idx);
