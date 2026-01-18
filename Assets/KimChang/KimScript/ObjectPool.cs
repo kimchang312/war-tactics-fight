@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -207,10 +208,12 @@ public class ObjectPool : MonoBehaviour
     //함수 호출 시 text비활성화 시키고 pooling
     public void ReturnDamageText(GameObject damageText)
     {
+        damageText.transform.DOKill(false); // 사용처: 풀 반환 시 잔여 트윈 제거(완료 처리 X)
         damageText.SetActive(false);
         damageText.transform.SetParent(canvasTransform, false);
         damageTextPool.Enqueue(damageText);
     }
+
 
     //유산 가져오기
     public GameObject GetWarRelic()

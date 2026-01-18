@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_T10_BindingForce_Down
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: cb02946c3937d3e479188d2e776bf74a, type: 3}
+  - {fileID: 21300000, guid: cee4a625832b91d4c8bc78cf80c1d4a5, type: 3}
+  - {fileID: 21300000, guid: 5002dc6b632c39545b2d2445a630e80c, type: 3}
+  - {fileID: 21300000, guid: 044b55a2778d49547acd95b6595d0bfe, type: 3}
+  - {fileID: 21300000, guid: 9d7e9f7f989b83f428ec85b6368a9f83, type: 3}
+  - {fileID: 21300000, guid: d57e2dd468893ff42808f014a4cd40ef, type: 3}
+  totalDuration: 0.5
+  playReverse: 1
+  loop: 0
+  playColor: {r: 0.9529412, g: 0.015686275, b: 0.05490196, a: 1}

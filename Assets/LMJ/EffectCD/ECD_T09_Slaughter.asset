@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_T09_Slaughter
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: a0b5879b63c381f4eb04bc72286838bd, type: 3}
+  - {fileID: 21300000, guid: 019a4936bdd726e4a834bed7fc5a0d4a, type: 3}
+  - {fileID: 21300000, guid: 8bee2f9828b9c9e48b00cb1eaf96c619, type: 3}
+  - {fileID: 21300000, guid: 7c5db7a5507638747848cd45b45aeafd, type: 3}
+  - {fileID: 21300000, guid: ff9a6cd3104acfe4984e44426b2e383e, type: 3}
+  - {fileID: 21300000, guid: e072fce4ebe428e45827f3f62a7db274, type: 3}
+  totalDuration: 0.5
