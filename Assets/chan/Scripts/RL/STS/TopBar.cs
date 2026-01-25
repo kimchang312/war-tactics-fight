@@ -1,5 +1,6 @@
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class TopBar : MonoBehaviour
 {
@@ -59,6 +60,44 @@ public class TopBar : MonoBehaviour
         optionButton?.onClick.AddListener(() => ToggleOptionPanel(true));
         continueButton?.onClick.AddListener(() => ToggleOptionPanel(false));
         saveAndGoTitleButton?.onClick.AddListener(SaveAndGoTitle);
+    }
+
+    private void Start()
+    {
+        // Title 씬일 때 TopBarPanel 비활성화
+        CheckAndDisableInTitleScene();
+        
+        // 씬 전환 시에도 확인하도록 이벤트 등록
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        // 이벤트 해제
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        CheckAndDisableInTitleScene();
+    }
+
+    private void CheckAndDisableInTitleScene()
+    {
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        if (currentSceneName == "Title")
+        {
+            gameObject.SetActive(false);
+            Debug.Log("[TopBar] Title 씬에서 TopBarPanel 비활성화");
+        }
+        else
+        {
+            // 다른 씬에서는 활성화 (이미 활성화되어 있을 수도 있음)
+            if (!gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+            }
+        }
     }
     
     private void ToggleOnly(GameObject panel)
