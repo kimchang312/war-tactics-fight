@@ -232,7 +232,47 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 3) 이후 이동은 연결된 스테이지만
         bool isConnected = currentStage.connectedStages.Contains(clickedStage);
         Debug.Log($" → 현재 스테이지({currentStage.level}) 와 clicked({clickedStage.level}) 연결 여부: {isConnected}");
-        if (isConnected)
+        
+        // 48번 무지개 열쇠: 연결되지 않은 지역으로 이동 가능 (챕터당 2회)
+        bool useRainbowKey = false;
+        if (!isConnected && RelicManager.CheckRelicById(48))
+        {
+            int currentChapter = RogueLikeData.Instance.GetChapter();
+            if (RogueLikeData.Instance.CanUseRainbowKey(currentChapter))
+            {
+                useRainbowKey = true;
+                RogueLikeData.Instance.UseRainbowKey(currentChapter);
+                int uses = RogueLikeData.Instance.GetRainbowKeyUses(currentChapter);
+                Debug.Log($"[무지개 열쇠] 연결되지 않은 지역으로 이동합니다. (사용 횟수: {uses}/2)");
+                
+                // 상태 텍스트 업데이트 (RelicTestHelper가 있으면)
+                var testHelper = FindObjectOfType<RelicTestHelper>();
+                if (testHelper != null)
+                {
+                    testHelper.RefreshStatus();
+                }
+                
+                // 2회 사용 후 전쟁유산 제거
+                if (uses >= 2)
+                {
+                    RogueLikeData.Instance.RemoveRelicById(48);
+                    RelicManager.GetRelicData(); // RelicManager의 ownedRelics도 업데이트
+                    Debug.Log($"[무지개 열쇠] 챕터 {currentChapter}에서 2회 사용 완료. 전쟁유산이 제거되었습니다.");
+                    
+                    // 상태 텍스트 다시 업데이트 (제거 후)
+                    if (testHelper != null)
+                    {
+                        testHelper.RefreshStatus();
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log($"[무지개 열쇠] 챕터 {currentChapter}에서 사용 횟수를 모두 소진했습니다. (2/2)");
+            }
+        }
+        
+        if (isConnected || useRainbowKey)
         {
             changemorale();
             SetCurrentStage(clickedStage);
@@ -325,7 +365,60 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 5) 연결된 다음 스테이지들 언락
         foreach (var nxt in newStage.connectedStages)
             nxt.UnlockStage();
+        
+        // 48번 무지개 열쇠: 보유 시 연결되지 않은 지역도 선택 가능하도록 언락
+        if (RelicManager.CheckRelicById(48))
+        {
+            int currentChapter = RogueLikeData.Instance.GetChapter();
+            int rainbowKeyUses = RogueLikeData.Instance.GetRainbowKeyUses(currentChapter);
+            
+            // 사용 횟수가 남아있을 때만 연결되지 않은 지역 언락
+            if (rainbowKeyUses < 2)
+            {
+                // 다음 레벨(현재 레벨 + 1)의 모든 스테이지만 언락
+                foreach (var stage in allStages)
+                {
+                    if (stage.level == newStage.level + 1 && stage.IsLocked)
+                    {
+                        // 연결되지 않은 스테이지만 언락 (이미 연결된 것은 위에서 언락됨)
+                        if (!newStage.connectedStages.Contains(stage))
+                        {
+                            stage.UnlockStage();
+                            Debug.Log($"[무지개 열쇠] 연결되지 않은 지역 언락: 레벨 {stage.level + 1} (사용 가능 횟수: {2 - rainbowKeyUses})");
+                        }
+                    }
+                }
+            }
+        }
 
+        // 47번 보물지도: 이벤트 지역 진입 시 보물로 변경
+        if (newStage.stageType == StageType.Event && RogueLikeData.Instance.GetNextEventToTreasure())
+        {
+            // StageNode 찾기 (MapGenerator에서)
+            var mapGen = FindObjectOfType<MapGenerator>();
+            if (mapGen != null)
+            {
+                string nodeKey = $"{newStage.level}_{newStage.row}";
+                if (mapGen.NodeDictionary.TryGetValue(nodeKey, out var stageNode))
+                {
+                    // StageNode 타입 변경
+                    stageNode.stageType = StageType.Treasure;
+                    
+                    // StageNodeUI 타입 변경 및 스프라이트 업데이트
+                    newStage.stageType = StageType.Treasure;
+                    newStage.Setup(stageNode);
+                    
+                    // RogueLikeData도 업데이트
+                    RogueLikeData.Instance.SetCurrentStage(newStage.level, newStage.row, StageType.Treasure);
+                    
+                    Debug.Log($"[보물지도] 이벤트 지역 (레벨 {newStage.level + 1})이 보물 지역으로 변경되었습니다.");
+                }
+            }
+            
+            // 플래그 리셋
+            RogueLikeData.Instance.SetNextEventToTreasure(false);
+        }
+        
         // 6) 타입별 처리
         if (newStage.stageType == StageType.Rest)
         {
@@ -448,6 +541,35 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             {
                 // 같은 레벨의 다른 경로는 잠금 유지 (되돌아가기 방지)
                 nxt.LockStage();
+            }
+        }
+        
+        // 48번 무지개 열쇠: 보유 시 연결되지 않은 지역도 선택 가능하도록 언락
+        if (RelicManager.CheckRelicById(48))
+        {
+            int currentChapter = RogueLikeData.Instance.GetChapter();
+            int rainbowKeyUses = RogueLikeData.Instance.GetRainbowKeyUses(currentChapter);
+            
+            // 사용 횟수가 남아있을 때만 연결되지 않은 지역 언락
+            if (rainbowKeyUses < 2)
+            {
+                // 다음 레벨(현재 레벨 + 1)의 모든 스테이지만 언락
+                foreach (var stage in all)
+                {
+                    if (stage.level == currentLevel + 1 && stage.IsLocked)
+                    {
+                        // 연결되지 않은 스테이지만 언락 (이미 연결된 것은 위에서 언락됨)
+                        if (!currentStage.connectedStages.Contains(stage))
+                        {
+                            stage.UnlockStage();
+                            Debug.Log($"[무지개 열쇠] 연결되지 않은 지역 언락: 레벨 {stage.level + 1} (사용 가능 횟수: {2 - rainbowKeyUses})");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log($"[무지개 열쇠] 챕터 {currentChapter}에서 사용 횟수를 모두 소진했습니다. (2/2)");
             }
         }
         

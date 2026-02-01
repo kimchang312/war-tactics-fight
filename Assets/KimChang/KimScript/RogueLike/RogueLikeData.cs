@@ -89,6 +89,12 @@ public class RogueLikeData
     private bool isDataLoading = false;
 
     private int language = 0;
+    
+    // 47번 보물지도: 다음 이벤트 지역을 보물로 변경할지 여부
+    private bool nextEventToTreasure = false;
+    
+    // 48번 무지개 열쇠: 챕터별 사용 횟수 (챕터 → 사용 횟수)
+    private Dictionary<int, int> rainbowKeyUsesPerChapter = new Dictionary<int, int>();
     private RogueLikeData()
     {
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
@@ -573,6 +579,14 @@ public class RogueLikeData
     }
     public void SetChapter(int chapter)
     {
+        // 챕터가 변경되면 무지개 열쇠 사용 횟수 초기화
+        if (this.chapter != chapter)
+        {
+            if (!rainbowKeyUsesPerChapter.ContainsKey(chapter))
+            {
+                rainbowKeyUsesPerChapter[chapter] = 0;
+            }
+        }
         this.chapter = chapter;
     }
     //챕터에 따른 이벤트 골드
@@ -1128,6 +1142,48 @@ public class RogueLikeData
     {
         return chapter+randomSeed;
     }
+
+    #region 47번 보물지도 관련 메서드
+    
+    public bool GetNextEventToTreasure()
+    {
+        return nextEventToTreasure;
+    }
+    
+    public void SetNextEventToTreasure(bool value)
+    {
+        nextEventToTreasure = value;
+    }
+    
+    #endregion
+    
+    #region 48번 무지개 열쇠 관련 메서드
+    
+    public int GetRainbowKeyUses(int chapter)
+    {
+        if (!rainbowKeyUsesPerChapter.ContainsKey(chapter))
+        {
+            rainbowKeyUsesPerChapter[chapter] = 0;
+        }
+        return rainbowKeyUsesPerChapter[chapter];
+    }
+    
+    public void UseRainbowKey(int chapter)
+    {
+        if (!rainbowKeyUsesPerChapter.ContainsKey(chapter))
+        {
+            rainbowKeyUsesPerChapter[chapter] = 0;
+        }
+        rainbowKeyUsesPerChapter[chapter]++;
+        Debug.Log($"[무지개 열쇠] 챕터 {chapter}에서 사용 횟수: {rainbowKeyUsesPerChapter[chapter]}/2");
+    }
+    
+    public bool CanUseRainbowKey(int chapter)
+    {
+        return GetRainbowKeyUses(chapter) < 2;
+    }
+    
+    #endregion
 
     #region 상점 스냅샷
 
