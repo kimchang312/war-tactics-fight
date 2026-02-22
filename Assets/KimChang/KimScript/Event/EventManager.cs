@@ -411,7 +411,7 @@ public class EventManager
                 case RequireThing.Gold:
                     if(choiceData.choiceId == 27)
                     {
-                        RogueLikeData.Instance.SetCurrentGold(0);
+                        RogueLikeData.Instance.EarnGold(-RogueLikeData.Instance.GetCurrentGold());
                         requireLog = "모든 금화를 잃었습니다.\n";
                     }
                     else if(form == RequireForm.None)
@@ -881,10 +881,11 @@ public class EventManager
 
                 case ResultType.Field:
                     {
+                        
                         int fieldId = int.Parse(value);
+                        Debug.Log(fieldId + "," + value);
                         RogueLikeData.Instance.SetFieldId(fieldId);
                         resultLog += "다음 전장이 변경되었습니다.\n";
-                        // PushResultToken(resultTokens, FieldName(fieldId)); // 필드명이 필요하면 추가
                         break;
                     }
 

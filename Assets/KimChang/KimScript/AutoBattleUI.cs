@@ -76,6 +76,7 @@ public class AutoBattleUI : MonoBehaviour
         int fieldId = RogueLikeData.Instance.GetFieldId();
         switch (fieldId) 
         {
+            
             case 2:
                 {
                     background.sprite = SpriteCacheManager.GetSprite("EventImages/Forest");
@@ -91,6 +92,10 @@ public class AutoBattleUI : MonoBehaviour
                     background.sprite = SpriteCacheManager.GetSprite("EventImages/Swampland");
                     break;
                 }
+                default:
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Background");
+
+                break;
         }
 
         ResetUIActive();
