@@ -9,8 +9,6 @@ using UnityEngine.Rendering;
 /// </summary>
 public class RelicManager
 {
-    // 보유 유산 (전투/효과 처리용 런타임 객체)
-    private static readonly Dictionary<int, WarRelic> ownedRelics = new Dictionary<int, WarRelic>(64);
     private static bool curseBlock;
 
     private static Dictionary<int, WarRelicRecord> _catalogById;     // id → 데이터(정적 정보)
@@ -80,26 +78,16 @@ public class RelicManager
     /// </summary>
     public static void GetRelicData()
     {
-        if (!_catalogReady) InitializeRelicCatalog();
-        ownedRelics.Clear();
+        // 사용처: 전투 진입 시 유산 시스템 초기화 보장
+        if (!_catalogReady)
+            InitializeRelicCatalog("JsonData/WarRelicsList");
 
-        void AddRelics(List<WarRelic> relics)
-        {
-            if (relics == null || relics.Count == 0) return;
-            for (int i = 0; i < relics.Count; i++)
-            {
-                var r = relics[i];
-                if (r == null) continue;
-                if (!ownedRelics.ContainsKey(r.id))
-                    ownedRelics.Add(r.id, r);
-            }
-        }
+        // 사용처: 세이브 로드로 들어온 relic이 있을 수 있으니 재바인딩(안전)
+        var owned = RogueLikeData.Instance.GetOwnedRelicMap();
+        if (owned == null || owned.Count == 0) return;
 
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.AllEffect));
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.SpecialEffect));
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.StateBoost));
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.BattleActive));
-        AddRelics(RogueLikeData.Instance.GetRelicsByType(RelicType.ActiveState));
+        foreach (var kv in owned)
+            WarRelicDatabase.RebindRuntime(kv.Value);
     }
 
     /// <summary>
@@ -107,7 +95,7 @@ public class RelicManager
     /// </summary>
     public static WarRelic GetRelicById(int id)
     {
-        return ownedRelics.TryGetValue(id, out var warRelic) ? warRelic : null;
+        return RogueLikeData.Instance.GetOwnedRelicById(id);
     }
 
     /// <summary>
@@ -130,15 +118,14 @@ public class RelicManager
             return new List<WarRelic>(0);
         }
 
-        // 보유 유산 id 목록 → 항상 유효한 HashSet
-        var owned = RogueLikeData.Instance.GetAllOwnedRelicIds();
-        var ownedSet = (owned != null) ? new HashSet<int>(owned) : new HashSet<int>();
+        // 보유 유산 조회(할당 없이)
+        var ownedMap = RogueLikeData.Instance.GetOwnedRelicMap();
 
         // 후보 필터링
         var result = new List<WarRelic>(srcIds.Count);
         foreach (int id in srcIds)
         {
-            bool isOwned = ownedSet.Contains(id);
+            bool isOwned = ownedMap != null && ownedMap.ContainsKey(id);
 
             // 획득은 미보유만, 제거는 보유만
             if ((action == RelicAction.Acquire && !isOwned) ||
@@ -159,7 +146,7 @@ public class RelicManager
     public static int GetRandomRelicId(int grade, RelicAction action)
     {
         var available = GetAvailableRelics(grade, action);
-        
+
         if (available.Count == 0) return -1;
 
         return available[RogueLikeData.Instance.GetRandomInt(0, available.Count)].id;
@@ -170,31 +157,21 @@ public class RelicManager
     /// </summary>
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
     {
-        List<WarRelic> available = GetAvailableRelics(grade, action);
-
+        var available = GetAvailableRelics(grade, action);
         if (available.Count == 0) return null;
-        WarRelic selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
+
+        var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
-        {
             RogueLikeData.Instance.AcquireRelic(selected.id);
-            if (!ownedRelics.ContainsKey(selected.id))
-            {
-                ownedRelics.Add(selected.id, selected);
-            }
-        }
         else // Remove
-        {
             RogueLikeData.Instance.RemoveRelicById(selected.id);
-            ownedRelics.Remove(selected.id);
-        }
 
-      
         return selected;
     }
 
     //유산9
-    public static float RunPulsatingDoll(RogueUnitDataBase unit,bool isTeam)
+    public static float RunPulsatingDoll(RogueUnitDataBase unit, bool isTeam)
     {
         if (!isTeam) return 0;
         float damage = 0;
@@ -210,7 +187,7 @@ public class RelicManager
                 }
             }
         }
-        
+
         return damage;
     }
 
@@ -274,22 +251,19 @@ public class RelicManager
     /// </summary>
     public static void CheckFusion()
     {
-        if (ownedRelics.ContainsKey(26)) return;
+        if (RogueLikeData.Instance.HasOwnedRelic(26)) return;
 
         int[] requiredRelicIds = { 23, 24, 25 };
         for (int i = 0; i < requiredRelicIds.Length; i++)
-            if (!ownedRelics.ContainsKey(requiredRelicIds[i])) return;
+            if (!RogueLikeData.Instance.HasOwnedRelic(requiredRelicIds[i])) return;
 
         for (int i = 0; i < requiredRelicIds.Length; i++)
-            ownedRelics[requiredRelicIds[i]].used = true;
-
-        var newRelic = WarRelicDatabase.GetRelicById(26);
-        if (newRelic != null)
         {
-            RogueLikeData.Instance.AcquireRelic(26);
-            if (!ownedRelics.ContainsKey(26))
-                ownedRelics.Add(26, newRelic);
+            var r = RogueLikeData.Instance.GetOwnedRelicById(requiredRelicIds[i]);
+            if (r != null) r.used = true;
         }
+
+        RogueLikeData.Instance.AcquireRelic(26);
     }
 
     /// <summary>
@@ -372,7 +346,7 @@ public class RelicManager
             var vals = relic?.GetAllValuesAsFloatListOrNull();
             if (vals != null)
             {
-                max = (int)vals[0]; 
+                max = (int)vals[0];
             }
         }
         return max;
@@ -386,7 +360,7 @@ public class RelicManager
         {
             WarRelic relic = GetRelicById(66);
             var vals = relic.GetAllValuesAsFloatListOrNull();
-            if(vals != null)
+            if (vals != null)
             {
                 max = (int)vals[0];
             }
@@ -419,12 +393,13 @@ public class RelicManager
     /// </summary>
     public static int RunStateRelic()
     {
-        if (ownedRelics.Count == 0) return 0;
+        var owned = RogueLikeData.Instance.GetOwnedRelicMap();
+        if (owned == null || owned.Count == 0) return 0;
 
         curseBlock = CheckRelicById(22);
 
         int executed = 0;
-        foreach (var kv in ownedRelics)
+        foreach (var kv in owned)
         {
             var relic = kv.Value;
             if (relic == null) continue;
@@ -432,6 +407,8 @@ public class RelicManager
             if (relic.type == RelicType.StateBoost || relic.type == RelicType.ActiveState)
             {
                 if (curseBlock && relic.grade == 0) continue;
+                Debug.Log(relic);
+                Debug.Log(relic.name);
                 relic.Execute();
                 executed++;
             }
@@ -444,7 +421,8 @@ public class RelicManager
     /// </summary>
     public static bool CheckRelicById(int relicId)
     {
-        return ownedRelics.TryGetValue(relicId, out var r) && !r.used;
+        var r = RogueLikeData.Instance.GetOwnedRelicById(relicId);
+        return r != null && !r.used;
     }
 
 
@@ -458,14 +436,12 @@ public class RelicManager
         var srcIds = GetRelicIdsByGrade(grade);
         if (srcIds.Count == 0) return new List<int>(0);
 
-        var owned = RogueLikeData.Instance.GetAllOwnedRelicIds();
-        HashSet<int> ownedSet = owned != null ? new HashSet<int>(owned) : null;
-
+        var ownedMap = RogueLikeData.Instance.GetOwnedRelicMap();
         var result = new List<int>(srcIds.Count);
         for (int i = 0; i < srcIds.Count; i++)
         {
             int id = srcIds[i];
-            bool isOwned = ownedSet != null && ownedSet.Contains(id);
+            bool isOwned = ownedMap != null && ownedMap.ContainsKey(id);
             if ((action == RelicAction.Acquire && !isOwned) ||
                 (action == RelicAction.Remove && isOwned))
             {
@@ -482,16 +458,14 @@ public class RelicManager
     {
         if (!_catalogReady) InitializeRelicCatalog();
 
-        var owned = RogueLikeData.Instance.GetAllOwnedRelicIds();
-        HashSet<int> ownedSet = owned != null ? new HashSet<int>(owned) : null;
-
+        var ownedMap = RogueLikeData.Instance.GetOwnedRelicMap();
         var list = new List<WarRelic>(_catalogById != null ? _catalogById.Count : 16);
         if (_catalogById != null)
         {
             foreach (var kv in _catalogById)
             {
                 int id = kv.Key;
-                bool isOwned = ownedSet != null && ownedSet.Contains(id);
+                bool isOwned = ownedMap != null && ownedMap.ContainsKey(id);
                 if ((action == RelicAction.Acquire && !isOwned) ||
                     (action == RelicAction.Remove && isOwned))
                 {
@@ -508,9 +482,7 @@ public class RelicManager
     /// </summary>
     public static WarRelic HandleRandomRelicAllGrades(RelicAction action)
     {
-        Debug.Log(action);
         var available = GetAvailableRelicsAllGrades(action);
-        Debug.Log(available.Count);
         if (available.Count == 0) return null;
 
         var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
@@ -518,14 +490,12 @@ public class RelicManager
         if (action == RelicAction.Acquire)
         {
             RogueLikeData.Instance.AcquireRelic(selected.id);
-            if (!ownedRelics.ContainsKey(selected.id))
-                ownedRelics.Add(selected.id, selected);
         }
         else // Remove
         {
             RogueLikeData.Instance.RemoveRelicById(selected.id);
-            ownedRelics.Remove(selected.id);
         }
+
         return selected;
     }
 
@@ -598,7 +568,7 @@ public class RelicManager
         int gold = 0;
         WarRelic relic = GetRelicById(94);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if (vals !=null)
+        if (vals != null)
         {
             int heavyCount = 0;
             var myUnits = RogueLikeData.Instance.GetMyUnits();
@@ -609,7 +579,7 @@ public class RelicManager
                     heavyCount++;
                 }
             }
-            gold = (int)vals[0]* heavyCount;
+            gold = (int)vals[0] * heavyCount;
         }
         return gold;
     }
@@ -706,8 +676,8 @@ public class RelicManager
         var front = RogueLikeData.Instance.GetMyUnits()[0];
         for (int i = (int)vals[0]; i > 0; i--)
         {
-            bool isAttack = RogueLikeData.Instance.GetRandomInt(0, 2)==0;
-            RogueLikeData.Instance.IncreaseUpgrade(front.branchIdx, isAttack,false);
+            bool isAttack = RogueLikeData.Instance.GetRandomInt(0, 2) == 0;
+            RogueLikeData.Instance.IncreaseUpgrade(front.branchIdx, isAttack, false);
         }
     }
 
@@ -717,7 +687,7 @@ public class RelicManager
         int max = 0;
         WarRelic relic = GetRelicById(110);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if(vals != null)
+        if (vals != null)
         {
             max = (int)vals[0];
         }
@@ -734,7 +704,7 @@ public class RelicManager
 
         vals[4] += deadCount;
         var myUnits = RogueLikeData.Instance.GetMyUnits();
-        
+
         foreach (var unit in myUnits)
         {
             unit.stats.RemoveModifiersBySourceAndId(SourceType.Relic, id);
@@ -751,12 +721,12 @@ public class RelicManager
         var vals = relic?.GetAllValuesAsFloatListOrNull();
         if (vals == null) return;
 
-        float fullHp=0;
+        float fullHp = 0;
         var myUnits = RogueLikeData.Instance.GetMyUnits();
-        foreach(var unit in myUnits)
+        foreach (var unit in myUnits)
         {
             fullHp += unit.maxHealth;
-            if(fullHp > vals[0])
+            if (fullHp > vals[0])
             {
                 RogueLikeData.Instance.EarnGold((int)vals[1]);
                 return;
@@ -786,11 +756,11 @@ public class RelicManager
     {
         WarRelic relic = GetRelicById(124);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if(vals == null) return;
+        if (vals == null) return;
 
         foreach (var unit in myDeadMyUnits)
         {
-            if(unit.branchIdx == 2 && unit != myFront)
+            if (unit.branchIdx == 2 && unit != myFront)
             {
                 float damage = unit.attackDamage * vals[0];
                 Mathf.Round(damage);
@@ -801,21 +771,21 @@ public class RelicManager
         }
     }
     //유산 127
-    public static void RunGuardiansCloak(List<RogueUnitDataBase> units, bool isTeam,ref int unitIdx, ref float damage)
+    public static void RunGuardiansCloak(List<RogueUnitDataBase> units, bool isTeam, ref int unitIdx, ref float damage)
     {
         //공격 당하는 유닛
         RogueUnitDataBase target = units[unitIdx];
 
         WarRelic relic = GetRelicById(127);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if(vals == null) return;
+        if (vals == null) return;
 
         if (!isTeam && !relic.used) return;
 
         for (int i = 0; i < units.Count; i++)
         {
             RogueUnitDataBase unit = units[i];
-            if(unit.UniqueId == target.UniqueId)
+            if (unit.UniqueId == target.UniqueId)
             {
                 unitIdx = i;
             }
@@ -836,7 +806,7 @@ public class RelicManager
     }
 
     //유산 129
-    public static void RunContractInvoice(List<RogueUnitDataBase> units,RogueUnitDataBase frontUnit)
+    public static void RunContractInvoice(List<RogueUnitDataBase> units, RogueUnitDataBase frontUnit)
     {
         WarRelic relic = GetRelicById(129);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
@@ -844,7 +814,7 @@ public class RelicManager
 
         foreach (var unit in units)
         {
-            if(unit != frontUnit)
+            if (unit != frontUnit)
             {
                 RogueLikeData.Instance.EarnGold((int)vals[0]);
             }
@@ -857,7 +827,7 @@ public class RelicManager
         int id = 132;
         WarRelic relic = GetRelicById(132);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if(vals == null) return;
+        if (vals == null) return;
 
         if (battleturn <= vals[0]) return;
 
@@ -881,7 +851,7 @@ public class RelicManager
         if (CheckRelicById(104))
         {
             WarRelic doubleEdgedAxeOfPride = GetRelicById(104);
-            doubleEdgedAxeOfPride.used = false; 
+            doubleEdgedAxeOfPride.used = false;
 
         }
         if (CheckRelicById(119))

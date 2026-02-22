@@ -31,7 +31,7 @@ public sealed class BattleCrashAnimation : MonoBehaviour
 
     // 사용처: PlayCrashAsync에서 무기가 유닛 중심이 아니라 전방에서 시작하도록 하는 거리
     private float weaponFrontStartDistance = 250f;
-    private float crashEffectYOffset = -20f;
+    private float crashEffectYOffset = 30f;
     // 사용처: Tween 완료 대기
     private static Task Await(Tween t)
     {

@@ -479,6 +479,7 @@ public class RewardUI : MonoBehaviour
         RogueLikeData.Instance.ClearBattleReward();
         saveData.ResetGameData();
         RogueLikeData.Instance.SetResetMap(true);
+        SafeSetActive(gameOverPanel, false);
         SceneManager.LoadScene("RLmap");
     }
 
@@ -488,6 +489,7 @@ public class RewardUI : MonoBehaviour
         RogueLikeData.Instance.ClearBattleReward();
         saveData.ResetGameData();
         RogueLikeData.Instance.SetResetMap(true);
+        SafeSetActive(gameOverPanel, false);
         SceneManager.LoadScene("Title");
     }
 
