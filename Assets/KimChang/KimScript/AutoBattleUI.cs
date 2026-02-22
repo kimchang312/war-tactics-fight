@@ -52,6 +52,18 @@ public class AutoBattleUI : MonoBehaviour
 
     private float waittingTime = 500f;
 
+    // 사용처: 데미지 텍스트가 "처음부터" 더 위에서 뜨게 하는 스폰 오프셋
+    [SerializeField] private float damageTextSpawnYOffset = 100f;
+
+    // 사용처: 뜬 뒤 추가로 위로 올라가는 거리(기존 80f)
+    [SerializeField] private float damageTextRise = 80f;
+
+    // 사용처: 좌표 변환(월드 -> 캔버스 로컬) 캐싱
+    private RectTransform canvasRt;
+    private Canvas rootCanvas;
+    private Camera uiCam;
+    private bool damageAnchorCacheReady;
+
     private void Start()
     {
         if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
@@ -135,120 +147,78 @@ public class AutoBattleUI : MonoBehaviour
     }
     private Vector2 GetDamageAnchor(int unitIndex, bool isMyUnit, float offsetX)
     {
+        EnsureDamageAnchorCache();
+
         GameObject unit = FindUnit(unitIndex, isMyUnit);
-        if (unit != null)
+
+        // 유닛이 있고 캔버스 RectTransform 캐시가 준비된 경우:
+        // 유닛이 어떤 부모 아래에 있든(캔버스/백라인) 월드 -> 캔버스 로컬로 변환해서 정확한 위치를 얻는다
+        if (unit != null && canvasRt != null)
         {
-            RectTransform r = unit.GetComponent<RectTransform>();
-            return r.anchoredPosition + new Vector2(offsetX, 0f);
+            RectTransform unitRt = unit.GetComponent<RectTransform>();
+
+            Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(uiCam, unitRt.position);
+
+            Vector2 localPoint;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRt, screenPoint, uiCam, out localPoint);
+
+            // "처음부터 더 높은 위치" + 기존 X 오프셋
+            localPoint.x += offsetX;
+            localPoint.y += damageTextSpawnYOffset;
+
+            return localPoint;
         }
-        // 유닛을 못 찾은 예외 상황에선 전열 기본값으로 폴백
-        return isMyUnit ? myTeam : enemyTeam; // 필요시 프로젝트 좌표계에 맞게 조정
-    }
-    private Vector2 GetUnitPosition(int unitIndex, bool isMyUnit, float offsetX)
-    {
-        GameObject unit = FindUnit(unitIndex, isMyUnit);
-        if (unit == null)
-        {
-            Debug.LogWarning($"유닛을 찾을 수 없음: {unitIndex}, 팀: {isMyUnit}");
-            return Vector2.zero;
-        }
 
-        RectTransform unitRect = unit.GetComponent<RectTransform>();
-        return unitRect.anchoredPosition + new Vector2(offsetX, 0);
-    }
-    private void ShowDamageInternalWithPosition(float damage, string text)
-    {
-        GameObject damageObj = objectPool.GetDamageText();
-        damageObj.SetActive(true);
-
-        var damagetext = damageObj.GetComponent<TextMeshProUGUI>();
-        damagetext.color = damage >= 0 ? Color.green : Color.red;
-        damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
-
-        RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-        //rectTransform.anchoredPosition = anchoredPosition;
-
-        StartCoroutine(HideAfterDelay(damageObj));
+        // 유닛을 못 찾은 예외 상황 폴백(전열 기본값) + 오프셋 적용
+        Vector2 fallback = isMyUnit ? (Vector2)myTeam : (Vector2)enemyTeam;
+        fallback.x += offsetX;
+        fallback.y += damageTextSpawnYOffset;
+        return fallback;
     }
     private void ShowDamageInternalWithPosition(float damage, string text, Vector2 anchoredPosition)
     {
         GameObject go = objectPool.GetDamageText();
+
         // damageText는 UI이므로 반드시 캔버스 아래에 두기
-        var rt = go.GetComponent<RectTransform>();
-        if (rt.transform.parent != canvasTransform) go.transform.SetParent(canvasTransform, false);
-        go.SetActive(true);
+        if (go.transform.parent != canvasTransform)
+            go.transform.SetParent(canvasTransform, false);
 
-        var tmp = go.GetComponent<TMPro.TextMeshProUGUI>();
+        // ObjectPool.GetDamageText()에서 이미 SetActive(true)지만 혹시 모를 케이스 방어
+        if (!go.activeSelf) go.SetActive(true);
 
-        // 중복 트윈 방지 및 할당 최소화
-        rt.DOKill(true);
-        tmp.DOKill(true);
+        // MoveDamageUI가 OnEnable에서 월드좌표 트윈을 자동 시작할 수 있음
+        // 여기서 즉시 Kill하면 첫 프레임 이동도 막힌다
+        go.transform.DOKill(false);
 
+        RectTransform rt = go.GetComponent<RectTransform>();
+        TextMeshProUGUI tmp = go.GetComponent<TextMeshProUGUI>();
+
+        // 이전에 걸린 "go 타겟 시퀀스" 정리 (complete=false로 OnComplete가 튀는 상황 방지)
+        DOTween.Kill(go, false);
+        rt.DOKill(false);
+        tmp.DOKill(false);
+
+        // 텍스트/색상 세팅(색상 설정 시 alpha=1로 복구됨)
         tmp.color = (damage >= 0) ? Color.green : Color.red;
         tmp.text = (damage == 0) ? $"{text}" : $"{Mathf.Abs(damage)} {text}";
 
+        // 시작 위치(이미 GetDamageAnchor에서 스폰 Y 오프셋 적용됨)
         rt.anchoredPosition = anchoredPosition;
 
-        // 올라가는 연출 + 페이드아웃
-        float dur = Mathf.Max(0.15f, waittingTime * 0.0012f); // 500f → 0.6s
+        float dur = Mathf.Max(0.15f, waittingTime * 0.0012f);
+
         DOTween.Sequence()
-            .Join(rt.DOAnchorPosY(anchoredPosition.y + 80f, dur))
+            .SetTarget(go) // 이후 DOTween.Kill(go)로 한 번에 정리 가능
+            .Join(rt.DOAnchorPosY(anchoredPosition.y + damageTextRise, dur))
             .Join(tmp.DOFade(0f, dur))
             .OnComplete(() =>
             {
                 // 풀로 돌려주기 전에 알파 복구
-                var c = tmp.color; tmp.color = new Color(c.r, c.g, c.b, 1f);
+                var c = tmp.color;
+                tmp.color = new Color(c.r, c.g, c.b, 1f);
+
                 objectPool.ReturnDamageText(go);
             });
-    }
-    private void ShowDamageImmediately(float damage, string text, bool team, int unitIndex, float offsetX)
-    {
-        Vector2 pos = GetDamageAnchor(unitIndex, team, offsetX);
-        ShowDamageInternalWithPosition(damage, text, pos);
-    }
-    private void ShowDamageInternal(float damage, string text, bool team, int unitIndex, float offsetX)
-    {
-        GameObject damageObj = objectPool.GetDamageText();
-        damageObj.SetActive(true);
-
-        TextMeshProUGUI damagetext = damageObj.GetComponent<TextMeshProUGUI>();
-        damagetext.color = damage >= 0 ? Color.green : Color.red;
-        damagetext.text = damage == 0 ? $"{text}" : $"{damage} {text}";
-
-        RectTransform rectTransform = damageObj.GetComponent<RectTransform>();
-        if (team)
-        {
-            if (unitIndex == 0)
-                rectTransform.anchoredPosition = myTeam;
-            else
-            {
-                GameObject unit = FindUnit(unitIndex, !team);
-                if (unit != null)
-                {
-                    RectTransform unitRect = unit.GetComponent<RectTransform>();
-                    rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
-                } 
-                
-            }
-        }
-        else
-        {
-            if (unitIndex == 0)
-                rectTransform.anchoredPosition = enemyTeam;
-            else
-            {
-                GameObject unit = FindUnit(unitIndex, !team);
-                if(unit != null)
-                {
-                    RectTransform unitRect = unit.GetComponent<RectTransform>();
-                    rectTransform.anchoredPosition = unitRect.anchoredPosition + new Vector2(offsetX, 0);
-                }
-                
-            }
-        }
-
-        CreateAbility(text, team);
-        StartCoroutine(HideAfterDelay(damageObj));
     }
 
 
@@ -261,8 +231,7 @@ public class AutoBattleUI : MonoBehaviour
 
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
 
-        // 트윈 시작 전에 정리해야 트윈이 바로 죽지 않음
-        rectTransform.DOKill(false);   // 수정 포인트
+        rectTransform.DOKill(false);
 
         Vector2 originPos = rectTransform.anchoredPosition;
         float direction = team ? 1f : -1f;
@@ -270,14 +239,23 @@ public class AutoBattleUI : MonoBehaviour
         Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f);
         Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f);
 
-        Sequence attackSequence = DOTween.Sequence();
-        attackSequence.Append(rectTransform.DOAnchorPos(moveBackPos, 0.05f))
-                      .AppendInterval(0.2f)
-                      .Append(rectTransform.DOAnchorPos(moveForwardPos, 0.2f))
-                      .Append(rectTransform.DOAnchorPos(originPos, 0.05f));
+        const float backSec = 0.05f;
+        const float waitSec = 0.20f;
+        const float forwardSec = 0.20f;
+        const float returnSec = 0.05f;
 
+        // 전투 애니 시작 시점에 검을 먼저 "생성"
         StartCoroutine(RunCrashAnimation(team));
+
+        Sequence attackSequence = DOTween.Sequence();
+        attackSequence
+            .Append(rectTransform.DOAnchorPos(moveBackPos, backSec))
+            .AppendInterval(waitSec)
+            .Append(rectTransform.DOAnchorPos(moveForwardPos, forwardSec))
+            .Append(rectTransform.DOAnchorPos(originPos, returnSec));
     }
+
+
     private IEnumerator RunCrashAnimation(bool team)
     {
         if (battleAnim == null || objectPool == null) yield break;
@@ -307,11 +285,6 @@ public class AutoBattleUI : MonoBehaviour
         while (!task.IsCompleted) yield return null;
     }
 
-    private IEnumerator HideAfterDelay(GameObject damageObj)
-    {
-        yield return new WaitForSeconds(waittingTime/1000f);
-        objectPool.ReturnDamageText(damageObj);
-    }
 
     //유닛 생성 코드
     public void CreateUnitBox(
@@ -706,5 +679,23 @@ public class AutoBattleUI : MonoBehaviour
             }
         }
     }
+
+    // 사용처: GetDamageAnchor에서 월드->로컬 변환에 필요한 캔버스/카메라 캐시
+    private void EnsureDamageAnchorCache()
+    {
+        if (damageAnchorCacheReady) return;
+
+        canvasRt = canvasTransform as RectTransform;
+        rootCanvas = (canvasTransform != null) ? canvasTransform.GetComponentInParent<Canvas>() : null;
+
+        if (rootCanvas != null && rootCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            uiCam = rootCanvas.worldCamera;
+        else
+            uiCam = null;
+
+        damageAnchorCacheReady = (canvasRt != null);
+    }
+
+
 }
 

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S02_Defense
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: 2c629865050e2ce4fb2a113327c48af1, type: 3}
+  - {fileID: 21300000, guid: f5ad6a352edcf0b4b82e1e6ff8118ff1, type: 3}
+  - {fileID: 21300000, guid: 14f90ff1050f2d145b0b5f9433d42bc6, type: 3}
+  - {fileID: 21300000, guid: 70fa00ac1ce38b941ba4105d842a2147, type: 3}
+  - {fileID: 21300000, guid: 284b70fd623e997419663cbd48d44dba, type: 3}
+  - {fileID: 21300000, guid: 826993d02d3d0894fb96ece1b38b812c, type: 3}
+  totalDuration: 0.5
+  playReverse: 0
+  loop: 0
+  playColor: {r: 1, g: 1, b: 1, a: 1}
+  allowFlip: 1

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_S13_FirstStrike
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: cf39888f4710d4a45bc4f7b7ab9410d4, type: 3}
+  - {fileID: 21300000, guid: be183461a0db4cf4e8d20eef4b4a3455, type: 3}
+  - {fileID: 21300000, guid: 68f1f797649e0974bb4eacf8283ffcea, type: 3}
+  - {fileID: 21300000, guid: 0dbb333fa9c53d74c9ace648e7c9dcc4, type: 3}
+  - {fileID: 21300000, guid: b251e7bca0510c646a2647f0279f908d, type: 3}
+  - {fileID: 21300000, guid: bd4bdc2d616ffea4cab8ca9636b84a84, type: 3}
+  totalDuration: 0.5

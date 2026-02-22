@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229a9082f095ba847b4ca401cc51baf9, type: 3}
+  m_Name: ECD_T16_Thorns
+  m_EditorClassIdentifier: 
+  frames:
+  - {fileID: 21300000, guid: e60a4943aa5887b47b8cf4c68b90d055, type: 3}
+  - {fileID: 21300000, guid: 588258a89adedcc4d8794e62c6ce2595, type: 3}
+  - {fileID: 21300000, guid: 8a1a9adc03d6a3d47890f1b6068e8175, type: 3}
+  - {fileID: 21300000, guid: 180bd28d373f60941a66f48c104441d0, type: 3}
+  - {fileID: 21300000, guid: 2582e8b93ac7b8c489a629c8a6887d49, type: 3}
+  - {fileID: 21300000, guid: 279aa362fde07af4ab1ff0ec45617936, type: 3}
+  totalDuration: 0.5
