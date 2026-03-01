@@ -91,8 +91,6 @@ public class SettingsUI : MonoBehaviour
         SceneManager.LoadScene("Title");     // 타이틀로 이동
     }
 
-
-
     #endregion
 
 }
