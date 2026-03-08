@@ -321,9 +321,9 @@ RectTransform:
   - {fileID: 2797297750983008219}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -960, y: -540}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3714886519063998276
@@ -342,8 +342,84 @@ MonoBehaviour:
   energyText: {fileID: 4945027797623524035}
   unitNumbering: {fileID: 7319663565755176701}
   placeOrder: {fileID: 1146773050333792162}
+  PrefabType: 0
   numberTextObject: {fileID: 9161367643236607843}
   numberText: {fileID: 7319663565755176701}
+  unitId: 0
+  uniqueId: 0
+  unitData:
+    idx: 0
+    unitName: 
+    unitBranch: 
+    branchIdx: 0
+    unitId: 
+    unitExplain: 
+    unitImg: 
+    unitFaction: 
+    factionIdx: 0
+    tag: 
+    tagIdx: 0
+    unitPrice: 0
+    defaultPrice: 0
+    rarity: 0
+    baseHealth: 0
+    baseArmor: 0
+    baseAttackDamage: 0
+    baseMobility: 0
+    baseRange: 0
+    baseAntiCavalry: 0
+    baseEnergy: 0
+    health: 0
+    attackDamage: 0
+    range: 0
+    antiCavalry: 0
+    _energy: 0
+    lightArmor: 0
+    heavyArmor: 0
+    rangedAttack: 0
+    bluntWeapon: 0
+    pierce: 0
+    agility: 0
+    strongCharge: 0
+    perfectAccuracy: 0
+    slaughter: 0
+    bindingForce: 0
+    bravery: 0
+    suppression: 0
+    plunder: 0
+    doubleShot: 0
+    scorching: 0
+    thorns: 0
+    endless: 0
+    impact: 0
+    healing: 0
+    lifeDrain: 0
+    charge: 0
+    defense: 0
+    throwSpear: 0
+    guerrilla: 0
+    guard: 0
+    assassination: 0
+    drain: 0
+    overwhelm: 0
+    martyrdom: 0
+    wounding: 0
+    vengeance: 0
+    counter: 0
+    firstStrike: 0
+    challenge: 0
+    smokeScreen: 0
+    maxHealth: 0
+    _maxEnergy: 0
+    alive: 0
+    fStriked: 0
+    UniqueId: 0
+    stats:
+      baseHealth: 0
+      baseAttackDamage: 0
+      baseArmor: 0
+      baseRange: 0
+      baseMobility: 0
 --- !u!1 &7219277971488669736
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,7 +663,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 22.699997, y: 0.1384}
+  m_AnchoredPosition: {x: 22.699997, y: 0.13839722}
   m_SizeDelta: {x: 200, y: 95.5735}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4047824411605672322
