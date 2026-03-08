@@ -22,6 +22,16 @@ public class RestUI : MonoBehaviour
         panelCG = gameObject.GetComponent<CanvasGroup>();
         if (panelCG == null) panelCG = gameObject.AddComponent<CanvasGroup>();
 
+        // 상단바 크기/레이아웃이 바뀌어도 페이드가 화면 전체를 덮도록 강제 (빈틈 방지)
+        if (fadeImage != null)
+        {
+            var rt = fadeImage.rectTransform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+        }
+
         // 처음엔 숨기고, 인터랙션 차단
 
         trainingButton.onClick.RemoveAllListeners();

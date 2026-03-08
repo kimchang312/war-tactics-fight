@@ -1,5 +1,6 @@
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class TopBar : MonoBehaviour
 {
@@ -35,6 +36,14 @@ public class TopBar : MonoBehaviour
         upgradeStatusPanel?.SetActive(false);
         academyPanel?.SetActive(false);
 
+        // TopBar 크기 변경/마스크 영향으로 패널 상단이 잘리는 문제 방지:
+        // 토글 패널들은 Canvas 루트(TopBar의 부모)로 올려서 TopBar 레이아웃에 종속되지 않게 한다.
+        var canvasRoot = transform.parent;
+        MovePanelToRootIfNeeded(ownedRelicsPanel, canvasRoot);
+        MovePanelToRootIfNeeded(upgradePanel, canvasRoot);
+        MovePanelToRootIfNeeded(upgradeStatusPanel, canvasRoot);
+        MovePanelToRootIfNeeded(academyPanel, canvasRoot);
+
         relicsToggleButton?.onClick.AddListener(() => ToggleOnly(ownedRelicsPanel));
         upgradeToggleButton?.onClick.AddListener(() => {
             ToggleOnly(upgradePanel);
@@ -60,6 +69,23 @@ public class TopBar : MonoBehaviour
         continueButton?.onClick.AddListener(() => ToggleOptionPanel(false));
         saveAndGoTitleButton?.onClick.AddListener(SaveAndGoTitle);
     }
+
+    private static void MovePanelToRootIfNeeded(GameObject panel, Transform root)
+    {
+        if (panel == null || root == null) return;
+        var t = panel.transform;
+        if (t.parent == root) return;
+
+        // 원래 위치 유지 (UI라서 local 기준 유지가 더 안전)
+        Vector3 localPos = t.localPosition;
+        Quaternion localRot = t.localRotation;
+        Vector3 localScale = t.localScale;
+
+        t.SetParent(root, worldPositionStays: false);
+        t.localPosition = localPos;
+        t.localRotation = localRot;
+        t.localScale = localScale;
+    }
     
     private void ToggleOnly(GameObject panel)
     {
@@ -73,6 +99,10 @@ public class TopBar : MonoBehaviour
 
         // 클릭 직전 꺼져 있었다면 켜고, 켜져 있었다면 그대로 꺼두기
         panel.SetActive(!wasActive);
+
+        // 켜는 경우 항상 최상단으로
+        if (panel.activeSelf)
+            panel.transform.SetAsLastSibling();
     }
     private void ToggleOptionPanel(bool show)
     {

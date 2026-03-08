@@ -17,12 +17,12 @@ public class RogueLikeData
             return instance;
         }
     }
-    
+
     private int nextUnitUniqueId = 0;
 
     private int maxUnits = 5;
     private int maxHero = 2;
-    
+
     private List<RogueUnitDataBase> myTeam = new();
     private List<RogueUnitDataBase> myUnits = new();
     private List<RogueUnitDataBase> enemyUnits = new();
@@ -31,6 +31,7 @@ public class RogueLikeData
 
     private Dictionary<RelicType, List<WarRelic>> relicsByType;
     private Dictionary<RelicType, HashSet<int>> relicIdsByType = new();
+    private readonly Dictionary<int, WarRelic> ownedRelicsById = new(64);
     private Dictionary<int, int> encounteredEvent = new();
     //퀘스트의 상태 id, 완료 여부 퀘스트 수락시 false 퀘스트 취소되면 배열삭제
     private Dictionary<int, QuestClass> questState = new();
@@ -59,23 +60,29 @@ public class RogueLikeData
 
     private int rerollChance = 2;
 
-    public bool isFreeUpgrade =false;
+    public bool isFreeUpgrade = false;
 
     private int battleUnitCount = 0;
 
     private int score = 0;
 
-    private bool clearChapter=false;
-    private bool resetMap =false;
+    private bool clearChapter = false;
+    private bool resetMap = false;
 
     private int randomSeed;
     private System.Random systemRandom;
     private int currentStageSeedBase;
     private int stageCallCount;
-    
-    private bool isTestMode =false;
+
+    private bool isTestMode = false;
 
     private int unitOrder = 0;
+
+    // --- 전쟁유산 47/48 상태 ---
+    // 47: 보물지도 - 다음 이벤트 지역을 보물로 변환하는 1회성 플래그
+    private bool nextEventToTreasure = false;
+    // 48: 무지개 열쇠 - 챕터당 2회 사용(챕터별 사용 횟수 기록)
+    private Dictionary<int, int> rainbowKeyUsesPerChapter = new Dictionary<int, int>();
 
     // 사용처: 현재 상점 세션 저장/복원
     private StoreSnapshot currentStore;
@@ -83,14 +90,20 @@ public class RogueLikeData
 
     // 사용처: 상점 좌표 → 유니크 키
     private string BuildStoreKey(int chapter, int x, int y) => $"{chapter}:{x}:{y}";
-    
+
     private bool isStageClear = false;
 
     private bool isDataLoading = false;
 
     private int language = 0;
+    
+    // 47번 보물지도: 다음 이벤트 지역을 보물로 변경할지 여부
+    private bool nextEventToTreasure = false;
+    
+    // 48번 무지개 열쇠: 챕터별 사용 횟수 (챕터 → 사용 횟수)
+    private Dictionary<int, int> rainbowKeyUsesPerChapter = new Dictionary<int, int>();
 
-    private float masterVolume =0;
+    private float masterVolume = 0;
     private float bgmVolume = 0;
     private float sfxVolume = 0;
 
@@ -201,7 +214,7 @@ public class RogueLikeData
     {
         int heroCount = 0;
         int maxHeroCount = GetMaxHero();
-        if(unit.branchIdx == 8)
+        if (unit.branchIdx == 8)
         {
             for (int i = 0; i < myTeam.Count; i++)
             {
@@ -216,7 +229,7 @@ public class RogueLikeData
                 }
             }
         }
-       
+
         myTeam.Add(unit);
     }
 
@@ -241,17 +254,18 @@ public class RogueLikeData
     public void AcquireRelic(int relicId)
     {
         WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
-
+        Debug.Log("획득신호"+relicId);
         if (relic != null && relicsByType.ContainsKey(relic.type))
         {
             if (!relicIdsByType[relic.type].Contains(relicId))
             {
-                if (relicId == 53 )
+                Debug.Log("획득"+relicId);
+                if (relicId == 53)
                 {
                     var vals = relic.GetAllValuesAsFloatListOrNull();
                     if (vals != null)
                     {
-                        if(GetRandomFloat() <= vals[1])
+                        if (GetRandomFloat() <= vals[1])
                         {
                             RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
                         }
@@ -260,8 +274,8 @@ public class RogueLikeData
 
                 relicsByType[relic.type].Add(relic);
                 relicIdsByType[relic.type].Add(relicId);
+                ownedRelicsById[relicId] = relic;
 
-           
                 //획득 시 발동
                 if (relic.type == RelicType.GetEffect)
                 {
@@ -322,6 +336,7 @@ public class RogueLikeData
                 if (relicList[i].id == relicId)
                 {
                     relicList[i] = updatedRelic;
+                    ownedRelicsById[relicId] = updatedRelic;
                     return;
                 }
             }
@@ -331,45 +346,36 @@ public class RogueLikeData
     // 특정 ID
     public WarRelic GetOwnedRelicById(int relicId)
     {
-        foreach (var relicList in relicsByType.Values)
-        {
-            foreach (var relic in relicList)
-            {
-                if (relic.id == relicId)
-                {
-                    return relic;
-                }
-            }
-        }
-        return null;
+        return ownedRelicsById.TryGetValue(relicId, out var relic) ? relic : null;
     }
 
     // 보유한 모든 유물을 반환하는 함수
     public List<WarRelic> GetAllOwnedRelics()
     {
-        List<WarRelic> allRelics = new();
-
-        foreach (var relicList in relicsByType.Values)
-        {
-            allRelics.AddRange(relicList);
-        }
-        return allRelics;
+        return ownedRelicsById.Values.ToList();
     }
 
     // 보유한 모든 유물의 ID만 반환하는 함수
     public List<int> GetAllOwnedRelicIds()
     {
-        List<int> relicIds = new();
+        return ownedRelicsById.Keys.ToList();
+    }
 
-        foreach (var relicList in relicsByType.Values)
+    // 사용처: 보유 유산 존재 여부(빠른 조회)
+    public bool HasOwnedRelic(int relicId)
+    {
+        return ownedRelicsById.ContainsKey(relicId);
+    }
+
+    // 사용처: 전투/이벤트에서 보유 유산 전체 순회(할당 없이)
+    public IReadOnlyDictionary<int, WarRelic> GetOwnedRelicMap()
+    {
+        foreach(var relic in ownedRelicsById)
         {
-            foreach (var relic in relicList)
-            {
-                relicIds.Add(relic.id);
-            }
-        }
+            Debug.Log(relic.Key + "," + relic.Value);
 
-        return relicIds;
+        }
+        return ownedRelicsById;
     }
 
     //보유 유산 전부 삭제
@@ -386,6 +392,8 @@ public class RogueLikeData
         {
             relicIdsByType[type].Clear();
         }
+
+        ownedRelicsById.Clear();
     }
     //현재 스테이지 수정
     public void SetCurrentStage(int x, int y, StageType type)
@@ -408,7 +416,7 @@ public class RogueLikeData
     public StageType GetCurrentStageType()
     {
         return currentStageType;
-    }    
+    }
     public void SetStageType(StageType type)
     {
         currentStageType = type;
@@ -441,18 +449,18 @@ public class RogueLikeData
     //골드 획득
     public void EarnGold(int gold)
     {
-        int baseGold =currentGold;
+        int baseGold = currentGold;
         float addGold = 1;
         if (RelicManager.CheckRelicById(5))
         {
             WarRelic relic = RelicManager.GetRelicById(5);
             var vals = relic.GetAllValuesAsFloatListOrNull();
-            if(vals != null)
+            if (vals != null)
             {
                 addGold += vals[0];
             }
         }
-        gold = (int)(addGold*gold);
+        gold = (int)(addGold * gold);
         currentGold += gold;
 
         //골드 애니메이션
@@ -465,10 +473,10 @@ public class RogueLikeData
 
         int baseGold = currentGold;
 
-        spentGold += gold;                  
-        currentGold -= gold;              
+        spentGold += gold;
+        currentGold -= gold;
 
-        UIManager.Instance.AnimateGoldChange(baseGold, -gold); 
+        UIManager.Instance.AnimateGoldChange(baseGold, -gold);
     }
 
 
@@ -477,7 +485,7 @@ public class RogueLikeData
     {
         currentGold = gold;
     }
-     //사용한 골드 가져오기
+    //사용한 골드 가져오기
     public int GetSpentGold()
     {
         return spentGold;
@@ -521,7 +529,7 @@ public class RogueLikeData
             actualChange = Mathf.Max(reduced, -playerMorale); // 최소 0 유지
             playerMorale += actualChange;
         }
-        
+
         UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
         UnitStateChange.ChangeStateMyUnits();
         return actualChange;
@@ -581,10 +589,10 @@ public class RogueLikeData
     //사리 스택 변경
     public void SetSariStack(int stack)
     {
-        sariStack =stack;
+        sariStack = stack;
     }
     //만난 이벤트 반환
-    public Dictionary<int,int> GetEncounteredEvent()
+    public Dictionary<int, int> GetEncounteredEvent()
     {
         return encounteredEvent;
     }
@@ -614,10 +622,18 @@ public class RogueLikeData
     }
     public void SetChapter(int chapter)
     {
+        // 챕터가 변경되면 무지개 열쇠 사용 횟수 초기화
+        if (this.chapter != chapter)
+        {
+            if (!rainbowKeyUsesPerChapter.ContainsKey(chapter))
+            {
+                rainbowKeyUsesPerChapter[chapter] = 0;
+            }
+        }
         this.chapter = chapter;
     }
     //챕터에 따른 이벤트 골드
-    public int GetGoldByChapter(int gold,int battleResult = 0)
+    public int GetGoldByChapter(int gold, int battleResult = 0)
     {
         //승리일때만 골드
         if (battleResult != 0) return 0;
@@ -645,7 +661,44 @@ public class RogueLikeData
         {
             kvp.Value.Remove(relicId);
         }
+
+        ownedRelicsById.Remove(relicId);
     }
+
+    #region 47번 보물지도
+    public bool GetNextEventToTreasure() => nextEventToTreasure;
+    public void SetNextEventToTreasure(bool value) => nextEventToTreasure = value;
+    #endregion
+
+    #region 48번 무지개 열쇠
+    public int GetRainbowKeyUses(int chapter)
+    {
+        if (rainbowKeyUsesPerChapter != null && rainbowKeyUsesPerChapter.TryGetValue(chapter, out int uses))
+            return uses;
+        return 0;
+    }
+
+    public bool CanUseRainbowKey(int chapter)
+    {
+        return GetRainbowKeyUses(chapter) < 2;
+    }
+
+    /// <summary>
+    /// 사용 횟수 1회 소모. (호출 측에서 CanUseRainbowKey로 선검사 권장)
+    /// </summary>
+    public void UseRainbowKey(int chapter)
+    {
+        rainbowKeyUsesPerChapter ??= new Dictionary<int, int>();
+        int uses = GetRainbowKeyUses(chapter);
+        rainbowKeyUsesPerChapter[chapter] = uses + 1;
+    }
+
+    public void ResetRainbowKeyUsesForChapter(int chapter)
+    {
+        rainbowKeyUsesPerChapter ??= new Dictionary<int, int>();
+        rainbowKeyUsesPerChapter[chapter] = 0;
+    }
+    #endregion
     public int GetNextUnitUniqueId()
     {
         return nextUnitUniqueId++;
@@ -695,7 +748,7 @@ public class RogueLikeData
     public void AddReroll(int addReroll)
     {
         rerollChance += addReroll;
-        if(addReroll < 0)
+        if (addReroll < 0)
         {
             if (RelicManager.CheckRelicById(60))
             {
@@ -725,7 +778,7 @@ public class RogueLikeData
     }
     public void SetBattleReward(BattleRewardData battleReward)
     {
-        this.battleReward = battleReward;   
+        this.battleReward = battleReward;
     }
     public void ClearBattleReward()
     {
@@ -734,7 +787,7 @@ public class RogueLikeData
     //버프 디버프 초기화
     public void ClearBuffDeBuff()
     {
-        foreach(var unit in myUnits)
+        foreach (var unit in myUnits)
         {
             unit.effectDictionary.Clear();
         }
@@ -747,7 +800,7 @@ public class RogueLikeData
         return costTable[level];
     }
 
-    public (int,bool) GetRerollChance()
+    public (int, bool) GetRerollChance()
     {
         bool canReroll = true;
         if (RelicManager.CheckRelicById(64))
@@ -762,10 +815,10 @@ public class RogueLikeData
         rerollChance = reroll;
     }
 
-    public void SetLoadData(List<int> eventId,int gold,int sentGold,int morale,
-        int stageX,int stageY,int chapter, StageType stageType,int sariSatck,BattleRewardData battleReward,int nextUniqueId,int score)
+    public void SetLoadData(List<int> eventId, int gold, int sentGold, int morale,
+        int stageX, int stageY, int chapter, StageType stageType, int sariSatck, BattleRewardData battleReward, int nextUniqueId, int score)
     {
-        foreach(int id in eventId)
+        foreach (int id in eventId)
         {
             encounteredEvent[id] = id;
         }
@@ -779,7 +832,7 @@ public class RogueLikeData
         this.sariStack = sariSatck;
         this.battleReward = battleReward;
         this.nextUnitUniqueId = nextUniqueId;
-        this.score = score;  
+        this.score = score;
     }
     //강화 반환
     public UnitUpgrade[] GetUpgradeValue()
@@ -811,7 +864,7 @@ public class RogueLikeData
             if (!isFreeUpgrade)
             {
                 float isSale = 1f;
-                
+
                 if (RelicManager.CheckRelicById(58))
                 {
                     WarRelic relic58 = RelicManager.GetRelicById(58);
@@ -837,9 +890,9 @@ public class RogueLikeData
         {
             WarRelic relic = RelicManager.GetRelicById(51);
             var vals = relic.GetAllValuesAsFloatListOrNull();
-            if(vals != null)
+            if (vals != null)
             {
-                if(GetRandomFloat() >= vals[0])
+                if (GetRandomFloat() >= vals[0])
                 {
                     RogueUnitDataBase addUnit = RogueUnitDataBase.GetRandomUnitByBranchAndRarity(unitTypeIndex, (int)vals[1]);
                     AddMyTeam(addUnit);
@@ -913,9 +966,9 @@ public class RogueLikeData
         addMax += RelicManager.RunExpandedFormationDiagram();   //유산 66
         addMax += RelicManager.RunWarlordsInsignia();           //유산 67
         addMax += RelicManager.RunTornList();                   //유산 89
-        if (GetMyTeam().Find((e)=> e.idx ==56 ) !=null) addMax += 3;
-        addMax += 5 * (chapter-1);
-        maxCount = maxCount +addMax;
+        if (GetMyTeam().Find((e) => e.idx == 56) != null) addMax += 3;
+        addMax += 5 * (chapter - 1);
+        maxCount = maxCount + addMax;
         multy += RelicManager.RunPileOfMedals();
         maxCount = (int)(maxCount * multy);
 
@@ -931,7 +984,7 @@ public class RogueLikeData
     }
     public void SetPresetID(int presetID)
     {
-        this.presetID=presetID;
+        this.presetID = presetID;
     }
 
     public int GetMaxHero()
@@ -941,7 +994,7 @@ public class RogueLikeData
         {
             WarRelic relic57 = RelicManager.GetRelicById(57);
             var vals = relic57.GetAllValuesAsFloatListOrNull();
-            if(vals != null)
+            if (vals != null)
             {
                 addHero += (int)vals[0];
             }
@@ -962,12 +1015,12 @@ public class RogueLikeData
                     var myTeamUnits = GetMyTeam();
                     foreach (var unit in myTeamUnits)
                     {
-                        if(haveHero >= 2)
+                        if (haveHero >= 2)
                         {
                             addHero += (int)vals[2];
                             break;
                         }
-                        if(unit.rarity == 4)
+                        if (unit.rarity == 4)
                         {
                             haveHero++;
                         }
@@ -978,7 +1031,7 @@ public class RogueLikeData
 
         addHero += RelicManager.RunEpic();
 
-        return maxHero+addHero;
+        return maxHero + addHero;
     }
     public void SetMaxHero(int maxHero)
     {
@@ -1045,6 +1098,9 @@ public class RogueLikeData
         stageCallCount = 0;
         unitOrder = 0;
 
+        nextEventToTreasure = false;
+        rainbowKeyUsesPerChapter?.Clear();
+
         SetMyTeam(baseUnits);
         SetAllMyUnits(baseUnits);
 
@@ -1076,7 +1132,7 @@ public class RogueLikeData
     {
         questState[q.id] = q;
     }
-    
+
     //유산 저장 데이터로 초기화
     public void SetRelicBySaveData(List<WarRelic> warRelics)
     {
@@ -1085,11 +1141,15 @@ public class RogueLikeData
             relicsByType[type] = new List<WarRelic>();
             relicIdsByType[type] = new HashSet<int>();
         }
+        ownedRelicsById.Clear();
         // warRelics를 타입별로 분류해서 추가
         foreach (WarRelic relic in warRelics)
         {
             relicsByType[relic.type].Add(relic);
             relicIdsByType[relic.type].Add(relic.id);
+            ownedRelicsById[relic.id] = relic;
+
+            WarRelicDatabase.RebindRuntime(relic);
         }
     }
     //랜덤 시드 고정
@@ -1127,10 +1187,10 @@ public class RogueLikeData
            + currentStageX * 100_000
            + currentStageY * 10_000
            + (int)currentStageType * 1_000;
-        stageCallCount = 0; 
+        stageCallCount = 0;
     }
     //스테이지 위치로 랜덤 시드 생성
-    public System.Random GetRandomStage(int currentX,int currentY)
+    public System.Random GetRandomStage(int currentX, int currentY)
     {
         int currentStageSeed = chapter * 1_000_0000 + currentX * 100_000 + currentY * 10_000;
         int finalSeed = HashCode.Combine(randomSeed, currentStageSeed);
@@ -1148,7 +1208,7 @@ public class RogueLikeData
     }
     public bool GetTestMode()
     {
-        return isTestMode; 
+        return isTestMode;
     }
     public void SetTestMode(bool _isTestMode)
     {
@@ -1167,8 +1227,50 @@ public class RogueLikeData
     // 시드 + 챕터 값으로 랜덤 시드 반환 (스테이지 제작 시 필요)
     private int GetRandomBySeedChapter()
     {
-        return chapter+randomSeed;
+        return chapter + randomSeed;
     }
+
+    #region 47번 보물지도 관련 메서드
+    
+    public bool GetNextEventToTreasure()
+    {
+        return nextEventToTreasure;
+    }
+    
+    public void SetNextEventToTreasure(bool value)
+    {
+        nextEventToTreasure = value;
+    }
+    
+    #endregion
+    
+    #region 48번 무지개 열쇠 관련 메서드
+    
+    public int GetRainbowKeyUses(int chapter)
+    {
+        if (!rainbowKeyUsesPerChapter.ContainsKey(chapter))
+        {
+            rainbowKeyUsesPerChapter[chapter] = 0;
+        }
+        return rainbowKeyUsesPerChapter[chapter];
+    }
+    
+    public void UseRainbowKey(int chapter)
+    {
+        if (!rainbowKeyUsesPerChapter.ContainsKey(chapter))
+        {
+            rainbowKeyUsesPerChapter[chapter] = 0;
+        }
+        rainbowKeyUsesPerChapter[chapter]++;
+        Debug.Log($"[무지개 열쇠] 챕터 {chapter}에서 사용 횟수: {rainbowKeyUsesPerChapter[chapter]}/2");
+    }
+    
+    public bool CanUseRainbowKey(int chapter)
+    {
+        return GetRainbowKeyUses(chapter) < 2;
+    }
+    
+    #endregion
 
     #region 상점 스냅샷
 
