@@ -302,7 +302,7 @@ public static class WarRelicDatabase
                 id = rec.id,
                 grade = rec.grade,
                 used = false,
-                type = RelicType.AllEffect, // JSON에 타입 문자열이 있다면 파싱 가능
+                type = ParseType(rec.type), // JSON에 타입 문자열이 있다면 파싱 가능
                 name = rec.name,
                 description = rec.description
             };
@@ -316,7 +316,48 @@ public static class WarRelicDatabase
         BindExecOnAllRelics();
 
     }
+    public static void RebindRuntime(WarRelic relic)
+    {
+        if (relic == null) return;
 
+        // JSON/카탈로그가 안 올라왔으면 먼저 올려야 함
+        if (relics == null || relics.Count == 0)
+            InitializeFromJson("JsonData/WarRelicsList");
+
+        // executeAction 재바인딩
+        if (s_execById != null && relic.id >= 0 && relic.id < s_execById.Length)
+        {
+            var act = s_execById[relic.id];
+            if (act != null) relic.BindExecute(act);
+        }
+
+        // value 재바인딩(저장본이 value를 들고있다면 필요없지만, 안전하게)
+        if (s_valuesById != null && s_valuesById.TryGetValue(relic.id, out var vals))
+        {
+            relic.BindConfig(vals);
+        }
+    }
+
+    private static RelicType ParseType(string[] types)
+    {
+        if (types == null || types.Length == 0) return RelicType.AllEffect;
+
+        bool hasBattle = false, hasState = false;
+        RelicType first = RelicType.AllEffect;
+
+        for (int i = 0; i < types.Length; i++)
+        {
+            if (Enum.TryParse<RelicType>(types[i], out var t))
+            {
+                if (i == 0) first = t;
+                if (t == RelicType.BattleActive) hasBattle = true;
+                if (t == RelicType.StateBoost) hasState = true;
+            }
+        }
+
+        if (hasBattle && hasState) return RelicType.ActiveState;
+        return first;
+    }
     #endregion
 
 

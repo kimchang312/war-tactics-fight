@@ -342,6 +342,11 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 
                 // 전장 효과를 fieldId로 설정 (AbilityManager에서 사용)
                 int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
+                int nowField = RogueLikeData.Instance.GetFieldId();
+                if(nowField != 0)
+                {
+                    fieldId = nowField;
+                }
                 RogueLikeData.Instance.SetFieldId(fieldId);
             }
             
@@ -360,6 +365,31 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 5) 연결된 다음 스테이지들 언락
         foreach (var nxt in newStage.connectedStages)
             nxt.UnlockStage();
+        
+        // 48번 무지개 열쇠: 보유 시 연결되지 않은 지역도 선택 가능하도록 언락
+        if (RelicManager.CheckRelicById(48))
+        {
+            int currentChapter = RogueLikeData.Instance.GetChapter();
+            int rainbowKeyUses = RogueLikeData.Instance.GetRainbowKeyUses(currentChapter);
+            
+            // 사용 횟수가 남아있을 때만 연결되지 않은 지역 언락
+            if (rainbowKeyUses < 2)
+            {
+                // 다음 레벨(현재 레벨 + 1)의 모든 스테이지만 언락
+                foreach (var stage in allStages)
+                {
+                    if (stage.level == newStage.level + 1 && stage.IsLocked)
+                    {
+                        // 연결되지 않은 스테이지만 언락 (이미 연결된 것은 위에서 언락됨)
+                        if (!newStage.connectedStages.Contains(stage))
+                        {
+                            stage.UnlockStage();
+                            Debug.Log($"[무지개 열쇠] 연결되지 않은 지역 언락: 레벨 {stage.level + 1} (사용 가능 횟수: {2 - rainbowKeyUses})");
+                        }
+                    }
+                }
+            }
+        }
 
         // 47번 보물지도: 다음 이벤트를 보물로 변환(진입 시 1회 소진)
         if (newStage.stageType == StageType.Event && RogueLikeData.Instance.GetNextEventToTreasure())
@@ -514,6 +544,35 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                         s.UnlockStage();
                     }
                 }
+            }
+        }
+        
+        // 48번 무지개 열쇠: 보유 시 연결되지 않은 지역도 선택 가능하도록 언락
+        if (RelicManager.CheckRelicById(48))
+        {
+            int currentChapter = RogueLikeData.Instance.GetChapter();
+            int rainbowKeyUses = RogueLikeData.Instance.GetRainbowKeyUses(currentChapter);
+            
+            // 사용 횟수가 남아있을 때만 연결되지 않은 지역 언락
+            if (rainbowKeyUses < 2)
+            {
+                // 다음 레벨(현재 레벨 + 1)의 모든 스테이지만 언락
+                foreach (var stage in all)
+                {
+                    if (stage.level == currentLevel + 1 && stage.IsLocked)
+                    {
+                        // 연결되지 않은 스테이지만 언락 (이미 연결된 것은 위에서 언락됨)
+                        if (!currentStage.connectedStages.Contains(stage))
+                        {
+                            stage.UnlockStage();
+                            Debug.Log($"[무지개 열쇠] 연결되지 않은 지역 언락: 레벨 {stage.level + 1} (사용 가능 횟수: {2 - rainbowKeyUses})");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log($"[무지개 열쇠] 챕터 {currentChapter}에서 사용 횟수를 모두 소진했습니다. (2/2)");
             }
         }
         
