@@ -10,6 +10,7 @@ public class UnitSelectUI : MonoBehaviour
     [SerializeField] private GameObject selectUnitParent;
     [SerializeField] private ObjectPool objectPool;
 
+    private Button closeBtn; // 펼치기 버튼 상점이나 이벤트인 경우 선택전 까진 비활성화
     private Action onSelectAction;
     private int requireCount = 1;
     private List<RogueUnitDataBase> availableUnits;

@@ -44,7 +44,7 @@ public class StoreUI : MonoBehaviour
 
     private void OnEnable()
     {
-        RestUI();
+        ResetUI();
 
         // 현재 위치/챕터 가져오기(네가 쓰는 방식에 맞게)
         int chapter = RogueLikeData.Instance.GetChapter();
@@ -70,7 +70,7 @@ public class StoreUI : MonoBehaviour
     {
         GameManager.Instance.UpdateAllUI();
     }
-    private void RestUI()
+    private void ResetUI()
     {
         leaveBtn.onClick.RemoveAllListeners();
         leaveBtn.onClick.AddListener(CloseStore);
@@ -86,6 +86,7 @@ public class StoreUI : MonoBehaviour
         ClosePackageBack();
         UnCheckAllItem();
         AddClickEventItemToCheck();
+        SetStoreMainButtonsInteractable(true);
     }
 
     private void CloseStore() => gameObject.SetActive(false);
@@ -475,7 +476,17 @@ public class StoreUI : MonoBehaviour
 
         UnCheckAllItem();
 
-        btn.transform.GetChild(3).gameObject.SetActive(true); // 체크 표시
+        ItemInformation info = btn.GetComponent<ItemInformation>();
+        //주사위인 경우 예외처리
+        if (info != null && info.data.item.itemId == 60)
+        {
+            btn.transform.GetChild(2).gameObject.SetActive(true); // 체크 표시
+        }
+        else
+        {
+            btn.transform.GetChild(3).gameObject.SetActive(true); // 체크 표시
+        }
+
         checkedBtn = btn;
     }
 
@@ -539,21 +550,35 @@ public class StoreUI : MonoBehaviour
 
     private void ApplyEnergyItem(StoreItemData item, Button btn)
     {
+        // 사용처: 선택형 기력 아이템에서 유닛 선택 UI 오픈
         if (item.form == "Select")
         {
-            List<RogueUnitDataBase> selected = RogueLikeData.Instance.GetSelectedUnits();
             List<RogueUnitDataBase> canSelect = RogueLikeData.Instance.GetMyTeam();
             var filtered = new List<RogueUnitDataBase>(canSelect.Count);
+
             for (int i = 0; i < canSelect.Count; i++)
             {
                 var u = canSelect[i];
-                if (u.Energy < u.MaxEnergy) filtered.Add(u);
+                if (u.Energy < u.MaxEnergy)
+                    filtered.Add(u);
             }
-            if (filtered.Count < item.count) return;
 
-            int shownPrice = btn.TryGetComponent<ItemInformation>(out var info) ? info.data.price : CalculateDiscountedPrice(item);
+            if (filtered.Count < item.count)
+                return;
 
-            unitListUI.Show(item.count, filtered, () => PurChaseItem(btn, item, shownPrice));
+            int shownPrice = btn.TryGetComponent<ItemInformation>(out var info)
+                ? info.data.price
+                : CalculateDiscountedPrice(item);
+
+            SetStoreMainButtonsInteractable(false);
+
+            unitListUI.Show(
+                item.count,
+                filtered,
+                () => PurChaseItem(btn, item, shownPrice),
+                () => SetStoreMainButtonsInteractable(true)
+            );
+
             return;
         }
         else if (item.form == "Random")
@@ -924,6 +949,16 @@ public class StoreUI : MonoBehaviour
 
         if (offer.sold) SoldOutItemBtn(btn);
         else btn.onClick.AddListener(() => ClickItemAndCheck(btn));
+    }
+
+    // 사용처: 유닛 선택 UI가 열려 있는 동안 상점 구매/떠나기 버튼 잠금
+    private void SetStoreMainButtonsInteractable(bool interactable)
+    {
+        if (purchaseBtn != null)
+            purchaseBtn.interactable = interactable;
+
+        if (leaveBtn != null)
+            leaveBtn.interactable = interactable;
     }
 
 }

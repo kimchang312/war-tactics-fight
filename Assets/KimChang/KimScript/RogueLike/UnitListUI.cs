@@ -45,7 +45,8 @@ public class UnitListUI : MonoBehaviour
     // 선택 모드 상태
     private int _selectionRemain = 0; // 0이면 열람 모드
     private bool IsSelectionMode => _selectionRemain > 0;
-
+    // 사용처: 외부(UI 호출자)에서 UnitListUI 닫힘 시점 후처리
+    private Action _onClosedAction;
     private void Awake()
     {
         AddOrderButtonListeners();
@@ -77,48 +78,54 @@ public class UnitListUI : MonoBehaviour
         transform.SetAsFirstSibling();
     }
 
+    // 사용처: 비활성화 시 세션 상태 정리 및 외부 닫힘 콜백 호출
     private void OnDisable()
     {
-        // 정렬 상태를 닫힐 때 한 번만 저장
         if (_unitOrder >= 0)
             RogueLikeData.Instance.SetUnitOrder(_unitOrder);
 
-        CloseWithAnimation();
         RemoveSelectionListeners();
         _selectedUnits.Clear();
         _onSelectAction = null;
         _sourceUnits = null;
-        _unitOrder = -1; // 다음 세션에서 다시 로드
-    }
+        _unitOrder = -1;
 
+        _onClosedAction?.Invoke();
+        _onClosedAction = null;
+    }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Show(int unitCount = 0, List<RogueUnitDataBase> source = null, Action onSelected = null)
+    // 사용처: 유닛 리스트 열기(선택 완료/닫힘 콜백 포함)
+    public void Show(int unitCount = 0, List<RogueUnitDataBase> source = null, Action onSelected = null, Action onClosed = null)
     {
+        _onClosedAction = onClosed;
+
         if (unitCount > 0)
         {
-            // 선택 모드
             _onSelectAction = onSelected;
-            _sourceUnits = source ?? RogueLikeData.Instance.GetMyUnits();
-
+            _sourceUnits = source ?? RogueLikeData.Instance.GetMyTeam();
+            Debug.Log(_sourceUnits.Count);
             _selectedUnits.Clear();
 
-            // 이전 선택 복원(후보군에 포함된 것만)
             var resume = RogueLikeData.Instance.GetSelectedUnits();
             if (resume != null && resume.Count > 0)
             {
                 var allow = new HashSet<RogueUnitDataBase>(_sourceUnits);
                 for (int i = 0; i < resume.Count; i++)
+                {
                     if (allow.Contains(resume[i]))
                         _selectedUnits.Add(resume[i]);
+                }
             }
 
-            // 이미 충족 시 UI 없이 바로 완료
             if (_selectedUnits.Count >= unitCount)
             {
                 RogueLikeData.Instance.SetSelectedUnits(_selectedUnits);
                 _onSelectAction?.Invoke();
                 _onSelectAction = null;
                 _sourceUnits = null;
+
+                _onClosedAction?.Invoke();
+                _onClosedAction = null;
                 return;
             }
 
@@ -126,7 +133,6 @@ public class UnitListUI : MonoBehaviour
         }
         else
         {
-            // 열람 모드
             _onSelectAction = null;
             _sourceUnits = null;
             _selectedUnits.Clear();
@@ -137,7 +143,6 @@ public class UnitListUI : MonoBehaviour
         if (!gameObject.activeSelf) gameObject.SetActive(true);
         else ApplyModeUI();
     }
-
     // 사용처: 모드별 상단 UI 전환
     private void ApplyModeUI()
     {
@@ -176,7 +181,6 @@ public class UnitListUI : MonoBehaviour
         List<RogueUnitDataBase> units = _sourceUnits != null
             ? new List<RogueUnitDataBase>(_sourceUnits)
             : RogueLikeData.Instance.GetMyTeam(); // 항상 현재 보유 유닛 기준
-
 
         // 캐시된 정렬 기준으로 정렬
         GetSortedUnits(ref units, GetUnitOrderCached());
@@ -489,6 +493,9 @@ public class UnitListUI : MonoBehaviour
     // 사용처: 닫기 애니메이션
     public void CloseWithAnimation()
     {
+        if (!gameObject.activeInHierarchy)
+            return;
+
         var rect = (RectTransform)transform;
         rect.DOKill(false);
         panelSeq?.Kill();
@@ -498,7 +505,6 @@ public class UnitListUI : MonoBehaviour
             .SetEase(Ease.InCubic)
             .OnComplete(() => gameObject.SetActive(false));
     }
-
     // 사용처: 정렬 기준 캐시 조회
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int GetUnitOrderCached()
