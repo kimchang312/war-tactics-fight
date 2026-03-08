@@ -30,6 +30,9 @@ public class PlacePanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI commanderNameText; // 지휘관 이름
     [SerializeField] private TextMeshProUGUI commanderSkillText; // 지휘관 스킬 효과
     [SerializeField] private TextMeshProUGUI battlefieldEffectText; // 전장 효과
+
+    [Header("배치 스크롤(드래그)")]
+    [SerializeField] private bool enableDragScrollOnPlacedUnits = true;
     
     //프리팹 식별용 unitOrderingNum 리스트?
     public List<int> PlacedUniqueIds { get; } = new List<int>();
@@ -48,6 +51,21 @@ public class PlacePanel : MonoBehaviour
         UpdateEnemyUnitCount(0);
         // 패널 처음 열릴 때는 항상 초기화
         ClearPlacePanel();
+
+        // 5인 이상 배치 시 화면 밖으로 밀려 "맨앞 유닛 확인 불가" → 간단 드래그 스크롤러 부착
+        if (enableDragScrollOnPlacedUnits && PrefabContainer != null)
+        {
+            if (PrefabContainer.GetComponent<HorizontalDragScroll>() == null)
+            {
+                PrefabContainer.gameObject.AddComponent<HorizontalDragScroll>();
+            }
+        }
+
+        // 전장효과 툴팁 컴포넌트 확보(텍스트 세팅은 ShowBattlefieldEffect에서)
+        if (battlefieldEffectText != null && battlefieldEffectText.GetComponent<BattlefieldEffectTooltip>() == null)
+        {
+            battlefieldEffectText.gameObject.AddComponent<BattlefieldEffectTooltip>();
+        }
     }
     private void OnBackClicked()
     {
@@ -260,6 +278,14 @@ public class PlacePanel : MonoBehaviour
         {
             string effectName = MapGenerator.GetBattlefieldEffectKoreanName(effect);
             battlefieldEffectText.text = $"전장효과: {effectName}";
+
+            // 툴팁 텍스트(간단 설명): effectName + id
+            var tip = battlefieldEffectText.GetComponent<BattlefieldEffectTooltip>();
+            if (tip != null)
+            {
+                // 상세 설명 소스가 따로 없어서 최소 정보로 제공 (필요하면 MapGenerator에 설명 테이블 추가 가능)
+                tip.SetText($"전장효과: {effectName}\n(effect: {effect})");
+            }
         }
     }
 

@@ -77,6 +77,12 @@ public class RogueLikeData
 
     private int unitOrder = 0;
 
+    // --- 전쟁유산 47/48 상태 ---
+    // 47: 보물지도 - 다음 이벤트 지역을 보물로 변환하는 1회성 플래그
+    private bool nextEventToTreasure = false;
+    // 48: 무지개 열쇠 - 챕터당 2회 사용(챕터별 사용 횟수 기록)
+    private Dictionary<int, int> rainbowKeyUsesPerChapter = new Dictionary<int, int>();
+
     // 사용처: 현재 상점 세션 저장/복원
     private StoreSnapshot currentStore;
     private Dictionary<string, StoreSnapshot> storeSessions;
@@ -646,6 +652,41 @@ public class RogueLikeData
             kvp.Value.Remove(relicId);
         }
     }
+
+    #region 47번 보물지도
+    public bool GetNextEventToTreasure() => nextEventToTreasure;
+    public void SetNextEventToTreasure(bool value) => nextEventToTreasure = value;
+    #endregion
+
+    #region 48번 무지개 열쇠
+    public int GetRainbowKeyUses(int chapter)
+    {
+        if (rainbowKeyUsesPerChapter != null && rainbowKeyUsesPerChapter.TryGetValue(chapter, out int uses))
+            return uses;
+        return 0;
+    }
+
+    public bool CanUseRainbowKey(int chapter)
+    {
+        return GetRainbowKeyUses(chapter) < 2;
+    }
+
+    /// <summary>
+    /// 사용 횟수 1회 소모. (호출 측에서 CanUseRainbowKey로 선검사 권장)
+    /// </summary>
+    public void UseRainbowKey(int chapter)
+    {
+        rainbowKeyUsesPerChapter ??= new Dictionary<int, int>();
+        int uses = GetRainbowKeyUses(chapter);
+        rainbowKeyUsesPerChapter[chapter] = uses + 1;
+    }
+
+    public void ResetRainbowKeyUsesForChapter(int chapter)
+    {
+        rainbowKeyUsesPerChapter ??= new Dictionary<int, int>();
+        rainbowKeyUsesPerChapter[chapter] = 0;
+    }
+    #endregion
     public int GetNextUnitUniqueId()
     {
         return nextUnitUniqueId++;
@@ -1044,6 +1085,9 @@ public class RogueLikeData
         currentStageSeedBase = 0;
         stageCallCount = 0;
         unitOrder = 0;
+
+        nextEventToTreasure = false;
+        rainbowKeyUsesPerChapter?.Clear();
 
         SetMyTeam(baseUnits);
         SetAllMyUnits(baseUnits);
