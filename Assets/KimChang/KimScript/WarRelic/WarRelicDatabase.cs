@@ -1299,17 +1299,15 @@ public static class WarRelicDatabase
     //보물지도 47
     private static void TreasureMap()
     {
-        // 다음에 진입한 이벤트 지역을 보물 지역으로 변경
         RogueLikeData.Instance.SetNextEventToTreasure(true);
-        Debug.Log("[보물지도] 다음 이벤트 지역이 보물 지역으로 변경됩니다.");
+        Debug.Log("[WarRelicDatabase] 보물지도(47) 획득: 다음 이벤트 지역이 보물 지역으로 변경됩니다.");
     }
 
     //무지개 열쇠 48
     private static void RainbowKey()
     {
-        // 무지개 열쇠는 획득 시 즉시 효과가 없고, 이동 시 사용됩니다.
-        // GameManager.OnStageClicked()에서 처리됩니다.
-        Debug.Log("[무지개 열쇠] 획득 완료. 챕터당 2회 연결되지 않은 지역으로 이동할 수 있습니다.");
+        // 지속 효과: 실제 이동/횟수 소모/제거 처리는 GameManager에서 처리
+        Debug.Log("[WarRelicDatabase] 무지개 열쇠(48) 획득: 챕터당 2회, 연결되지 않은 '다음 레벨'로 이동할 수 있습니다.");
     }
 
     //재상의 보증서 49

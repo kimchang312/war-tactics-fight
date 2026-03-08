@@ -712,6 +712,7 @@ public class RewardUI : MonoBehaviour
     {
         if(gold <= 0) return;
         RogueLikeData.Instance.EarnGold(gold);
+        UIManager.Instance.UpdateGold(); // 금화 UI 즉시 갱신
         goldResult.onClick.RemoveAllListeners();
         goldResult.gameObject.SetActive(false);
 

@@ -345,6 +345,11 @@ public class AutoBattleManager : MonoBehaviour
 
         SetBaseData();
 
+        // ✅ 로그라이크 전투 진입 시에도 사기/유산/전술개량(Upgrade) 상태를 즉시 반영
+        // (기존 InitializeBattle 쪽에는 있었지만, 로그라이크 루트에는 누락되어 첫 전투에 강화가 미적용되는 문제가 발생)
+        RogueLikeData.Instance.SetMyTeam(myUnits);
+        UnitStateChange.ChangeStateMyUnits();
+
         //데이터 저장
         SaveData saveData = new SaveData();
         saveData.SaveDataFile();
