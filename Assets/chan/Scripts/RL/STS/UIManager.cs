@@ -23,6 +23,10 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI chapterText;
 
     private Dictionary<int, UnitUIPrefab> _unitUIs = new();
+
+    //금화, 사기 애니메이션을 위한 변수
+    private Tween goldTween;
+    private Tween moraleTween;
     private void Awake()
     {
         if (Instance == null)
@@ -81,30 +85,36 @@ public class UIManager : MonoBehaviour
     }
 
 
-    //금화 증감 애니메이션
-    public void AnimateGoldChange(int baseGold,int newGold)
+    // 사용처: 금화 증감 시 금화 UI만 독립적으로 애니메이션
+    public void AnimateGoldChange(int baseGold, int deltaGold)
     {
         int startValue = baseGold;
-        int endValue = baseGold + newGold;
+        int endValue = baseGold + deltaGold;
 
-        DOTween.Kill(this);
+        goldTween?.Kill();
 
-        DOVirtual.Int(startValue, endValue, 0.7f, value =>
+        goldTween = DOVirtual.Int(startValue, endValue, 0.7f, value =>
         {
             goldText.text = value.ToString();
-        }).SetEase(Ease.OutCubic).SetTarget(this);
+        })
+        .SetEase(Ease.OutCubic)
+        .SetTarget(goldText);
     }
-    //사기 증감 애니메이션
-    public void AnimateMoraleChange(int baseMorale,int newMorale)
+
+    // 사용처: 사기 증감 시 사기 UI만 독립적으로 애니메이션
+    public void AnimateMoraleChange(int baseMorale, int deltaMorale)
     {
         int startValue = baseMorale;
-        int endValue = baseMorale + newMorale;
+        int endValue = baseMorale + deltaMorale;
 
-        DOTween.Kill(this);
+        moraleTween?.Kill();
 
-        DOVirtual.Int(startValue, endValue, 0.7f, value =>
+        moraleTween = DOVirtual.Int(startValue, endValue, 0.7f, value =>
         {
             moraleText.text = value.ToString();
-        }).SetEase(Ease.OutCubic).SetTarget(this);
+            UpdateMorale();
+        })
+        .SetEase(Ease.OutCubic)
+        .SetTarget(moraleText);
     }
 }

@@ -103,7 +103,6 @@ public class UnitListUI : MonoBehaviour
         {
             _onSelectAction = onSelected;
             _sourceUnits = source ?? RogueLikeData.Instance.GetMyTeam();
-            Debug.Log(_sourceUnits.Count);
             _selectedUnits.Clear();
 
             var resume = RogueLikeData.Instance.GetSelectedUnits();

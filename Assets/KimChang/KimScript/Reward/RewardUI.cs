@@ -337,7 +337,6 @@ public class RewardUI : MonoBehaviour
         else if (info.data.type == RewardType.RelicGrade || info.data.type == RewardType.NewRelic)
         {
             RogueLikeData.Instance.AcquireRelic(info.data.relicId);
-            RewardManager.AcquireReward();
             if (info.data.relicId == 79)
             {
                 //일단 안쓰는걸로
