@@ -97,11 +97,6 @@ public class RogueLikeData
 
     private int language = 0;
     
-    // 47번 보물지도: 다음 이벤트 지역을 보물로 변경할지 여부
-    private bool nextEventToTreasure = false;
-    
-    // 48번 무지개 열쇠: 챕터별 사용 횟수 (챕터 → 사용 횟수)
-    private Dictionary<int, int> rainbowKeyUsesPerChapter = new Dictionary<int, int>();
 
     private float masterVolume = 0;
     private float bgmVolume = 0;
@@ -665,40 +660,7 @@ public class RogueLikeData
         ownedRelicsById.Remove(relicId);
     }
 
-    #region 47번 보물지도
-    public bool GetNextEventToTreasure() => nextEventToTreasure;
-    public void SetNextEventToTreasure(bool value) => nextEventToTreasure = value;
-    #endregion
 
-    #region 48번 무지개 열쇠
-    public int GetRainbowKeyUses(int chapter)
-    {
-        if (rainbowKeyUsesPerChapter != null && rainbowKeyUsesPerChapter.TryGetValue(chapter, out int uses))
-            return uses;
-        return 0;
-    }
-
-    public bool CanUseRainbowKey(int chapter)
-    {
-        return GetRainbowKeyUses(chapter) < 2;
-    }
-
-    /// <summary>
-    /// 사용 횟수 1회 소모. (호출 측에서 CanUseRainbowKey로 선검사 권장)
-    /// </summary>
-    public void UseRainbowKey(int chapter)
-    {
-        rainbowKeyUsesPerChapter ??= new Dictionary<int, int>();
-        int uses = GetRainbowKeyUses(chapter);
-        rainbowKeyUsesPerChapter[chapter] = uses + 1;
-    }
-
-    public void ResetRainbowKeyUsesForChapter(int chapter)
-    {
-        rainbowKeyUsesPerChapter ??= new Dictionary<int, int>();
-        rainbowKeyUsesPerChapter[chapter] = 0;
-    }
-    #endregion
     public int GetNextUnitUniqueId()
     {
         return nextUnitUniqueId++;
