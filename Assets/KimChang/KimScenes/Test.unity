@@ -6437,7 +6437,7 @@ GameObject:
   - component: {fileID: 259759982}
   - component: {fileID: 259759981}
   m_Layer: 0
-  m_Name: ManageUpgradeUI
+  m_Name: TestUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

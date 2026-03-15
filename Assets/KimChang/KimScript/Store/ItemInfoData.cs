@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class ItemInfoData
 {
     public bool isItem = true;
+    public bool isRelic = false;
     public StoreItemData item = new();
     public int price;
     public List<RogueUnitDataBase> units = null;

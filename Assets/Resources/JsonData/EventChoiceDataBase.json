@@ -2358,7 +2358,7 @@
     ],
     "requireThing": ["Energy"],
     "requireForm": ["Select"],
-    "requireValue": [""],
+    "requireValue": ["1"],
     "requireCount": ["1"],
     "resultType": ["Relic"],
     "resultForm": ["None"],
