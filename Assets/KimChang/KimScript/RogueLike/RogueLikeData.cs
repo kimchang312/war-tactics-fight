@@ -91,11 +91,6 @@ public class RogueLikeData
 
     private int language = 0;
     
-    // 47번 보물지도: 다음 이벤트 지역을 보물로 변경할지 여부
-    private bool nextEventToTreasure = false;
-    
-    // 48번 무지개 열쇠: 챕터별 사용 횟수 (챕터 → 사용 횟수)
-    private Dictionary<int, int> rainbowKeyUsesPerChapter = new Dictionary<int, int>();
 
     private float masterVolume = 0;
     private float bgmVolume = 0;
@@ -667,6 +662,7 @@ public class RogueLikeData
 
         ownedRelicsById.Remove(relicId);
     }
+
 
     public int GetNextUnitUniqueId()
     {
