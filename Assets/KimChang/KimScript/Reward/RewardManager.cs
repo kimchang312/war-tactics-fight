@@ -302,8 +302,4 @@ public static class RewardManager
         return true;
     }
 
-    public static void AcquireReward()
-    {
-        UnitStateChange.ChangeStateMyUnits();
-    }
 }

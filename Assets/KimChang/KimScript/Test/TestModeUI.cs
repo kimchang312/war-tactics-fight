@@ -138,6 +138,10 @@ public class TestModeUI : MonoBehaviour
         {
             RogueLikeData.Instance.SetRandomRandomSeed();
         }
+        foreach (int id in warRelicIds)
+        {
+            RelicManager.AcquireRelic(id);
+        }
         SceneManager.LoadScene("RLmap");
 
     }
@@ -281,33 +285,25 @@ public class TestModeUI : MonoBehaviour
     }
 
     //유산 추가
+    // 사용처: 테스트 UI에서 시작 전 유물 ID 목록만 설정
     private void AddWarRelic(string input)
     {
-        // 결과를 저장할 리스트 생성
         warRelicIds = new List<int>();
 
-        // 정규식으로 숫자(하나 이상의 연속된 숫자)를 추출합니다.
         MatchCollection matches = Regex.Matches(input, @"\d+");
-
-        // 추출된 각 숫자 문자열을 int로 파싱 후 리스트에 추가합니다.
         foreach (Match match in matches)
         {
             if (int.TryParse(match.Value, out int number))
             {
-                if (number >= 1 && number <= 61)
+                if (number > -1 && number < 137)
                 {
                     warRelicIds.Add(number);
-                    RogueLikeData.Instance.AcquireRelic(number);
-                }
-                else
-                {
-                    Debug.Log("입력 범위를 벗어났습니다. 0~25");
                 }
             }
         }
 
         warRelicIdInput.text = "";
-        SetStringWarRelic();
+        warRelicIdListText.text = $"WarRelicIdList: {string.Join(",", warRelicIds)}";
     }
 
     //유산 Text 수정

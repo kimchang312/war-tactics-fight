@@ -78,12 +78,6 @@ public class RogueLikeData
 
     private int unitOrder = 0;
 
-    // --- 전쟁유산 47/48 상태 ---
-    // 47: 보물지도 - 다음 이벤트 지역을 보물로 변환하는 1회성 플래그
-    private bool nextEventToTreasure = false;
-    // 48: 무지개 열쇠 - 챕터당 2회 사용(챕터별 사용 횟수 기록)
-    private Dictionary<int, int> rainbowKeyUsesPerChapter = new Dictionary<int, int>();
-
     // 사용처: 현재 상점 세션 저장/복원
     private StoreSnapshot currentStore;
     private Dictionary<string, StoreSnapshot> storeSessions;
@@ -97,11 +91,6 @@ public class RogueLikeData
 
     private int language = 0;
     
-    // 47번 보물지도: 다음 이벤트 지역을 보물로 변경할지 여부
-    private bool nextEventToTreasure = false;
-    
-    // 48번 무지개 열쇠: 챕터별 사용 횟수 (챕터 → 사용 횟수)
-    private Dictionary<int, int> rainbowKeyUsesPerChapter = new Dictionary<int, int>();
 
     private float masterVolume = 0;
     private float bgmVolume = 0;
@@ -177,7 +166,12 @@ public class RogueLikeData
     {
         currentStore = snap;
     }
-
+    // RogueLikeData.cs
+    // 사용처: 상점 구매/이벤트/전투 보상 등 데이터 변경 완료 후 최종 저장
+    public void SaveNow()
+    {
+        new SaveData().SaveDataFile();
+    }
     public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
         List<RogueUnitDataBase> savedCopy = new(savedMyUnits);
@@ -250,69 +244,62 @@ public class RogueLikeData
     {
         return new List<RogueUnitDataBase>(enemyUnits);
     }
-    // 중복 방지 유물 추가 함수
+    // 사용처: 유물 ID를 직접 획득할 때 카탈로그 초기화 보장 후 저장
     public void AcquireRelic(int relicId)
     {
+        if (!RelicManager.InitializeRelicCatalog())
+        {
+            Debug.LogError($"[AcquireRelic] 유물 카탈로그 초기화 실패. relicId={relicId}");
+            return;
+        }
+
+        if (ownedRelicsById.ContainsKey(relicId))
+        {
+            Debug.Log($"[AcquireRelic] 이미 보유 중. relicId={relicId}");
+            return;
+        }
+
         WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
-        Debug.Log("획득신호"+relicId);
-        if (relic != null && relicsByType.ContainsKey(relic.type))
+        if (relic == null)
         {
-            if (!relicIdsByType[relic.type].Contains(relicId))
+            Debug.LogError($"[AcquireRelic] 유물 데이터를 찾지 못함. relicId={relicId}");
+            return;
+        }
+
+        // 사용처: 53번 유물의 특수 획득 처리
+        if (relicId == 53)
+        {
+            var vals = relic.GetAllValuesAsFloatListOrNull();
+            if (vals != null && vals.Count > 1 && GetRandomFloat() <= vals[1])
             {
-                Debug.Log("획득"+relicId);
-                if (relicId == 53)
-                {
-                    var vals = relic.GetAllValuesAsFloatListOrNull();
-                    if (vals != null)
-                    {
-                        if (GetRandomFloat() <= vals[1])
-                        {
-                            RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
-                        }
-                    }
-                }
-
-                relicsByType[relic.type].Add(relic);
-                relicIdsByType[relic.type].Add(relicId);
-                ownedRelicsById[relicId] = relic;
-
-                //획득 시 발동
-                if (relic.type == RelicType.GetEffect)
-                {
-                    relic.Execute();
-                }
-
+                RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
             }
         }
 
+        relicsByType[relic.type].Add(relic);
+        relicIdsByType[relic.type].Add(relicId);
+        ownedRelicsById.Add(relicId, relic);
+
+        if (relic.type == RelicType.GetEffect)
+        {
+            relic.Execute();
+        }
+        //유닛 스탯 변경
+        UnitStateChange.ChangeStateMyUnits();
     }
-    //특정 타입 유물만 가져오기
-    public List<WarRelic> GetRelicsByType(RelicType type)
+
+    // 사용처: RelicManager가 검증을 끝낸 유물을 실제 보유 목록에 반영
+    public bool TryAddOwnedRelic(WarRelic relic)
     {
-        HashSet<int> uniqueIds = new();
-        List<WarRelic> result = new();
+        if (relic == null) return false;
+        if (ownedRelicsById.ContainsKey(relic.id)) return false;
 
-        void AddUniqueRelics(RelicType relicType)
-        {
-            if (!relicsByType.ContainsKey(relicType)) return;
-            foreach (var relic in relicsByType[relicType])
-            {
-                if (uniqueIds.Add(relic.id)) // 중복된 ID 방지
-                {
-                    result.Add(relic);
-                }
-            }
-        }
-
-        AddUniqueRelics(type);
-
-        if (type == RelicType.StateBoost || type == RelicType.BattleActive)
-        {
-            AddUniqueRelics(RelicType.ActiveState);
-        }
-
-        return result;
+        relicsByType[relic.type].Add(relic);
+        relicIdsByType[relic.type].Add(relic.id);
+        ownedRelicsById.Add(relic.id, relic);
+        return true;
     }
+
     // 특정 등급의 유물 가져오기
     public List<WarRelic> GetRelicsByGrade(int grade)
     {
@@ -426,24 +413,47 @@ public class RogueLikeData
     {
         return currentGold;
     }
-    //골드 사용 가능한지 채크
+    // 사용처: 재상의 보증서 보유 시 허용되는 최소 금화 하한 계산
+    private int GetMinGoldLimit()
+    {
+        if (!RelicManager.CheckRelicById(49))
+            return 0;
+
+        WarRelic relic = RelicManager.GetRelicById(49);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+
+        int borrowGold = 500;
+        if (vals != null && vals.Count > 0)
+            borrowGold = Mathf.Abs(Mathf.RoundToInt(vals[0]));
+
+        return -borrowGold;
+    }
+
+    // 사용처: 상점/이벤트/강화 등 금화 사용 가능 여부 확인
     public bool CanSpendGold(int reduceGold)
     {
-        int gold = GetCurrentGold();
-        if (RelicManager.CheckRelicById(49))
-        {
-            WarRelic creditAuthorization = RelicManager.GetRelicById(49);
-            if (creditAuthorization != null)
-            {
-                var vals = creditAuthorization.GetAllValuesAsFloatListOrNull();
-                if (vals != null)
-                {
-                    gold += (int)vals[0];
-                }
-            }
-        }
+        if (reduceGold <= 0)
+            return true;
 
-        return gold >= reduceGold;
+        return currentGold - reduceGold >= GetMinGoldLimit();
+    }
+
+    // 사용처: 상점/이벤트/강화 등 금화 차감
+    public bool ReduceGold(int gold)
+    {
+        if (gold <= 0)
+            return true;
+
+        if (!CanSpendGold(gold))
+            return false;
+
+        int baseGold = currentGold;
+
+        spentGold += gold;
+        currentGold -= gold;
+
+        UIManager.Instance.AnimateGoldChange(baseGold, -gold);
+        return true;
     }
 
     //골드 획득
@@ -465,18 +475,6 @@ public class RogueLikeData
 
         //골드 애니메이션
         UIManager.Instance.AnimateGoldChange(baseGold, gold);
-    }
-    //골드 감소
-    public void ReduceGold(int gold)
-    {
-        if (!CanSpendGold(gold)) return;
-
-        int baseGold = currentGold;
-
-        spentGold += gold;
-        currentGold -= gold;
-
-        UIManager.Instance.AnimateGoldChange(baseGold, -gold);
     }
 
 
@@ -665,40 +663,7 @@ public class RogueLikeData
         ownedRelicsById.Remove(relicId);
     }
 
-    #region 47번 보물지도
-    public bool GetNextEventToTreasure() => nextEventToTreasure;
-    public void SetNextEventToTreasure(bool value) => nextEventToTreasure = value;
-    #endregion
 
-    #region 48번 무지개 열쇠
-    public int GetRainbowKeyUses(int chapter)
-    {
-        if (rainbowKeyUsesPerChapter != null && rainbowKeyUsesPerChapter.TryGetValue(chapter, out int uses))
-            return uses;
-        return 0;
-    }
-
-    public bool CanUseRainbowKey(int chapter)
-    {
-        return GetRainbowKeyUses(chapter) < 2;
-    }
-
-    /// <summary>
-    /// 사용 횟수 1회 소모. (호출 측에서 CanUseRainbowKey로 선검사 권장)
-    /// </summary>
-    public void UseRainbowKey(int chapter)
-    {
-        rainbowKeyUsesPerChapter ??= new Dictionary<int, int>();
-        int uses = GetRainbowKeyUses(chapter);
-        rainbowKeyUsesPerChapter[chapter] = uses + 1;
-    }
-
-    public void ResetRainbowKeyUsesForChapter(int chapter)
-    {
-        rainbowKeyUsesPerChapter ??= new Dictionary<int, int>();
-        rainbowKeyUsesPerChapter[chapter] = 0;
-    }
-    #endregion
     public int GetNextUnitUniqueId()
     {
         return nextUnitUniqueId++;
@@ -1312,7 +1277,8 @@ public class RogueLikeData
     // 사용처: 현재 상점 스냅샷 읽기
     public StoreSnapshot GetCurrentStoreSnapshot() => currentStore;
 
-    // 사용처: 구매 시 슬롯을 판매 상태로 잠금(이중 클릭/재입장 방지)
+    // 사용처: 구매 시 슬롯을 판매 상태로 잠금(이중 클릭 방지)
+
     public bool TryMarkSold(StoreSlotType type, int indexOrId)
     {
         if (currentStore == null) return false;
@@ -1346,7 +1312,6 @@ public class RogueLikeData
                 return false;
         }
 
-        new SaveData().SaveDataFile(); // 즉시 저장
         return true;
     }
 

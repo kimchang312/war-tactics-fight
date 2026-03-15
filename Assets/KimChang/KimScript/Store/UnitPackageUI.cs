@@ -40,7 +40,8 @@ public class UnitPackageUI : MonoBehaviour
     private const float ClickOffsetX = 365f;
     private const float ScreenMargin = 50f;
     private const float ExpandThresholdX = 720f;
-
+    // 사용처: 현재 호버/접힘 상태 전환 트윈 추적
+    private Tween stateTween;
     private void Awake()
     {
         rect = (RectTransform)transform;
@@ -79,7 +80,14 @@ public class UnitPackageUI : MonoBehaviour
         itemInfo.item = storeItem;
         itemInfo.price = price;
 
-        packageName.text = itemInfo.item.itemName;
+        packagePrice.text = itemInfo.price.ToString();
+        packageName.gameObject.SetActive(true);
+        packagePrice.gameObject.SetActive(true);
+
+        // 사용처: 패키지명은 현재 화면상 앞에 보이는 유닛 이름 기준으로 갱신
+        UpdatePackageNameByFrontUnit();
+
+
         packagePrice.text = itemInfo.price.ToString();
         packageName.gameObject.SetActive(true);
         packagePrice.gameObject.SetActive(true);
@@ -127,10 +135,10 @@ public class UnitPackageUI : MonoBehaviour
         }
     }
 
-    // 사용처: 자식 중 첫 진입 시(hoverRefCount 0->1) 패키지 호버 시작
+    // 사용처: 자식 중 첫 진입 시 패키지 호버 시작
     internal void OnPackageHoverBegin()
     {
-        if (hoverLocked || isPackageOpened || isAnimating) return;
+        if (hoverLocked || isPackageOpened) return;
 
         if (currentHover != null && currentHover != this && !currentHover.isPackageOpened)
         {
@@ -143,24 +151,33 @@ public class UnitPackageUI : MonoBehaviour
         SpreadUnits(force: true);
     }
 
+    // 사용처: 호버 해제 시 패키지 접기
     internal void OnPackageHoverEnd()
     {
-        if (hoverLocked || isPackageOpened || isAnimating) return;
-        CollapseUnits(force: true);
-        if (currentHover == this) currentHover = null;
-    }
+        if (hoverLocked || isPackageOpened) return;
 
+        CollapseUnits(force: true);
+
+        if (currentHover == this)
+            currentHover = null;
+    }
 
     // 사용처: 호버 펼침(위치 기준 단방향/대칭)
     private void SpreadUnits(bool force)
     {
         if (!force && isAnimating) return;
+
         isAnimating = true;
 
         KillAllAnimations();
         CollectActiveChildren();
+
         int n = activeChildren.Count;
-        if (n == 0) { isAnimating = false; return; }
+        if (n == 0)
+        {
+            isAnimating = false;
+            return;
+        }
 
         float anchorX = rect != null ? rect.anchoredPosition.x : ((RectTransform)transform).anchoredPosition.x;
         float halfWidth = GetCanvasHalfWidth();
@@ -169,7 +186,7 @@ public class UnitPackageUI : MonoBehaviour
         {
             for (int i = 0; i < n; i++)
             {
-                int offsetIndex = (n - 1 - i);
+                int offsetIndex = n - 1 - i;
                 float x = -HoverOffsetX * offsetIndex;
                 x = Mathf.Clamp(x, -halfWidth + ScreenMargin, halfWidth - ScreenMargin);
                 activeChildren[i].DOAnchorPos(new Vector2(x, 0f), AniTime).SetEase(Ease.OutCubic);
@@ -179,7 +196,7 @@ public class UnitPackageUI : MonoBehaviour
         {
             for (int i = 0; i < n; i++)
             {
-                int offsetIndex = (n - 1 - i);
+                int offsetIndex = n - 1 - i;
                 float x = HoverOffsetX * offsetIndex;
                 x = Mathf.Clamp(x, -halfWidth + ScreenMargin, halfWidth - ScreenMargin);
                 activeChildren[i].DOAnchorPos(new Vector2(x, 0f), AniTime).SetEase(Ease.OutCubic);
@@ -196,7 +213,10 @@ public class UnitPackageUI : MonoBehaviour
             }
         }
 
-        DOVirtual.DelayedCall(AniTime, () => isAnimating = false);
+        stateTween = DOVirtual.DelayedCall(AniTime, () =>
+        {
+            isAnimating = false;
+        }).SetTarget(this);
     }
 
     // 사용처: 호버 접기
@@ -205,16 +225,26 @@ public class UnitPackageUI : MonoBehaviour
         if (!force && isAnimating) return;
 
         isAnimating = true;
+
         KillAllAnimations();
         CollectActiveChildren();
-        if (activeChildren.Count == 0) { isAnimating = false; return; }
+
+        if (activeChildren.Count == 0)
+        {
+            isAnimating = false;
+            return;
+        }
 
         for (int i = 0; i < activeChildren.Count; i++)
+        {
             activeChildren[i].DOAnchorPos(Vector2.zero, AniTime).SetEase(Ease.OutCubic);
+        }
 
-        DOVirtual.DelayedCall(AniTime, () => isAnimating = false);
+        stateTween = DOVirtual.DelayedCall(AniTime, () =>
+        {
+            isAnimating = false;
+        }).SetTarget(this);
     }
-
     // 사용처: 유닛 클릭(패키지 열기 트리거)
     private void OnUnitClick(Button btn)
     {
@@ -344,7 +374,12 @@ public class UnitPackageUI : MonoBehaviour
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void KillAllAnimations()
     {
+        if (stateTween != null && stateTween.IsActive())
+            stateTween.Kill();
+
+        DOTween.Kill(this);
         DOTween.Kill(rect);
+
         int total = unitBox.childCount;
         for (int i = 0; i < total; i++)
         {
@@ -357,9 +392,11 @@ public class UnitPackageUI : MonoBehaviour
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ResetChildrenAnchorsToZero()
     {
-        for (int i = 0; i < transform.childCount; i++)
+        if (unitBox == null) return;
+
+        for (int i = 0; i < unitBox.childCount; i++)
         {
-            if (transform.GetChild(i) is RectTransform r)
+            if (unitBox.GetChild(i) is RectTransform r)
                 r.anchoredPosition = Vector2.zero;
         }
     }
@@ -401,5 +438,37 @@ public class UnitPackageUI : MonoBehaviour
             owner.OnUnitClick(null);
         }
     }
+    // 사용처: 접힌 상태에서 레이어상 가장 앞에 보이는 유닛 이름 조회
+    private string GetFrontVisibleUnitName()
+    {
+        if (unitBox == null) return string.Empty;
 
+        for (int i = unitBox.childCount - 1; i >= 0; i--)
+        {
+            Transform child = unitBox.GetChild(i);
+
+            if (!child.gameObject.activeSelf)
+                continue;
+
+            OneUnitUI oneUnitUI = child.GetComponent<OneUnitUI>();
+            if (oneUnitUI == null || oneUnitUI.unit == null)
+                continue;
+
+            if (!string.IsNullOrEmpty(oneUnitUI.unit.unitName))
+                return oneUnitUI.unit.unitName;
+        }
+
+        return string.Empty;
+    }
+
+    // 사용처: 패키지 이름 텍스트를 레이어상 가장 앞에 보이는 유닛 이름으로 갱신
+    private void UpdatePackageNameByFrontUnit()
+    {
+        string frontName = GetFrontVisibleUnitName();
+
+        if (!string.IsNullOrEmpty(frontName))
+            packageName.text = frontName;
+        else
+            packageName.text = itemInfo.item != null ? itemInfo.item.itemName : string.Empty;
+    }
 }

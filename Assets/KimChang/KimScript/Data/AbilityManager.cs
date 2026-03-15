@@ -364,7 +364,8 @@ public class AbilityManager
             if (isFirstAttack && frontAttacker.charge && frontAttacker.impact)
             {                
                 RogueUnitDataBase target = CalculateBackAttack(defenders);
-                if (target==null && defenders.Count > 1)
+                Debug.Log(target);
+                if (target == null && defenders.Count > 1)
                 {
                     int unitIndex = 1;
                     for(int k=1; k < defenders.Count; k++)
@@ -802,40 +803,25 @@ public class AbilityManager
         return use;
     }
     //선제타격 데미지 계산
-    private void CalculateDamageFirstStrike(RogueUnitDataBase attacker, List<RogueUnitDataBase> defenders,bool isTeam,ref bool use)
+    private void CalculateDamageFirstStrike(RogueUnitDataBase attacker, List<RogueUnitDataBase> defenders, bool isTeam, ref bool use)
     {
-        RogueUnitDataBase target = CalculateBackAttack(defenders);
-        if (target == null)
-        {
-            int minHealthIndex = CalculateMinHealthIndex(defenders);
-            if (minHealthIndex == -1) return;
- 
-            float damage = attacker.attackDamage * 2;
+        RogueUnitDataBase target = CalculateMinHealthBackAttack(defenders);
+        if (target == null) return;
 
-            damage = ChangeBackMultiple(attacker, defenders[minHealthIndex], damage, isTeam);
+        int unitIndex = defenders.IndexOf(target);
+        if (unitIndex < 0) return;
 
-            //유산 127
-            RelicManager.RunGuardiansCloak(defenders, !isTeam,ref minHealthIndex,ref damage);
+        float damage = attacker.attackDamage * 2f;
+        damage = ChangeBackMultiple(attacker, target, damage, isTeam);
 
-            damage = MathF.Round(damage);
-            defenders[minHealthIndex].health -= damage;
-            CallDamageText(damage, "선제타격 ", !isTeam, false, minHealthIndex);
-        }
-        else
-        {
-            int unitIndex = 0;
-            float damage = attacker.attackDamage * (1 - (target.Armor / (target.Armor + 10)));
-            float finaldamage = SetMultipleDamage(attacker, target, isTeam);
-            damage *= finaldamage;
+        // 유산 127
+        RelicManager.RunGuardiansCloak(defenders, !isTeam, ref unitIndex, ref damage);
+        target = defenders[unitIndex];
 
-            //유산 127
-            RelicManager.RunGuardiansCloak(defenders, !isTeam, ref unitIndex, ref damage);
+        damage = MathF.Round(damage);
+        target.health -= damage;
 
-            damage = MathF.Round(damage);
-            target.health -= damage;
-
-            CallDamageText(damage, "선제타격 수호 ", !isTeam, false, unitIndex);
-        }
+        CallDamageText(damage, "선제타격 ", !isTeam, false, unitIndex);
 
         float relicDamage = RelicManager.RunPulsatingDoll(attacker, isTeam);
         if (relicDamage > 0)
@@ -888,86 +874,77 @@ public class AbilityManager
         text += "회피 ";
     }
     //암살
-    private void CalculateAssassination(RogueUnitDataBase attacker,List<RogueUnitDataBase> attackers, List<RogueUnitDataBase> defenders, ref float _damage, ref string text,bool isTeam,bool isOnce=false)
+    // 암살
+    private void CalculateAssassination(RogueUnitDataBase attacker, List<RogueUnitDataBase> attackers, List<RogueUnitDataBase> defenders, ref float _damage, ref string text, bool isTeam, bool isOnce = false)
     {
-        int minHealthIndex = CalculateMinHealthIndex(defenders);
-        if (minHealthIndex == -1) return;
+        RogueUnitDataBase target = CalculateMinHealthBackAttack(defenders);
+        if (target == null) return;
+
+        int unitIndex = defenders.IndexOf(target);
+        if (unitIndex < 0) return;
+
         float damage = attacker.attackDamage * assassinationValue;
 
-        RogueUnitDataBase target= CalculateBackAttack(defenders);
-
-        //전열공격
-        if (target != null) 
+        // 사용처: 암살단장 52 즉사 효과
+        if (RogueLikeData.Instance.GetPresetID() == 52 && RogueLikeData.Instance.GetRandomFloat() < 0.5f)
         {
-            float ar = target.Armor;
-            damage *= 1f - (ar / (ar + 10f));              // 방어 보정
-            damage *= SetMultipleDamage(attacker, target, isTeam); // 상성/배수
-            int unitIndex = 0;
-            RelicManager.RunGuardiansCloak(defenders, !isTeam, ref unitIndex, ref damage);
-            target = defenders[unitIndex];
-            damage = MathF.Round(damage);
-            target.health -= damage;
-            CallDamageText(damage, "암살 수호 ", !isTeam, true, unitIndex);
-
-            // 33% 확률로 한 번 더 실행
-            if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && RogueLikeData.Instance.GetRandomFloat() < 0.33f)
-            {
-                CalculateAssassination(attacker,attackers, defenders, ref _damage, ref text,isTeam,true);
-            }
+            float killDamage = target.health;
+            target.health = 0;
+            CallDamageText(killDamage, "암살 ", !isTeam, true, unitIndex);
+            return;
         }
-        else 
+
+        float ar = target.Armor;
+        damage *= 1f - (ar / (ar + 10f));
+        damage *= SetMultipleDamage(attacker, target, isTeam);
+
+        // 유산 127
+        RelicManager.RunGuardiansCloak(defenders, !isTeam, ref unitIndex, ref damage);
+        target = defenders[unitIndex];
+
+        damage = MathF.Round(damage);
+        target.health -= damage;
+
+        CallDamageText(damage, "암살 ", !isTeam, true, unitIndex);
+
+        // 복수
+        if (defenders.Count > 0 && defenders[0].vengeance)
         {
-            if (RogueLikeData.Instance.GetPresetID() == 52)
-            {
-                if (RogueLikeData.Instance.GetRandomFloat() < 0.5f)
-                {
-                    defenders[minHealthIndex].health = 0;
-                    CallDamageText(defenders[minHealthIndex].health, "암살 ", !isTeam, true, minHealthIndex);
+            float revengeDamage = damage;
+            int revengeIndex = 0;
 
-                    return;
-                }
-            }
+            RelicManager.RunGuardiansCloak(attackers, isTeam, ref revengeIndex, ref revengeDamage);
+            RogueUnitDataBase revengeTarget = attackers[revengeIndex];
 
-            damage = ChangeBackMultiple(attacker, defenders[minHealthIndex],damage, isTeam);
-            damage = MathF.Round(damage);
+            revengeTarget.health -= revengeDamage;
 
-            //유산 127
-            RelicManager.RunGuardiansCloak(defenders, !isTeam, ref minHealthIndex, ref damage);
+            CallDamageText(revengeDamage, "복수 ", isTeam, true, revengeIndex);
+        }
 
-            defenders[minHealthIndex].health -= damage;
-
-            CallDamageText(damage, "암살 ", !isTeam, true,minHealthIndex);
-            //복수
-            if (defenders[0].vengeance)
-            {
-                //유산 127
-                RelicManager.RunGuardiansCloak(attackers, isTeam, ref minHealthIndex, ref damage);
-                target = attackers[minHealthIndex];
-
-                target.health -= damage;
-
-                CallDamageText(damage, "복수 ", isTeam, true, minHealthIndex);
-            }
-
-            if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && RogueLikeData.Instance.GetRandomFloat() < 0.33f)
-            {
-                CalculateAssassination(attacker,attackers, defenders, ref _damage, ref text, isTeam, true);
-            }
+        // 33% 확률로 한 번 더 실행
+        if (!isOnce && RogueLikeData.Instance.GetPresetID() == 60 && !isTeam && RogueLikeData.Instance.GetRandomFloat() < 0.33f)
+        {
+            CalculateAssassination(attacker, attackers, defenders, ref _damage, ref text, isTeam, true);
         }
     }
-    //도전
-    private void CalculateChallenge(RogueUnitDataBase attaker, ref List<RogueUnitDataBase> defenders,bool isTeam)
+    // 도전
+    private void CalculateChallenge(RogueUnitDataBase attaker, ref List<RogueUnitDataBase> defenders, bool isTeam)
     {
-        if (attaker.challenge && attaker.health > 0 && CheckBackUnit(defenders))
-        {
-            int minHealthIndex = CalculateMinHealthIndex(defenders);
+        if (!attaker.challenge || attaker.health <= 0)
+            return;
 
-            RogueUnitDataBase selectUnit = defenders[minHealthIndex];
-            defenders.RemoveAt(minHealthIndex);
-            defenders.Insert(0, selectUnit);
+        RogueUnitDataBase target = CalculateMinHealthBackAttack(defenders);
+        if (target == null)
+            return;
 
-            CallDamageText(0,"도전",!isTeam,false, minHealthIndex);
-        }
+        int unitIndex = defenders.IndexOf(target);
+        if (unitIndex <= 0)
+            return;
+
+        defenders.RemoveAt(unitIndex);
+        defenders.Insert(0, target);
+
+        CallDamageText(0, "도전", !isTeam, false, unitIndex);
     }
     //상흔
     private void CalculateWounding(RogueUnitDataBase attacker, RogueUnitDataBase defender, ref string text)
@@ -1376,6 +1353,36 @@ public class AbilityManager
 
         return minHealthNumber;
     }
+
+    private RogueUnitDataBase CalculateMinHealthBackAttack(List<RogueUnitDataBase> defenders)
+    {
+        if (defenders == null || defenders.Count < 2)
+            return null;
+
+        int targetIndex = -1;
+        float minHealth = float.MaxValue;
+
+        for (int i = 1; i < defenders.Count; i++)
+        {
+            if (defenders[i].health > 0 && defenders[i].health < minHealth)
+            {
+                minHealth = defenders[i].health;
+                targetIndex = i;
+            }
+        }
+
+        if (targetIndex == -1)
+            return null;
+
+        for (int i = 0; i < targetIndex; i++)
+        {
+            if (defenders[i].health > 0 && defenders[i].guard)
+                return defenders[i];
+        }
+
+        return defenders[targetIndex];
+    }
+
 
     // 원거리 공격 최적화 코드
     private (float,string) CalculateRangeAttack(List<RogueUnitDataBase> attackers, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage,bool isFirstAttack)
@@ -2060,16 +2067,34 @@ public class AbilityManager
     //후열 타격
     private RogueUnitDataBase CalculateBackAttack(List<RogueUnitDataBase> defenders)
     {
-        // 첫 번째로 살아있는 유닛을 찾음
-        foreach (var defender in defenders)
+        if (defenders == null || defenders.Count < 2)
+            return null;
+
+        int targetIndex = -1;
+
+        for (int i = 1; i < defenders.Count; i++)
         {
-            if (defender.health > 0) // 체력이 0보다 크다면 살아있는 유닛
+            if (defenders[i].health > 0)
             {
-                return defender.guard ? defender : null; // guard가 있다면 해당 유닛 반환, 없다면 null 반환
+                targetIndex = i;
+                break;
             }
         }
-        return null; // 모든 유닛이 죽어있다면 null 반환
+
+        if (targetIndex == -1)
+            return null;
+
+        for (int i = 0; i < targetIndex; i++)
+        {
+            if (defenders[i].health > 0 && defenders[i].guard)
+                return defenders[i];
+        }
+
+        return defenders[targetIndex];
     }
+
+
+
 
     //데미지 ui 호출
     private void CallDamageText(float damage, string text, bool team,bool isAttack ,int unitIndex = 0)

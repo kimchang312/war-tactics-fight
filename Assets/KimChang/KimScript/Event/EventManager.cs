@@ -572,13 +572,23 @@ public class EventManager
                                 resultLog += $"- 보석 건틀릿의 마지막 유산을 획득했습니다.\n";
                                 PushResultToken(resultTokens, name);
                             }
+                        }else if(form == ResultForm.None)
+                        {
+                            //이벤트 41 기이한 유산
+                            if(choiceData.choiceId == 113)
+                            {
+                                var resume = RogueLikeData.Instance.GetSelectedUnits();
+                                RogueUnitDataBase unit = resume[0];
+                                unit.endless = true;
+
+                            }
+
                         }
                         break;
                     }
                 case ResultType.Unit:
                     {
                         
-
                         if (form == ResultForm.None)
                         {
                             int unitId = int.Parse(value);

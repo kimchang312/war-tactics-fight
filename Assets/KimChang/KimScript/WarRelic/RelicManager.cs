@@ -407,8 +407,6 @@ public class RelicManager
             if (relic.type == RelicType.StateBoost || relic.type == RelicType.ActiveState)
             {
                 if (curseBlock && relic.grade == 0) continue;
-                Debug.Log(relic);
-                Debug.Log(relic.name);
                 relic.Execute();
                 executed++;
             }
@@ -872,4 +870,39 @@ public class RelicManager
         RunTerracottaArmy();
 
     }
+
+    // 사용처: 이벤트/상점/테스트/특수보상 등 모든 직접 유물 획득 진입점
+    public static bool AcquireRelic(int relicId)
+    {
+        if (!InitializeRelicCatalog())
+            return false;
+
+        if (RogueLikeData.Instance.HasOwnedRelic(relicId))
+            return false;
+
+        WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
+        if (relic == null)
+            return false;
+
+        WarRelicDatabase.RebindRuntime(relic);
+
+        if (relicId == 53)
+        {
+            var vals = relic.GetAllValuesAsFloatListOrNull();
+            if (vals != null && RogueLikeData.Instance.GetRandomFloat() <= vals[1])
+            {
+                HandleRandomRelic(10, RelicAction.Acquire);
+            }
+        }
+
+        if (!RogueLikeData.Instance.TryAddOwnedRelic(relic))
+            return false;
+
+        if (relic.type == RelicType.GetEffect)
+            relic.Execute();
+
+        return true;
+    }
+
+
 }

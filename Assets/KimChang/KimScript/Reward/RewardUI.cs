@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using TMPro;
@@ -53,7 +54,7 @@ public class RewardUI : MonoBehaviour
     private bool isEnd = false;
 
     private Graphic[] _btnGraphics;
-
+    private bool isMovingScene = false;
     private void Awake()
     {
         // 이 함수는 버튼 루트 하위 Graphic을 캐시해 페이드 시 반복 탐색을 방지한다.
@@ -336,7 +337,6 @@ public class RewardUI : MonoBehaviour
         else if (info.data.type == RewardType.RelicGrade || info.data.type == RewardType.NewRelic)
         {
             RogueLikeData.Instance.AcquireRelic(info.data.relicId);
-            RewardManager.AcquireReward();
             if (info.data.relicId == 79)
             {
                 //일단 안쓰는걸로
@@ -476,21 +476,42 @@ public class RewardUI : MonoBehaviour
     // 이 함수는 재도전 버튼 클릭 시 사용한다.
     private void ClickRetryBtn()
     {
-        RogueLikeData.Instance.ClearBattleReward();
-        saveData.ResetGameData();
-        RogueLikeData.Instance.SetResetMap(true);
-        SafeSetActive(gameOverPanel, false);
-        SceneManager.LoadScene("RLmap");
+        if (isMovingScene) return;
+        StartCoroutine(MoveSceneRoutine("RLmap"));
     }
 
     // 이 함수는 타이틀로 이동 버튼 클릭 시 사용한다.
     private void ClickGoTitleBtn()
     {
+        if (isMovingScene) return;
+        StartCoroutine(MoveSceneRoutine("Title"));
+    }
+
+    // 사용처: 현재 UI를 유지한 채 씬 전환
+    private IEnumerator MoveSceneRoutine(string sceneName)
+    {
+        isMovingScene = true;
+
         RogueLikeData.Instance.ClearBattleReward();
         saveData.ResetGameData();
         RogueLikeData.Instance.SetResetMap(true);
-        SafeSetActive(gameOverPanel, false);
-        SceneManager.LoadScene("Title");
+
+        Canvas.ForceUpdateCanvases();
+
+        // 사용처: 현재 결과 UI가 먼저 화면에 그려지도록 1프레임 대기
+        yield return null;
+        yield return new WaitForEndOfFrame();
+
+        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        while (!op.isDone)
+        {
+            yield return null;
+        }
+
+        // 사용처: 새 씬이 다 열린 뒤 결과 UI 비활성화
+        gameObject.SetActive(false);
+
+        isMovingScene = false;
     }
 
     private void OnDisable()
