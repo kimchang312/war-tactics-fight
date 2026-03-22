@@ -9,7 +9,8 @@ using UnityEngine.UI;
 
 public class RewardUI : MonoBehaviour
 {
-    [SerializeField] private Image backgroundImg;
+    [SerializeField] private Image teasureBackgroundImg;
+    [SerializeField] private Image rewardBackgroundImg;
     [SerializeField] private GameObject backFrame;
     [SerializeField] private Button goldResult;
     [SerializeField] private Button unitResult;
@@ -19,7 +20,8 @@ public class RewardUI : MonoBehaviour
     [SerializeField] private Button leaveBtn;
     [SerializeField] private GameObject rewardSelectObj;
     [SerializeField] private TextMeshProUGUI selectText;
-    [SerializeField] private GameObject selectRewards;
+    [SerializeField] private GameObject selectRelicRewards;
+    [SerializeField] private GameObject selectUnitRewards;
     [SerializeField] private Button rerollBtn;
     [SerializeField] private Button skipBtn;
     [SerializeField] private UnitListUI unitListUI;
@@ -96,7 +98,9 @@ public class RewardUI : MonoBehaviour
     public void SetActiveTeasureBox()
     {
         teasureBox.gameObject.SetActive(true);
-        CloseTeasureBox();
+        teasureBackgroundImg.gameObject.SetActive(true);
+        rewardBackgroundImg.gameObject.SetActive(false);
+        CloseTeasureBoxImg();
         teasureBtn.onClick.RemoveAllListeners();
         teasureBtn.onClick.AddListener(CreateTeasureUI);
     }
@@ -105,8 +109,8 @@ public class RewardUI : MonoBehaviour
     public void CreateTeasureUI()
     {
         teasureBtn.onClick.RemoveAllListeners();
-        AbleBackground();
-        OpenTeasureBox();
+
+        OpenTeasureBoxImg();
 
         AbleRewardWindow();
         BattleRewardData reward = new();
@@ -135,7 +139,8 @@ public class RewardUI : MonoBehaviour
     // 이 함수는 전투 종료 애니메이션(사기 깃발 이동)을 실행할 때 사용한다.
     public void AnimateBattleEnd()
     {
-        DisableBackground();
+        teasureBackgroundImg.gameObject.SetActive(false);
+        rewardBackgroundImg.gameObject.SetActive(false);
         teasureBox.gameObject.SetActive(false);
         AnimateMoraleFlag();
     }
@@ -143,7 +148,9 @@ public class RewardUI : MonoBehaviour
     public void CreateRewardUI()
     {
         ResetUI();
-
+        teasureBox.gameObject.SetActive(false);
+        teasureBackgroundImg.gameObject.SetActive(false);
+        rewardBackgroundImg.gameObject.SetActive(true);
         SafeSetActive(rewardWindow, true);
         SafeSetActive(gameOverPanel, false);
 
@@ -189,7 +196,10 @@ public class RewardUI : MonoBehaviour
 
     private void ResetUI()
     {
-        transform.SetAsLastSibling();
+        //transform.SetAsLastSibling();
+        rewardBackgroundImg.gameObject.SetActive(false);
+        teasureBackgroundImg.gameObject.SetActive(false);
+
         btns.gameObject.SetActive(false);
         DisableRewardWindow();
         goldResult.gameObject.SetActive(false);
@@ -207,8 +217,7 @@ public class RewardUI : MonoBehaviour
         retryBtn.gameObject.SetActive(false);
         goTitleBtn.gameObject.SetActive(false);
 
-        foreach (Transform child in selectRewards.transform)
-            child.gameObject.SetActive(false);
+        ResetSelectRewardObjects();
 
         rerollBtn.onClick.RemoveAllListeners();
         skipBtn.onClick.RemoveAllListeners();
@@ -217,7 +226,6 @@ public class RewardUI : MonoBehaviour
 
         endAnimation.SetActive(false);
 
-        // 추가 초기화 (게임 종료 UI 전용)
         SafeSetActive(gameOverPanel, false);
         SafeSetActive(rewardWindow, false);
 
@@ -236,40 +244,48 @@ public class RewardUI : MonoBehaviour
         else if (btns != null)
             SetAlphaMultiple(btns.GetComponentsInChildren<Graphic>(true), 0f);
     }
-
     // 이 함수는 유닛/유물 보상 선택창을 열 때 사용한다.
     private void OpenReward(bool isUnit)
     {
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
         selectText.text = isUnit ? "유닛 선택" : "유산 선택";
+        rewardBackgroundImg.gameObject.SetActive(true);
+
+        ResetSelectRewardObjects();
 
         if (isUnit)
         {
+            selectUnitRewards.SetActive(true);
+
             if (reward.unitGrade.Count > 0)
             {
                 var units = RewardManager.GetRandomUnitsByGrade(reward.unitGrade[0]);
-                for (int i = 0; i < units.Count; i++)
+                int count = Mathf.Min(units.Count, selectUnitRewards.transform.childCount);
+
+                for (int i = 0; i < count; i++)
                 {
-                    Button btn = selectRewards.transform.GetChild(i).GetComponent<Button>();
+                    Transform slot = selectUnitRewards.transform.GetChild(i);
                     RogueUnitDataBase unit = units[i];
-                    CreateUnit(btn, unit, RewardType.UnitGrade);
+                    CreateUnit(slot.gameObject, unit, RewardType.UnitGrade);
                 }
             }
             else if (reward.newUnits.Count > 0)
             {
-                Button btn = selectRewards.transform.GetChild(0).GetComponent<Button>();
+                Transform slot = selectUnitRewards.transform.GetChild(0);
                 RogueUnitDataBase unit = reward.newUnits[0];
-                CreateUnit(btn, unit, RewardType.NewUnit);
+                CreateUnit(slot.gameObject, unit, RewardType.NewUnit);
             }
             else if (reward.changedUnits.Count > 0)
             {
-                Button btn = selectRewards.transform.GetChild(0).GetComponent<Button>();
+                Transform slot = selectUnitRewards.transform.GetChild(0);
                 RogueUnitDataBase unit = reward.changedUnits[0];
-                CreateUnit(btn, unit, RewardType.ChangeUnit);
+                CreateUnit(slot.gameObject, unit, RewardType.ChangeUnit);
             }
         }
         else
         {
+            selectRelicRewards.SetActive(true);
+
             if (reward.relicGrade.Count > 0)
             {
                 int grade = reward.relicGrade[0];
@@ -289,16 +305,18 @@ public class RewardUI : MonoBehaviour
                         selectedIds.Add(id);
                     }
                 }
-                for (int i = 0; i < selected.Count; i++)
+
+                int count = Mathf.Min(selected.Count, selectRelicRewards.transform.childCount);
+                for (int i = 0; i < count; i++)
                 {
-                    Button btn = selectRewards.transform.GetChild(i).GetComponent<Button>();
+                    Button btn = selectRelicRewards.transform.GetChild(i).GetComponent<Button>();
                     WarRelic relic = selected[i];
                     CreateRelic(btn, relic, RewardType.RelicGrade);
                 }
             }
             else if (reward.relicIds.Count > 0)
             {
-                Button btn = selectRewards.transform.GetChild(0).GetComponent<Button>();
+                Button btn = selectRelicRewards.transform.GetChild(0).GetComponent<Button>();
                 var relic = WarRelicDatabase.GetRelicById(reward.relicIds[0]);
                 CreateRelic(btn, relic, RewardType.NewRelic);
             }
@@ -312,10 +330,9 @@ public class RewardUI : MonoBehaviour
             relicResult.gameObject.SetActive(false);
         }
 
-        (int,bool) reroll = RogueLikeData.Instance.GetRerollChance();
+        (int, bool) reroll = RogueLikeData.Instance.GetRerollChance();
         var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
         rerollBtn.interactable = (reroll.Item1 > 0 && reroll.Item2);
-        
         countText.text = $"{reroll.Item1}";
 
         rewardSelectObj.SetActive(true);
@@ -329,6 +346,7 @@ public class RewardUI : MonoBehaviour
     {
         if (info.data.isItem) return;
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+        rewardBackgroundImg.gameObject.SetActive(false);
         if (info.data.type == RewardType.UnitGrade || info.data.type == RewardType.NewUnit || info.data.type == RewardType.ChangeUnit)
         {
             RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(info.data.unitId);
@@ -368,23 +386,46 @@ public class RewardUI : MonoBehaviour
 
         if (reroll.Item1 > 0 && reroll.Item2)
         {
-            var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
-            countText.text = $"{reroll}";
-            var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
-            OpenReward(info.data.unitId > -1);
+            ItemInformation info = GetCurrentOpenedRewardInfo();
+            if (info == null)
+            {
+                rerollBtn.interactable = false;
+                return;
+            }
+
             RogueLikeData.Instance.AddReroll(-1);
-            countText.text = $"{reroll}";
-            rerollBtn.interactable = true;
+
+            var nowReroll = RogueLikeData.Instance.GetRerollChance();
+            var countText = rerollBtn.GetComponentInChildren<TextMeshProUGUI>();
+            countText.text = $"{nowReroll.Item1}";
+            rerollBtn.interactable = (nowReroll.Item1 > 0 && nowReroll.Item2);
+
+            bool isUnitReward =
+                info.data.type == RewardType.UnitGrade ||
+                info.data.type == RewardType.NewUnit ||
+                info.data.type == RewardType.ChangeUnit;
+
+            OpenReward(isUnitReward);
             return;
         }
+
         rerollBtn.interactable = false;
     }
-
     // 이 함수는 현재 보상 항목을 넘기거나 수령 후 다음 보상을 노출할 때 사용한다.
     private void SkipSelectReward()
     {
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
-        var info = selectRewards.transform.GetChild(0).GetComponent<ItemInformation>();
+        ItemInformation info = GetCurrentOpenedRewardInfo();
+        if (info == null)
+        {
+            AbleRewardWindow();
+            rewardSelectObj.SetActive(false);
+            unitResult.gameObject.SetActive(false);
+            relicResult.gameObject.SetActive(false);
+            TryLeaveReward();
+            return;
+        }
+
         switch (info.data.type)
         {
             case RewardType.UnitGrade: reward.unitGrade.RemoveAt(0); break;
@@ -393,6 +434,7 @@ public class RewardUI : MonoBehaviour
             case RewardType.RelicGrade: reward.relicGrade.RemoveAt(0); break;
             case RewardType.NewRelic: reward.relicIds.RemoveAt(0); break;
         }
+
         if (HasUnitReward(reward))
         {
             OpenReward(true);
@@ -411,30 +453,40 @@ public class RewardUI : MonoBehaviour
             TryLeaveReward();
         }
     }
-
     private static bool HasUnitReward(BattleRewardData r) =>
         r.unitGrade.Count > 0 || r.newUnits.Count > 0 || r.changedUnits.Count > 0;
 
     private static bool HasRelicReward(BattleRewardData r) =>
         r.relicGrade.Count > 0 || r.relicIds.Count > 0;
 
-    // 이 함수는 유닛 보상 버튼 하나를 구성할 때 사용한다.
-    private ItemInformation CreateUnit(Button btn, RogueUnitDataBase unit, RewardType type)
+    // 이 함수는 유닛 보상 슬롯 하나를 구성할 때 사용한다.
+    private ItemInformation CreateUnit(GameObject slotObj, RogueUnitDataBase unit, RewardType type)
     {
-        btn.GetComponent<Image>().sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
-        btn.GetComponentInChildren<TextMeshProUGUI>().text = unit.unitName;
+        OneUnitUI oneUnitUI = slotObj.GetComponent<OneUnitUI>();
+        Button btn = slotObj.GetComponent<Button>();
+        ItemInformation info = slotObj.GetComponent<ItemInformation>();
 
-        //Image unitFrame = ;
+        if (oneUnitUI != null)
+        {
+            oneUnitUI.SetOneUnit(unit);
+            oneUnitUI.SetDisableEnergy();
+        }
 
-        var info = btn.GetComponent<ItemInformation>();
-        info.data.unitId = unit.idx;
-        info.data.relicId = -1;
-        info.data.type = type;
-        info.data.isItem = false;
+        if (info != null)
+        {
+            info.data.unitId = unit.idx;
+            info.data.relicId = -1;
+            info.data.type = type;
+            info.data.isItem = false;
+        }
 
-        btn.onClick.RemoveAllListeners();
-        btn.onClick.AddListener(() => ClickReward(info));
-        btn.gameObject.SetActive(true);
+        if (btn != null)
+        {
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() => ClickReward(info));
+        }
+
+        slotObj.SetActive(true);
         return info;
     }
 
@@ -520,31 +572,15 @@ public class RewardUI : MonoBehaviour
     }
 
     // 이 함수는 보물 상자를 닫힌 스프라이트로 바꿀 때 사용한다.
-    private void CloseTeasureBox()
+    private void CloseTeasureBoxImg()
     {
         teasureBox.sprite = SpriteCacheManager.GetSprite("KIcon/TeasureClose");
     }
 
     // 이 함수는 보물 상자를 열린 스프라이트로 바꿀 때 사용한다.
-    private void OpenTeasureBox()
+    private void OpenTeasureBoxImg()
     {
         teasureBox.sprite = SpriteCacheManager.GetSprite("KIcon/TeasureOpen");
-    }
-
-    // 이 함수는 보상 UI 배경을 보이게 할 때 사용한다.
-    private void AbleBackground()
-    {
-        var color = backgroundImg.color;
-        color.a = 1;
-        backgroundImg.color = color;
-    }
-
-    // 이 함수는 보상 UI 배경을 흐리게 할 때 사용한다.
-    private void DisableBackground()
-    {
-        var color = backgroundImg.color;
-        color.a = 0.5f;
-        backgroundImg.color = color;
     }
 
     // 이 함수는 보상 UI 프레임을 활성화할 때 사용한다.
@@ -761,5 +797,71 @@ public class RewardUI : MonoBehaviour
         if (AreAllRewardChildrenOff())
             LeaveReward();
     }
+
+    // 사용처: 유닛/유물 선택 보상 UI를 열기 전에 양쪽 선택 컨테이너를 초기화할 때 사용
+    private void ResetSelectRewardObjects()
+    {
+        if (selectRelicRewards != null)
+        {
+            selectRelicRewards.SetActive(false);
+
+            for (int i = 0; i < selectRelicRewards.transform.childCount; i++)
+            {
+                var child = selectRelicRewards.transform.GetChild(i);
+                child.gameObject.SetActive(false);
+
+                Button btn = child.GetComponent<Button>();
+                if (btn != null)
+                    btn.onClick.RemoveAllListeners();
+            }
+        }
+
+        if (selectUnitRewards != null)
+        {
+            selectUnitRewards.SetActive(false);
+
+            for (int i = 0; i < selectUnitRewards.transform.childCount; i++)
+            {
+                var child = selectUnitRewards.transform.GetChild(i);
+                child.gameObject.SetActive(false);
+
+                Button btn = child.GetComponent<Button>();
+                if (btn != null)
+                    btn.onClick.RemoveAllListeners();
+            }
+        }
+    }
+
+    // 사용처: 현재 열려 있는 선택 보상 컨테이너의 첫 번째 ItemInformation을 가져올 때 사용
+    private ItemInformation GetCurrentOpenedRewardInfo()
+    {
+        if (selectUnitRewards != null && selectUnitRewards.activeSelf)
+        {
+            for (int i = 0; i < selectUnitRewards.transform.childCount; i++)
+            {
+                var child = selectUnitRewards.transform.GetChild(i);
+                if (!child.gameObject.activeSelf) continue;
+
+                ItemInformation info = child.GetComponent<ItemInformation>();
+                if (info != null) return info;
+            }
+        }
+
+        if (selectRelicRewards != null && selectRelicRewards.activeSelf)
+        {
+            for (int i = 0; i < selectRelicRewards.transform.childCount; i++)
+            {
+                var child = selectRelicRewards.transform.GetChild(i);
+                if (!child.gameObject.activeSelf) continue;
+
+                ItemInformation info = child.GetComponent<ItemInformation>();
+                if (info != null) return info;
+            }
+        }
+
+        return null;
+    }
+
+
 
 }

@@ -163,8 +163,8 @@ public class RelicManager
         var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
-            RogueLikeData.Instance.AcquireRelic(selected.id);
-        else // Remove
+            AcquireRelic(selected.id);
+        else
             RogueLikeData.Instance.RemoveRelicById(selected.id);
 
         return selected;
@@ -487,9 +487,9 @@ public class RelicManager
 
         if (action == RelicAction.Acquire)
         {
-            RogueLikeData.Instance.AcquireRelic(selected.id);
+            AcquireRelic(selected.id);
         }
-        else // Remove
+        else
         {
             RogueLikeData.Instance.RemoveRelicById(selected.id);
         }
@@ -889,7 +889,7 @@ public class RelicManager
         if (relicId == 53)
         {
             var vals = relic.GetAllValuesAsFloatListOrNull();
-            if (vals != null && RogueLikeData.Instance.GetRandomFloat() <= vals[1])
+            if (vals != null && vals.Count > 1 && RogueLikeData.Instance.GetRandomFloat() <= vals[1])
             {
                 HandleRandomRelic(10, RelicAction.Acquire);
             }
@@ -901,6 +901,7 @@ public class RelicManager
         if (relic.type == RelicType.GetEffect)
             relic.Execute();
 
+        UnitStateChange.ChangeStateMyUnits();
         return true;
     }
 

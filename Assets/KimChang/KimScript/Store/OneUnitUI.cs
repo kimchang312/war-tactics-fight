@@ -23,7 +23,6 @@ public class OneUnitUI : MonoBehaviour, IPointerClickHandler
     {
         cg = GetComponent<CanvasGroup>();
         if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
-        
     }
 
     public void SetOneUnit(RogueUnitDataBase _unit)
@@ -82,6 +81,12 @@ public class OneUnitUI : MonoBehaviour, IPointerClickHandler
         energyText.gameObject.SetActive(false);
         unitNameText.gameObject.SetActive(false);
     }
+    public void SetDisableEnergy()
+    {
+        energyImg.gameObject.SetActive(false);
+        energyText.gameObject.SetActive(false);
+    }
+
     public void SetAbleEnergyName()
     {
         energyImg.gameObject.SetActive(true);

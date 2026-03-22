@@ -454,7 +454,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             //rewardUI.gameObject.SetActive(true);
             currentStage?.StopSelectableEffect();
-            rewardUI.CreateTeasureUI();
+            rewardUI.SetActiveTeasureBox();
         }
         
         Debug.Log($"📌 SetCurrentStage: {newStage.level}_{newStage.row}");

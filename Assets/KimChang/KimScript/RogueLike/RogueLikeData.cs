@@ -96,7 +96,7 @@ public class RogueLikeData
     private bool isDataLoading = false;
 
     private int language = 0;
-    
+
 
     private float masterVolume = 0;
     private float bgmVolume = 0;
@@ -363,7 +363,7 @@ public class RogueLikeData
     // 사용처: 전투/이벤트에서 보유 유산 전체 순회(할당 없이)
     public IReadOnlyDictionary<int, WarRelic> GetOwnedRelicMap()
     {
-        foreach(var relic in ownedRelicsById)
+        foreach (var relic in ownedRelicsById)
         {
             Debug.Log(relic.Key + "," + relic.Value);
 
@@ -667,6 +667,7 @@ public class RogueLikeData
         }
 
         ownedRelicsById.Remove(relicId);
+        UnitStateChange.ChangeStateMyUnits();
     }
 
 
@@ -1202,21 +1203,21 @@ public class RogueLikeData
     }
 
     #region 47번 보물지도 관련 메서드
-    
+
     public bool GetNextEventToTreasure()
     {
         return nextEventToTreasure;
     }
-    
+
     public void SetNextEventToTreasure(bool value)
     {
         nextEventToTreasure = value;
     }
-    
+
     #endregion
-    
+
     #region 48번 무지개 열쇠 관련 메서드
-    
+
     public int GetRainbowKeyUses(int chapter)
     {
         if (!rainbowKeyUsesPerChapter.ContainsKey(chapter))
@@ -1225,7 +1226,7 @@ public class RogueLikeData
         }
         return rainbowKeyUsesPerChapter[chapter];
     }
-    
+
     public void UseRainbowKey(int chapter)
     {
         if (!rainbowKeyUsesPerChapter.ContainsKey(chapter))
@@ -1235,12 +1236,12 @@ public class RogueLikeData
         rainbowKeyUsesPerChapter[chapter]++;
         Debug.Log($"[무지개 열쇠] 챕터 {chapter}에서 사용 횟수: {rainbowKeyUsesPerChapter[chapter]}/2");
     }
-    
+
     public bool CanUseRainbowKey(int chapter)
     {
         return GetRainbowKeyUses(chapter) < 2;
     }
-    
+
     #endregion
 
     #region 상점 스냅샷
