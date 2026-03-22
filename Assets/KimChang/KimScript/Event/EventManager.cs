@@ -170,7 +170,7 @@ public class EventManager
 
         return false;
     }
-    
+
     private static int SafeParseInt(string str)
     {
         if (int.TryParse(str, out var result)) return result;
@@ -188,7 +188,7 @@ public class EventManager
         int morale = RogueLikeData.Instance.GetMorale();
         if (eventData.eventId == 5)
         {
-            if(gold >=100 || morale >=31) return true;
+            if (gold >= 100 || morale >= 31) return true;
         }
         else if (eventData.eventId == 30)
         {
@@ -204,25 +204,35 @@ public class EventManager
         }
         else if (eventData.eventId == 45)
         {
-            if(gold >=100 || morale >=6) return true;
+            if (gold >= 100 || morale >= 6) return true;
         }
         return false;
     }
 
     public static bool CheckChoiceRequireCondition(EventChoiceData eventChoiceData)
     {
-        // 조건이 모두 None이면 true
-        if (eventChoiceData.requireThing.Contains(RequireThing.None))
+        bool hasRequire = false;
+        for (int i = 0; i < eventChoiceData.requireThing.Count; i++)
         {
-            return true;
+            if (eventChoiceData.requireThing[i] != RequireThing.None)
+            {
+                hasRequire = true;
+                break;
+            }
         }
-        // 조건 전부 순회하며 검사 (모든 조건을 만족해야 true)
+
+        if (!hasRequire)
+            return true;
+
         for (int i = 0; i < eventChoiceData.requireThing.Count; i++)
         {
             var thing = eventChoiceData.requireThing[i];
             var form = eventChoiceData.requireForm[i];
             var value = eventChoiceData.requireValue[i];
             var count = eventChoiceData.requireCount[i];
+
+            if (thing == RequireThing.None)
+                continue;
 
             if (thing == RequireThing.Special || form == RequireForm.Special)
             {
@@ -241,19 +251,25 @@ public class EventManager
 
     private static bool CheckSpecialChoiceRequire(EventChoiceData eventChoiceData)
     {
-        //예외 처리
-        if(eventChoiceData.eventId == 82)
+        if (eventChoiceData.choiceId == 82)
         {
-            Debug.Log("82 현재 미구현");
-            return true;
+            List<int> warRelicIds = RogueLikeData.Instance.GetAllOwnedRelicIds();
+
+            int count = 0;
+            if (warRelicIds.Contains(23)) count++;
+            if (warRelicIds.Contains(24)) count++;
+            if (warRelicIds.Contains(25)) count++;
+
+            return count == 2 && RogueLikeData.Instance.GetMyTeam().Count > 0;
         }
+
         return false;
     }
     //보상 받기전 요구값 감소
     public static void ReduceRequire(EventChoiceData choiceData)
     {
         string requireLog = "";
-        for(int i = 0;i < choiceData.requireThing.Count;i++)
+        for (int i = 0; i < choiceData.requireThing.Count; i++)
         {
             RequireThing thig = choiceData.requireThing[i];
             RequireForm form = choiceData.requireForm[i];
@@ -264,16 +280,16 @@ public class EventManager
                 case RequireThing.None:
                     break;
                 case RequireThing.Energy:
-                    if(form == RequireForm.Select)
+                    if (form == RequireForm.Select)
                     {
                         List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
-                        foreach(var unit  in selectedUnits)
+                        foreach (var unit in selectedUnits)
                         {
-                            if (string.IsNullOrEmpty(value)) 
-                            { 
-                                requireLog += $"{unit.unitName}이(가) 선택 되었습니다."; 
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                requireLog += $"{unit.unitName}이(가) 선택 되었습니다.";
                             }
-                            else if(value == "-1")
+                            else if (value == "-1")
                             {
                                 unit.Energy -= 1;
                                 requireLog += $"{unit.unitName}이(가) 선택 되었습니다.";
@@ -316,7 +332,7 @@ public class EventManager
 
                     break;
                 case RequireThing.Unit:
-                    if(form == RequireForm.Select)
+                    if (form == RequireForm.Select)
                     {
                         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
                         List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
@@ -327,7 +343,7 @@ public class EventManager
                         myUnits.RemoveAll(unit => selectedUnits.Any(selectedUnit => selectedUnit.UniqueId == unit.UniqueId));
                         Debug.Log(myUnits.Count);
                         RogueLikeData.Instance.SetMyTeam(myUnits);
-                        foreach(var unit in selectedUnits)
+                        foreach (var unit in selectedUnits)
                         {
                             requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
                         }
@@ -367,27 +383,31 @@ public class EventManager
                             requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
                         }
                     }
-                    else if(form == RequireForm.Special)
+                    else if (form == RequireForm.Special)
                     {
                         if (choiceData.choiceId == 82)
                         {
                             List<RogueUnitDataBase> myTeam = RogueLikeData.Instance.GetMyTeam();
-                            RogueUnitDataBase expensiveUnit = RogueLikeData.Instance
-    .GetMyTeam()
-    .OrderByDescending(unit => unit.unitPrice)
-    .First();
-                            myTeam.Remove(expensiveUnit);
-                            RogueLikeData.Instance.SetMyTeam(myTeam);
-                            requireLog += $"{expensiveUnit.unitName}이 선택되었습니다.";
+                            RogueUnitDataBase sacrificeUnit = myTeam
+                                .OrderByDescending(unit => unit.unitPrice)
+                                .ThenByDescending(unit => unit.Energy)
+                                .FirstOrDefault();
+
+                            if (sacrificeUnit != null)
+                            {
+                                myTeam.RemoveAll(unit => unit.UniqueId == sacrificeUnit.UniqueId);
+                                RogueLikeData.Instance.SetMyTeam(myTeam);
+                                requireLog += $"{sacrificeUnit.unitName}이 선택되었습니다.";
+                            }
                         }
                     }
-                    else if(form == RequireForm.None)
+                    else if (form == RequireForm.None)
                     {
                         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
                         int rarity = int.Parse(value);
-                        var candidates = myUnits.Where(unit=>unit.rarity==rarity);
-                        myUnits.RemoveAll(unit=> candidates.Any(candidate => candidate.UniqueId == unit.UniqueId));
-                        foreach(var unit in candidates)
+                        var candidates = myUnits.Where(unit => unit.rarity == rarity);
+                        myUnits.RemoveAll(unit => candidates.Any(candidate => candidate.UniqueId == unit.UniqueId));
+                        foreach (var unit in candidates)
                         {
                             RogueLikeData.Instance.AddSelectedUnits(unit);
                             requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
@@ -396,25 +416,28 @@ public class EventManager
 
                     break;
                 case RequireThing.Relic:
-                    if(form == RequireForm.Random)
+                    if (form == RequireForm.Random)
                     {
                         int grade = int.Parse(value);
                         int relicCount = int.Parse(count);
-                        for(int k = 0; k < relicCount; k++)
+                        for (int k = 0; k < relicCount; k++)
                         {
-                            var relic = RelicManager.HandleRandomRelic(grade, RelicAction.Acquire);
-                            requireLog += $"{relic.name}이(가) 제거되었습니다.";
+                            var relic = RelicManager.HandleRandomRelic(grade, RelicAction.Remove);
+                            if (relic != null)
+                            {
+                                requireLog += $"{relic.name}이(가) 제거되었습니다.";
+                            }
                         }
                     }
 
                     break;
                 case RequireThing.Gold:
-                    if(choiceData.choiceId == 27)
+                    if (choiceData.choiceId == 27)
                     {
                         RogueLikeData.Instance.EarnGold(-RogueLikeData.Instance.GetCurrentGold());
                         requireLog = "모든 금화를 잃었습니다.\n";
                     }
-                    else if(form == RequireForm.None)
+                    else if (form == RequireForm.None)
                     {
                         int goldCount = int.Parse(count);
                         RogueLikeData.Instance.ReduceGold(goldCount);
@@ -422,14 +445,14 @@ public class EventManager
                     }
                     break;
                 case RequireThing.Morale:
-                    if(form == RequireForm.None)
+                    if (form == RequireForm.None)
                     {
                         float reduceMorale = 1;
                         if (RogueLikeData.Instance.GetOwnedRelicById(33) == null)
                         {
                             reduceMorale += 0.2f;
                         }
-                        int moraleCount = (int)(int.Parse(count)*reduceMorale);
+                        int moraleCount = (int)(int.Parse(count) * reduceMorale);
                         moraleCount = RogueLikeData.Instance.ChangeMorale(-moraleCount);
                         requireLog += $"사기가 {-moraleCount}만큼 감소했습니다.\n";
                     }
@@ -503,11 +526,11 @@ public class EventManager
 
                 case ResultType.Relic:
                     {
-                        int grade = int.Parse(value);
-                        int relicCount = int.Parse(count);
-
                         if (form == ResultForm.Random)
                         {
+                            int grade = int.Parse(value);
+                            int relicCount = int.Parse(count);
+
                             if (isBattle)
                             {
                                 for (int k = 0; k < relicCount; k++)
@@ -518,9 +541,31 @@ public class EventManager
                                 for (int k = 0; k < relicCount; k++)
                                 {
                                     var relic = RelicManager.HandleRandomRelic(grade, RelicAction.Acquire);
+                                    if (relic == null) continue;
+
                                     string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
                                     resultLog += $"- 전쟁 유산 획득: {name}\n";
                                     PushResultToken(resultTokens, name);
+                                }
+                            }
+                        }
+                        else if (form == ResultForm.Select || form == ResultForm.None)
+                        {
+                            int relicId = int.Parse(value);
+                            if (RelicManager.AcquireRelic(relicId))
+                            {
+                                string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relicId);
+                                resultLog += $"- 전쟁 유산 획득: {name}\n";
+                                PushResultToken(resultTokens, name);
+                            }
+
+                            if (choiceData.choiceId == 113)
+                            {
+                                var resume = RogueLikeData.Instance.GetSelectedUnits();
+                                if (resume != null && resume.Count > 0)
+                                {
+                                    RogueUnitDataBase unit = resume[0];
+                                    unit.endless = true;
                                 }
                             }
                         }
@@ -529,18 +574,24 @@ public class EventManager
                             if (choiceData.choiceId == 59 && RogueLikeData.Instance.GetRandomFloat() < 0.5f)
                             {
                                 var relic = RelicManager.HandleRandomRelic(0, RelicAction.Acquire);
-                                string name = GameTextDB.GetByForeignKey(TextKind.RelicName,relic.id);
-                                resultLog += $"- 전쟁 유산 획득: {name}\n";
-                                PushResultToken(resultTokens, name);
+                                if (relic != null)
+                                {
+                                    string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
+                                    resultLog += $"- 전쟁 유산 획득: {name}\n";
+                                    PushResultToken(resultTokens, name);
+                                }
                             }
                             else if (choiceData.choiceId == 73)
                             {
                                 if (IsUnitVictory(selectedUnits[0]))
                                 {
                                     var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
-                                    string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
-                                    resultLog += $"- 전쟁 유산 획득: {name}\n";
-                                    PushResultToken(resultTokens, name);
+                                    if (relic != null)
+                                    {
+                                        string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
+                                        resultLog += $"- 전쟁 유산 획득: {name}\n";
+                                        PushResultToken(resultTokens, name);
+                                    }
                                 }
                                 else
                                 {
@@ -553,9 +604,12 @@ public class EventManager
                                 {
                                     RogueLikeData.Instance.AddMyTeam(selectedUnits[0]);
                                     var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
-                                    string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
-                                    resultLog += $"- 결투 승리: 전쟁유산 {name} 획득\n";
-                                    PushResultToken(resultTokens, name);
+                                    if (relic != null)
+                                    {
+                                        string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
+                                        resultLog += $"- 결투 승리: 전쟁유산 {name} 획득\n";
+                                        PushResultToken(resultTokens, name);
+                                    }
                                 }
                                 else
                                 {
@@ -566,29 +620,31 @@ public class EventManager
                             {
                                 var relicIds = RogueLikeData.Instance.GetAllOwnedRelicIds();
                                 int rewardRelicId = !relicIds.Contains(23) ? 23 : (!relicIds.Contains(24) ? 24 : 25);
-                                RogueLikeData.Instance.AcquireRelic(rewardRelicId);
-                                var relic = RelicManager.GetRelicById(rewardRelicId);
-                                string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
-                                resultLog += $"- 보석 건틀릿의 마지막 유산을 획득했습니다.\n";
-                                PushResultToken(resultTokens, name);
+
+                                if (RelicManager.AcquireRelic(rewardRelicId))
+                                {
+                                    string name = GameTextDB.GetByForeignKey(TextKind.RelicName, rewardRelicId);
+                                    resultLog += $"- 보석 건틀릿의 마지막 유산을 획득했습니다.\n";
+                                    PushResultToken(resultTokens, name);
+                                }
                             }
-                        }else if(form == ResultForm.None)
-                        {
-                            //이벤트 41 기이한 유산
-                            if(choiceData.choiceId == 113)
+                            else if (choiceData.choiceId == 132)
                             {
-                                var resume = RogueLikeData.Instance.GetSelectedUnits();
-                                RogueUnitDataBase unit = resume[0];
-                                unit.endless = true;
-
+                                int rewardGrade = RogueLikeData.Instance.GetRandomFloat() < 0.5f ? 10 : 0;
+                                var relic = RelicManager.HandleRandomRelic(rewardGrade, RelicAction.Acquire);
+                                if (relic != null)
+                                {
+                                    string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
+                                    resultLog += $"- 전쟁 유산 획득: {name}\n";
+                                    PushResultToken(resultTokens, name);
+                                }
                             }
-
                         }
                         break;
                     }
                 case ResultType.Unit:
                     {
-                        
+
                         if (form == ResultForm.None)
                         {
                             int unitId = int.Parse(value);
@@ -597,7 +653,7 @@ public class EventManager
                             {
                                 RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(unitId);
                                 RogueLikeData.Instance.AddMyTeam(unit);
-                                string name = GameTextDB.GetByForeignKey(TextKind.Unit,unit.idx);
+                                string name = GameTextDB.GetByForeignKey(TextKind.Unit, unit.idx);
                                 resultLog += $"- {name} 추가\n";
                                 PushResultToken(resultTokens, name);
                             }
@@ -666,7 +722,7 @@ public class EventManager
                             RogueUnitDataBase clone = UnitLoader.Instance.GetCloneUnitById(origin.idx);
                             clone.SetEnergyDirect(origin.Energy);
                             RogueLikeData.Instance.AddMyTeam(clone);
-                            string name = GameTextDB.GetByForeignKey(TextKind.Unit,clone.idx);
+                            string name = GameTextDB.GetByForeignKey(TextKind.Unit, clone.idx);
                             resultLog += $"- {name} 추가\n";
                             PushResultToken(resultTokens, name);
                         }
@@ -684,7 +740,7 @@ public class EventManager
                                 var pick = valid[ri];
                                 var newUnit = UnitLoader.Instance.GetCloneUnitById(pick.idx);
                                 RogueLikeData.Instance.AddMyTeam(newUnit);
-                                string name = GameTextDB.GetByForeignKey(TextKind.Unit,newUnit.idx);
+                                string name = GameTextDB.GetByForeignKey(TextKind.Unit, newUnit.idx);
                                 resultLog += $"'{origin.unitName}' 희생 → '{name}' 획득\n";
                                 PushResultToken(resultTokens, name);
                             }
@@ -758,8 +814,8 @@ public class EventManager
                                             {
                                                 my[my.IndexOf(unit)] = promoted;
                                                 RogueLikeData.Instance.SetMyTeam(my);
-                                                string name = GameTextDB.GetByForeignKey(TextKind.Unit,unit.idx);
-                                                string pName = GameTextDB.GetByForeignKey(TextKind.Unit,promoted.idx);
+                                                string name = GameTextDB.GetByForeignKey(TextKind.Unit, unit.idx);
+                                                string pName = GameTextDB.GetByForeignKey(TextKind.Unit, promoted.idx);
                                                 resultLog += $"- '{name}' → '{pName}'\n";
                                                 PushResultToken(resultTokens, name);
                                             }
@@ -773,7 +829,7 @@ public class EventManager
                                         {
                                             var target = my[RogueLikeData.Instance.GetRandomInt(0, my.Count)];
                                             target.SetEnergyDirect(1);
-                                            string name = GameTextDB.GetByForeignKey(TextKind.Unit,target.idx);
+                                            string name = GameTextDB.GetByForeignKey(TextKind.Unit, target.idx);
                                             resultLog += $"- '{name}' 기력 1\n";
                                             PushResultToken(resultTokens, name);
                                         }
@@ -792,7 +848,7 @@ public class EventManager
                                             : RogueLikeData.Instance.GetRandomInt(0, cands.Count);
                                             var sel = cands[selIdx];
                                             RogueLikeData.Instance.AddMyTeam(sel);
-                                            string name = GameTextDB.GetByForeignKey(TextKind.Unit,sel.idx);
+                                            string name = GameTextDB.GetByForeignKey(TextKind.Unit, sel.idx);
                                             resultLog += $"- 유닛 '{name}' 획득\n";
                                             PushResultToken(resultTokens, name);
                                         }
@@ -810,13 +866,13 @@ public class EventManager
                             int rarity = unit.rarity;
                             int getGold = (rarity == 1) ? RogueLikeData.Instance.AddGoldByEventChapter(50)
                                        : RogueLikeData.Instance.AddGoldByEventChapter(150);
-                            string name = GameTextDB.GetByForeignKey(TextKind.Unit,unit.idx);
+                            string name = GameTextDB.GetByForeignKey(TextKind.Unit, unit.idx);
                             resultLog += $"'{name}' 희생 → 금화 {getGold}\n";
                             PushResultToken(resultTokens, $"금화 {getGold}");
                             if (rarity == 3)
                             {
                                 var r = RelicManager.HandleRandomRelic(1, RelicAction.Acquire);
-                                string rName = GameTextDB.GetByForeignKey(TextKind.Unit,r.id);
+                                string rName = GameTextDB.GetByForeignKey(TextKind.RelicName, r.id);
                                 resultLog += $"+ 전쟁 유산 '{rName}'\n";
                                 PushResultToken(resultTokens, rName ?? "");
                             }
@@ -826,7 +882,7 @@ public class EventManager
                             if (UnityEngine.Random.value < 0.5f)
                             {
                                 WarRelic r = RelicManager.HandleRandomRelic(5, RelicAction.Acquire);
-                                string rName = GameTextDB.GetByForeignKey(TextKind.Unit, r.id);
+                                string rName = GameTextDB.GetByForeignKey(TextKind.RelicName, r.id);
                                 resultLog += $"'{rName}' 획득\n";
                                 PushResultToken(resultTokens, rName);
                             }
@@ -891,7 +947,7 @@ public class EventManager
 
                 case ResultType.Field:
                     {
-                        
+
                         int fieldId = int.Parse(value);
                         Debug.Log(fieldId + "," + value);
                         RogueLikeData.Instance.SetFieldId(fieldId);
@@ -934,11 +990,11 @@ public class EventManager
     {
         float winChance = unit.rarity switch
         {
-            1 => 0.25f, 
-            2 => 0.5f,  
-            3 => 0.75f, 
-            4 => 0.9f,  
-            _ => 0f     
+            1 => 0.25f,
+            2 => 0.5f,
+            3 => 0.75f,
+            4 => 0.9f,
+            _ => 0f
         };
 
         return UnityEngine.Random.value < winChance;
@@ -957,36 +1013,36 @@ public class EventManager
         }
 
         int v = int.Parse(countStr);
-        return (v, int.MaxValue); 
+        return (v, int.MaxValue);
     }
 
-    private static bool InRange(int actual, string countStr, bool useMinBound = true,float addtion=1)
+    private static bool InRange(int actual, string countStr, bool useMinBound = true, float addtion = 1)
     {
         if (countStr.Contains('~'))
         {
             var (min, max) = ParseRange(countStr);
-            return actual >= min && actual <= max*addtion;
+            return actual >= min && actual <= max * addtion;
         }
 
-        int v = (int)(int.Parse(countStr)*addtion);
+        int v = (int)(int.Parse(countStr) * addtion);
         return useMinBound ? actual >= v : actual <= v;
     }
     public static EventData GetEventById(int eventId)
-{
-    if (EventDataLoader.EventDataDict.TryGetValue(eventId, out var eventData))
     {
-        if (CanAppear(eventData))
+        if (EventDataLoader.EventDataDict.TryGetValue(eventId, out var eventData))
         {
-            return eventData;
+            if (CanAppear(eventData))
+            {
+                return eventData;
+            }
+            else
+            {
+                Debug.LogWarning($"이벤트 {eventId}는 현재 등장 조건을 만족하지 않음.");
+                return null;
+            }
         }
-        else
-        {
-            Debug.LogWarning($"이벤트 {eventId}는 현재 등장 조건을 만족하지 않음.");
-            return null;
-        }
+        return null;
     }
-    return null;
-}
 
     private static void SetPresetIdByGrade(int grade)
     {
@@ -994,7 +1050,7 @@ public class EventManager
         int level = RogueLikeData.Instance.GetCurrentStageX();
 
         string targetStageType = "normal";
-        switch (grade) 
+        switch (grade)
         {
             case 1:
                 {
@@ -1010,7 +1066,7 @@ public class EventManager
                 break;
             case 20:
                 {
-                    RogueLikeData.Instance.SetCurrentStage(15,1,StageType.Boss);
+                    RogueLikeData.Instance.SetCurrentStage(15, 1, StageType.Boss);
                     targetStageType = "boss";
                 }
                 break;
@@ -1028,7 +1084,7 @@ public class EventManager
         }
 
         if (filtered.Count == 0) return;
-        StagePreset stage =  filtered[RogueLikeData.Instance.GetRandomInt(0, filtered.Count)];
+        StagePreset stage = filtered[RogueLikeData.Instance.GetRandomInt(0, filtered.Count)];
         RogueLikeData.Instance.SetPresetID(stage.PresetID);
     }
 
