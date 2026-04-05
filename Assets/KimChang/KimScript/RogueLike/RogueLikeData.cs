@@ -874,6 +874,13 @@ public class RogueLikeData
         }
 
         TryTriggerRelic3Reward(unitTypeIndex, isAttack);
+
+        // 전술 개량 직후 유닛 스탯(StatBlock + 표시용 필드)에 즉시 반영
+        UnitStateChange.ChangeStateMyUnits();
+        foreach (var u in GetMyTeam())
+        {
+            u.ApplyModifiers();
+        }
     }
 
     private void TryTriggerRelic3Reward(int unitTypeIndex, bool isAttack)

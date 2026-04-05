@@ -1306,7 +1306,7 @@ public static class WarRelicDatabase
     //무지개 열쇠 48
     private static void RainbowKey()
     {
-        // 지속 효과: 실제 이동/횟수 소모/제거 처리는 GameManager에서 처리
+        // 지속 효과: 실제 이동/횟수 소모는 GameManager에서 처리 (유물은 제거되지 않음)
         Debug.Log("[WarRelicDatabase] 무지개 열쇠(48) 획득: 챕터당 2회, 연결되지 않은 '다음 레벨'로 이동할 수 있습니다.");
     }
 
