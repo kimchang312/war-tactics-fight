@@ -28,7 +28,6 @@ public class AbilityManager
     private float mybindingAttackDamage = 5;
     private float enemybindingAttackDamage = 5;
     private int plunderGold = 20;
-    private AutoBattleManager autoBattleManager; // 통로 추가
 
     private AutoBattleUI autoBattleUI;
 
@@ -186,12 +185,6 @@ public class AbilityManager
             randomIndex = RogueLikeData.Instance.GetRandomInt(0, enemyUnits.Count);
             damagedUnit = enemyUnits[randomIndex];
         }
-
-        if (autoBattleManager != null)
-        {
-            autoBattleManager.PlayAbilityEffect("F05_Storm", randomIndex, 0, isMyTeam, isMyTeam);
-        }
-
         damagedUnit.health -= 30;
         CallDamageText(30, "폭풍우 ", isMyTeam, false, randomIndex);
 
@@ -243,7 +236,6 @@ public class AbilityManager
     public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, AutoBattleUI _autoBattleUI, AutoBattleManager _manager)
     {
         autoBattleUI = _autoBattleUI;
-        autoBattleManager = _manager;
 
         if (units == null || defenders == null || units.Count == 0)
             return;
@@ -909,12 +901,6 @@ public class AbilityManager
             RelicManager.RunGuardiansCloak(defenders, !isTeam, ref unitIndex, ref damage);
 
             damage = MathF.Round(damage);
-
-            if (autoBattleManager != null)
-            {
-                autoBattleManager.PlayAbilityEffect("T05_Pierce", unitIndex, 0, !isTeam, isTeam);
-            }
-
             defenders[unitIndex].health -= damage;
 
             CallDamageText(damage, "투창 ", !isTeam, false, unitIndex);
@@ -952,12 +938,6 @@ public class AbilityManager
         target = defenders[unitIndex];
 
         damage = MathF.Round(damage);
-        
-        if (autoBattleManager != null)
-        {
-            autoBattleManager.PlayAbilityEffect("S06_Assassination", unitIndex, 0, !isTeam, isTeam);
-        }
-
         target.health -= damage;
 
         CallDamageText(damage, "암살 ", !isTeam, true, unitIndex);
@@ -1371,12 +1351,6 @@ public class AbilityManager
                 healAmount = HealHealth(frontUnit, healAmount);
 
                 heal += healAmount;
-
-                if (autoBattleManager != null)
-                {
-                    autoBattleManager.PlayAbilityEffect("T19_Healing_effect", 0, i, isTeam, isTeam);
-                }
-
                 frontUnit.health = Mathf.Min(frontUnit.maxHealth, frontUnit.health + healAmount);
             }
         }

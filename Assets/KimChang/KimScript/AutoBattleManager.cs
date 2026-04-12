@@ -10,13 +10,6 @@ public class AutoBattleManager : MonoBehaviour
 {
     [SerializeField] private AutoBattleUI autoBattleUI;
     [SerializeField] private BattleCrashAnimation battleAnim;
-    [SerializeField] private EffectManager effectManager; // 이펙트 관리자 (Queue + Pool)
-
-    [Header("페이즈별 이펙트 설정 (옵션)")]
-    [SerializeField] private EffectCD preparationEffect; // 준비 페이즈 이펙트
-    [SerializeField] private EffectCD crashEffect;       // 충돌 페이즈 이펙트 (돌격 등)
-    [SerializeField] private EffectCD supportEffect;     // 지원 페이즈 이펙트 (원거리, 치유)
-
     private AbilityManager abilityManager = new AbilityManager();
 
     private float waittingTime = 500;
@@ -62,7 +55,6 @@ public class AutoBattleManager : MonoBehaviour
         }
         currentState = BattleState.None;
         if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
-        if (effectManager == null) effectManager = EffectManager.Instance;
         InitializeRogueLike();
         //RelicManager.HandleRandomRelic()
     }
@@ -246,7 +238,7 @@ public class AutoBattleManager : MonoBehaviour
     //전투 전 발동
     private void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam)
     {
-        abilityManager.ProcessBeforeBattle(units, defenders, isTeam, autoBattleUI, this);
+        abilityManager.ProcessBeforeBattle(units, defenders, isTeam, autoBattleUI);
     }
 
     // 사용처: 각 전투 페이즈 진입 전에 전열 유닛이 실제로 존재하는지 확인
@@ -464,9 +456,6 @@ public class AutoBattleManager : MonoBehaviour
 
         RelicManager.RunTyphoonCallingEye(battleTurn);
 
-        // 준비 페이즈 이펙트 재생 (타임아웃 5초)
-        await PlayPhaseEffect("Preparation");
-
         UpdateUnitUI();
         bool result = PreparationPhase();
         await Task.Yield();
@@ -476,9 +465,6 @@ public class AutoBattleManager : MonoBehaviour
     //충돌 페이즈 관리
     private async Task<bool> HandleCrash()
     {
-        // 충돌 전 이펙트 재생 (타임아웃 5초)
-        await PlayPhaseEffect("Crash");
-
         ChrashPhase();
 
         await Task.Yield();
@@ -488,118 +474,10 @@ public class AutoBattleManager : MonoBehaviour
     //지원 페이즈 관리
     private async Task<bool> HandleSupport()
     {
-        // 지원 전 이펙트 재생 (타임아웃 5초)
-        await PlayPhaseEffect("Support");
-
         SupportPhase();
 
         await Task.Yield();
         return true;
-    }
-
-    /// <summary>
-    /// 페이즈별 이펙트 재생 (대기열 방식)
-    /// </summary>
-    /// <param name="phaseName">페이즈 이름 (Crash, Support, Preparation 등)</param>
-    private async Task PlayPhaseEffect(string phaseName)
-    {
-        // EffectManager가 없으면 스킵
-        if (effectManager == null)
-            return;
-
-        // 예제: Resources에서 이펙트 로드
-        EffectCD effectCD = LoadEffectForPhase(phaseName);
-
-        if (effectCD != null)
-        {
-            // 유닛 Transform 가져오기 (전열 기준)
-            RectTransform targetTransform = autoBattleUI.GetUnitCardTransform(0, false); // 적 전열
-            RectTransform casterTransform = autoBattleUI.GetUnitCardTransform(0, true);  // 아군 전열
-
-            // 대기열에 이펙트 요청 (자동으로 순차 재생됨)
-            effectManager.RequestEffect(
-                effectCD,
-                targetTransform,
-                casterTransform,
-                isTargetMyTeam: false, // 적군
-                isCasterMyTeam: true   // 아군
-            );
-
-            // 대기열 처리 시간 확보 (이펙트 재생 시간만큼 대기)
-            await Task.Delay((int)(effectCD.totalDuration * 1000));
-        }
-    }
-
-    /// <summary>
-    /// 페이즈별 이펙트 로드 (확장 가능)
-    /// </summary>
-    private EffectCD LoadEffectForPhase(string phaseName)
-    {
-        // Inspector에서 할당된 이펙트 반환
-        switch (phaseName)
-        {
-            case "Preparation":
-                return preparationEffect;
-            case "Crash":
-                return crashEffect;
-            case "Support":
-                return supportEffect;
-            default:
-                return null;
-        }
-
-        // 대안: Resources에서 동적 로드
-        // return Resources.Load<EffectCD>($"EffectCD/ECD_{phaseName}");
-    }
-
-    /// <summary>
-    /// 특정 능력에 대한 이펙트 재생 (대기열 방식)
-    /// </summary>
-    /// <param name="abilityName">능력 이름 (Charge, ThrowSpear, RangedAttack 등)</param>
-    /// <param name="targetIndex">피격 유닛 인덱스 (기본값: 0)</param>
-    /// <param name="casterIndex">시전 유닛 인덱스 (기본값: 0)</param>
-    /// <param name="isTargetMyUnit">피격 유닛이 아군인지 (기본값: false)</param>
-    /// <param name="isCasterMyUnit">시전 유닛이 아군인지 (기본값: true)</param>
-    public void PlayAbilityEffect(
-        string abilityName,
-        int targetIndex = 0,
-        int casterIndex = 0,
-        bool isTargetMyUnit = false,
-        bool isCasterMyUnit = true)
-    {
-        if (effectManager == null)
-            return;
-
-        // Resources에서 능력별 이펙트 로드
-        EffectCD abilityEffect = Resources.Load<EffectCD>($"EffectCD/ECD_{abilityName}");
-
-        if (abilityEffect != null)
-        {
-            // 유닛 Transform 가져오기
-            RectTransform targetTransform = autoBattleUI.GetUnitCardTransform(targetIndex, isTargetMyUnit);
-            RectTransform casterTransform = autoBattleUI.GetUnitCardTransform(casterIndex, isCasterMyUnit);
-
-            // 대기열에 이펙트 요청 (자동으로 순차 재생됨)
-            effectManager.RequestEffect(
-                abilityEffect,
-                targetTransform,
-                casterTransform,
-                isTargetMyUnit,
-                isCasterMyUnit
-            );
-        }
-        else
-        {
-            Debug.LogWarning($"[AutoBattleManager] 이펙트를 찾을 수 없습니다: {abilityName}");
-        }
-    }
-
-    /// <summary>
-    /// 모든 이펙트 취소 (전투 종료 시)
-    /// </summary>
-    public void CancelAllEffects()
-    {
-        effectManager?.CancelAllEffects();
     }
     //종료 확인
     private int CheckEnd()
@@ -640,10 +518,6 @@ public class AutoBattleManager : MonoBehaviour
             return false;
         }
 
-            // 모든 이펙트 취소 (전투 종료)
-            CancelAllEffects();
-
-            RelicManager.ResetBattleOnceRelic();
         currentState = BattleState.End;
 
         RelicManager.ResetBattleOnceRelic();
