@@ -613,6 +613,22 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 유닛 인덱스로 UnitCardUI RectTransform 가져오기 (이펙트 재생용)
+    /// </summary>
+    public RectTransform GetUnitCardTransform(int unitIndex, bool isMyUnit)
+    {
+        string unitName = $"{(isMyUnit ? "My" : "Enemy")}Unit{unitIndex}";
+        GameObject unitCard = GameObject.Find(unitName);
+
+        if (unitCard != null)
+        {
+            return unitCard.GetComponent<RectTransform>();
+        }
+
+        Debug.LogWarning($"[AutoBattleUI] 유닛 카드 UI를 찾을 수 없습니다: {unitName}");
+        return null;
+    }
     private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
         if (unit == null)
