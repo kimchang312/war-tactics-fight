@@ -208,6 +208,11 @@ public class UpgradeUI : MonoBehaviour
             }
         }
         UIManager.Instance.UIUpdateAll();
+
+        foreach (var stateUi in FindObjectsOfType<UpgradeStateUI>(true))
+        {
+            stateUi.RefreshFromData();
+        }
     }
     private void OnRerollClicked()
     {

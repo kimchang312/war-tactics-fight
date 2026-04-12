@@ -54,6 +54,11 @@ public class UpgradeManager
     {
         int id = 1;
         var myUnits = RogueLikeData.Instance.GetMyTeam();
+        foreach (var unit in myUnits)
+        {
+            unit.stats.RemoveModifiersBySource(SourceType.Upgrade);
+        }
+
         int helmetValue = RelicManager.CheckRelicById(64) ? 2 : 1;
 
         foreach (var unit in myUnits)
