@@ -87,6 +87,7 @@ GameObject:
   - component: {fileID: 1882291379049193086}
   - component: {fileID: 5418472161843425008}
   - component: {fileID: 8289356217782990782}
+  - component: {fileID: 7722334455667788010}
   m_Layer: 5
   m_Name: UnitPrefabsP
   m_TagString: Untagged
@@ -166,7 +167,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Content: {fileID: 5894928698062271241}
   m_Horizontal: 1
-  m_Vertical: 1
+  m_Vertical: 0
   m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
@@ -182,6 +183,22 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7722334455667788010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1605523939194080135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4a8e91f2d6b4039a7e5c1d0b8f3a2e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scrollRect: {fileID: 8289356217782990782}
+  content: {fileID: 5894928698062271241}
+  minChildCountForHorizontalDrag: 4
+  alsoRequireContentWiderThanViewport: 0
 --- !u!1 &2216672583670434011
 GameObject:
   m_ObjectHideFlags: 0
@@ -1283,6 +1300,7 @@ GameObject:
   - component: {fileID: 5635843677828797053}
   - component: {fileID: 7001055939319176703}
   - component: {fileID: 7043988537257717310}
+  - component: {fileID: 7722334455667788011}
   m_Layer: 5
   m_Name: EnemyPrefabsP
   m_TagString: Untagged
@@ -1362,7 +1380,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Content: {fileID: 465416676359927386}
   m_Horizontal: 1
-  m_Vertical: 1
+  m_Vertical: 0
   m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
@@ -1378,6 +1396,22 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7722334455667788011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7399305146691495265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4a8e91f2d6b4039a7e5c1d0b8f3a2e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scrollRect: {fileID: 7043988537257717310}
+  content: {fileID: 465416676359927386}
+  minChildCountForHorizontalDrag: 4
+  alsoRequireContentWiderThanViewport: 0
 --- !u!1 &7558000696763774687
 GameObject:
   m_ObjectHideFlags: 0

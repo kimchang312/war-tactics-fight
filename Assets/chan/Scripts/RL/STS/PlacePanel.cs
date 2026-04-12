@@ -31,16 +31,23 @@ public class PlacePanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI commanderSkillText; // 지휘관 스킬 효과
     [SerializeField] private TextMeshProUGUI battlefieldEffectText; // 전장 효과
 
-    [Header("배치 스크롤(드래그)")]
-    [SerializeField] private bool enableDragScrollOnPlacedUnits = true;
-    
     //프리팹 식별용 unitOrderingNum 리스트?
     public List<int> PlacedUniqueIds { get; } = new List<int>();
 
     private List<RogueUnitDataBase> placedUnits = new List<RogueUnitDataBase>();
-    
+
+    private PlacePanelStripScroll _playerStripScroll;
+    private PlacePanelStripScroll _enemyStripScroll;
+
     private void Awake()
     {
+        _playerStripScroll = PrefabContainer != null
+            ? PrefabContainer.GetComponentInParent<PlacePanelStripScroll>()
+            : null;
+        _enemyStripScroll = EnemyPrefabsContainer != null
+            ? EnemyPrefabsContainer.GetComponentInParent<PlacePanelStripScroll>()
+            : null;
+
         startBattleButton.onClick.AddListener(OnStartBattleClicked);
         // 뒤로가기 리스너
         backButton.onClick.AddListener(OnBackClicked);
@@ -52,14 +59,7 @@ public class PlacePanel : MonoBehaviour
         // 패널 처음 열릴 때는 항상 초기화
         ClearPlacePanel();
 
-        // 5인 이상 배치 시 화면 밖으로 밀려 "맨앞 유닛 확인 불가" → 간단 드래그 스크롤러 부착
-        if (enableDragScrollOnPlacedUnits && PrefabContainer != null)
-        {
-            if (PrefabContainer.GetComponent<HorizontalDragScroll>() == null)
-            {
-                PrefabContainer.gameObject.AddComponent<HorizontalDragScroll>();
-            }
-        }
+        // 스크롤: UnitPrefabsP·EnemyPrefabsP에 PlacePanelStripScroll + ScrollRect(인스펙터에서 개수·뷰포트 조건 설정).
 
         // 전장효과 툴팁 컴포넌트 확보(텍스트 세팅은 ShowBattlefieldEffect에서)
         if (battlefieldEffectText != null && battlefieldEffectText.GetComponent<BattlefieldEffectTooltip>() == null)
@@ -104,6 +104,7 @@ public class PlacePanel : MonoBehaviour
 
         // 2) 번호 세팅 (UnitUIPrefab 에 SetNumber 메서드 필요)
         ui.SetNumber(order);
+        RefreshPlayerUnitStripLayout();
     }
     public void ClearPlacePanel()
     {
@@ -117,6 +118,7 @@ public class PlacePanel : MonoBehaviour
         HideCommanderInfo();
         // 초기화 후 현재 유닛 수 갱신
         UpdateCountTexts();
+        RefreshPlayerUnitStripLayout();
     }
     
     public void ClearEnemyPrefabs()
@@ -129,6 +131,7 @@ public class PlacePanel : MonoBehaviour
         
         // 적 유닛 수 텍스트 초기화
         UpdateEnemyUnitCount(0);
+        RefreshEnemyUnitStripLayout();
     }
     public void RemoveUnitFromBattle(RogueUnitDataBase unit)
     {
@@ -156,6 +159,7 @@ public class PlacePanel : MonoBehaviour
         UpdateCountTexts();
         //배치 유닛 제거 후 MyPrefabs숫자 갱신
         GameManager.Instance.LineUpBarComponent.UpdateLineupNumbers(PlacedUniqueIds);
+        RefreshPlayerUnitStripLayout();
     }
     
     private void OnStartBattleClicked()
@@ -238,6 +242,30 @@ public class PlacePanel : MonoBehaviour
         
         // 적 유닛 수 텍스트 업데이트
         UpdateEnemyUnitCount(enemies.Count);
+        RefreshEnemyUnitStripLayout();
+    }
+
+    private void RefreshPlayerUnitStripLayout()
+    {
+        if (_playerStripScroll != null)
+            _playerStripScroll.RefreshAfterContentChange();
+        else
+            RebuildStripLayoutOnly(PrefabContainer);
+    }
+
+    private void RefreshEnemyUnitStripLayout()
+    {
+        if (_enemyStripScroll != null)
+            _enemyStripScroll.RefreshAfterContentChange();
+        else
+            RebuildStripLayoutOnly(EnemyPrefabsContainer);
+    }
+
+    private static void RebuildStripLayoutOnly(RectTransform content)
+    {
+        if (content == null) return;
+        LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+        Canvas.ForceUpdateCanvases();
     }
 
     // 지휘관 정보를 표시하는 메서드

@@ -32,11 +32,16 @@ public static class RewardManager
         {
             RogueLikeData.Instance.AddReroll(3);
         }
-        return (gold,relicGrade);
+        return (gold, relicGrade);
     }
 
     //현재 스테이지와 챕터에 따른 전투 보상 
-    public static int AddBattleRewardByStage(int battleResult,List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits)
+    // 사용처: 전투 종료 직후 보상 계산 및 실제 전투 결과 기준 게임오버 판정
+    public static int AddBattleRewardByStage(
+        int battleResult,
+        List<RogueUnitDataBase> battleUnits,
+        List<RogueUnitDataBase> deadUnits,
+        List<RogueUnitDataBase> deadEnemyUnits)
     {
         int chapter = RogueLikeData.Instance.GetChapter();
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
@@ -44,7 +49,7 @@ public static class RewardManager
         reward.battleResult = battleResult;
         var type = RogueLikeData.Instance.GetCurrentStageType();
 
-        if (battleResult == 0 && type ==StageType.Boss && chapter==1)
+        if (battleResult == 0 && type == StageType.Boss && chapter == 1)
         {
             RogueLikeData.Instance.SetChapter(2);
             RogueLikeData.Instance.SetClearChapter(true);
@@ -53,28 +58,33 @@ public static class RewardManager
         {
             RogueLikeData.Instance.SetChapter(3);
             RogueLikeData.Instance.SetClearChapter(true);
-        } else if(battleResult == 0 && type == StageType.Boss && chapter == 2)
+        }
+        else if (battleResult == 0 && type == StageType.Boss && chapter == 3)
         {
             return 2;
         }
 
         int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
         int currentMorale = RogueLikeData.Instance.GetMorale();
-        if(currentMorale + morale <= 0)
+
+        if (currentMorale + morale <= 0)
         {
             return 1;
         }
-        if (CheckGameOver())
+
+        // 사용처: 현재 myTeam 원본이 아니라 전투 결과 반영 후 기준으로 게임오버 판정
+        if (CheckGameOverAfterBattle(battleUnits, deadUnits))
         {
             return 1;
         }
 
         reward.morale += morale;
-        
+
         int baseGold = stageTypeGold.TryGetValue(type, out var value) ? value : 0;
         int gold = RogueLikeData.Instance.GetGoldByChapter(baseGold, battleResult);
-        //유산 
-        if(reward.battleResult == 0)
+
+        // 유산
+        if (reward.battleResult == 0)
         {
             WarRelic relic86 = RelicManager.GetRelicById(86);
             var vals = relic86?.GetAllValuesAsFloatListOrNull();
@@ -82,11 +92,13 @@ public static class RewardManager
             {
                 int battleUnitCount = RogueLikeData.Instance.GetBattleUnitCount();
                 int maxUnit = RogueLikeData.Instance.GetMaxUnits();
-                if (battleUnitCount <= maxUnit - vals[0]) gold *= 1 + (int)vals[1];
+                if (battleUnitCount <= maxUnit - vals[0])
+                    gold *= 1 + (int)vals[1];
             }
+
             if (RelicManager.CheckRelicById(6))
             {
-                int roll = RogueLikeData.Instance.GetRandomInt(0,3);
+                int roll = RogueLikeData.Instance.GetRandomInt(0, 3);
 
                 if (roll == 0)
                 {
@@ -98,16 +110,19 @@ public static class RewardManager
                     reward.relicGrade.Add(1);
                 }
             }
+
             if (type == StageType.Elite)
             {
                 if (RelicManager.CheckRelicById(7))
                 {
                     RogueLikeData.Instance.AddReroll(1);
                 }
+
                 if (RelicManager.CheckRelicById(35))
                 {
                     reward.relicGrade.Add(5);
                 }
+
                 if (RelicManager.CheckRelicById(106))
                 {
                     WarRelic relic = RelicManager.GetRelicById(106);
@@ -117,9 +132,9 @@ public static class RewardManager
                         relicValue[1] += relicValue[0];
                         string[] updated = relicValue.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray();
                         relic.SetValues(updated);
-
                     }
                 }
+
                 if (RelicManager.CheckRelicById(120))
                 {
                     WarRelic relic = RelicManager.GetRelicById(120);
@@ -139,35 +154,37 @@ public static class RewardManager
                 var relicValue = relic.GetAllValuesAsFloatListOrNull();
                 if (relicValue != null && relicValue[3] < relicValue[1])
                 {
-                    relicValue[3] ++;
+                    relicValue[3]++;
                     string[] updated = relicValue.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray();
                     relic.SetValues(updated);
                 }
             }
-
         }
-        //유산94
+
+        // 유산 94
         gold += RelicManager.RunCastIronHelmet();
         RelicManager.RunTrainingSandbagsOfWar();
 
         reward.gold += gold;
-        int grade = stageTypeGrade.TryGetValue(type,out var val)? val: 0;
+
+        int grade = stageTypeGrade.TryGetValue(type, out var val) ? val : 0;
         reward.unitGrade.Add(grade);
-        if(type == StageType.Elite || type == StageType.Boss)
+
+        if (type == StageType.Elite || type == StageType.Boss)
         {
             reward.relicGrade.Add(grade);
         }
+
         return 0;
     }
 
-
     //전투 종료 시 사기 계산
-    private static int EndBattleMorale(int result, List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits,StageType type)
+    private static int EndBattleMorale(int result, List<RogueUnitDataBase> deadUnits, List<RogueUnitDataBase> deadEnemyUnits, StageType type)
     {
         int morale = 0;
         int addMorale = 0;
         int reduceMorale = 0;
-        if(deadUnits != null)
+        if (deadUnits != null)
         {
             foreach (var unit in deadUnits)
             {
@@ -199,8 +216,8 @@ public static class RewardManager
         else if (type == StageType.Elite)
         {
             if (result == 0)
-            addMorale += 20;
-            else if (result ==1)
+                addMorale += 20;
+            else if (result == 1)
                 reduceMorale -= 150;
         }
         else if (type == StageType.Boss)
@@ -225,7 +242,7 @@ public static class RewardManager
         }
 
         if (RelicManager.CheckRelicById(56)) addMorale += deadEnemyUnits.Count;
-        
+
         morale += addMorale + reduceMorale;
 
         return morale;
@@ -237,18 +254,18 @@ public static class RewardManager
         int rarity1Rate = 0;
         WarRelic relic = RelicManager.GetRelicById(85);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if(vals != null)
+        if (vals != null)
         {
-            rarity1Rate = (int)(vals[0]*100);
+            rarity1Rate = (int)(vals[0] * 100);
         }
 
         var allUnits = UnitLoader.Instance.GetAllCachedUnits();
 
         Dictionary<int, int> rarityWeights = grade switch
         {
-            1 => new() { { 1, 60+ rarity1Rate }, { 2, 37 }, { 3, 3 }, { 4, 0 } },
-            5 => new() { { 1, 40+ rarity1Rate }, { 2, 35 }, { 3, 15 }, { 4, 10 } },
-            10 => new() { { 1, 0 }, { 2, 40}, { 3, 40 }, { 4, 20 } },
+            1 => new() { { 1, 60 + rarity1Rate }, { 2, 37 }, { 3, 3 }, { 4, 0 } },
+            5 => new() { { 1, 40 + rarity1Rate }, { 2, 35 }, { 3, 15 }, { 4, 10 } },
+            10 => new() { { 1, 0 }, { 2, 40 }, { 3, 40 }, { 4, 20 } },
             _ => new() { { 1, 100 } }
         };
 
@@ -297,9 +314,55 @@ public static class RewardManager
         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
         foreach (var unit in myUnits)
         {
-            if (unit.Energy > 0) return false; 
+            if (unit.Energy > 0) return false;
         }
         return true;
     }
+    // 사용처: 전투 종료 직후 실제 보유 유닛에 전투 결과를 가상 반영해서 게임오버 판정
+    private static bool CheckGameOverAfterBattle(
+        List<RogueUnitDataBase> battleUnits,
+        List<RogueUnitDataBase> deadUnits)
+    {
+        List<RogueUnitDataBase> simulatedTeam = RogueLikeData.Instance.GetMyTeam()
+            .Select(unit => unit.Clone())
+            .ToList();
 
+        ApplyBattleResultToTeam(simulatedTeam, battleUnits);
+        ApplyBattleResultToTeam(simulatedTeam, deadUnits);
+
+        for (int i = 0; i < simulatedTeam.Count; i++)
+        {
+            if (simulatedTeam[i].Energy > 0)
+                return false;
+        }
+
+        return true;
+    }
+
+    // 사용처: 전투 참가 유닛의 최종 기력 상태를 실제 보유 유닛 복사본에 반영
+    private static void ApplyBattleResultToTeam(
+        List<RogueUnitDataBase> team,
+        List<RogueUnitDataBase> changedUnits)
+    {
+        if (changedUnits == null)
+            return;
+
+        for (int i = 0; i < changedUnits.Count; i++)
+        {
+            RogueUnitDataBase changedUnit = changedUnits[i];
+            int teamIndex = team.FindIndex(unit => unit.UniqueId == changedUnit.UniqueId);
+
+            if (teamIndex < 0)
+                continue;
+
+            if (changedUnit.Energy < 1)
+            {
+                team.RemoveAt(teamIndex);
+            }
+            else
+            {
+                team[teamIndex].Energy = changedUnit.Energy;
+            }
+        }
+    }
 }
