@@ -431,6 +431,26 @@ public class AutoBattleUI : MonoBehaviour
         }
 
         if (isMyUnit) _myDodge.text = $"회피율: {dodge}%";
+    }
+
+    /// <summary>
+    /// 유닛 인덱스로 UnitCardUI RectTransform 가져오기 (이펙트 재생용)
+    /// </summary>
+    /// <param name="unitIndex">유닛 인덱스 (0: 전열, 1: 2번 유닛, ...)</param>
+    /// <param name="isMyUnit">아군 여부</param>
+    /// <returns>유닛 카드 UI의 RectTransform (없으면 null)</returns>
+    public RectTransform GetUnitCardTransform(int unitIndex, bool isMyUnit)
+    {
+        string unitName = $"{(isMyUnit ? "My" : "Enemy")}Unit{unitIndex}";
+        GameObject unitCard = GameObject.Find(unitName);
+
+        if (unitCard != null)
+        {
+            return unitCard.GetComponent<RectTransform>();
+        }
+
+        Debug.LogWarning($"[AutoBattleUI] 유닛 카드 UI를 찾을 수 없습니다: {unitName}");
+        return null;
         else _enemyDodge.text = $"회피율: {dodge}%";
     }
 
