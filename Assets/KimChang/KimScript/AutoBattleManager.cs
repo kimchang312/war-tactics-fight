@@ -229,7 +229,7 @@ public class AutoBattleManager : MonoBehaviour
     //전투 전 발동
     private void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam)
     {
-        abilityManager.ProcessBeforeBattle(units, defenders, isTeam, autoBattleUI);
+        abilityManager.ProcessBeforeBattle(units, defenders, isTeam, autoBattleUI, this);
     }
     //전투 당 한번
     private bool StartBattlePhase()
@@ -522,7 +522,7 @@ public class AutoBattleManager : MonoBehaviour
             return;
 
         // Resources에서 능력별 이펙트 로드
-        EffectCD abilityEffect = Resources.Load<EffectCD>($"EffectCD/Ability_{abilityName}");
+        EffectCD abilityEffect = Resources.Load<EffectCD>($"EffectCD/ECD_{abilityName}");
 
         if (abilityEffect != null)
         {
