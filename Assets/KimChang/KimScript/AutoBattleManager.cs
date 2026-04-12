@@ -10,7 +10,7 @@ public class AutoBattleManager : MonoBehaviour
 {
     [SerializeField] private AutoBattleUI autoBattleUI;
     [SerializeField] private BattleCrashAnimation battleAnim;
-    [SerializeField] private EffectCDPlayer effectPlayer; // 이펙트 재생용 플레이어
+    [SerializeField] private EffectManager effectManager; // 이펙트 관리자 (Queue + Pool)
 
     [Header("페이즈별 이펙트 설정 (옵션)")]
     [SerializeField] private EffectCD preparationEffect; // 준비 페이즈 이펙트
@@ -62,7 +62,7 @@ public class AutoBattleManager : MonoBehaviour
         }
             currentState = BattleState.None;
         if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
-        if (effectPlayer == null) effectPlayer = FindObjectOfType<EffectCDPlayer>();
+        if (effectManager == null) effectManager = EffectManager.Instance;
         InitializeRogueLike();
         //RelicManager.HandleRandomRelic()
     }
@@ -449,13 +449,13 @@ public class AutoBattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 페이즈별 이펙트 재생 (타임아웃 5초)
+    /// 페이즈별 이펙트 재생 (대기열 방식)
     /// </summary>
     /// <param name="phaseName">페이즈 이름 (Crash, Support, Preparation 등)</param>
     private async Task PlayPhaseEffect(string phaseName)
     {
-        // EffectPlayer가 없으면 스킵
-        if (effectPlayer == null)
+        // EffectManager가 없으면 스킵
+        if (effectManager == null)
             return;
 
         // 예제: Resources에서 이펙트 로드
@@ -467,18 +467,17 @@ public class AutoBattleManager : MonoBehaviour
             RectTransform targetTransform = autoBattleUI.GetUnitCardTransform(0, false); // 적 전열
             RectTransform casterTransform = autoBattleUI.GetUnitCardTransform(0, true);  // 아군 전열
 
-            // 타임아웃 5초로 이펙트 재생
-            bool completed = await effectPlayer.PlayWithTimeout(
+            // 대기열에 이펙트 요청 (자동으로 순차 재생됨)
+            effectManager.RequestEffect(
                 effectCD,
-                timeoutSeconds: 5f,
-                targetTransform: targetTransform,
-                casterTransform: casterTransform
+                targetTransform,
+                casterTransform,
+                isTargetMyTeam: false, // 적군
+                isCasterMyTeam: true   // 아군
             );
 
-            if (!completed)
-            {
-                Debug.LogWarning($"[AutoBattleManager] {phaseName} 페이즈 이펙트가 타임아웃되었습니다.");
-            }
+            // 대기열 처리 시간 확보 (이펙트 재생 시간만큼 대기)
+            await Task.Delay((int)(effectCD.totalDuration * 1000));
         }
     }
 
@@ -505,21 +504,21 @@ public class AutoBattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 특정 능력에 대한 이펙트 재생 (확장 메서드)
+    /// 특정 능력에 대한 이펙트 재생 (대기열 방식)
     /// </summary>
     /// <param name="abilityName">능력 이름 (Charge, ThrowSpear, RangedAttack 등)</param>
     /// <param name="targetIndex">피격 유닛 인덱스 (기본값: 0)</param>
     /// <param name="casterIndex">시전 유닛 인덱스 (기본값: 0)</param>
     /// <param name="isTargetMyUnit">피격 유닛이 아군인지 (기본값: false)</param>
     /// <param name="isCasterMyUnit">시전 유닛이 아군인지 (기본값: true)</param>
-    public async Task PlayAbilityEffect(
+    public void PlayAbilityEffect(
         string abilityName,
         int targetIndex = 0,
         int casterIndex = 0,
         bool isTargetMyUnit = false,
         bool isCasterMyUnit = true)
     {
-        if (effectPlayer == null)
+        if (effectManager == null)
             return;
 
         // Resources에서 능력별 이펙트 로드
@@ -531,18 +530,27 @@ public class AutoBattleManager : MonoBehaviour
             RectTransform targetTransform = autoBattleUI.GetUnitCardTransform(targetIndex, isTargetMyUnit);
             RectTransform casterTransform = autoBattleUI.GetUnitCardTransform(casterIndex, isCasterMyUnit);
 
-            bool completed = await effectPlayer.PlayWithTimeout(
+            // 대기열에 이펙트 요청 (자동으로 순차 재생됨)
+            effectManager.RequestEffect(
                 abilityEffect,
-                timeoutSeconds: 5f,
-                targetTransform: targetTransform,
-                casterTransform: casterTransform
+                targetTransform,
+                casterTransform,
+                isTargetMyUnit,
+                isCasterMyUnit
             );
-
-            if (!completed)
-            {
-                Debug.LogWarning($"[AutoBattleManager] {abilityName} 능력 이펙트가 타임아웃되었습니다.");
-            }
         }
+        else
+        {
+            Debug.LogWarning($"[AutoBattleManager] 이펙트를 찾을 수 없습니다: {abilityName}");
+        }
+    }
+
+    /// <summary>
+    /// 모든 이펙트 취소 (전투 종료 시)
+    /// </summary>
+    public void CancelAllEffects()
+    {
+        effectManager?.CancelAllEffects();
     }
     //종료 확인
     private int CheckEnd()
@@ -592,6 +600,9 @@ public class AutoBattleManager : MonoBehaviour
         else
         {
             currentState = BattleState.End;
+
+            // 모든 이펙트 취소 (전투 종료)
+            CancelAllEffects();
 
             RelicManager.ResetBattleOnceRelic();
 

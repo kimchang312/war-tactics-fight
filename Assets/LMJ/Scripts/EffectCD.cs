@@ -6,6 +6,7 @@ using UnityEngine;
 /// 이펙트가 표시될 위치 타입
 /// </summary>
 public enum EffectType
+{
     Target,     // 피격자 위에 표시
     Caster,     // 시전자 위에 표시
     Screen      // 전장 전체(화면 중앙 또는 고정 위치)
