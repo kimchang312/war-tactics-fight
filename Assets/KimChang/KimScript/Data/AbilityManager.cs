@@ -240,7 +240,7 @@ public class AbilityManager
     }
 
     //전투 전 발동(패시브)
-    public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, AutoBattleUI _autoBattleUI)
+    public void ProcessBeforeBattle(List<RogueUnitDataBase> units, List<RogueUnitDataBase> defenders, bool isTeam, AutoBattleUI _autoBattleUI, AutoBattleManager _manager)
     {
         autoBattleUI = _autoBattleUI;
         autoBattleManager = _manager;
