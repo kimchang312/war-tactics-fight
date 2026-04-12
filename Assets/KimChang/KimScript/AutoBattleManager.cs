@@ -29,7 +29,7 @@ public class AutoBattleManager : MonoBehaviour
     RogueUnitDataBase enemyFrontUnit;
 
     bool isFirstAttack = true;
-    
+
 
     private bool isProcessing = false;
     private int battleTurn = 0;
@@ -39,16 +39,16 @@ public class AutoBattleManager : MonoBehaviour
     private enum BattleState
     {
         None,
-        Enter,        
-        Check,        
-        Start,        
+        Enter,
+        Check,
+        Start,
         Preparation,
         Crash,
         Support,
-        Animation,   
+        Animation,
         Death,
         End
-    }   
+    }
 
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private void Start()
@@ -60,7 +60,7 @@ public class AutoBattleManager : MonoBehaviour
             autoBattleUI.OpenGoTestBtn();
             return;
         }
-            currentState = BattleState.None;
+        currentState = BattleState.None;
         if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
         if (effectManager == null) effectManager = EffectManager.Instance;
         InitializeRogueLike();
@@ -132,7 +132,7 @@ public class AutoBattleManager : MonoBehaviour
     private async Task HandleOneTurn()
     {
 
-        bool isTrun =abilityManager.ProcessOneTurn();
+        bool isTrun = abilityManager.ProcessOneTurn();
 
         if (isTrun)
             await Task.Delay((int)waittingTime); // 0.5초 대기
@@ -199,26 +199,43 @@ public class AutoBattleManager : MonoBehaviour
     // 유닛 생성UI 호출
     private void CallCreateUnit()
     {
-        List<RogueUnitDataBase> myRangeUnits=new();
-        List<RogueUnitDataBase> enemyRangUnits=new();
+        if (autoBattleUI == null)
+            return;
 
-        //원거리 공격이 가능한지 검사
-        for (int i = 1; i < myUnits.Count; i++)
+        List<RogueUnitDataBase> myRangeUnits = new();
+        List<RogueUnitDataBase> enemyRangUnits = new();
+
+        if (myUnits != null)
         {
-            if (myUnits[i].rangedAttack && (myUnits[i].range - i > 0) && myUnits[i].health>0)
+            for (int i = 1; i < myUnits.Count; i++)
             {
-                myRangeUnits.Add(myUnits[i]);
-            }
-        }
-        for (int i = 1; i < enemyUnits.Count; i++)
-        {
-            if (enemyUnits[i].rangedAttack && (enemyUnits[i].range - i > 0) && enemyUnits[i].health > 0)
-            {
-                enemyRangUnits.Add(enemyUnits[i]);
+                if (myUnits[i].rangedAttack && (myUnits[i].range - i > 0) && myUnits[i].health > 0)
+                {
+                    myRangeUnits.Add(myUnits[i]);
+                }
             }
         }
 
-        autoBattleUI.CreateUnitBox(myUnits, enemyUnits, abilityManager.CalculateDodge(myUnits[0],true,isFirstAttack), abilityManager.CalculateDodge(enemyUnits[0],false,isFirstAttack),myRangeUnits,enemyRangUnits);
+        if (enemyUnits != null)
+        {
+            for (int i = 1; i < enemyUnits.Count; i++)
+            {
+                if (enemyUnits[i].rangedAttack && (enemyUnits[i].range - i > 0) && enemyUnits[i].health > 0)
+                {
+                    enemyRangUnits.Add(enemyUnits[i]);
+                }
+            }
+        }
+
+        float myDodge = (myUnits != null && myUnits.Count > 0)
+            ? abilityManager.CalculateDodge(myUnits[0], true, isFirstAttack)
+            : 0f;
+
+        float enemyDodge = (enemyUnits != null && enemyUnits.Count > 0)
+            ? abilityManager.CalculateDodge(enemyUnits[0], false, isFirstAttack)
+            : 0f;
+
+        autoBattleUI.CreateUnitBox(myUnits ?? new List<RogueUnitDataBase>(), enemyUnits ?? new List<RogueUnitDataBase>(), myDodge, enemyDodge, myRangeUnits, enemyRangUnits);
     }
     //전투 입장
     private void ProcessEnter()
@@ -231,18 +248,31 @@ public class AutoBattleManager : MonoBehaviour
     {
         abilityManager.ProcessBeforeBattle(units, defenders, isTeam, autoBattleUI, this);
     }
+
+    // 사용처: 각 전투 페이즈 진입 전에 전열 유닛이 실제로 존재하는지 확인
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool CanRunBattlePhase()
+    {
+        return myUnits != null && enemyUnits != null && myUnits.Count > 0 && enemyUnits.Count > 0;
+    }
     //전투 당 한번
     private bool StartBattlePhase()
     {
+        if (!CanRunBattlePhase())
+            return false;
+
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
 
-        return abilityManager.ProcessStartBattle(myUnits, enemyUnits, true) 
+        return abilityManager.ProcessStartBattle(myUnits, enemyUnits, true)
             | abilityManager.ProcessStartBattle(enemyUnits, myUnits, false);
     }
     //준비 페이즈
     private bool PreparationPhase()
     {
+        if (!CanRunBattlePhase())
+            return false;
+
         //전열 유닛
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
@@ -256,32 +286,41 @@ public class AutoBattleManager : MonoBehaviour
     //충돌 페이즈
     private void ChrashPhase()
     {
+        if (!CanRunBattlePhase())
+            return;
+
         //전열 유닛
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
 
         abilityManager.ProcessChrashAbility(myUnits, enemyUnits, isFirstAttack, true);
-        abilityManager.ProcessChrashAbility(enemyUnits,myUnits, isFirstAttack, false);
+        abilityManager.ProcessChrashAbility(enemyUnits, myUnits, isFirstAttack, false);
     }
 
     //지원 페이즈
     private void SupportPhase()
     {
+        if (!CanRunBattlePhase())
+            return;
+
         //전열 유닛
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
 
         abilityManager.ProcessSupportAbility(myUnits, enemyUnits, true, isFirstAttack);
-        abilityManager.ProcessSupportAbility(enemyUnits,myUnits, false, isFirstAttack);
+        abilityManager.ProcessSupportAbility(enemyUnits, myUnits, false, isFirstAttack);
 
     }
 
     //유닛 UI최신화
     private void UpdateUnitUI()
     {
+        if (autoBattleUI == null)
+            return;
+
         //유닛 생성 UI
         CallCreateUnit();
-        
+
         //유닛 숫자 UI 최신화
         UpdateUnitCount();
 
@@ -291,9 +330,9 @@ public class AutoBattleManager : MonoBehaviour
     //유닛 사망 처리
     private bool ManageUnitDeath()
     {
-        return abilityManager.ProcessDeath(ref myUnits, ref enemyUnits, ref myDeathUnits, ref enemyDeathUnits, ref isFirstAttack,myFrontUnit,enemyFrontUnit);
+        return abilityManager.ProcessDeath(ref myUnits, ref enemyUnits, ref myDeathUnits, ref enemyDeathUnits, ref isFirstAttack, myFrontUnit, enemyFrontUnit);
     }
-   
+
     //유닛 데이터 초기화
     private void InitializeBattle(List<int> _myUnitIds, List<int> _enemyUnitIds)
     {
@@ -307,7 +346,7 @@ public class AutoBattleManager : MonoBehaviour
         // 유닛 데이터 받아옴
         myUnits = GetUnitsById(_myUnitIds);
         enemyUnits = GetUnitsById(_enemyUnitIds);
-  
+
         RogueLikeData.Instance.SetMyTeam(myUnits);
         RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
 
@@ -331,19 +370,19 @@ public class AutoBattleManager : MonoBehaviour
 
         if (UnitStateChange.CalculateRunMorale() != null)
         {
-            
+
         }
 
         int presetId = RogueLikeData.Instance.GetPresetID();
-        if (presetId == -1) 
+        if (presetId == -1)
         {
             Debug.Log("프리셋 아이디 오류");
-            return; 
+            return;
         }
         List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
-        
-        enemyUnits = GetUnitsById(unitIds);
-        myUnits = RogueLikeData.Instance.GetMyUnits();
+
+        enemyUnits = GetUnitsById(unitIds) ?? new List<RogueUnitDataBase>();
+        myUnits = RogueLikeData.Instance.GetMyUnits() ?? new List<RogueUnitDataBase>();
 
         RogueLikeData.Instance.ClearSavedMyUnits();
 
@@ -355,22 +394,24 @@ public class AutoBattleManager : MonoBehaviour
 
         // ✅ 로그라이크 전투 진입 시에도 사기/유산/전술개량(Upgrade) 상태를 즉시 반영
         // (기존 InitializeBattle 쪽에는 있었지만, 로그라이크 루트에는 누락되어 첫 전투에 강화가 미적용되는 문제가 발생)
-        RogueLikeData.Instance.SetMyTeam(myUnits);
+        //RogueLikeData.Instance.SetMyTeam(myUnits);
         UnitStateChange.ChangeStateMyUnits();
 
         //데이터 저장
         SaveData saveData = new SaveData();
         saveData.SaveDataFile();
-        
+
         ProcessRelic();
 
         //사기로 안한 유닛 0
         if (myUnits.Count == 0)
         {
+            GameManager.Instance.CloseLoading();
             HandleEnd(false);
+            return;
         }
         UpdateUnitUI();
-        
+
         //로딩창 종료
         GameManager.Instance.CloseLoading();
 
@@ -382,12 +423,20 @@ public class AutoBattleManager : MonoBehaviour
     {
         //맵 효과
         abilityManager.CalculateFieldEffect();
-        
+
         //유산
+        if (CanRunBattlePhase())
+        {
+            ProcessBeforeBattle(myUnits, enemyUnits, true);
+            ProcessBeforeBattle(enemyUnits, myUnits, false);
+        }
 
-        ProcessBeforeBattle(myUnits, enemyUnits, true);
-        ProcessBeforeBattle(enemyUnits, myUnits, false);
-
+        if (!CanRunBattlePhase())
+        {
+            HandleEnd(myUnits != null && myUnits.Count > 0);
+            isProcessing = false;
+            return;
+        }
 
         await Task.Delay((int)waittingTime);
         currentState = BattleState.Start;
@@ -583,62 +632,59 @@ public class AutoBattleManager : MonoBehaviour
     //종료관리 전투가 끝났을때 나오게 될것들
     private bool HandleEnd(bool isMyUnitExist = true)
     {
-        int result = 3;
-        if (!isMyUnitExist)
-        {
-            result = 1;
-            myDeathUnits = null;
-        }
-        else
-        {
-            result = CheckEnd();
-        }
+        int result = isMyUnitExist ? CheckEnd() : 1;
+
         if (result == 3)
         {
             currentState = BattleState.Preparation;
+            return false;
         }
-        else
-        {
-            currentState = BattleState.End;
 
             // 모든 이펙트 취소 (전투 종료)
             CancelAllEffects();
 
             RelicManager.ResetBattleOnceRelic();
+        currentState = BattleState.End;
 
+        RelicManager.ResetBattleOnceRelic();
+
+        if (enemyDeathUnits != null)
+        {
             foreach (var unit in enemyDeathUnits)
             {
                 RogueLikeData.Instance.AddScore((int)unit.maxHealth);
             }
+        }
 
-            int gameResult = RewardManager.AddBattleRewardByStage(result, myDeathUnits, enemyDeathUnits);
+        int gameResult = RewardManager.AddBattleRewardByStage(
+            result,
+            myUnits ?? new List<RogueUnitDataBase>(),
+            myDeathUnits ?? new List<RogueUnitDataBase>(),
+            enemyDeathUnits ?? new List<RogueUnitDataBase>());
 
-            if (gameResult == 1)
-            {
-                autoBattleUI.GameEnd(false);
-                return true;
-            }
-            else if (gameResult == 2)
-            {
-                autoBattleUI.GameEnd(true);
-                return true;
-            }
-            UpdateUnitCount();
-            UpdateUnitHp();
-
-
-            // 0.5초 뒤에 실행되도록 코루틴 시작
-            StartCoroutine(DelayedBattleEnd(result));
-
+        if (gameResult == 1)
+        {
+            autoBattleUI.GameEnd(false);
             return true;
         }
-        return false;
+        else if (gameResult == 2)
+        {
+            autoBattleUI.GameEnd(true);
+            return true;
+        }
+        UpdateUnitCount();
+        UpdateUnitHp();
+
+        // 0.5초 뒤에 실행되도록 코루틴 시작
+        StartCoroutine(DelayedBattleEnd(result));
+
+        return true;
     }
 
     // 전투 종료 처리 코루틴
     private IEnumerator DelayedBattleEnd(int result)
     {
-        yield return new WaitForSeconds(waittingTime*0.001f);
+        yield return new WaitForSeconds(waittingTime * 0.001f);
 
         autoBattleUI.FightEnd();
 
@@ -675,7 +721,7 @@ public class AutoBattleManager : MonoBehaviour
         //유산 이미지 생성
         autoBattleUI.CreateWarRelic();
     }
-    
+
     private void SetTest()
     {
         isTest = true;
@@ -756,8 +802,8 @@ public class AutoBattleManager : MonoBehaviour
 
     private void ResetData()
     {
-        myUnits = null;
-        enemyUnits = null;
+        myUnits = new();
+        enemyUnits = new();
         myDeathUnits = new();
         enemyDeathUnits = new();
         myFrontUnit = null;

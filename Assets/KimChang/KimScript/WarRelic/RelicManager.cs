@@ -871,6 +871,28 @@ public class RelicManager
 
     }
 
+    // 사용처: 특정 유산 ID를 제외하고 랜덤 유산 ID를 구할 때 사용
+    public static int GetRandomRelicIdExcept(int grade, RelicAction action, int exceptId)
+    {
+        var available = GetAvailableRelics(grade, action);
+        if (available == null || available.Count == 0)
+            return -1;
+
+        List<WarRelic> filtered = new List<WarRelic>(available.Count);
+        for (int i = 0; i < available.Count; i++)
+        {
+            WarRelic relic = available[i];
+            if (relic != null && relic.id != exceptId)
+                filtered.Add(relic);
+        }
+
+        if (filtered.Count == 0)
+            return -1;
+
+        int index = RogueLikeData.Instance.GetRandomInt(0, filtered.Count);
+        return filtered[index].id;
+    }
+
     // 사용처: 이벤트/상점/테스트/특수보상 등 모든 직접 유물 획득 진입점
     public static bool AcquireRelic(int relicId)
     {
@@ -886,12 +908,15 @@ public class RelicManager
 
         WarRelicDatabase.RebindRuntime(relic);
 
+        // 사용처: 53번은 자기 자신을 제외한 다른 전설 유산으로 대체
         if (relicId == 53)
         {
             var vals = relic.GetAllValuesAsFloatListOrNull();
-            if (vals != null && vals.Count > 1 && RogueLikeData.Instance.GetRandomFloat() <= vals[1])
+            if (vals != null && vals.Count > 1 && RogueLikeData.Instance.GetRandomFloat() < vals[1])
             {
-                HandleRandomRelic(10, RelicAction.Acquire);
+                int replaceId = GetRandomRelicIdExcept(10, RelicAction.Acquire, 53);
+                if (replaceId >= 0)
+                    return AcquireRelic(replaceId);
             }
         }
 
@@ -904,6 +929,7 @@ public class RelicManager
         UnitStateChange.ChangeStateMyUnits();
         return true;
     }
+
 
 
 }

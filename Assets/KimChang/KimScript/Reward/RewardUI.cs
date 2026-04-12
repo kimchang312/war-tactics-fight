@@ -68,7 +68,7 @@ public class RewardUI : MonoBehaviour
         {
             unitListUI = GameManager.Instance.unitListUI;
         }
-        if(itemToolTip == null)
+        if (itemToolTip == null)
         {
             itemToolTip = GameManager.Instance.itemToolTip;
         }
@@ -196,17 +196,24 @@ public class RewardUI : MonoBehaviour
 
     private void ResetUI()
     {
-        //transform.SetAsLastSibling();
         rewardBackgroundImg.gameObject.SetActive(false);
         teasureBackgroundImg.gameObject.SetActive(false);
 
+        if (teasureBox != null)
+        {
+            teasureBox.gameObject.SetActive(false);
+            CloseTeasureBoxImg();
+        }
+
         btns.gameObject.SetActive(false);
         DisableRewardWindow();
+
         goldResult.gameObject.SetActive(false);
         goldResult.onClick.RemoveAllListeners();
 
         unitResult.onClick.RemoveAllListeners();
         unitResult.gameObject.SetActive(false);
+
         relicResult.onClick.RemoveAllListeners();
         relicResult.gameObject.SetActive(false);
 
@@ -244,6 +251,60 @@ public class RewardUI : MonoBehaviour
         else if (btns != null)
             SetAlphaMultiple(btns.GetComponentsInChildren<Graphic>(true), 0f);
     }
+
+    // 사용처: 보상 수령이 모두 끝난 뒤 실제로 닫아도 되는 상태인지 판정
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void TryLeaveReward()
+    {
+        BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+
+        if (reward != null)
+        {
+            if (HasUnitReward(reward) || HasRelicReward(reward))
+                return;
+        }
+
+        if (goldResult != null && goldResult.gameObject.activeInHierarchy) return;
+        if (unitResult != null && unitResult.gameObject.activeInHierarchy) return;
+        if (relicResult != null && relicResult.gameObject.activeInHierarchy) return;
+        if (rewardSelectObj != null && rewardSelectObj.activeInHierarchy) return;
+        if (selectRelicRewards != null && selectRelicRewards.activeInHierarchy) return;
+        if (selectUnitRewards != null && selectUnitRewards.activeInHierarchy) return;
+
+        LeaveReward();
+    }
+
+    // 사용처: 보상창 종료 시 보물상자/배경까지 확실하게 정리하고 맵으로 복귀
+    private void LeaveReward()
+    {
+        if (teasureBox != null)
+        {
+            teasureBox.gameObject.SetActive(false);
+            CloseTeasureBoxImg();
+        }
+
+        if (teasureBackgroundImg != null)
+            teasureBackgroundImg.gameObject.SetActive(false);
+
+        if (rewardBackgroundImg != null)
+            rewardBackgroundImg.gameObject.SetActive(false);
+
+        if (rewardSelectObj != null)
+            rewardSelectObj.SetActive(false);
+
+        SafeSetActive(rewardWindow, false);
+
+        RogueLikeData.Instance.ClearBattleReward();
+        new SaveData().SaveDataFile();
+
+        if (SceneManager.GetActiveScene().name != "RLmap")
+        {
+            SceneManager.LoadScene("RLmap");
+        }
+
+        ResetUI();
+    }
+
     // 이 함수는 유닛/유물 보상 선택창을 열 때 사용한다.
     private void OpenReward(bool isUnit)
     {
@@ -411,6 +472,7 @@ public class RewardUI : MonoBehaviour
 
         rerollBtn.interactable = false;
     }
+
     // 이 함수는 현재 보상 항목을 넘기거나 수령 후 다음 보상을 노출할 때 사용한다.
     private void SkipSelectReward()
     {
@@ -418,6 +480,7 @@ public class RewardUI : MonoBehaviour
         ItemInformation info = GetCurrentOpenedRewardInfo();
         if (info == null)
         {
+            ResetSelectRewardObjects();
             AbleRewardWindow();
             rewardSelectObj.SetActive(false);
             unitResult.gameObject.SetActive(false);
@@ -445,11 +508,11 @@ public class RewardUI : MonoBehaviour
         }
         else
         {
+            ResetSelectRewardObjects();
             AbleRewardWindow();
             rewardSelectObj.SetActive(false);
             unitResult.gameObject.SetActive(false);
             relicResult.gameObject.SetActive(false);
-
             TryLeaveReward();
         }
     }
@@ -508,21 +571,6 @@ public class RewardUI : MonoBehaviour
         btn.onClick.AddListener(() => ClickReward(info));
         btn.gameObject.SetActive(true);
         return info;
-    }
-
-    // 이 함수는 보상 창 닫기(맵 복귀/타이틀 이동 준비) 시 사용한다.
-    private void LeaveReward()
-    {
-        RogueLikeData.Instance.ClearBattleReward();
-        new SaveData().SaveDataFile();
-        if (SceneManager.GetActiveScene().name != "RLmap")
-        {
-            SceneManager.LoadScene("RLmap");
-        }
-        //else
-        //    gameObject.SetActive(false);
-        ResetUI();
-        return;
     }
 
     // 이 함수는 재도전 버튼 클릭 시 사용한다.
@@ -767,7 +815,7 @@ public class RewardUI : MonoBehaviour
 
     private void ClickGoldResult(int gold)
     {
-        if(gold <= 0) return;
+        if (gold <= 0) return;
         RogueLikeData.Instance.EarnGold(gold);
         UIManager.Instance.UpdateGold(); // 금화 UI 즉시 갱신
         goldResult.onClick.RemoveAllListeners();
@@ -789,13 +837,6 @@ public class RewardUI : MonoBehaviour
                 return false;
         }
         return true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void TryLeaveReward()
-    {
-        if (AreAllRewardChildrenOff())
-            LeaveReward();
     }
 
     // 사용처: 유닛/유물 선택 보상 UI를 열기 전에 양쪽 선택 컨테이너를 초기화할 때 사용

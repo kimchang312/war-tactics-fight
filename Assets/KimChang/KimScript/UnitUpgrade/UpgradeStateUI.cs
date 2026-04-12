@@ -34,6 +34,12 @@ public class UpgradeStateUI : MonoBehaviour
 
     private void OnEnable()
     {
+        RefreshFromData();
+    }
+
+    /// <summary>전술 개량 수치 텍스트를 RogueLikeData와 동기화합니다.</summary>
+    public void RefreshFromData()
+    {
         UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
 
         spearAttackText.text = upgrades[0].attackLevel.ToString();

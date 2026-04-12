@@ -63,15 +63,7 @@ public class UIManager : MonoBehaviour
     {
         int m = RogueLikeData.Instance.GetMorale();
         moraleText.text = m.ToString();
-        if (moraleIconImage != null)
-        {
-            if (m <= 30)
-                moraleIconImage.sprite = normalMoraleSprite;
-            else if (m <= 70)
-                moraleIconImage.sprite = mediumMoraleSprite;
-            else
-                moraleIconImage.sprite = highMoraleSprite;
-        }
+        UpdateMoraleIcon(m);
     }
 
     public void UpdateReroll()
@@ -101,6 +93,19 @@ public class UIManager : MonoBehaviour
         .SetTarget(goldText);
     }
 
+    private void UpdateMoraleIcon(int moraleValue)
+    {
+        if (moraleIconImage == null)
+            return;
+
+        if (moraleValue <= 30)
+            moraleIconImage.sprite = normalMoraleSprite;
+        else if (moraleValue <= 70)
+            moraleIconImage.sprite = mediumMoraleSprite;
+        else
+            moraleIconImage.sprite = highMoraleSprite;
+    }
+
     // 사용처: 사기 증감 시 사기 UI만 독립적으로 애니메이션
     public void AnimateMoraleChange(int baseMorale, int deltaMorale)
     {
@@ -112,7 +117,7 @@ public class UIManager : MonoBehaviour
         moraleTween = DOVirtual.Int(startValue, endValue, 0.7f, value =>
         {
             moraleText.text = value.ToString();
-            UpdateMorale();
+            UpdateMoraleIcon(value);
         })
         .SetEase(Ease.OutCubic)
         .SetTarget(moraleText);
