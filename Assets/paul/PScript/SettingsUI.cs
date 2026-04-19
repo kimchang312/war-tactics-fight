@@ -33,7 +33,7 @@ public class SettingsUI : MonoBehaviour
             bgmSlider.value = data.BgmVolume;
             sfxSlider.value = data.SfxVolume;
 
-            // 언어 인덱스 설정 (0:한국어, 1:영어, 2:일본어)
+            // 언어 인덱스 설정 (0:영어, 1:한국어, 2:일본어)
             languageDropdown.value = data.GetLanguage();
         }
 
@@ -54,6 +54,7 @@ public class SettingsUI : MonoBehaviour
         }
     }
 
+
     #region UI Event Functions
     // 슬라이더 조절 시 데이터 업데이트
     public void UpdateMasterVolume(float value) => RogueLikeData.Instance.MasterVolume = value;
@@ -61,7 +62,14 @@ public class SettingsUI : MonoBehaviour
     public void UpdateSfxVolume(float value) => RogueLikeData.Instance.SfxVolume = value;
 
     // 언어 변경 시 데이터 업데이트
-    public void UpdateLanguage(int index) => RogueLikeData.Instance.SetLanguage(index);
+    public void UpdateLanguage(int index)
+    {
+        // 1. 데이터에 언어 인덱스 저장
+        RogueLikeData.Instance.SetLanguage(index);
+
+        // 2. 폰트 매니저를 통해 화면 내 모든 폰트 즉시 변경
+        FontManager.Instance.ApplyLanguageFont(index);
+    }
 
     // 설정창 닫기 (Resume)
     public void OnClickClose()
