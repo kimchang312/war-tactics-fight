@@ -27,6 +27,60 @@ public class UIGenerator : MonoBehaviour
 
 
 
+    /// <summary>RLmap이 언로드되면 씬에만 있던 MapGenerator가 파괴되고, DDOL에 남은 UIGenerator의 참조가 끊깁니다. 씬 재진입 후 호출하세요.</summary>
+    public void EnsureMapGeneratorReference()
+    {
+        if (mapGenerator == null)
+            mapGenerator = FindAnyObjectByType<MapGenerator>();
+    }
+
+    /// <summary>
+    /// GameManager/UIGenerator가 DDOL이라 맵 UI는 남고, RLmap만 다시 로드되면 새 MapGenerator의 nodeDict는 비어 있습니다.
+    /// 남아 있는 <see cref="StageNodeUI"/>로 <see cref="MapGenerator"/> 노드 그래프를 다시 채웁니다(보물지도·저장 등).
+    /// </summary>
+    public void RehydrateMapFromExistingUIIfNeeded()
+    {
+        EnsureMapGeneratorReference();
+        if (mapGenerator == null || mapPanel == null)
+            return;
+        if (mapGenerator.NodeDictionary != null && mapGenerator.NodeDictionary.Count > 0)
+            return;
+
+        StageNodeUI[] uis = mapPanel.GetComponentsInChildren<StageNodeUI>(true);
+        if (uis == null || uis.Length == 0)
+            return;
+
+        var dict = new Dictionary<string, StageNode>();
+        foreach (var ui in uis)
+        {
+            if (ui == null)
+                continue;
+            string key = $"{ui.level}_{ui.row}";
+            var node = new StageNode(ui.level, ui.row, ui.stageType);
+            node.presetID = ui.PresetID;
+            node.battlefieldEffect = ui.battlefieldEffect;
+            dict[key] = node;
+        }
+
+        foreach (var ui in uis)
+        {
+            if (ui == null)
+                continue;
+            if (!dict.TryGetValue($"{ui.level}_{ui.row}", out StageNode node))
+                continue;
+            foreach (var nxt in ui.connectedStages)
+            {
+                if (nxt == null)
+                    continue;
+                string nk = $"{nxt.level}_{nxt.row}";
+                if (dict.TryGetValue(nk, out StageNode nextNode))
+                    node.connectedNodes.Add(nextNode);
+            }
+        }
+
+        mapGenerator.OverrideNodeDict(dict);
+    }
+
     private void Start()
     {
 
@@ -47,8 +101,7 @@ public class UIGenerator : MonoBehaviour
         // 0) 기존 UI 모두 제거
         ClearUI();
 
-        if(mapGenerator ==null)
-            mapGenerator = FindAnyObjectByType<MapGenerator>();
+        EnsureMapGeneratorReference();
         // 1) 경로 생성
         mapGenerator.GeneratePathsNonCrossing();
 
@@ -68,6 +121,7 @@ public class UIGenerator : MonoBehaviour
     }
     public void RegenerateMapFromSaveFull(StageFullSaveData savedData)
     {
+        EnsureMapGeneratorReference();
         mapGenerator.ClearAll();
         var dict = new Dictionary<string, StageNode>();
 
