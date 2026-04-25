@@ -151,10 +151,13 @@ public class EventManager
                 }
             case RequireThing.AttackDamage:
                 {
-                    int threshold = SafeParseInt(count);
-                    return RogueLikeData.Instance.GetMyTeam().Any(u => u.attackDamage >= threshold);
-                }
+                    int threshold = SafeParseInt(value);
+                    int requireCount = SafeParseInt(count);
+                    if (requireCount <= 0) requireCount = 1;
 
+                    return RogueLikeData.Instance.GetMyTeam()
+                        .Count(u => u.attackDamage >= threshold) >= requireCount;
+                }
             case RequireThing.Stage:
                 if (form == RequireForm.None)
                 {

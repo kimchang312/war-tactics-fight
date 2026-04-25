@@ -250,49 +250,12 @@ public class RogueLikeData
     {
         return new List<RogueUnitDataBase>(enemyUnits);
     }
-    // 사용처: 유물 ID를 직접 획득할 때 카탈로그 초기화 보장 후 저장
+    // 사용처: 외부 코드 호환용 래퍼, 실제 유산 획득 로직은 RelicManager에서 처리
     public void AcquireRelic(int relicId)
     {
-        if (!RelicManager.InitializeRelicCatalog())
-        {
-            Debug.LogError($"[AcquireRelic] 유물 카탈로그 초기화 실패. relicId={relicId}");
-            return;
-        }
-
-        if (ownedRelicsById.ContainsKey(relicId))
-        {
-            Debug.Log($"[AcquireRelic] 이미 보유 중. relicId={relicId}");
-            return;
-        }
-
-        WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
-        if (relic == null)
-        {
-            Debug.LogError($"[AcquireRelic] 유물 데이터를 찾지 못함. relicId={relicId}");
-            return;
-        }
-
-        // 사용처: 53번 유물의 특수 획득 처리
-        if (relicId == 53)
-        {
-            var vals = relic.GetAllValuesAsFloatListOrNull();
-            if (vals != null && vals.Count > 1 && GetRandomFloat() <= vals[1])
-            {
-                RelicManager.HandleRandomRelic(10, RelicManager.RelicAction.Acquire);
-            }
-        }
-
-        relicsByType[relic.type].Add(relic);
-        relicIdsByType[relic.type].Add(relicId);
-        ownedRelicsById.Add(relicId, relic);
-
-        if (relic.type == RelicType.GetEffect)
-        {
-            relic.Execute();
-        }
-        //유닛 스탯 변경
-        UnitStateChange.ChangeStateMyUnits();
+        RelicManager.AcquireRelic(relicId);
     }
+
 
     // 사용처: RelicManager가 검증을 끝낸 유물을 실제 보유 목록에 반영
     public bool TryAddOwnedRelic(WarRelic relic)
@@ -864,7 +827,7 @@ public class RogueLikeData
             var vals = relic.GetAllValuesAsFloatListOrNull();
             if (vals != null)
             {
-                if (GetRandomFloat() >= vals[0])
+                if (GetRandomFloat() < vals[0])
                 {
                     RogueUnitDataBase addUnit = RogueUnitDataBase.GetRandomUnitByBranchAndRarity(unitTypeIndex, (int)vals[1]);
                     AddMyTeam(addUnit);
@@ -874,6 +837,13 @@ public class RogueLikeData
         }
 
         TryTriggerRelic3Reward(unitTypeIndex, isAttack);
+
+        // 전술 개량 직후 유닛 스탯(StatBlock + 표시용 필드)에 즉시 반영
+        UnitStateChange.ChangeStateMyUnits();
+        foreach (var u in GetMyTeam())
+        {
+            u.ApplyModifiers();
+        }
     }
 
     private void TryTriggerRelic3Reward(int unitTypeIndex, bool isAttack)
