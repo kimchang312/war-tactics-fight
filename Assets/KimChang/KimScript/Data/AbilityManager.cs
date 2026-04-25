@@ -320,10 +320,10 @@ public class AbilityManager
         var abilityActions = new List<Action>
 {
     () => { if (frontAttacker.smokeScreen) CalculateSmokeScreen(attackers, isTeam); },
-    () => { if (frontAttacker.overwhelm) CalculateOverwhelm(frontAttacker, frontDefender, ref text); },
+    () => { if (frontAttacker.overwhelm) CalculateOverwhelm(frontAttacker, frontDefender, ref text, isTeam); },
     () => { if (frontAttacker.throwSpear) CalculateThrowSpear(frontAttacker,attackers, defenders, ref damage, ref text,isTeam,isFirstAttack); },
     () => { if (frontAttacker.assassination) CalculateAssassination(frontAttacker,attackers, defenders, ref damage, ref text, isTeam, isFirstAttack); },
-    () => { if (frontAttacker.wounding) CalculateWounding(frontAttacker, frontDefender, ref text); }
+    () => { if (frontAttacker.wounding) CalculateWounding(frontAttacker, frontDefender, ref text, isTeam); }
 };
 
         foreach (var action in abilityActions) action();
@@ -368,6 +368,8 @@ public class AbilityManager
             {
                 //연발
                 if (!frontAttacker.doubleShot) break; // 한 번만 공격
+                if (autoBattleManager != null)
+                    autoBattleManager.PlayAbilityEffect("T14_DoubleShot", 0, 0, isTeam, isTeam);
                 text += "연발 ";
             }
             (reduceDamage, text) = ApplyChrashAbility(frontAttacker, frontDefender, isTeam, reduceDamage, text);
@@ -416,10 +418,15 @@ public class AbilityManager
 
                     target.health -= relicReduceDamage;
 
+                    if (autoBattleManager != null)
+                        autoBattleManager.PlayAbilityEffect("T18_Impact", unitIndex, 0, !isTeam, isTeam);
                     CallDamageText(relicReduceDamage, "충격 ", !isTeam, true, unitIndex);
                     //복수
                     if (frontDefender.vengeance && unitIndex > 0)
                     {
+                        if (autoBattleManager != null)
+                            autoBattleManager.PlayAbilityEffect("S11_Vengeance", 0, 0, !isTeam, !isTeam);
+
                         //유산 127
                         relicReduceDamage = impactDamage;
                         unitIndex = 0;
@@ -473,6 +480,9 @@ public class AbilityManager
                 {
                     if (!CalculateAccuracy(frontAttacker, frontDefender, defenders, isTeam, isFirstAttack, 0))
                     {
+                        if (autoBattleManager != null)
+                            autoBattleManager.PlayAbilityEffect("S12_Counter", 0, 0, !isTeam, !isTeam);
+
                         //유산 127
                         float relicReduceDamage = normalDamage;
                         int unitIndex = 0;
@@ -514,6 +524,9 @@ public class AbilityManager
                 // 가시 피해
                 if (frontDefender.thorns && normalDamage > 0)
                 {
+                    if (autoBattleManager != null)
+                        autoBattleManager.PlayAbilityEffect("T16_Thorns", 0, 0, !isTeam, !isTeam);
+
                     //유산 127
                     float relicReduceDamage = normalDamage;
                     int unitIndex = 0;
@@ -528,6 +541,9 @@ public class AbilityManager
                 // 흡혈
                 if (frontAttacker.lifeDrain)
                 {
+                    if (autoBattleManager != null)
+                        autoBattleManager.PlayAbilityEffect("T20_LifeDrain", 0, 0, false, false);
+
                     float healValue = Mathf.Round(normalDamage * bloodSuckingValue);
                     float heal = HealHealth(frontAttacker, Mathf.Min((frontAttacker.health + healValue), frontAttacker.maxHealth));
 
@@ -730,8 +746,7 @@ public class AbilityManager
     {
         if (units == null || index < 0 || index >= units.Count)
             return;
-
-        CalculateMartyrdom(units, index);
+        CalculateMartyrdom(units, index, isMyUnit);
 
         RogueUnitDataBase deadUnit = units[index];
         deadUnit.alive = false;
@@ -780,6 +795,10 @@ public class AbilityManager
             //유격
             if ((attackers[0].guerrilla || (attackers[0].effectDictionary.ContainsKey(12) && attackers[0].effectDictionary[12].Duration > 0)) && CheckBackUnit(attackers))
             {
+                // 유격 이펙트: 위치가 바뀌기 전 해당 캐릭터 초상화 상단 (CasterTop)
+                if (autoBattleManager != null)
+                    autoBattleManager.PlayAbilityEffect("S04_Guerrilla", 0, 0, isTeam, isTeam);
+
                 //1횟성 유격 유산
                 if (attackers[0].effectDictionary.ContainsKey(12))
                 {
@@ -792,6 +811,8 @@ public class AbilityManager
             //착취
             if (frontAttacker.drain)
             {
+                if (autoBattleManager != null)
+                    autoBattleManager.PlayAbilityEffect("S07_Drain", 0, 0, isTeam, isTeam);
                 //상흔 확인
                 float heal = HealHealth(frontAttacker, drainHealValue);
                 //착취 계산
@@ -854,6 +875,9 @@ public class AbilityManager
         int unitIndex = defenders.IndexOf(target);
         if (unitIndex < 0) return;
 
+        if (autoBattleManager != null)
+            autoBattleManager.PlayAbilityEffect("S13_FirstStrike", unitIndex, 0, !isTeam, isTeam);
+
         float damage = attacker.attackDamage * 2f;
         damage = ChangeBackMultiple(attacker, target, damage, isTeam);
 
@@ -881,19 +905,30 @@ public class AbilityManager
     {
         //적이거나 약탈 없으면 반환
         if (!isTeam || !unit.plunder) return;
+
+        if (autoBattleManager != null)
+            autoBattleManager.PlayAbilityEffect("T13_Plunder", 0, 0, !isTeam, isTeam);
+
         RogueLikeData.Instance.AddGoldReward(plunderGold);
     }
     //무한
     private void CalculateEndLess(RogueUnitDataBase unit, bool isTeam)
     {
         if (!unit.endless) return;
+
+        if (autoBattleManager != null)
+            autoBattleManager.PlayAbilityEffect("T17_Endless", 0, 0, isTeam, isTeam);
+
         unit.Energy = Math.Min(unit.MaxEnergy, unit.Energy + 1);
     }
     //위압
-    private void CalculateOverwhelm(RogueUnitDataBase attacker, RogueUnitDataBase defender, ref string text)
+    private void CalculateOverwhelm(RogueUnitDataBase attacker, RogueUnitDataBase defender, ref string text, bool isTeam)
     {
         int id = 8, type = 1, rank = 1, duration = -1;
         defender.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
+
+        if (autoBattleManager != null)
+            autoBattleManager.PlayAbilityEffect("S08_Overwhelm", 0, 0, isTeam, isTeam);
 
         text += "위압 ";
     }
@@ -996,16 +1031,22 @@ public class AbilityManager
         if (unitIndex <= 0)
             return;
 
+        if (autoBattleManager != null)
+            autoBattleManager.PlayAbilityEffect("S14_Challenge", 0, 0, isTeam, isTeam);
+
         defenders.RemoveAt(unitIndex);
         defenders.Insert(0, target);
 
         CallDamageText(0, "도전", !isTeam, false, unitIndex);
     }
     //상흔
-    private void CalculateWounding(RogueUnitDataBase attacker, RogueUnitDataBase defender, ref string text)
+    private void CalculateWounding(RogueUnitDataBase attacker, RogueUnitDataBase defender, ref string text, bool isTeam)
     {
         int scarId = 1, type = 1, rank = 1, duration = -1;
         defender.effectDictionary[scarId] = new BuffDebuffData(scarId, type, rank, duration);
+
+        if (autoBattleManager != null)
+            autoBattleManager.PlayAbilityEffect("S10_Wounding", 0, 0, !isTeam, isTeam);
 
         text += "상흔 ";
     }
@@ -1019,6 +1060,13 @@ public class AbilityManager
             if (isTeam && RelicManager.CheckRelicById(135))
             {
                 isPierce = true;
+            }
+
+            // 돌격 이펙트 (강한 돌격 여부에 따라 분기)
+            if (autoBattleManager != null)
+            {
+                string chargeEffectName = attacker.strongCharge ? "S01_Charge_strongCharge" : "S01_Charge";
+                autoBattleManager.PlayAbilityEffect(chargeEffectName, 0, 0, isTeam, isTeam);
             }
 
             multiplier = CalculateCharge(attacker.Mobility);
@@ -1050,6 +1098,10 @@ public class AbilityManager
             if (defender.defense)
             {
                 reduceDamage += defenseValue;
+
+                // 수비태세 이펙트 (방어자 CasterTop)
+                if (autoBattleManager != null)
+                    autoBattleManager.PlayAbilityEffect("S02_Defense", 0, 0, !isTeam, !isTeam);
 
                 text += "수비태세 ";
             }
@@ -1085,8 +1137,8 @@ public class AbilityManager
         Dictionary<Func<RogueUnitDataBase, bool>, Action> traitEffects = new()
         {
             { unit => unit.bluntWeapon && defender.heavyArmor, () => CalculateBluntWeapon(attacker,isTeam,ref reduceDamage,ref text) }, // 둔기
-            { unit => unit.slaughter && defender.lightArmor, () => CalculateSlaughter(ref reduceDamage,ref text) }, // 도살
-            { unit => unit.suppression && reduceDamage < 0, () => CalculateSuppression(defender,ref reduceDamage,ref text) } // 제압
+            { unit => unit.slaughter && defender.lightArmor, () => CalculateSlaughter(ref reduceDamage,ref text,isTeam) }, // 도살
+            { unit => unit.suppression && reduceDamage < 0, () => CalculateSuppression(defender,ref reduceDamage,ref text,isTeam) } // 제압
         };
 
         foreach (var trait in traitEffects)
@@ -1122,9 +1174,12 @@ public class AbilityManager
         text += "둔기 ";
     }
     //도살
-    private void CalculateSlaughter(ref float reduceDamage, ref string text)
+    private void CalculateSlaughter(ref float reduceDamage, ref string text, bool isTeam)
     {
         reduceDamage -= slaughterValue;
+
+        if (autoBattleManager != null)
+            autoBattleManager.PlayAbilityEffect("T09_Slaughter", 0, 0, !isTeam, isTeam);
 
         text += "도살 ";
     }
@@ -1136,9 +1191,12 @@ public class AbilityManager
         text += "대기병 ";
     }
     //제압
-    private void CalculateSuppression(RogueUnitDataBase defender, ref float reduceDamage, ref string text)
+    private void CalculateSuppression(RogueUnitDataBase defender, ref float reduceDamage, ref string text, bool isTeam)
     {
         reduceDamage += defender.maxHealth * suppressionValue;
+
+        if (autoBattleManager != null)
+            autoBattleManager.PlayAbilityEffect("T12_Suppression", 0, 0, !isTeam, isTeam);
 
         text += "제압 ";
     }
@@ -1242,6 +1300,9 @@ public class AbilityManager
     {
         if (CheckBackUnit(units))
         {
+            if (autoBattleManager != null)
+                autoBattleManager.PlayAbilityEffect("S15_SmokeScreen", 0, 0, isTeam, isTeam);
+
             int id = 2, type = 0, rank = 1, duration = -1;
             for (int i = 1; i < units.Count; i++)
             {
@@ -1334,6 +1395,9 @@ public class AbilityManager
 
             target.health -= damage;
 
+            if (autoBattleManager != null)
+                autoBattleManager.PlayAbilityEffect("T15_Scorching", unitIndex, 0, isTeam, isTeam);
+
             burningEffect.Duration--;
             if (burningEffect.Duration == 0)
             {
@@ -1374,6 +1438,9 @@ public class AbilityManager
 
                 if (autoBattleManager != null)
                 {
+                    // T19_Healing: 힐러(시전자) 초상화 상단 (CasterTop)
+                    autoBattleManager.PlayAbilityEffect("T19_Healing", 0, i, isTeam, isTeam);
+                    // T19_Healing_effect: 치유 받는 대상 초상화 정중앙 (TargetCenter)
                     autoBattleManager.PlayAbilityEffect("T19_Healing_effect", 0, i, isTeam, isTeam);
                 }
 
@@ -1499,13 +1566,15 @@ public class AbilityManager
     }
 
     //순교 0,1번이 동시에 사망해도 1번에 버프
-    private void CalculateMartyrdom(List<RogueUnitDataBase> defenders, int defenderIndex)
+    private void CalculateMartyrdom(List<RogueUnitDataBase> defenders, int defenderIndex, bool isMyUnit)
     {
         int id = 8;
         if (defenders[defenderIndex].martyrdom)
         {
             if (defenderIndex + 1 < defenders.Count && defenders[defenderIndex + 1].health > 0)
             {
+                if (autoBattleManager != null)
+                    autoBattleManager.PlayAbilityEffect("S09_Martyrdom", 0, defenderIndex, isMyUnit, isMyUnit);
                 defenders[defenderIndex + 1].stats.AddModifier(new StatModifier
                 {
                     stat = StatType.AttackDamage,

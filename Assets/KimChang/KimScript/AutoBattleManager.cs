@@ -568,16 +568,24 @@ public class AutoBattleManager : MonoBehaviour
         bool isCasterMyUnit = true)
     {
         if (effectManager == null)
+        {
+            Debug.LogWarning($"[AutoBattleManager] PlayAbilityEffect({abilityName}): effectManager가 null입니다.");
             return;
+        }
 
         // Resources에서 능력별 이펙트 로드
-        EffectCD abilityEffect = Resources.Load<EffectCD>($"EffectCD/ECD_{abilityName}");
+        string path = $"EffectCD/ECD_{abilityName}";
+        EffectCD abilityEffect = Resources.Load<EffectCD>(path);
+
+        Debug.Log($"[AutoBattleManager] PlayAbilityEffect: name={abilityName} | path={path} | loaded={abilityEffect != null}");
 
         if (abilityEffect != null)
         {
             // 유닛 Transform 가져오기
             RectTransform targetTransform = autoBattleUI.GetUnitCardTransform(targetIndex, isTargetMyUnit);
             RectTransform casterTransform = autoBattleUI.GetUnitCardTransform(casterIndex, isCasterMyUnit);
+
+            Debug.Log($"[AutoBattleManager] targetTransform={targetTransform?.name ?? "null"} | casterTransform={casterTransform?.name ?? "null"}");
 
             // 대기열에 이펙트 요청 (자동으로 순차 재생됨)
             effectManager.RequestEffect(
@@ -590,7 +598,7 @@ public class AutoBattleManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[AutoBattleManager] 이펙트를 찾을 수 없습니다: {abilityName}");
+            Debug.LogWarning($"[AutoBattleManager] 이펙트를 찾을 수 없습니다: Resources/{path}");
         }
     }
 
