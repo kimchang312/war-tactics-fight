@@ -7,19 +7,11 @@ using UnityEngine;
 /// </summary>
 public enum EffectType
 {
-    Target,     // 피격자 위에 표시
-    Caster,     // 시전자 위에 표시
-    Screen      // 전장 전체(화면 중앙 또는 고정 위치)
-}
-
-/// <summary>
-/// 이펙트의 이동 패턴
-/// </summary>
-public enum EffectMoveType
-{
-    Static,         // 고정 (제자리에서 재생)
-    RightToLeft,    // 우→좌 이동 (아군 → 적군)
-    LeftToRight     // 좌→우 이동 (적군 → 아군)
+    CasterTop,      // 시전자 초상화 상단 (정중앙 기준 높이 2/3 위)
+    TargetCenter,   // 대상 초상화 정중앙
+    TargetTop,      // 대상 초상화 상단 (정중앙 기준 높이 2/3 위)
+    ScreenCenter,   // 화면 중앙 전체 화면
+    ScreenMoveRL    // 화면 오른쪽 바깥 → 왼쪽 바깥 이동 (폭풍우, 흡혈 등)
 }
 
 [CreateAssetMenu(menuName = "Effect/Effect CD", fileName = "NewEffectCD")]
@@ -28,30 +20,24 @@ public class EffectCD : ScriptableObject
     [Tooltip("재생할 이미지(프레임) 리스트")]
     public Sprite[] frames;
 
-    [Tooltip("전체 재생 시간 (초)")]
+    [Tooltip("전체 재생 시간 (초) / ScreenMoveRL의 경우 화면 횡단 시간 (2~3초 권장)")]
     public float totalDuration = 1.0f;
 
     [Header("재생 옵션")]
-    [Tooltip("체크 시 역재생(마지막 프레임 → 첫 프레임)")]
+    [Tooltip("체크 시 역재생 (마지막 프레임 → 첫 프레임)")]
     public bool playReverse = false;
 
-    [Tooltip("체크 시 무한 루프 재생")]
+    [Tooltip("체크 시 무한 루프 재생 (ScreenMoveRL은 이동 중 자동 루프)")]
     public bool loop = false;
 
     [Tooltip("재생 동안 이미지 색상")]
     public Color playColor = Color.white;
 
-    [Tooltip("이 이펙트가 좌우 반전을 허용하는지 여부(기본: 허용)")]
+    [Tooltip("이 이펙트가 좌우 반전을 허용하는지 여부 (기본: 허용)")]
     [SerializeField] private bool allowFlip = true;
-    public bool AllowFlip => allowFlip; // 읽기 전용 공개
+    public bool AllowFlip => allowFlip;
 
-    [Header("위치 및 이동 설정")]
+    [Header("위치 설정")]
     [Tooltip("이펙트 표시 위치 타입")]
-    public EffectType effectType = EffectType.Target;
-
-    [Tooltip("이펙트 이동 패턴")]
-    public EffectMoveType moveType = EffectMoveType.Static;
-
-    [Tooltip("이동 거리 (Static이 아닐 때 적용, 픽셀 단위)")]
-    public float moveDistance = 200f;
+    public EffectType effectType = EffectType.TargetCenter;
 }

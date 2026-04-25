@@ -482,7 +482,16 @@ public class EventManager
             rarity1Rate += (int)vals[0];
         }
 
-        for (int i = 0; i < choiceData.resultType.Count; i++)
+        // 병렬 리스트 중 가장 짧은 것에 맞춰 순회 (데이터 불일치로 인한 IndexOutOfRange 방어)
+        int resultIterCount = choiceData.resultType?.Count ?? 0;
+        resultIterCount = Math.Min(resultIterCount, choiceData.resultForm?.Count ?? 0);
+        resultIterCount = Math.Min(resultIterCount, choiceData.resultValue?.Count ?? 0);
+        resultIterCount = Math.Min(resultIterCount, choiceData.resultCount?.Count ?? 0);
+
+        if (resultIterCount < (choiceData.resultType?.Count ?? 0))
+            Debug.LogWarning($"[EventManager] ApplyChoiceResult: choiceId={choiceData.choiceId}의 result 병렬 리스트 길이가 불일치합니다. (resultType={choiceData.resultType?.Count}, resultCount={choiceData.resultCount?.Count}) 잘라서 처리합니다.");
+
+        for (int i = 0; i < resultIterCount; i++)
         {
             ResultType type = choiceData.resultType[i];
             ResultForm form = choiceData.resultForm[i];
@@ -586,6 +595,7 @@ public class EventManager
                             }
                             else if (choiceData.choiceId == 73)
                             {
+                                if (selectedUnits == null || selectedUnits.Count == 0) { Debug.LogWarning("[EventManager] choiceId=73: selectedUnits 비어있음."); break; }
                                 if (IsUnitVictory(selectedUnits[0]))
                                 {
                                     var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
@@ -603,6 +613,7 @@ public class EventManager
                             }
                             else if (choiceData.choiceId == 75)
                             {
+                                if (selectedUnits == null || selectedUnits.Count == 0) { Debug.LogWarning("[EventManager] choiceId=75: selectedUnits 비어있음."); break; }
                                 if (IsUnitVictoryByRarity(selectedUnits[0]))
                                 {
                                     RogueLikeData.Instance.AddMyTeam(selectedUnits[0]);
@@ -721,6 +732,11 @@ public class EventManager
                         }
                         else if (form == ResultForm.Select)
                         {
+                            if (selectedUnits == null || selectedUnits.Count == 0)
+                            {
+                                Debug.LogWarning($"[EventManager] choiceId={choiceData.choiceId}: ResultType.Unit/Select 처리 시 selectedUnits가 비어있습니다. 건너뜁니다.");
+                                break;
+                            }
                             var origin = selectedUnits[0];
                             RogueUnitDataBase clone = UnitLoader.Instance.GetCloneUnitById(origin.idx);
                             clone.SetEnergyDirect(origin.Energy);
@@ -731,6 +747,11 @@ public class EventManager
                         }
                         else if (form == ResultForm.Special)
                         {
+                            if (selectedUnits == null || selectedUnits.Count == 0)
+                            {
+                                Debug.LogWarning($"[EventManager] choiceId={choiceData.choiceId}: ResultType.Unit/Special 처리 시 selectedUnits가 비어있습니다. 건너뜁니다.");
+                                break;
+                            }
                             var origin = selectedUnits[0];
                             float chance = origin.rarity switch { 1 => 0.3f, 2 => 0.6f, 3 => 1.0f, _ => 0f };
                             if (RogueLikeData.Instance.GetRandomFloat() < chance)
@@ -865,6 +886,7 @@ public class EventManager
                         }
                         else if (choiceData.choiceId == 25)
                         {
+                            if (selectedUnits == null || selectedUnits.Count == 0) { Debug.LogWarning("[EventManager] choiceId=25: selectedUnits 비어있음."); break; }
                             var unit = selectedUnits[0];
                             int rarity = unit.rarity;
                             int getGold = (rarity == 1) ? RogueLikeData.Instance.AddGoldByEventChapter(50)

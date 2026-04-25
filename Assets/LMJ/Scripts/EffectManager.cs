@@ -200,6 +200,14 @@ public class EffectManager : MonoBehaviour
     /// </summary>
     public void RequestEffect(EffectRequest request)
     {
+        if (request.effectCD == null)
+        {
+            Debug.LogWarning("[EffectManager] RequestEffect 호출됐지만 effectCD가 null입니다. 무시됩니다.");
+            return;
+        }
+
+        Debug.Log($"[EffectManager] RequestEffect: {request.effectCD.name} | target={request.targetTransform?.name ?? "null"} | queue={effectQueue.Count + 1}");
+
         effectQueue.Enqueue(request);
 
         // 대기열 처리 시작
@@ -282,6 +290,7 @@ public class EffectManager : MonoBehaviour
 
         // 풀에서 플레이어 가져오기
         EffectCDPlayer player = GetAvailablePlayer();
+        Debug.Log($"[EffectManager] PlayEffectAsync: player={player.gameObject.name} | active={player.gameObject.activeSelf} | parent={player.transform.parent?.name ?? "null"}");
 
         // 자동 flipX 결정
         bool autoFlipX = DetermineFlipX(request);
@@ -322,9 +331,11 @@ public class EffectManager : MonoBehaviour
         // EffectType에 따라 기준 진영 결정
         bool referenceTeam = request.effectCD.effectType switch
         {
-            EffectType.Target => request.isTargetMyTeam,   // Target: 피격자 기준
-            EffectType.Caster => request.isCasterMyTeam,   // Caster: 시전자 기준
-            EffectType.Screen => false,                    // Screen: 반전 없음
+            EffectType.CasterTop    => request.isCasterMyTeam,  // 시전자 기준
+            EffectType.TargetCenter => request.isTargetMyTeam,  // 피격자 기준
+            EffectType.TargetTop    => request.isTargetMyTeam,  // 피격자 기준
+            EffectType.ScreenCenter => false,                   // 화면 전체: 반전 없음
+            EffectType.ScreenMoveRL => false,                   // 이동 전장: 반전 없음
             _ => false
         };
 
