@@ -22,7 +22,8 @@ public static class AbilityIdMap
         { "javelinThrow", 125 },
         { "skirmish", 126 },
         { "guard", 127 },
-        { "assasination", 128 },
+        { "assasination", 128 },  // 레거시 오타 유지 (기존 데이터 호환)
+        { "assassination", 128 }, // RogueUnitDataBase 실제 필드명
         { "drain", 129 },
         { "overwhelm", 130 },
 

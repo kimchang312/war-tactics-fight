@@ -1,0 +1,15 @@
+테스트를 해보니까 치유 받음 이펙트가 표시되는 것으로 봐서 어느 정도 괜찮게 만들어지는 것 같음. 그런데 아직 안 되고 있는 이펙트가 많음. 그런데 생각해보니 각각의 이펙트 애니메이션이 어떤 상황에 어떤 위치로 나오는지 설명을 똑바로 못한 것 같아.
+
+일단 현재 만들어진 이펙트 애니메이션이 재생되는 위치를 정리.
+
+발동한 캐릭터의 초상화 상단(초상화 정중앙 기준으로 초상화 2/3 높이만큼 올라간 위치), 대상이 된 캐릭터의 정중앙, 대상이 된 캐릭터의 초상화 상단(초상화 정중앙 기준으로 초상화 2/3 높이만큼 올라간 위치), 화면 정중앙 위치에서 화면 전체에 꽉 채운 형태로 재생되는 애니메이션, 화면 오른쪽에서 왼쪽으로 이동하면서 재생되는 애니메이션(폭풍우 전장 효과 애니메이션) 이렇게 있음.
+
+발동한 캐릭터의 초상화 상단에 해당하는 이펙트는 ECD_S01_Charge(Chaarge_돌격이 On인 캐릭터가 전투 충돌을 할 경우 해당 캐릭터 초상화 상단에 재생), ECD_S01_Charge_strongCharge(Charge_돌격이 On인 캐릭터가 StrongCharge_강한 돌격도 가지고 있을 경우, ECD_S01_Charge 대신에 재생), ECD_S02_Defense(상대가 Charge_돌격이 On인 캐릭터인 경우, 전투 충돌 때 Defense_수비 태세를 가진 캐릭터 초상화 상단에 재생), ECD_S04_Guerrilla(Guerrilla_유격의 효과가 발동되어 해당 캐릭터의 위치가 바뀔 경우, 바뀌기 전에 해당 캐릭터 초상화 상단에 재생), ECD_S05_Guard(Guard_수호의 효과가 발동할 경우, Guard_수호를 가진 캐릭터의 초상화 상단에 재생), ECD_S06_Assassination(Assassination_암살을 가진 캐릭터의 효과가 발동할 경우, 암살을 가진 캐릭터의 초상화 상단에 재생), ECD_S07_Drain, ECD_S08_Overwhelm, ECD_S09_Martyrdom, ECD_S11_Vengeance, ECD_S12_Counter, ECD_S13_FirstStrike, ECD_S14_Challenge, ECD_S15_SmokeScreen, ECD_T10_BindingForce_Down(BindingForce_결속의 효과가 약해지거나, 없어질 경우, 해당 결속의 효과를 받는 모든 캐릭터의 초상화 상단에 재생), ECD_T10_BindingForce_Up(BindingForce_결속의 효과가 강해지거나, 나타날 경우, 해당 결속의 효과를 받는 모든 캐릭터의 초상화 상단에 재생), ECD_T14_DoubleShot, ECD_T16_Thorns, ECD_T17_Endless, ECD_T19_Healing
+
+대상이 된 캐릭터의 초상화 정중앙에 해당하는 이펙트는 ECD_S05_Guard_guarded(Guard_수호의 효과로 지켜지는 대상의 캐릭터 초상화 정중앙에 재생), ECD_T15_Scorching(자동 전투 사이클 중, 작열의 지속효과에 의해서 데미지를 받는 타이밍에 데미지를 받는 캐릭터의 초상화 정중앙에 재생), ECD_T18_Impact(Impact_충격의 효과에 의해 후방에 있는 캐릭터가 피해를 입을 경우, 피해를 입은 캐릭터의 초상화 정중앙에 재생), ECD_T19_Healing_effect
+
+대상이 된 캐릭터의 초상화 상단에 해당하는 이펙트는 ECD_S10_Wounding(상대가 가진 Wounding_상흔의 효과의 대상이 된 캐릭터 초상화 상단에 재생), ECD_S14_Challenge_effect, ECD_T05_Pierce, ECD_T09_Slaughter, ECD_T12_Suppression, ECD_T13_Plunder, ECD_T20_LifeDrain
+
+화면 오른쪽에서 왼쪽으로 이동하면서 재생되는 애니메이션: ECD_T20_LifeDrain(화면 오른쪽 바깥에서 시작해서 화면 왼쪽으로 이동하면서 반복 재생, 2~3초 정도에 걸쳐서 화면을 가로지르며, 화면 바깥으로 나가면 애니메이션을 종료하고 비활성화.)
+
+초상화와 관련된 애니메이션은 해당 캐릭터의 초상화 크기와 똑같은 크기의 애니메이션으로 재생.
