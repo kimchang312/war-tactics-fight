@@ -35,7 +35,11 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         textComponent.text = "설정되지 않은 아이템";
 
-        if (info.data.relicId != -1)
+        if (info.data.isBuffDeBuff)
+        {
+            textComponent.text = $"{info.data.buffDeBuffName}\n{info.data.buffDeBuffDescription}";
+        }
+        else if (info.data.relicId != -1)
         {
             var relic = WarRelicDatabase.GetRelicById(info.data.relicId);
             if (relic != null)

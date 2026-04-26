@@ -25,7 +25,7 @@ public static class SpriteCacheManager
 
     public static Sprite GetFrameByRarity(int rarity)
     {
-        string path = "KIcon/Frame/border_rarity_" + rarity.ToString();
+        string path = "KIcon/AbilityIcon/Frame/border_rarity_" + rarity.ToString();
 
         if (spriteCache.TryGetValue(path, out var cachedSprite))
         {

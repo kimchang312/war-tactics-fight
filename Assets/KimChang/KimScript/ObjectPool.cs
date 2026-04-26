@@ -15,6 +15,9 @@ public class ObjectPool : MonoBehaviour
     [SerializeField] private GameObject orderUnitPrefab;
     [SerializeField] private GameObject weaponImagePrefab;   // 무기(이미지) 프리팹
     [SerializeField] private GameObject crashEffectPrefab;   // 크래시(이미지) 프리팹
+    [SerializeField] private GameObject buffDeBuffPrefab; // 버프/디버프 아이콘
+    private readonly Queue<GameObject> buffDeBuffPool = new();
+    private readonly List<GameObject> activeBuffDeBuffs = new();
 
     private readonly Queue<GameObject> weaponImagePool = new();
     private readonly Queue<GameObject> crashEffectPool = new();
@@ -45,6 +48,10 @@ public class ObjectPool : MonoBehaviour
         {
             crashEffectPrefab = Resources.Load<GameObject>("Prefabs/CrashEffect");
         }
+        if (buffDeBuffPrefab == null)
+        {
+            buffDeBuffPrefab = Resources.Load<GameObject>("Prefabs/BuffDeBuff");
+        }
         for (int i = 0; i < poolSize; i++)
         {
             GameObject damageInstance = Instantiate(damageTextPrefab, transform);
@@ -74,7 +81,12 @@ public class ObjectPool : MonoBehaviour
                 onlyUnitInstance.SetActive(false);
                 onlyUnitPool.Enqueue(onlyUnitInstance);
             }
-
+            if (buffDeBuffPrefab != null)
+            {
+                GameObject buffDeBuffInstance = Instantiate(buffDeBuffPrefab, transform);
+                buffDeBuffInstance.SetActive(false);
+                buffDeBuffPool.Enqueue(buffDeBuffInstance);
+            }
             GameObject weaponImgInstance = Instantiate(weaponImagePrefab, transform);
             GameObject crashImgInstance = Instantiate(crashEffectPrefab, transform);
 
@@ -395,7 +407,92 @@ public class ObjectPool : MonoBehaviour
         crashEffectPool.Enqueue(go);
     }
 
+    // 사용처: 버프/디버프 아이콘을 풀에서 꺼내 UI에 표시
+    public GameObject GetBuffDeBuff()
+    {
+        if (buffDeBuffPrefab == null)
+        {
+            Debug.LogWarning("[ObjectPool] BuffDeBuff 프리팹이 없습니다. Resources/Prefabs/BuffDeBuff 경로를 확인하세요.");
+            return null;
+        }
 
+        GameObject instance = buffDeBuffPool.Count > 0
+            ? buffDeBuffPool.Dequeue()
+            : Instantiate(buffDeBuffPrefab, transform);
+
+        instance.SetActive(true);
+        instance.transform.SetParent(canvasTransform, false);
+
+        RectTransform rt = instance.GetComponent<RectTransform>();
+        if (rt != null)
+        {
+            rt.anchoredPosition = Vector2.zero;
+            rt.localScale = Vector3.one;
+            rt.localRotation = Quaternion.identity;
+        }
+
+        Image img = instance.GetComponent<Image>();
+        if (img != null)
+        {
+            img.enabled = true;
+            img.sprite = null;
+            img.color = Color.white;
+        }
+
+        ItemInformation itemInfo = instance.GetComponent<ItemInformation>();
+        if (itemInfo != null)
+            itemInfo.Clear();
+
+        activeBuffDeBuffs.Add(instance);
+        return instance;
+    }
+
+    // 사용처: 사용이 끝난 버프/디버프 아이콘을 풀로 반환
+    public void ReturnBuffDeBuff(GameObject go)
+    {
+        if (go == null)
+            return;
+
+        go.SetActive(false);
+        go.transform.SetParent(canvasTransform, false);
+
+        Image img = go.GetComponent<Image>();
+        if (img != null)
+            img.sprite = null;
+
+        ItemInformation itemInfo = go.GetComponent<ItemInformation>();
+        if (itemInfo != null)
+            itemInfo.Clear();
+
+        activeBuffDeBuffs.Remove(go);
+        buffDeBuffPool.Enqueue(go);
+    }
+
+    // 사용처: 체력/상태 UI 갱신 전에 현재 표시 중인 버프/디버프 아이콘을 전부 정리
+    public void ClearActiveBuffDeBuffs()
+    {
+        for (int i = activeBuffDeBuffs.Count - 1; i >= 0; i--)
+        {
+            GameObject go = activeBuffDeBuffs[i];
+            if (go == null)
+                continue;
+
+            go.SetActive(false);
+            go.transform.SetParent(canvasTransform, false);
+
+            Image img = go.GetComponent<Image>();
+            if (img != null)
+                img.sprite = null;
+
+            ItemInformation itemInfo = go.GetComponent<ItemInformation>();
+            if (itemInfo != null)
+                itemInfo.Clear();
+
+            buffDeBuffPool.Enqueue(go);
+        }
+
+        activeBuffDeBuffs.Clear();
+    }
 
 }
 

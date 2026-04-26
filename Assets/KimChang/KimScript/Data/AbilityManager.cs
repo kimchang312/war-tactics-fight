@@ -1338,7 +1338,7 @@ public class AbilityManager
             {
                 //상흔
                 int scarId = 1, sType = 1, sRank = 1, sDuration = -1;
-                if (!defender.effectDictionary.TryGetValue(burningId, out BuffDebuffData sEffect))
+                if (!defender.effectDictionary.TryGetValue(scarId, out BuffDebuffData sEffect))
                 {
                     defender.effectDictionary[scarId] = new BuffDebuffData(scarId, sType, sRank, sDuration);
                     text += "상흔 ";
@@ -1346,7 +1346,7 @@ public class AbilityManager
 
                 //위압
                 int oId = 8, oType = 1, oRank = 1, oDuration = -1;
-                if (!defender.effectDictionary.TryGetValue(burningId, out BuffDebuffData oEffect))
+                if (!defender.effectDictionary.TryGetValue(oId, out BuffDebuffData oEffect))
                 {
                     defender.effectDictionary[oId] = new BuffDebuffData(oId, oType, oRank, oDuration);
                     text += "위압 ";
@@ -1602,7 +1602,7 @@ public class AbilityManager
     //추적자
     private void CalculateTracker(RogueUnitDataBase attacker, RogueUnitDataBase defender)
     {
-        if (attacker.idx == 48 && !defender.effectDictionary.ContainsKey(3))
+        if (attacker.idx == 29 && !defender.effectDictionary.ContainsKey(3))
         {
             int id = 3, type = 1, rank = 1, durateion = -1;
             defender.Armor = Math.Max(defender.Armor - 3, 0);

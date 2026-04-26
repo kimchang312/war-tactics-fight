@@ -26,7 +26,7 @@ public class EventUIManager : MonoBehaviour
         EventData eventData = EventManager.GetRandomEvent();
 
         List<EventChoiceData> eventChoiceDatas = new();
-        
+
         foreach (int choiceId in eventData.choiceIds)
         {
             if (EventDataLoader.EventChoiceDataDict.TryGetValue(choiceId, out var choiceData))
@@ -54,11 +54,11 @@ public class EventUIManager : MonoBehaviour
                 // choiceResultText 처리
                 if (choiceData.choiceResultText != null && choiceData.choiceResultText.Count > 0)
                 {
-                    
+
                     if (choiceData.choiceResultText.Count == 1)
                     {
                         resultPart = $" <color=green>{choiceData.choiceResultText[0]}</color>";
-                        
+
                     }
                     else if (choiceData.choiceResultText.Count >= 2)
                     {
@@ -88,6 +88,9 @@ public class EventUIManager : MonoBehaviour
     //선택지 버튼 눌렀을때 실행
     private void HandleChoice(EventChoiceData choiceData)
     {
+        if (!EventManager.CheckChoiceRequireCondition(choiceData))
+            return;
+
         List<RogueUnitDataBase> selectedUnits = new();
         //만약 유닛 선택이 있다면 유닛 선택 창 띄우기
         if (choiceData.requireForm.Contains(RequireForm.Select))
@@ -101,6 +104,14 @@ public class EventUIManager : MonoBehaviour
                 return;
             }
         }
+
+        // 선택창에서 오래 머무는 동안 자원이 바뀐 경우를 한번 더 방어
+        if (!EventManager.CheckChoiceRequireCondition(choiceData))
+        {
+            RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
+            return;
+        }
+
         EventManager.ReduceRequire(choiceData);
         (string, bool) resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
         eventDescriptionText.text = resultText.Item1;
@@ -108,21 +119,22 @@ public class EventUIManager : MonoBehaviour
         if ((choiceData.choiceId >= 56 && choiceData.choiceId <= 57))
         {
             int morale = RogueLikeData.Instance.GetMorale();
-            if(morale <10)
+            if (morale < 10)
             {
                 choiceBtns.GetChild(0).gameObject.GetComponent<Button>().interactable = false;
                 choiceBtns.GetChild(1).gameObject.GetComponent<Button>().interactable = false;
             }
             RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
             return;
-        } 
+        }
 
         ResetButtonUI();
         RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);
         SaveData saveData = new();
         saveData.SaveDataFile();
-        if(resultText.Item2) gameObject.SetActive(false);
+        if (resultText.Item2) gameObject.SetActive(false);
         leaveBtn.gameObject.SetActive(true);
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)
     {
@@ -160,21 +172,25 @@ public class EventUIManager : MonoBehaviour
                 if (string.IsNullOrEmpty(val)) { selectUnits = myUnits; }
                 else if (int.TryParse(val, out var energyVal))
                 {
-                    // 요구조건 검사와 일치하도록: '에너지 > value' 만 선택
+                    // 기존 조건 검사와 동일하게 value보다 기력이 높은 유닛만 선택 가능
                     selectUnits = myUnits.FindAll(u => u.Energy > energyVal);
                 }
             }
         }
 
-        unitListUI.Show(requiredCount, null, () =>HandleChoice(choiceData));
-    }
+        if (selectUnits.Count == 0)
+            selectUnits = myUnits;
 
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
+        unitListUI.Show(requiredCount, selectUnits, () => HandleChoice(choiceData));
+    }
 
     //전체 초기화
     private void ResetUI()
     {
         ResetButtonUI();
         unitListUI.gameObject.SetActive(false);
+        leaveBtn.onClick.RemoveListener(ClickLeaveBtn);
         leaveBtn.onClick.AddListener(ClickLeaveBtn);
         leaveBtn.gameObject.SetActive(false);
     }

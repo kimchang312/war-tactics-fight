@@ -19,6 +19,7 @@ public enum TextKind
     ItemDesc = 31,
     Tutorial = 40,
     Ability = 50,
+    BuffDeBuff = 60,
 }
 
 public static class GameTextDB
@@ -122,6 +123,7 @@ public static class GameTextDB
 
         { "Tutorial", TextKind.Tutorial },
         { "Ability", TextKind.Ability },
+        { "BuffDeBuff", TextKind.BuffDeBuff },
     };
 
     // 사용처: 게임 시작 시 1회 초기화
@@ -664,4 +666,70 @@ public static class GameTextDB
 
     public static string ComposeLines(IList<string> lines, IList<string> requireNames, IList<string> resultTokens)
         => ComposeLines(lines, requireNames, resultTokens, null);
+
+
+    // 사용처: 버프/디버프 툴팁 제목 생성
+    private static string GetBuffDeBuffName(int id, int grade)
+    {
+        string name = GameTextDB.GetByForeignKey(TextKind.BuffDeBuff, id);
+
+        if (string.IsNullOrEmpty(name))
+            name = GetFallbackBuffDeBuffName(id);
+
+        if (id == 0)
+            return $"{name} {Mathf.Clamp(grade, 1, 3)}단계";
+
+        return name;
+    }
+
+    // 사용처: 버프/디버프 툴팁 설명 생성
+    private static string GetBuffDeBuffDescription(int id, int grade, int duration)
+    {
+        int titleIdx = GameTextDB.GetIdxByForeignKey(TextKind.BuffDeBuff, id);
+        string description = titleIdx >= 0
+            ? GameTextDB.Get(TextKind.BuffDeBuff, titleIdx, id)
+            : string.Empty;
+
+        if (string.IsNullOrEmpty(description))
+            description = GetFallbackBuffDeBuffDescription(id);
+
+        string durationText = duration < 0 ? "지속" : $"{duration}턴";
+
+        if (id == 0)
+            return $"{description}\n현재 단계: {Mathf.Clamp(grade, 1, 3)} / 남은 시간: {durationText}";
+
+        return $"{description}\n남은 시간: {durationText}";
+    }
+
+    // 사용처: GameTextDB 누락 시 최소 표시용 이름 반환
+    private static string GetFallbackBuffDeBuffName(int id)
+    {
+        switch (id)
+        {
+            case 0: return "작열";
+            case 1: return "상흔";
+            case 2: return "연막";
+            case 3: return "추적자 표식";
+            case 4: return "제국 시너지";
+            case 8: return "위압";
+            default: return "알 수 없는 효과";
+        }
+    }
+
+    // 사용처: GameTextDB 누락 시 최소 표시용 설명 반환
+    private static string GetFallbackBuffDeBuffDescription(int id)
+    {
+        switch (id)
+        {
+            case 0: return "매 턴 최대 체력에 비례한 피해를 받습니다.";
+            case 1: return "치유 효과를 받을 수 없습니다.";
+            case 2: return "회피율이 증가합니다.";
+            case 3: return "장갑이 감소한 상태입니다.";
+            case 4: return "회피율이 증가합니다.";
+            case 8: return "기동력이 크게 낮아진 상태입니다.";
+            default: return "";
+        }
+    }
+
+
 }
