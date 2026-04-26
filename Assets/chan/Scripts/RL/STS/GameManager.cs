@@ -109,11 +109,34 @@ public class GameManager : MonoBehaviour
         openUnitOrderBtn.onClick.AddListener(ClickOpenUnitOrderUI);
     }
 
+    /// <summary>전투 씬 등으로 RLmap이 언로드될 때 씬 오브젝트 참조가 끊깁니다. 맵 씬 로드 직후 UIGenerator·MapGenerator를 다시 잡습니다.</summary>
+    private void EnsureMapSceneUIReferences()
+    {
+        if (uIGenerator == null)
+        {
+            uIGenerator = FindAnyObjectByType<UIGenerator>();
+            if (uIGenerator == null && transform.childCount > 0)
+            {
+                Transform c0 = transform.GetChild(0);
+                if (c0.childCount > 0)
+                    uIGenerator = c0.GetChild(0).GetComponent<UIGenerator>();
+            }
+        }
+
+        if (uIGenerator != null)
+        {
+            uIGenerator.EnsureMapGeneratorReference();
+            uIGenerator.RehydrateMapFromExistingUIIfNeeded();
+        }
+    }
+
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
  {
         openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
      if (scene.name != "RLmap")
         return;
+
+        EnsureMapSceneUIReferences();
 
         CloseAllUI();
 
@@ -267,6 +290,58 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     }
 
 
+    /// <summary>UIGenerator에 연결된 맵과 동일한 <see cref="MapGenerator"/>를 고릅니다. 씬에 MapGenerator가 여러 개일 때 잘못된 인스턴스를 피합니다.</summary>
+    private MapGenerator ResolveMapGeneratorForNode(int level, int row)
+    {
+        if (uIGenerator != null)
+            uIGenerator.RehydrateMapFromExistingUIIfNeeded();
+
+        string key = $"{level}_{row}";
+        MapGenerator linked = uIGenerator != null ? uIGenerator.mapGenerator : null;
+        if (linked != null && linked.NodeDictionary != null && linked.NodeDictionary.ContainsKey(key))
+            return linked;
+
+        foreach (var mg in FindObjectsOfType<MapGenerator>(true))
+        {
+            if (mg != null && mg.NodeDictionary != null && mg.NodeDictionary.ContainsKey(key))
+                return mg;
+        }
+
+        if (linked != null && linked.NodeDictionary != null && linked.NodeDictionary.Count > 0)
+            return linked;
+
+        foreach (var mg in FindObjectsOfType<MapGenerator>(true))
+        {
+            if (mg != null && mg.NodeDictionary != null && mg.NodeDictionary.Count > 0)
+                return mg;
+        }
+
+        return linked;
+    }
+
+    private static bool TryGetStageNodeFromMap(MapGenerator mapGen, int level, int row, out StageNode stageNode)
+    {
+        stageNode = null;
+        if (mapGen == null || mapGen.NodeDictionary == null)
+            return false;
+
+        string key = $"{level}_{row}";
+        if (mapGen.NodeDictionary.TryGetValue(key, out stageNode))
+            return true;
+
+        foreach (var kv in mapGen.NodeDictionary)
+        {
+            StageNode n = kv.Value;
+            if (n != null && n.level == level && n.row == row)
+            {
+                stageNode = n;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     ///현재 스테이지를 변경(이동)하고, 잠금/해제 로직을 실행합니다.
 
     private void SetCurrentStage(StageNodeUI newStage)
@@ -359,22 +434,27 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 47번 보물지도: 다음 이벤트를 보물로 변환(진입 시 1회 소진)
         if (newStage.stageType == StageType.Event && RogueLikeData.Instance.GetNextEventToTreasure())
         {
-            var mapGen = FindObjectOfType<MapGenerator>();
-            if (mapGen != null)
+            MapGenerator mapGen = ResolveMapGeneratorForNode(newStage.level, newStage.row);
+            string nodeKey = $"{newStage.level}_{newStage.row}";
+            bool converted = false;
+            if (TryGetStageNodeFromMap(mapGen, newStage.level, newStage.row, out var stageNode))
             {
-                string nodeKey = $"{newStage.level}_{newStage.row}";
-                if (mapGen.NodeDictionary.TryGetValue(nodeKey, out var stageNode))
-                {
-                    stageNode.stageType = StageType.Treasure;
-                    newStage.stageType = StageType.Treasure;
-                    newStage.Setup(stageNode);
-                    RogueLikeData.Instance.SetCurrentStage(newStage.level, newStage.row, StageType.Treasure);
-                    Debug.Log($"[보물지도] 이벤트 지역이 보물 지역으로 변경됨: {nodeKey}");
-                }
+                stageNode.stageType = StageType.Treasure;
+                newStage.stageType = StageType.Treasure;
+                newStage.Setup(stageNode);
+                RogueLikeData.Instance.SetCurrentStage(newStage.level, newStage.row, StageType.Treasure);
+                converted = true;
+                Debug.Log($"[보물지도] 이벤트 지역이 보물 지역으로 변경됨: {nodeKey}");
+            }
+            else
+            {
+                int dictCount = mapGen != null && mapGen.NodeDictionary != null ? mapGen.NodeDictionary.Count : -1;
+                Debug.LogWarning(
+                    $"[보물지도] 변환 실패 — 노드 '{nodeKey}' 없음 (MapGenerator='{(mapGen != null ? mapGen.name : "null")}', nodeDict.Count={dictCount}). 플래그는 유지됩니다.");
             }
 
-            // 1회 효과 소진: 플래그만 리셋 (유물은 유지)
-            RogueLikeData.Instance.SetNextEventToTreasure(false);
+            if (converted)
+                RogueLikeData.Instance.SetNextEventToTreasure(false);
         }
 
         // 6) 타입별 처리

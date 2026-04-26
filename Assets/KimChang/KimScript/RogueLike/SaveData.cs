@@ -30,13 +30,15 @@ public class SavePlayerData
     public int presetID;     // RogueLikeData.presetID
     public int rerollChance; // RogueLikeData.rerollChance
     public int unitOrder;    // RogueLikeData.unitOrder
+    /// <summary>47번 보물지도: 다음 이벤트를 보물로 바꿀 예정인지.</summary>
+    public bool nextEventToTreasure;
 
     public SavePlayerData(
         int id, List<RogueUnitDataBase> myUnits, List<WarRelic> warRelics, List<int> eventIds,
         int currentGold, int spentGold, int playerMorale, int currentStageX, int currentStageY, int chapter,
         StageType currentStageType, UnitUpgrade[] unitUpgrades, int sariStack, BattleRewardData battleReward, int nextUniqueId, int score,
         // 추가 파라미터
-        int language, int fieldId, int presetID, int rerollChance, int unitOrder)
+        int language, int fieldId, int presetID, int rerollChance, int unitOrder, bool nextEventToTreasure)
     {
         this.id = id;
         this.myUnits = myUnits;
@@ -61,6 +63,7 @@ public class SavePlayerData
         this.presetID = presetID;
         this.rerollChance = rerollChance;
         this.unitOrder = unitOrder;
+        this.nextEventToTreasure = nextEventToTreasure;
     }
 }
 
@@ -119,6 +122,7 @@ public class SaveData
             RogueLikeData.Instance.SetPresetID(savePlayerData.presetID);
             RogueLikeData.Instance.SetRerollChance(savePlayerData.rerollChance);
             RogueLikeData.Instance.SetUnitOrder(savePlayerData.unitOrder);
+            RogueLikeData.Instance.SetNextEventToTreasure(savePlayerData.nextEventToTreasure);
 
             RogueLikeData.Instance.SetCurrentStoreSnapshot(savePlayerData.currentStore);
 

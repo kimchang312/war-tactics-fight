@@ -162,7 +162,7 @@ public class RogueLikeData
             currentStageX, currentStageY, chapter, currentStageType,
             upgradeValues, sariStack, battleReward, nextUnitUniqueId, score,
             // 추가 필드
-            language, fieldId, presetID, rerollChance, unitOrder
+            language, fieldId, presetID, rerollChance, unitOrder, nextEventToTreasure
         );
         data.currentStore = currentStore;
         return data;
@@ -198,7 +198,7 @@ public class RogueLikeData
             currentStageX, currentStageY, chapter, currentStageType,
             upgradeValues, sariStack, battleReward, nextUnitUniqueId, score,
             // 추가 필드
-            language, fieldId, presetID, rerollChance, unitOrder
+            language, fieldId, presetID, rerollChance, unitOrder, nextEventToTreasure
         );
         myTeam = savedCopy;
         savedMyUnits.Clear();
