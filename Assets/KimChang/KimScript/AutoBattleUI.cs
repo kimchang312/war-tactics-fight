@@ -48,6 +48,10 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private Image background;
     [SerializeField] private GameObject goTestBtn;
     [SerializeField] private BattleCrashAnimation battleAnim;
+
+    [SerializeField] private GameObject myBuffDeBuff;
+    [SerializeField] private GameObject enemyBuffDeBuff;
+
     private Vector3 myTeam = new(260, 280, 0);
     private Vector3 enemyTeam = new(-260, 280, 0);
 
@@ -65,8 +69,16 @@ public class AutoBattleUI : MonoBehaviour
     private Camera uiCam;
     private bool damageAnchorCacheReady;
     private readonly Dictionary<string, GameObject> unitViewMap = new(32);
-
-
+    [SerializeField] private float buffDeBuffIconSize = 60f;
+    private static readonly int[] visibleBuffDeBuffIds =
+{
+    0, // 작열
+    1, // 상흔
+    2, // 연막
+    3, // 추적자 표식
+    4, // 제국 시너지
+    8  // 위압
+};
     // 사용처: 전투 유닛 화면 오브젝트를 UniqueId 기준으로 빠르게 찾기 위한 키 생성
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string GetUnitViewKey(RogueUnitDataBase unit)
@@ -488,6 +500,7 @@ public class AutoBattleUI : MonoBehaviour
 
         CreateRangeUnit(enemyRangeUnits != null ? enemyRangeUnits.Count : 0, enemyRangeUnitPos, enemyRangeCount, false);
 
+        UpdateBuffDeBuffUI(myUnits, enemyUnits);
     }
 
     private void ClearExistingUnitImages()
@@ -823,7 +836,12 @@ public class AutoBattleUI : MonoBehaviour
         ToggleAndSet(mySecondHpBar, _mySecondHpText, d.MySecondActive, d.MySecondHp, d.MySecondMax);
         ToggleAndSet(enemySecondHpBar, _enemySecondHpText, d.EnemySecondActive, d.EnemySecondHp, d.EnemySecondMax);
     }
-
+    // 사용처: 체력 갱신 타이밍에 버프/디버프 아이콘도 함께 갱신
+    public void ApplyHp(in HpViewData d, List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits)
+    {
+        ApplyHp(d);
+        UpdateBuffDeBuffUI(myUnits, enemyUnits);
+    }
     // 체력바/텍스트를 토글하고 값 세팅
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ToggleAndSet(Slider bar, TMP_Text txt, bool active, int hp, int max)
@@ -924,6 +942,250 @@ public class AutoBattleUI : MonoBehaviour
         damageAnchorCacheReady = (canvasRt != null);
     }
 
+    // 사용처: 현재 전투 중인 양측 유닛들의 버프/디버프 아이콘을 갱신
+    public void UpdateBuffDeBuffUI(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits)
+    {
+        ClearExistingBuffDeBuffIcons();
 
+        CreateBuffDeBuffIcons(myUnits, true);
+        CreateBuffDeBuffIcons(enemyUnits, false);
+    }
+
+    // 사용처: 버프/디버프 아이콘을 전부 풀로 반환
+    private void ClearExistingBuffDeBuffIcons()
+    {
+        if (objectPool != null)
+            objectPool.ClearActiveBuffDeBuffs();
+    }
+
+    // 사용처: 한 진영에 걸린 표시 대상 버프/디버프를 아이콘으로 생성
+    private void CreateBuffDeBuffIcons(List<RogueUnitDataBase> units, bool isMyUnit)
+    {
+        if (units == null || objectPool == null)
+            return;
+
+        GameObject parentObj = isMyUnit ? myBuffDeBuff : enemyBuffDeBuff;
+        if (parentObj == null)
+            return;
+
+        Transform parent = parentObj.transform;
+
+        for (int i = 0; i < visibleBuffDeBuffIds.Length; i++)
+        {
+            int id = visibleBuffDeBuffIds[i];
+
+            if (!TryGetVisibleBuffDeBuff(units, id, out int grade, out int duration))
+                continue;
+
+            GameObject iconGO = objectPool.GetBuffDeBuff();
+            if (iconGO == null)
+                continue;
+
+            iconGO.transform.SetParent(parent, false);
+            iconGO.transform.localScale = Vector3.one;
+
+            RectTransform rt = iconGO.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, buffDeBuffIconSize);
+                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, buffDeBuffIconSize);
+            }
+
+            Image img = iconGO.GetComponent<Image>();
+            if (img == null)
+            {
+                objectPool.ReturnBuffDeBuff(iconGO);
+                continue;
+            }
+
+            string spritePath = GetBuffDeBuffSpritePath(id, grade);
+            Sprite sprite = SpriteCacheManager.GetSprite(spritePath);
+            if (sprite == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"[AutoBattleUI] 버프/디버프 아이콘 없음: {spritePath}");
+#endif
+                objectPool.ReturnBuffDeBuff(iconGO);
+                continue;
+            }
+
+            img.sprite = sprite;
+
+            string title = GetBuffDeBuffTitle(id, grade);
+            string description = GetBuffDeBuffDescription(id, grade, duration);
+
+            ItemInformation itemInfo = iconGO.GetComponent<ItemInformation>();
+            if (itemInfo != null)
+                itemInfo.SetBuffDeBuff(id, grade, duration, title, description);
+
+            ExplainItem explainItem = iconGO.GetComponent<ExplainItem>();
+            if (explainItem != null)
+                explainItem.ItemToolTip = itemToolTip;
+        }
+    }
+
+    // 사용처: 한 진영에 표시 가능한 특정 버프/디버프가 있는지 확인
+    private bool TryGetVisibleBuffDeBuff(List<RogueUnitDataBase> units, int id, out int grade, out int duration)
+    {
+        grade = 0;
+        duration = 0;
+
+        bool found = false;
+
+        for (int i = 0; i < units.Count; i++)
+        {
+            RogueUnitDataBase unit = units[i];
+            if (unit == null || unit.health <= 0 || unit.effectDictionary == null)
+                continue;
+
+            if (!unit.effectDictionary.TryGetValue(id, out BuffDebuffData effect))
+                continue;
+
+            if (effect.Duration == 0)
+                continue;
+
+            found = true;
+
+            if (effect.EffectGrade > grade)
+                grade = effect.EffectGrade;
+
+            if (effect.Duration < 0)
+            {
+                duration = -1;
+            }
+            else if (duration >= 0 && effect.Duration > duration)
+            {
+                duration = effect.Duration;
+            }
+        }
+
+        if (!found)
+            return false;
+
+        if (grade <= 0)
+            grade = 1;
+
+        return true;
+    }
+
+    // 사용처: 버프/디버프 id와 단계에 맞는 Resources 스프라이트 경로 반환
+    private static string GetBuffDeBuffSpritePath(int id, int grade)
+    {
+        switch (id)
+        {
+            case 0:
+                return $"KIcon/BuffDeBuff/DeBuff_Burn{Mathf.Clamp(grade, 1, 3)}";
+            case 1:
+                return "KIcon/BuffDeBuff/DeBuff_Scar";
+            case 2:
+                return "KIcon/BuffDeBuff/Buff_Smoke";
+            case 3:
+                return "KIcon/BuffDeBuff/DeBuff_Track";
+            case 4:
+                return "KIcon/BuffDeBuff/Buff_Seven";
+            case 8:
+                return "KIcon/BuffDeBuff/DeBuff_Over";
+            default:
+                return string.Empty;
+        }
+    }
+
+    // 사용처: 버프/디버프 아이콘 툴팁 제목을 GameTextDB에서 가져옴
+    private static string GetBuffDeBuffTitle(int id, int grade)
+    {
+        string title = GameTextDB.GetByForeignKey(TextKind.BuffDeBuff, id);
+
+        if (string.IsNullOrEmpty(title))
+            title = GetFallbackBuffDeBuffTitle(id);
+
+        if (id == 0)
+            return $"{title} {Mathf.Clamp(grade, 1, 3)}단계";
+
+        return title;
+    }
+
+    // 사용처: 버프/디버프 아이콘 툴팁 설명을 생성
+    // 현재는 GameTextData.json에 BuffDeBuff 설명 번역이 완전히 준비되지 않았으므로 fallback 설명을 사용함
+    // 추후 JSON에 BuffDeBuff 설명 데이터가 추가되면 GetBuffDeBuffDescriptionFromDB()가 먼저 적용됨
+    private static string GetBuffDeBuffDescription(int id, int grade, int duration)
+    {
+        string title = GameTextDB.GetByForeignKey(TextKind.BuffDeBuff, id);
+        string description = GetBuffDeBuffDescriptionFromDB(id, title);
+
+        if (string.IsNullOrEmpty(description))
+            description = GetFallbackBuffDeBuffDescription(id);
+
+        string durationText = duration < 0 ? "지속" : $"{duration}턴";
+
+        if (id == 0)
+            return $"{description}\n현재 단계: {Mathf.Clamp(grade, 1, 3)} / 남은 시간: {durationText}";
+
+        return $"{description}\n남은 시간: {durationText}";
+    }
+
+    // 사용처: GameTextDB에 BuffDeBuff 설명 데이터가 추가되었을 때 해당 설명을 가져옴
+    // 설명 데이터가 없거나 제목과 같은 값이 반환되면 빈 문자열을 반환해서 fallback 설명을 사용하게 함
+    private static string GetBuffDeBuffDescriptionFromDB(int id, string title)
+    {
+        int titleIdx = GameTextDB.GetIdxByForeignKey(TextKind.BuffDeBuff, id);
+
+        if (titleIdx < 0)
+            return string.Empty;
+
+        string description = GameTextDB.Get(TextKind.BuffDeBuff, titleIdx, id);
+
+        if (string.IsNullOrEmpty(description))
+            return string.Empty;
+
+        if (!string.IsNullOrEmpty(title) && description == title)
+            return string.Empty;
+
+        return description;
+    }
+
+    // 사용처: GameTextDB에 버프/디버프 제목 데이터가 없을 때 임시 제목을 반환
+    private static string GetFallbackBuffDeBuffTitle(int id)
+    {
+        switch (id)
+        {
+            case 0:
+                return "작열";
+            case 1:
+                return "상흔";
+            case 2:
+                return "연막";
+            case 3:
+                return "추적자 표식";
+            case 4:
+                return "제국 시너지";
+            case 8:
+                return "위압";
+            default:
+                return "알 수 없는 효과";
+        }
+    }
+
+    // 사용처: GameTextData.json에 BuffDeBuff 설명 번역이 추가되기 전까지 임시 설명을 제공
+    // 추후 JSON에 설명 데이터가 추가되면 GetBuffDeBuffDescriptionFromDB()가 먼저 값을 반환하므로 이 함수는 예비 처리만 담당
+    private static string GetFallbackBuffDeBuffDescription(int id)
+    {
+        switch (id)
+        {
+            case 0:
+                return "매 턴 최대 체력에 비례한 피해를 받습니다. 최대 3단계까지 중첩됩니다.";
+            case 1:
+                return "치유 효과를 받을 수 없습니다.";
+            case 2:
+                return "회피율이 증가합니다.";
+            case 3:
+                return "추적자에게 피해를 받아 장갑이 감소한 상태입니다.";
+            case 4:
+                return "제국 시너지 효과로 회피율이 증가합니다.";
+            case 8:
+                return "기동력이 크게 낮아진 상태로 취급됩니다.";
+            default:
+                return "효과 정보가 아직 등록되지 않았습니다.";
+        }
+    }
 }
 

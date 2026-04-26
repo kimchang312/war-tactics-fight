@@ -166,9 +166,7 @@ public class EventManager
                 break;
 
             case RequireThing.Special:
-                // Special 조건은 별도 함수로 검사
-                return CheckSpecialRequire(null); // eventData 전달 가능하면 전달
-
+                return CheckSpecialRequire(null);
         }
 
         return false;
@@ -180,6 +178,43 @@ public class EventManager
         return 0;
     }
 
+    private static bool ShouldConsumeSelectedUnits(EventChoiceData choiceData)
+    {
+        if (choiceData == null)
+            return true;
+
+        bool hasBattleResult = false;
+        bool hasChangeSelectResult = false;
+        bool hasUnitSelectResult = false;
+
+        int resultCount = Mathf.Min(choiceData.resultType.Count, choiceData.resultForm.Count);
+        for (int i = 0; i < resultCount; i++)
+        {
+            if (choiceData.resultType[i] == ResultType.Battle)
+                hasBattleResult = true;
+            if (choiceData.resultType[i] == ResultType.Change && choiceData.resultForm[i] == ResultForm.Select)
+                hasChangeSelectResult = true;
+            if (choiceData.resultType[i] == ResultType.Unit && choiceData.resultForm[i] == ResultForm.Select)
+                hasUnitSelectResult = true;
+        }
+
+        if (hasUnitSelectResult)
+            return false;
+
+        if (hasChangeSelectResult && !hasBattleResult)
+            return true;
+
+        switch (choiceData.choiceId)
+        {
+            case 25:   // 유랑하는 상인 - 병사를 보내고 대가를 받음
+            case 75:   // 검은 기사 결투 - 패배 시 사망
+            case 86:   // 한명의 영웅 - 일반 유닛을 영웅으로 변경
+            case 95:   // 금지된 의식 - 성공/실패와 무관하게 선택 유닛 소모
+                return true;
+        }
+
+        return false;
+    }
 
     private static bool CheckSpecialRequire(EventData eventData)
     {
@@ -294,13 +329,12 @@ public class EventManager
                             }
                             else if (value == "-1")
                             {
-                                unit.Energy -= 1;
+                                unit.Energy = Mathf.Max(0, unit.Energy - 1);
                                 requireLog += $"{unit.unitName}이(가) 선택 되었습니다.";
                             }
                             else
                             {
-                                int energy = int.Parse(value);
-                                unit.Energy = energy;
+                                // 양수 값은 선택 조건으로만 사용한다. 여기서 기력을 강제로 변경하지 않는다.
                                 requireLog += $"{unit.unitName}이(가) 선택 되었습니다.";
                             }
                         }
@@ -311,10 +345,8 @@ public class EventManager
                         int energy = int.Parse(value);
                         int unitCount = int.Parse(count);
 
-                        // energy 보다 높은 에너지를 가진 유닛 필터링
                         List<RogueUnitDataBase> filteredUnits = myUnits.FindAll(unit => unit.Energy > energy);
 
-                        // 랜덤 셔플을 위해 리스트 섞기
                         System.Random random = RogueLikeData.Instance.GetRandomBySeed();
                         for (int k = filteredUnits.Count - 1; k > 0; k--)
                         {
@@ -322,14 +354,13 @@ public class EventManager
                             (filteredUnits[k], filteredUnits[j]) = (filteredUnits[j], filteredUnits[k]);
                         }
 
-                        // 최대 unitCount 개수만큼 선택
                         int countToSelect = Mathf.Min(unitCount, filteredUnits.Count);
                         List<RogueUnitDataBase> selectUnits = filteredUnits.GetRange(0, countToSelect);
 
                         foreach (var unit in selectUnits)
                         {
                             unit.Energy = energy;
-                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
+                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.";
                         }
                     }
 
@@ -339,16 +370,16 @@ public class EventManager
                     {
                         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
                         List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
-                        foreach (var unit in myUnits)
+
+                        if (ShouldConsumeSelectedUnits(choiceData))
                         {
-                            Debug.Log(unit.unitName + unit.UniqueId + selectedUnits[0].unitName + selectedUnits[0].UniqueId);
+                            myUnits.RemoveAll(unit => selectedUnits.Any(selectedUnit => selectedUnit.UniqueId == unit.UniqueId));
+                            RogueLikeData.Instance.SetMyTeam(myUnits);
                         }
-                        myUnits.RemoveAll(unit => selectedUnits.Any(selectedUnit => selectedUnit.UniqueId == unit.UniqueId));
-                        Debug.Log(myUnits.Count);
-                        RogueLikeData.Instance.SetMyTeam(myUnits);
+
                         foreach (var unit in selectedUnits)
                         {
-                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
+                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.";
                         }
                     }
                     else if (form == RequireForm.Random)
@@ -383,7 +414,7 @@ public class EventManager
                         foreach (var unit in candidates)
                         {
                             RogueLikeData.Instance.AddSelectedUnits(unit);
-                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
+                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.";
                         }
                     }
                     else if (form == RequireForm.Special)
@@ -413,7 +444,7 @@ public class EventManager
                         foreach (var unit in candidates)
                         {
                             RogueLikeData.Instance.AddSelectedUnits(unit);
-                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.\n";
+                            requireLog += $"{unit.unitName}이(가) 선택되었습니다.";
                         }
                     }
 
@@ -438,13 +469,13 @@ public class EventManager
                     if (choiceData.choiceId == 27)
                     {
                         RogueLikeData.Instance.EarnGold(-RogueLikeData.Instance.GetCurrentGold());
-                        requireLog = "모든 금화를 잃었습니다.\n";
+                        requireLog = "모든 금화를 잃었습니다.";
                     }
                     else if (form == RequireForm.None)
                     {
                         int goldCount = int.Parse(count);
                         RogueLikeData.Instance.ReduceGold(goldCount);
-                        requireLog += $"{goldCount}금화를 지불하였습니다.\n";
+                        requireLog += $"{goldCount}금화를 지불하였습니다.";
                     }
                     break;
                 case RequireThing.Morale:
@@ -457,7 +488,7 @@ public class EventManager
                         }
                         int moraleCount = (int)(int.Parse(count) * reduceMorale);
                         moraleCount = RogueLikeData.Instance.ChangeMorale(-moraleCount);
-                        requireLog += $"사기가 {-moraleCount}만큼 감소했습니다.\n";
+                        requireLog += $"사기가 {-moraleCount}만큼 감소했습니다.";
                     }
                     break;
             }
@@ -482,16 +513,7 @@ public class EventManager
             rarity1Rate += (int)vals[0];
         }
 
-        // 병렬 리스트 중 가장 짧은 것에 맞춰 순회 (데이터 불일치로 인한 IndexOutOfRange 방어)
-        int resultIterCount = choiceData.resultType?.Count ?? 0;
-        resultIterCount = Math.Min(resultIterCount, choiceData.resultForm?.Count ?? 0);
-        resultIterCount = Math.Min(resultIterCount, choiceData.resultValue?.Count ?? 0);
-        resultIterCount = Math.Min(resultIterCount, choiceData.resultCount?.Count ?? 0);
-
-        if (resultIterCount < (choiceData.resultType?.Count ?? 0))
-            Debug.LogWarning($"[EventManager] ApplyChoiceResult: choiceId={choiceData.choiceId}의 result 병렬 리스트 길이가 불일치합니다. (resultType={choiceData.resultType?.Count}, resultCount={choiceData.resultCount?.Count}) 잘라서 처리합니다.");
-
-        for (int i = 0; i < resultIterCount; i++)
+        for (int i = 0; i < choiceData.resultType.Count; i++)
         {
             ResultType type = choiceData.resultType[i];
             ResultForm form = choiceData.resultForm[i];
@@ -595,7 +617,6 @@ public class EventManager
                             }
                             else if (choiceData.choiceId == 73)
                             {
-                                if (selectedUnits == null || selectedUnits.Count == 0) { Debug.LogWarning("[EventManager] choiceId=73: selectedUnits 비어있음."); break; }
                                 if (IsUnitVictory(selectedUnits[0]))
                                 {
                                     var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
@@ -613,7 +634,6 @@ public class EventManager
                             }
                             else if (choiceData.choiceId == 75)
                             {
-                                if (selectedUnits == null || selectedUnits.Count == 0) { Debug.LogWarning("[EventManager] choiceId=75: selectedUnits 비어있음."); break; }
                                 if (IsUnitVictoryByRarity(selectedUnits[0]))
                                 {
                                     RogueLikeData.Instance.AddMyTeam(selectedUnits[0]);
@@ -732,11 +752,6 @@ public class EventManager
                         }
                         else if (form == ResultForm.Select)
                         {
-                            if (selectedUnits == null || selectedUnits.Count == 0)
-                            {
-                                Debug.LogWarning($"[EventManager] choiceId={choiceData.choiceId}: ResultType.Unit/Select 처리 시 selectedUnits가 비어있습니다. 건너뜁니다.");
-                                break;
-                            }
                             var origin = selectedUnits[0];
                             RogueUnitDataBase clone = UnitLoader.Instance.GetCloneUnitById(origin.idx);
                             clone.SetEnergyDirect(origin.Energy);
@@ -747,11 +762,6 @@ public class EventManager
                         }
                         else if (form == ResultForm.Special)
                         {
-                            if (selectedUnits == null || selectedUnits.Count == 0)
-                            {
-                                Debug.LogWarning($"[EventManager] choiceId={choiceData.choiceId}: ResultType.Unit/Special 처리 시 selectedUnits가 비어있습니다. 건너뜁니다.");
-                                break;
-                            }
                             var origin = selectedUnits[0];
                             float chance = origin.rarity switch { 1 => 0.3f, 2 => 0.6f, 3 => 1.0f, _ => 0f };
                             if (RogueLikeData.Instance.GetRandomFloat() < chance)
@@ -886,7 +896,6 @@ public class EventManager
                         }
                         else if (choiceData.choiceId == 25)
                         {
-                            if (selectedUnits == null || selectedUnits.Count == 0) { Debug.LogWarning("[EventManager] choiceId=25: selectedUnits 비어있음."); break; }
                             var unit = selectedUnits[0];
                             int rarity = unit.rarity;
                             int getGold = (rarity == 1) ? RogueLikeData.Instance.AddGoldByEventChapter(50)

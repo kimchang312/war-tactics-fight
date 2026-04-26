@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
+using static AutoBattleManager;
 
 
 public class AutoBattleManager : MonoBehaviour
@@ -765,7 +766,7 @@ public class AutoBattleManager : MonoBehaviour
     private void UpdateUnitHp()
     {
         var data = BuildHpViewData();
-        autoBattleUI.ApplyHp(data);           // UI는 스냅샷만 받아서 그림
+        autoBattleUI.ApplyHp(data, myUnits, enemyUnits);
     }
 
     // 도메인 규칙(예: 2번 유닛은 체력 0 이하면 숨김)을 적용한 뷰 스냅샷 생성

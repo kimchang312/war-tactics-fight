@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -339,11 +340,12 @@ public class TestModeUI : MonoBehaviour
             rectTransform.SetParent(parent.transform, false); // Canvas의 자식으로 설정
 
             // unitId가 12보다 크면 -1로 설정
-            int unitId = unitIds[i] > 12 ? -1 : unitIds[i];
+            int unitId = unitIds[i] > 58 ? -1 : unitIds[i];
 
             // 이미지 설정
-            Sprite sprite = Resources.Load<Sprite>($"UnitImages/Unit_Img_{unitId}");
+            Sprite sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unitId}");
             Image imageComponent = unit.GetComponent<Image>();
+
             if (imageComponent != null)
             {
                 imageComponent.sprite = sprite;

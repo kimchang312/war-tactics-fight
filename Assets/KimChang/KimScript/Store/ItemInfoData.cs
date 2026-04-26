@@ -19,7 +19,15 @@ public class ItemInfoData
     public bool isUpgrade = false;
     public int upgradeId = -1;
     public int gameTextId = -1;
+
+    public bool isBuffDeBuff = false;
+    public int buffDeBuffId = -1;
+    public int buffDeBuffGrade = 0;
+    public int buffDeBuffDuration = 0;
+    public string buffDeBuffName = "";
+    public string buffDeBuffDescription = "";
 }
+
 public enum RewardType
 {
     None,
