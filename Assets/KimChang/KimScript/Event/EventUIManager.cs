@@ -38,8 +38,8 @@ public class EventUIManager : MonoBehaviour
         // 이벤트 이미지 캐싱 로드
         eventImage.sprite = SpriteCacheManager.GetSprite($"EventImages/Event{eventData.eventId}");
 
-        eventNameText.text = eventData.eventName;
-        eventDescriptionText.text = eventData.description;
+        eventNameText.text = GetEventTitle(eventData);
+        eventDescriptionText.text = GetEventDescription(eventData);
 
         for (int i = 0; i < choiceBtns.childCount; i++)
         {
@@ -67,7 +67,9 @@ public class EventUIManager : MonoBehaviour
                 }
 
                 // 버튼 텍스트 = choiceText + resultPart
-                child.GetComponentInChildren<TextMeshProUGUI>().text = choiceData.choiceText + resultPart;
+                string choiceText = GetChoiceText(choiceData);
+                resultPart = BuildChoiceResultText(choiceData);
+                child.GetComponentInChildren<TextMeshProUGUI>().text = choiceText + resultPart;
 
                 Button btn = child.GetComponent<Button>();
                 btn.onClick.RemoveAllListeners();
@@ -211,4 +213,64 @@ public class EventUIManager : MonoBehaviour
     {
         GameManager.Instance.UpdateAllUI();
     }
+
+    // 사용처: GameTextDB에 텍스트가 있으면 우선 사용하고, 없으면 JSON 원문을 사용
+    private static string GetTextOrFallback(TextKind kind, int titleKey, int foreignKey, string fallback)
+    {
+        string text = GameTextDB.Get(kind, titleKey, foreignKey);
+        return string.IsNullOrEmpty(text) ? fallback : text;
+    }
+
+    // 사용처: 이벤트 제목을 현재 언어 기준으로 가져옴
+    private static string GetEventTitle(EventData eventData)
+    {
+        return GetTextOrFallback(TextKind.EventTitle, -1, eventData.eventId, eventData.eventName);
+    }
+
+    // 사용처: 이벤트 설명을 현재 언어 기준으로 가져옴
+    private static string GetEventDescription(EventData eventData)
+    {
+        return GetTextOrFallback(TextKind.EventDesc, -1, eventData.eventId, eventData.description);
+    }
+
+    // 사용처: 선택지 버튼의 기본 문장을 현재 언어 기준으로 가져옴
+    private static string GetChoiceText(EventChoiceData choiceData)
+    {
+        return GetTextOrFallback(TextKind.EventDesc, 100, choiceData.choiceId, choiceData.choiceText);
+    }
+
+    // 사용처: 선택지 버튼에 성공/실패 결과 요약을 붙임
+    private static string BuildChoiceResultText(EventChoiceData choiceData)
+    {
+        string positive = GameTextDB.Get(TextKind.EventDesc, 110, choiceData.choiceId);
+        string negative = GameTextDB.Get(TextKind.EventDesc, 111, choiceData.choiceId);
+
+        if (string.IsNullOrEmpty(positive) && choiceData.choiceResultText != null && choiceData.choiceResultText.Count > 0)
+            positive = choiceData.choiceResultText[0];
+
+        if (string.IsNullOrEmpty(negative) && choiceData.choiceResultText != null && choiceData.choiceResultText.Count > 1)
+            negative = choiceData.choiceResultText[1];
+
+        if (string.IsNullOrEmpty(positive) && string.IsNullOrEmpty(negative))
+        {
+            string resultDescription = GameTextDB.Get(TextKind.EventDesc, 120, choiceData.choiceId);
+            if (string.IsNullOrEmpty(resultDescription))
+                resultDescription = choiceData.resultDescription;
+
+            return string.IsNullOrEmpty(resultDescription)
+                ? string.Empty
+                : $" <color=green>{resultDescription}</color>";
+        }
+
+        if (!string.IsNullOrEmpty(positive) && !string.IsNullOrEmpty(negative))
+            return $" <color=green>{positive}</color> <color=red>{negative}</color>";
+
+        if (!string.IsNullOrEmpty(positive))
+            return $" <color=green>{positive}</color>";
+
+        return $" <color=red>{negative}</color>";
+    }
+
+
+
 }

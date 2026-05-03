@@ -47,10 +47,18 @@ public static class AbilityIdMap
         { "challenge", 167 },
         { "smokescreen", 168 },
         { "bluntWeapon", 108 },
+
         { "throwSpear", 125 },
+        { "javelinThrow", 125 },
+
         { "guerrilla", 126 },
+        { "skirmish", 126 },
+
         { "martyr", 162 },
-        { "firststrike", 166 }
+        { "martyrdom", 162 },
+
+        { "firststrike", 166 },
+        { "firstStrike", 166 },
     };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

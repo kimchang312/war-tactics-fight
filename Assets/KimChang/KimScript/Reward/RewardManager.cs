@@ -146,6 +146,13 @@ public static class RewardManager
                         relic.SetValues(updated);
                     }
                 }
+
+                // 사용처: 엘리트 전투 승리 시 순금 나팔(50)의 보유 금화 증가 효과를 즉시 적용
+                int goldenHornGold = WarRelicDatabase.ApplyGoldenHornEliteGoldReward();
+                if (goldenHornGold > 0)
+                {
+                    Debug.Log($"[RewardManager] 순금 나팔(50) 효과로 금화 {goldenHornGold} 획득");
+                }
             }
 
             if (RelicManager.CheckRelicById(122))
