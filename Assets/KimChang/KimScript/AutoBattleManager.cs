@@ -477,6 +477,8 @@ public class AutoBattleManager : MonoBehaviour
     //충돌 페이즈 관리
     private async Task<bool> HandleCrash()
     {
+        PlaySE("se_Crash");
+
         // 충돌 전 이펙트 재생 (타임아웃 5초)
         await PlayPhaseEffect("Crash");
 
@@ -568,6 +570,8 @@ public class AutoBattleManager : MonoBehaviour
         bool isTargetMyUnit = false,
         bool isCasterMyUnit = true)
     {
+        PlaySE(GetSEKeyByAbilityName(abilityName));
+
         if (effectManager == null)
         {
             Debug.LogWarning($"[AutoBattleManager] PlayAbilityEffect({abilityName}): effectManager가 null입니다.");
@@ -601,6 +605,98 @@ public class AutoBattleManager : MonoBehaviour
         {
             Debug.LogWarning($"[AutoBattleManager] 이펙트를 찾을 수 없습니다: Resources/{path}");
         }
+    }
+
+    // 사용처: 능력 이펙트 이름에 대응되는 전투 효과음 키를 반환
+    private string GetSEKeyByAbilityName(string abilityName)
+    {
+        switch (abilityName)
+        {
+            case "F05_Storm":
+                return "se_Storm";
+
+            case "S01_Charge":
+            case "S01_Charge_strongCharge":
+                return "se_Charge";
+
+            case "S02_Defense":
+                return "se_Defense";
+
+            case "S03_Guard":
+                return "se_Guard";
+
+            case "S04_Guerrilla":
+                return "se_Guerrilla";
+
+            case "S06_Assassination":
+                return "se_Assassination";
+
+            case "S07_Drain":
+                return "se_Drain";
+
+            case "S08_Overwhelm":
+                return "se_Overwhelm";
+
+            case "S09_Martyrdom":
+                return "se_Martyrdom";
+
+            case "S10_Wounding":
+                return "se_Wounding";
+
+            case "S11_Vengeance":
+                return "se_Vengeance";
+
+            case "S12_Counter":
+                return "se_Counter";
+
+            case "S13_FirstStrike":
+                return "se_FirstStrike";
+
+            case "S14_Challenge":
+                return "se_Challenge";
+
+            case "S15_SmokeScreen":
+                return "se_Smoke";
+
+            case "T05_Pierce":
+                return "se_Pierce";
+
+            case "T09_Slaughter":
+                return "se_Slaughter";
+
+            case "T12_Suppression":
+                return "se_Suppression";
+
+            case "T13_Plunder":
+                return "se_Plunder";
+
+            case "T15_Scorching":
+                return "se_Scorching";
+
+            case "T16_Thorns":
+                return "se_Thorns";
+
+            case "T18_Impact":
+                return "se_Impact";
+
+            case "T19_Healing":
+                return "se_Healing";
+
+            case "T20_LifeDrain":
+                return "se_LifeDrain";
+
+            default:
+                return null;
+        }
+    }
+
+    // 사용처: 효과음 매니저가 존재할 때만 지정 key의 효과음을 재생
+    private void PlaySE(string seKey)
+    {
+        if (string.IsNullOrWhiteSpace(seKey))
+            return;
+
+        BGMManager.Instance?.PlaySE(seKey);
     }
 
     /// <summary>
@@ -649,10 +745,10 @@ public class AutoBattleManager : MonoBehaviour
             return false;
         }
 
-            // 모든 이펙트 취소 (전투 종료)
-            CancelAllEffects();
+        // 모든 이펙트 취소 (전투 종료)
+        CancelAllEffects();
 
-            RelicManager.ResetBattleOnceRelic();
+        RelicManager.ResetBattleOnceRelic();
         currentState = BattleState.End;
 
         RelicManager.ResetBattleOnceRelic();
@@ -673,14 +769,19 @@ public class AutoBattleManager : MonoBehaviour
 
         if (gameResult == 1)
         {
+            PlaySE("se_Defeat");
             autoBattleUI.GameEnd(false);
             return true;
         }
         else if (gameResult == 2)
         {
+            PlaySE("se_Victory");
             autoBattleUI.GameEnd(true);
             return true;
         }
+
+        PlaySE(result == 0 ? "se_Win" : "se_Lose");
+
         UpdateUnitCount();
         UpdateUnitHp();
 

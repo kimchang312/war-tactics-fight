@@ -35,6 +35,15 @@ public class AbilityManager
     Dictionary<int, List<RogueUnitDataBase>> myHeroUnits = new();
     Dictionary<int, List<RogueUnitDataBase>> enemyHeroUnits = new();
 
+    // 사용처: 전투 계산 중 판정형 효과음이 필요할 때 BGMManager를 통해 재생
+    private void PlaySE(string seKey)
+    {
+        if (string.IsNullOrWhiteSpace(seKey))
+            return;
+
+        BGMManager.Instance?.PlaySE(seKey);
+    }
+
     public void ProcessCommenderEffect()
     {
         int presetId = RogueLikeData.Instance.GetPresetID();
@@ -287,6 +296,9 @@ public class AbilityManager
         CalculateSevenUnion(units);
 
         //결속
+        if (HasActiveBindingForce(units))
+            PlaySE("se_BindingForce");
+
         CalculataeSolidarity(units, isTeam);
 
         foreach (RogueUnitDataBase unit in units)
@@ -294,6 +306,26 @@ public class AbilityManager
             unit.ApplyModifiers();
         }
     }
+    // 사용처: 결속 효과음 재생 여부를 빠르게 판단
+    private bool HasActiveBindingForce(List<RogueUnitDataBase> units)
+    {
+        if (units == null)
+            return false;
+
+        for (int i = 0; i < units.Count; i++)
+        {
+            RogueUnitDataBase unit = units[i];
+
+            if (unit == null)
+                continue;
+
+            if (unit.bindingForce && unit.tagIdx != 0)
+                return true;
+        }
+
+        return false;
+    }
+
     //전투당 한번(선재 타격 등)
     public bool ProcessStartBattle(List<RogueUnitDataBase> attackers, List<RogueUnitDataBase> defenders, bool isTeam)
     {
@@ -987,7 +1019,7 @@ public class AbilityManager
         target = defenders[unitIndex];
 
         damage = MathF.Round(damage);
-        
+
         if (autoBattleManager != null)
         {
             autoBattleManager.PlayAbilityEffect("S06_Assassination", unitIndex, 0, !isTeam, isTeam);
@@ -1249,6 +1281,8 @@ public class AbilityManager
         bool isDodge = dogeRate >= RogueLikeData.Instance.GetRandomInt(0, 101);
         if (isDodge)
         {
+            PlaySE("se_Dodge");
+
             //방어자가 회피 성공시 암살단장의 효과 발동 isTeam==true라는건 attacker가 내 유닛이라는것 defender는 이때 enemy가 됨
             if (isTeam && enemyHeroUnits.TryGetValue(58, out List<RogueUnitDataBase> heroList))
             {
@@ -1505,7 +1539,10 @@ public class AbilityManager
         for (int i = 0; i < targetIndex; i++)
         {
             if (defenders[i].health > 0 && defenders[i].guard)
+            {
+                PlaySE("se_Guard");
                 return defenders[i];
+            }
         }
 
         return defenders[targetIndex];
@@ -2218,7 +2255,10 @@ public class AbilityManager
         for (int i = 0; i < targetIndex; i++)
         {
             if (defenders[i].health > 0 && defenders[i].guard)
+            {
+                PlaySE("se_Guard");
                 return defenders[i];
+            }
         }
 
         return defenders[targetIndex];

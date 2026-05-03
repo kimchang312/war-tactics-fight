@@ -38,8 +38,12 @@ public class RelicManager
             int id = kv.Key;
             var r = kv.Value;
 
+            if (r.type != null && r.type.Any(t => t == "Delete"))
+                continue;
+
             if (!_idsByGrade.TryGetValue(r.grade, out var list))
                 _idsByGrade[r.grade] = list = new List<int>(16);
+
             list.Add(id);
 
             if (r.value != null && r.value.Length > 0)
@@ -463,6 +467,11 @@ public class RelicManager
             foreach (var kv in _catalogById)
             {
                 int id = kv.Key;
+                var rec = kv.Value;
+
+                if (rec.type != null && rec.type.Any(t => t == "Delete"))
+                    continue;
+
                 bool isOwned = ownedMap != null && ownedMap.ContainsKey(id);
                 if ((action == RelicAction.Acquire && !isOwned) ||
                     (action == RelicAction.Remove && isOwned))

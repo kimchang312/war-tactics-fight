@@ -12,13 +12,25 @@ public enum TextKind
     Tag = 3,
     UnitRarity = 4,
     RelicRarity = 5,
+
     RelicName = 10,
+
     EventTitle = 20,
     EventDesc = 21,
+
     ItemName = 30,
     ItemDesc = 31,
-    Tutorial = 40,
+
+    System = 40,
+    Tutorial = 41,
+
     Ability = 50,
+    Branch = 51,
+    Stat = 52,
+
+    BattlefieldEffect = 55,
+    Commander = 56,
+
     BuffDeBuff = 60,
 }
 
@@ -123,6 +135,16 @@ public static class GameTextDB
 
         { "Tutorial", TextKind.Tutorial },
         { "Ability", TextKind.Ability },
+        { "BuffDeBuff", TextKind.BuffDeBuff },
+        { "System", TextKind.System },
+        { "Tutorial", TextKind.Tutorial },
+
+        { "Ability", TextKind.Ability },
+        { "Branch", TextKind.Branch },
+        { "Stat", TextKind.Stat },
+
+        { "BattlefieldEffect", TextKind.BattlefieldEffect },
+        { "Commander", TextKind.Commander },
         { "BuffDeBuff", TextKind.BuffDeBuff },
     };
 
