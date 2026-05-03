@@ -189,10 +189,14 @@ public class EffectManager : MonoBehaviour
     /// </summary>
     private void ReturnPlayer(EffectCDPlayer player)
     {
-        if (player == null) return;
+        if (player == null)
+            return;
 
-        activePlayers.Remove(player);
-        player.gameObject.SetActive(false);
+        if (!activePlayers.Remove(player))
+            return;
+
+        if (player.gameObject.activeSelf)
+            player.gameObject.SetActive(false);
     }
 
     /// <summary>
@@ -279,6 +283,7 @@ public class EffectManager : MonoBehaviour
     /// <summary>
     /// 이펙트 재생 실행
     /// </summary>
+    // 사용처: 이펙트 요청 1개를 재생하고 완료 후 플레이어를 풀로 반환
     private async Task PlayEffectAsync(EffectRequest request)
     {
         if (request.effectCD == null)
@@ -288,34 +293,44 @@ public class EffectManager : MonoBehaviour
             return;
         }
 
-        // 풀에서 플레이어 가져오기
-        EffectCDPlayer player = GetAvailablePlayer();
-        Debug.Log($"[EffectManager] PlayEffectAsync: player={player.gameObject.name} | active={player.gameObject.activeSelf} | parent={player.transform.parent?.name ?? "null"}");
+        EffectCDPlayer player = null;
+        bool completed = false;
 
-        // 자동 flipX 결정
-        bool autoFlipX = DetermineFlipX(request);
-        player.flipX = autoFlipX;
+        try
+        {
+            player = GetAvailablePlayer();
 
-        // 이펙트 재생 (타임아웃 5초)
-        bool completed = await player.PlayWithTimeout(
-            request.effectCD,
-            timeoutSeconds: 5f,
-            targetTransform: request.targetTransform,
-            casterTransform: request.casterTransform,
-            onComplete: () =>
-            {
-                // 재생 완료 후 풀로 반환
-                ReturnPlayer(player);
-                request.onComplete?.Invoke();
-            }
-        );
+            Debug.Log($"[EffectManager] PlayEffectAsync: player={player.gameObject.name} | active={player.gameObject.activeSelf} | parent={player.transform.parent?.name ?? "null"}");
+
+            bool autoFlipX = DetermineFlipX(request);
+            player.flipX = autoFlipX;
+
+            completed = await player.PlayWithTimeout(
+                request.effectCD,
+                timeoutSeconds: 5f,
+                targetTransform: request.targetTransform,
+                casterTransform: request.casterTransform,
+                onComplete: null
+            );
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogException(ex);
+        }
+        finally
+        {
+            ReturnPlayer(player);
+        }
 
         if (!completed)
         {
-            Debug.LogWarning($"[EffectManager] 이펙트 '{request.effectCD.name}' 타임아웃.");
-            ReturnPlayer(player);
+            Debug.LogWarning($"[EffectManager] 이펙트 '{request.effectCD.name}' 타임아웃 또는 중단.");
+            return;
         }
+
+        request.onComplete?.Invoke();
     }
+
 
     /// <summary>
     /// 진영에 따른 자동 flipX 결정

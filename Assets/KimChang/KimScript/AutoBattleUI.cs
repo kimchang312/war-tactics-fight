@@ -63,6 +63,40 @@ public class AutoBattleUI : MonoBehaviour
     // 사용처: 뜬 뒤 추가로 위로 올라가는 거리(기존 80f)
     [SerializeField] private float damageTextRise = 80f;
 
+    // 사용처: 원거리/투창 투사체 이미지 Resources 경로
+    private const string ThrowSpearProjectilePath = "BattleAnimation/ThrowSpear";
+    private const string RangedProjectilePath = "BattleAnimation/RanageAttack";
+
+    // 사용처: 투창/원거리 투사체 크기 조절
+    [SerializeField] private Vector2 throwSpearProjectileSize = new Vector2(150f, 150f);
+    [SerializeField] private Vector2 rangedProjectileSize = new Vector2(110f, 110f);
+
+    // 사용처: 투사체가 유닛 중심이 아니라 몸통 위쪽에서 출발/도착하도록 보정
+    [SerializeField] private float projectileStartYOffset = 60f;
+    [SerializeField] private float projectileTargetYOffset = 70f;
+
+    // 사용처: 곡선 비행 높이 조절
+    [SerializeField] private float projectileArcMinHeight = 120f;
+    [SerializeField] private float projectileArcRate = 0.22f;
+
+    // 사용처: 여러 화살이 동시에 날아갈 때 겹치지 않도록 벌리는 간격
+    [SerializeField] private float projectileSpread = 18f;
+
+    // 사용처: 원거리 유닛이 많을 때 화면/성능 부담을 줄이기 위한 최대 화살 수
+    [SerializeField] private int maxRangedProjectileCount = 8;
+
+    // 사용처: 여러 화살 발사 시 미세한 시간차
+    [SerializeField] private float rangedProjectileStaggerSec = 0.035f;
+
+    // 사용처: 현재 투사체 스프라이트가 기본적으로 우상단 45도 방향을 바라보는 기준 각도
+    [SerializeField] private float projectileSpriteForwardAngle = 45f;
+
+    // 사용처: 현재 화면에 표시 중인 원거리 공격 유닛 수 캐싱
+    private int myRangeAttackCount;
+    private int enemyRangeAttackCount;
+
+
+
     // 사용처: 좌표 변환(월드 -> 캔버스 로컬) 캐싱
     private RectTransform canvasRt;
     private Canvas rootCanvas;
@@ -293,16 +327,38 @@ public class AutoBattleUI : MonoBehaviour
         enemyHpBar.maxValue = enemyMaxHp;
         enemyHpBar.value = enemyUnitHP;
     }
+    //데미지 텍스트 표기 함수
     public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
     {
         // 사용처: 데미지 표시 색상/문구 판정. 표기는 절댓값, 색은 부호로.
         float offsetX = 50f;
         float damage = -_damage;
 
-        BattleAnimation(damage, text, team, isAttack);
+        bool isRangedProjectile = ContainsBattleText(text, "원거리");
+        bool isThrowSpearProjectile = ContainsBattleText(text, "투창");
 
-        // team은 "피격 팀"으로 온다. 그대로 그 팀의 유닛을 찾는다.
+        // 원거리/투창은 유닛 돌진 애니메이션을 사용하지 않고 투사체만 사용
+        if (!isRangedProjectile && !isThrowSpearProjectile)
+        {
+            BattleAnimation(damage, text, team, isAttack);
+        }
+
+        // team은 피격 팀이다. 그대로 그 팀의 유닛을 찾는다.
         Vector2 pos = GetDamageAnchor(unitIndex, team, offsetX);
+
+        if (isRangedProjectile || isThrowSpearProjectile)
+        {
+            StartCoroutine(PlayProjectileAndShowDamage(
+                damage,
+                text,
+                team,
+                unitIndex,
+                pos,
+                isRangedProjectile,
+                isThrowSpearProjectile));
+
+            return;
+        }
 
         if (isAttack)
             StartCoroutine(DelayedDamageDisplay(damage, text, pos));
@@ -389,6 +445,294 @@ public class AutoBattleUI : MonoBehaviour
 
                 objectPool.ReturnDamageText(go);
             });
+    }
+
+    // 사용처: ShowDamage에서 특정 전투 텍스트가 포함되었는지 빠르게 판정
+    private static bool ContainsBattleText(string text, string keyword)
+    {
+        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(keyword))
+            return false;
+
+        return text.IndexOf(keyword, StringComparison.Ordinal) >= 0;
+    }
+
+    // 사용처: 원거리/투창 투사체 연출 후 데미지 텍스트 표시
+    private IEnumerator PlayProjectileAndShowDamage(
+        float damage,
+        string text,
+        bool hitTeam,
+        int targetUnitIndex,
+        Vector2 damageTextPos,
+        bool isRangedProjectile,
+        bool isThrowSpearProjectile)
+    {
+        if (objectPool == null || canvasTransform == null)
+        {
+            ShowDamageInternalWithPosition(damage, text, damageTextPos);
+            yield break;
+        }
+
+        if (isThrowSpearProjectile)
+            BGMManager.Instance?.PlaySE("se_ThrowSpear");
+        else if (isRangedProjectile)
+            BGMManager.Instance?.PlaySE("se_RangeAttack");
+
+        bool attackerIsMyUnit = !hitTeam;
+
+        Sprite projectileSprite = SpriteCacheManager.GetSprite(
+            isThrowSpearProjectile ? ThrowSpearProjectilePath : RangedProjectilePath);
+
+        if (projectileSprite == null)
+        {
+            ShowDamageInternalWithPosition(damage, text, damageTextPos);
+            yield break;
+        }
+
+        int projectileCount = isRangedProjectile ? GetRangedProjectileCount(attackerIsMyUnit) : 1;
+        Vector2 projectileSize = isThrowSpearProjectile ? throwSpearProjectileSize : rangedProjectileSize;
+
+        Vector2 startPos = GetProjectileStartLocal(attackerIsMyUnit, isRangedProjectile);
+        Vector2 endPos = GetProjectileTargetLocal(hitTeam, targetUnitIndex);
+
+        float duration = GetProjectileDuration(isThrowSpearProjectile);
+        float delayStep = isRangedProjectile ? Mathf.Min(rangedProjectileStaggerSec, duration * 0.2f) : 0f;
+
+        for (int i = 0; i < projectileCount; i++)
+        {
+            StartCoroutine(PlayOneProjectile(
+                projectileSprite,
+                projectileSize,
+                startPos,
+                endPos,
+                i,
+                projectileCount,
+                delayStep * i,
+                duration));
+        }
+
+        yield return new WaitForSeconds(duration + delayStep * Mathf.Max(0, projectileCount - 1));
+
+        ShowDamageInternalWithPosition(damage, text, damageTextPos);
+    }
+
+    // 사용처: 현재 원거리 공격 UI 카운트를 기준으로 동시에 날릴 화살 수 계산
+    private int GetRangedProjectileCount(bool attackerIsMyUnit)
+    {
+        int count = attackerIsMyUnit ? myRangeAttackCount : enemyRangeAttackCount;
+
+        if (count <= 0)
+            count = 1;
+
+        return Mathf.Clamp(count, 1, Mathf.Max(1, maxRangedProjectileCount));
+    }
+
+    // 사용처: 배속에 맞춰 투사체 비행 시간 계산
+    private float GetProjectileDuration(bool isThrowSpearProjectile)
+    {
+        float rate = isThrowSpearProjectile ? 0.0009f : 0.00075f;
+        return Mathf.Clamp(waittingTime * rate, 0.15f, 1.2f);
+    }
+
+    // 사용처: 원거리 공격은 원거리 아이콘에서, 투창은 전열 유닛에서 출발
+    private Vector2 GetProjectileStartLocal(bool attackerIsMyUnit, bool useRangeIcon)
+    {
+        GameObject startObj = null;
+
+        if (useRangeIcon)
+            startObj = FindRangeUnit(attackerIsMyUnit);
+
+        if (startObj == null)
+            startObj = FindUnit(0, attackerIsMyUnit);
+
+        if (TryGetCanvasLocalPosition(startObj, out Vector2 localPos))
+        {
+            localPos.y += projectileStartYOffset;
+            return localPos;
+        }
+
+        if (useRangeIcon)
+            return new Vector2(attackerIsMyUnit ? -830f : 830f, -220f + projectileStartYOffset);
+
+        return new Vector2(attackerIsMyUnit ? -290f : 290f, 60f + projectileStartYOffset);
+    }
+
+    // 사용처: 피격 대상 유닛의 캔버스 로컬 좌표 계산
+    private Vector2 GetProjectileTargetLocal(bool hitTeam, int targetUnitIndex)
+    {
+        GameObject targetObj = FindUnit(targetUnitIndex, hitTeam);
+
+        if (targetObj == null && targetUnitIndex != 0)
+            targetObj = FindUnit(0, hitTeam);
+
+        if (TryGetCanvasLocalPosition(targetObj, out Vector2 localPos))
+        {
+            localPos.y += projectileTargetYOffset;
+            return localPos;
+        }
+
+        return new Vector2(hitTeam ? -290f : 290f, 60f + projectileTargetYOffset);
+    }
+
+    // 사용처: 화면에 표시된 원거리 유닛 묶음 아이콘 검색
+    private GameObject FindRangeUnit(bool isMyUnit)
+    {
+        if (canvasTransform == null)
+            return null;
+
+        string unitName = $"{(isMyUnit ? "My" : "Enemy")}RangeUnit";
+
+        foreach (Transform child in canvasTransform)
+        {
+            if (child.name == unitName && child.gameObject.activeSelf)
+                return child.gameObject;
+        }
+
+        return null;
+    }
+
+    // 사용처: 어떤 부모 아래에 있는 UI든 캔버스 로컬 좌표로 변환
+    private bool TryGetCanvasLocalPosition(GameObject go, out Vector2 localPos)
+    {
+        localPos = Vector2.zero;
+
+        if (go == null)
+            return false;
+
+        EnsureDamageAnchorCache();
+
+        if (canvasRt == null)
+            return false;
+
+        RectTransform rt = go.GetComponent<RectTransform>();
+        if (rt == null)
+            return false;
+
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(uiCam, rt.position);
+        return RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRt, screenPoint, uiCam, out localPos);
+    }
+
+    // 사용처: WeaponImage 하나를 곡선 경로로 이동시키고 완료 후 풀에 반환
+    private IEnumerator PlayOneProjectile(
+        Sprite sprite,
+        Vector2 size,
+        Vector2 start,
+        Vector2 end,
+        int projectileIndex,
+        int projectileCount,
+        float delay,
+        float duration)
+    {
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+
+        GameObject go = objectPool.GetWeaponImage();
+        if (go == null)
+            yield break;
+
+        go.SetActive(true);
+
+        RectTransform rt = go.GetComponent<RectTransform>();
+        Image img = go.GetComponent<Image>();
+
+        if (rt == null || img == null)
+        {
+            objectPool.ReturnWeaponImage(go);
+            yield break;
+        }
+
+        DOTween.Kill(go, false);
+        rt.DOKill(false);
+
+        rt.SetParent(canvasTransform, false);
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.localScale = Vector3.one;
+
+        rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+        rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+
+        img.sprite = sprite;
+        img.enabled = true;
+        img.preserveAspect = true;
+
+        Color c = img.color;
+        img.color = new Color(c.r, c.g, c.b, 1f);
+
+        Vector2 dir = end - start;
+        if (dir.sqrMagnitude < 0.001f)
+            dir = Vector2.right;
+        else
+            dir.Normalize();
+
+        Vector2 perpendicular = new Vector2(-dir.y, dir.x);
+        float spreadOffset = (projectileIndex - (projectileCount - 1) * 0.5f) * projectileSpread;
+
+        Vector2 spreadStart = start + perpendicular * spreadOffset;
+        Vector2 spreadEnd = end + perpendicular * spreadOffset * 0.25f;
+
+        float arcHeight = GetProjectileArcHeight(spreadStart, spreadEnd);
+        Vector2 control = (spreadStart + spreadEnd) * 0.5f + Vector2.up * arcHeight;
+
+        float t = 0f;
+        bool returned = false;
+
+        UpdateProjectileTransform(rt, spreadStart, control, spreadEnd, 0f);
+
+        Tween tween = DOTween.To(
+                () => t,
+                value =>
+                {
+                    t = value;
+                    UpdateProjectileTransform(rt, spreadStart, control, spreadEnd, t);
+                },
+                1f,
+                duration)
+            .SetEase(Ease.Linear)
+            .SetTarget(go)
+            .OnComplete(() =>
+            {
+                returned = true;
+                objectPool.ReturnWeaponImage(go);
+            });
+
+        yield return tween.WaitForCompletion();
+
+        if (!returned && go != null)
+            objectPool.ReturnWeaponImage(go);
+    }
+
+    // 사용처: 투사체 곡선 높이 계산
+    private float GetProjectileArcHeight(Vector2 start, Vector2 end)
+    {
+        float distance = Vector2.Distance(start, end);
+        return Mathf.Max(projectileArcMinHeight, distance * projectileArcRate);
+    }
+
+    // 사용처: 베지어 곡선 위치/회전 갱신
+    private void UpdateProjectileTransform(RectTransform rt, Vector2 start, Vector2 control, Vector2 end, float t)
+    {
+        if (rt == null)
+            return;
+
+        float inv = 1f - t;
+
+        Vector2 pos =
+            inv * inv * start +
+            2f * inv * t * control +
+            t * t * end;
+
+        Vector2 tangent =
+            2f * inv * (control - start) +
+            2f * t * (end - control);
+
+        rt.anchoredPosition = pos;
+
+        if (tangent.sqrMagnitude > 0.001f)
+        {
+            float angle = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg - projectileSpriteForwardAngle;
+            rt.localRotation = Quaternion.Euler(0f, 0f, angle);
+        }
     }
 
 
@@ -513,8 +857,14 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
+    // 사용처: 원거리 공격 가능한 유닛 수를 활 아이콘과 숫자로 표시
     private void CreateRangeUnit(int rangeUnitCount, Vector3 position, GameObject number, bool isMyTeam)
     {
+        if (isMyTeam)
+            myRangeAttackCount = Mathf.Max(0, rangeUnitCount);
+        else
+            enemyRangeAttackCount = Mathf.Max(0, rangeUnitCount);
+
         string myTeam = isMyTeam ? "My" : "Enemy";
 
         Image numberImg = number.GetComponent<Image>();
@@ -524,6 +874,7 @@ public class AutoBattleUI : MonoBehaviour
             numberImg.color = new Color(1, 1, 1, 0);
             return;
         }
+
         numberImg.color = new Color(1, 1, 1, 1);
 
         GameObject unit = objectPool.GetBattleUnit();
@@ -544,12 +895,18 @@ public class AutoBattleUI : MonoBehaviour
 
         Transform childUnit = unit.transform.GetChild(0);
         Image childImg = childUnit.GetComponent<Image>();
-        childImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}SecondUnit");
+
+        if (childImg != null)
+        {
+            childImg.sprite = null;
+            childImg.color = new Color(1f, 1f, 1f, 0f);
+        }
 
         numberImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}X{rangeUnitCount}");
 
         unit.name = $"{myTeam}RangeUnit";
     }
+
 
     // 유닛 이미지 생성
     private void CreateUnitImages(
