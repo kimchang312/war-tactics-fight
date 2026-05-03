@@ -849,12 +849,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
     private void ClickOpenUnitOrderUI()
     {
-        bool active = unitListUI.gameObject.activeSelf;
-        if (active) {
+        Image img = openUnitOrderBtn.GetComponent<Image>();
+        if (unitListUI.gameObject.activeSelf) {
+            img.sprite = SpriteCacheManager.GetSprite("KIcon/UI/Img_OpenUnit");
             unitListUI.CloseWithAnimation();
         }
         else
         {
+            img.sprite = SpriteCacheManager.GetSprite("KIcon/UI/Img_CloseUnit");
             unitListUI.gameObject.SetActive(true);
         }
         

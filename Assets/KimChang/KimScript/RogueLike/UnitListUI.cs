@@ -17,7 +17,6 @@ public class UnitListUI : MonoBehaviour
     [SerializeField] private Button branchOrderBtn;
     [SerializeField] private Button energyOrderBtn;
     [SerializeField] private Button nameOrderBtn;
-    [SerializeField] private Button closeBtn;
     [SerializeField] private GameObject selectUnitObj;
     [SerializeField] private TextMeshProUGUI selectUnitText;
     [SerializeField] private ObjectPool objectPool;
@@ -486,7 +485,6 @@ public class UnitListUI : MonoBehaviour
         branchOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(branchOrderBtn, 4));
         energyOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(energyOrderBtn, 6));
         nameOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(nameOrderBtn, 8));
-        //closeBtn.onClick.AddListener(CloseWithAnimation);
     }
 
     // 사용처: 닫기 애니메이션
