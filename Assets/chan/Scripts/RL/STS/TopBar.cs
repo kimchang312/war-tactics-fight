@@ -40,29 +40,24 @@ public class TopBar : MonoBehaviour
         // 토글 패널들은 Canvas 루트(TopBar의 부모)로 올려서 TopBar 레이아웃에 종속되지 않게 한다.
         var canvasRoot = transform.parent;
         MovePanelToRootIfNeeded(ownedRelicsPanel, canvasRoot);
-        MovePanelToRootIfNeeded(upgradePanel, canvasRoot);
         MovePanelToRootIfNeeded(upgradeStatusPanel, canvasRoot);
         MovePanelToRootIfNeeded(academyPanel, canvasRoot);
+        EnsureChildPanel(upgradeStatusPanel, upgradePanel);
 
         relicsToggleButton?.onClick.AddListener(() => ToggleOnly(ownedRelicsPanel));
         upgradeToggleButton?.onClick.AddListener(() => {
-            ToggleOnly(upgradePanel);
-
-            if (upgradePanel.activeSelf && GameManager.Instance.shouldRefreshUpgradeUI)
-            {
-                var upgradeUI = upgradePanel.GetComponent<UpgradeUI>();
-                if (upgradeUI != null)
-                {
-                    upgradeUI.ShowRandomChoices();
-                    GameManager.Instance.shouldRefreshUpgradeUI = false;
-                }
-            }
+            ToggleUpgradePanelsTogether();
+            TryRefreshUpgradeChoices();
         });
-        upgradeStatusButton?.onClick.AddListener(() => ToggleOnly(upgradeStatusPanel));
+        upgradeStatusButton?.onClick.AddListener(() =>
+        {
+            ToggleUpgradePanelsTogether();
+            TryRefreshUpgradeChoices();
+        });
         academyToggleButton?.onClick.AddListener(() => ToggleOnly(academyPanel));
         // 닫기 버튼에도 같은 토글 메서드 연결
         closeRelicsButton.onClick.AddListener(() => ToggleOnly(ownedRelicsPanel));
-        closeupgradeStatusButton.onClick.AddListener(() => ToggleOnly(upgradeStatusPanel));
+        closeupgradeStatusButton.onClick.AddListener(CloseUpgradePanelsTogether);
 
         // 옵션 관련 버튼 연결
         optionButton?.onClick.AddListener(() => ToggleOptionPanel(true));
@@ -86,6 +81,14 @@ public class TopBar : MonoBehaviour
         t.localRotation = localRot;
         t.localScale = localScale;
     }
+
+    private static void EnsureChildPanel(GameObject parentPanel, GameObject childPanel)
+    {
+        if (parentPanel == null || childPanel == null) return;
+        if (childPanel.transform.parent == parentPanel.transform) return;
+
+        childPanel.transform.SetParent(parentPanel.transform, worldPositionStays: false);
+    }
     
     private void ToggleOnly(GameObject panel)
     {
@@ -104,9 +107,47 @@ public class TopBar : MonoBehaviour
         if (panel.activeSelf)
             panel.transform.SetAsLastSibling();
     }
+
+    private void ToggleUpgradePanelsTogether()
+    {
+        bool wereBothActive = (upgradeStatusPanel != null && upgradeStatusPanel.activeSelf)
+                             && (upgradePanel != null && upgradePanel.activeSelf);
+
+        // 먼저 모든 패널을 닫고
+        ownedRelicsPanel?.SetActive(false);
+        upgradePanel?.SetActive(false);
+        upgradeStatusPanel?.SetActive(false);
+        academyPanel?.SetActive(false);
+
+        // 둘 다 열려 있었다면 닫기, 아니면 둘 다 열기
+        if (wereBothActive) return;
+
+        upgradeStatusPanel?.SetActive(true);
+        upgradePanel?.SetActive(true);
+        upgradeStatusPanel?.transform.SetAsLastSibling();
+        upgradePanel?.transform.SetAsLastSibling();
+    }
+
+    private void CloseUpgradePanelsTogether()
+    {
+        upgradeStatusPanel?.SetActive(false);
+        upgradePanel?.SetActive(false);
+    }
     private void ToggleOptionPanel(bool show)
     {
         optionPanel?.SetActive(show);
+    }
+
+    private void TryRefreshUpgradeChoices()
+    {
+        if (upgradePanel == null || GameManager.Instance == null || !GameManager.Instance.shouldRefreshUpgradeUI)
+            return;
+
+        var upgradeUI = upgradePanel.GetComponent<UpgradeUI>();
+        if (upgradeUI == null) return;
+
+        upgradeUI.ShowRandomChoices();
+        GameManager.Instance.shouldRefreshUpgradeUI = false;
     }
 
     private void SaveAndGoTitle()

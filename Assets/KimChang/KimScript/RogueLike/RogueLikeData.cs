@@ -691,11 +691,16 @@ public class RogueLikeData
             {
                 WarRelic relic = RelicManager.GetRelicById(60);
                 var vals = relic.GetAllValuesAsFloatListOrNull();
-                if (vals != null)
+                if (vals != null && vals.Count > 0)
                 {
                     var unit = RogueUnitDataBase.GetRandomUnitByRarity((int)vals[0]);
-                    unit.SetEnergyDirect((int)vals[1]);
-                    AddMyTeam(unit);
+                    if (unit != null)
+                    {
+                        // 에너지 값이 없으면 기본 0으로 처리해서 인덱스 예외를 방지한다.
+                        int energy = (vals.Count > 1) ? (int)vals[1] : 0;
+                        unit.SetEnergyDirect(energy);
+                        AddMyTeam(unit);
+                    }
                 }
             }
         }
