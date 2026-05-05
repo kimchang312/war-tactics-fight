@@ -133,9 +133,6 @@ public static class GameTextDB
         { "ItemName", TextKind.ItemName },
         { "ItemDesc", TextKind.ItemDesc },
 
-        { "Tutorial", TextKind.Tutorial },
-        { "Ability", TextKind.Ability },
-        { "BuffDeBuff", TextKind.BuffDeBuff },
         { "System", TextKind.System },
         { "Tutorial", TextKind.Tutorial },
 
