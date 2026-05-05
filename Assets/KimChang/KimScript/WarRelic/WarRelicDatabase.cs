@@ -69,8 +69,8 @@ public static class WarRelicDatabase
         RegisterExec(46, TechnicalSecretTome); // Technical Secret Tome
         RegisterExec(47, TreasureMap); // Treasure Map
         RegisterExec(48, RainbowKey); // Rainbow Key
-        RegisterExec(49, CreditAuthorization); // Credit Authorization
-        RegisterExec(50, GoldenHorn); // Golden Horn
+        RegisterExec(49, GoldenHorn); // 재상의 보증서: 금화 소모량 기반 공격력 증가
+        RegisterExec(50, GoldenHornEliteGoldReward); // 순금 나팔: 엘리트 승리 골드 증가
         RegisterExec(51, ThickTacticsManual); // Thick Tactics Manual
         RegisterExec(52, ExplorersCompass); // Explorer's Compass
         RegisterExec(53, UnluckyGoldCoin); // Unlucky Gold Coin
@@ -422,11 +422,22 @@ public static class WarRelicDatabase
 
     }
 
+    // 사용처: 보유 금화 기반 유산 계산. 49번 유산 보유 시 소모한 금화도 소지 금화처럼 취급
+    private static int GetEffectiveGoldForRelic()
+    {
+        int gold = RogueLikeData.Instance.GetCurrentGold();
+
+        if (RelicManager.CheckRelicById(49))
+            gold += Mathf.Max(0, RogueLikeData.Instance.GetSpentGold());
+
+        return gold;
+    }
+
     //순금 검 8
     private static void PureGoldSword(WarRelic relic)
     {
         int id = 8;
-        int gold = RogueLikeData.Instance.GetCurrentGold();
+        int gold = GetEffectiveGoldForRelic();
         var vals = relic.GetAllValuesAsFloatListOrNull();
         if (vals == null) return;
         float addValue = gold / vals[0] * vals[1];
@@ -1309,23 +1320,48 @@ public static class WarRelicDatabase
         Debug.Log("[WarRelicDatabase] 무지개 열쇠(48) 획득: 챕터당 2회, 연결되지 않은 '다음 레벨'로 이동할 수 있습니다.");
     }
 
-    //재상의 보증서 49
-    private static void CreditAuthorization()
+    //순금 나팔 50
+    private static void GoldenHornEliteGoldReward(WarRelic relic)
     {
-
+        // 실제 골드 증가는 엘리트 전투 승리 보상 확정 시점에서 ApplyGoldenHornEliteGoldReward()를 호출해서 처리한다.
     }
 
-    //순금 나팔 50
+    // 사용처: 엘리트 전투 승리 후 현재 보유 금화를 순금 나팔 효과만큼 증가
+    public static int ApplyGoldenHornEliteGoldReward()
+    {
+        if (!RelicManager.CheckRelicById(50))
+            return 0;
+
+        WarRelic relic = RelicManager.GetRelicById(50);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+        if (vals == null || vals.Count == 0)
+            return 0;
+
+        int currentGold = RogueLikeData.Instance.GetCurrentGold();
+        int addGold = Mathf.RoundToInt(currentGold * vals[0]);
+        if (addGold <= 0)
+            return 0;
+
+        // 순금 나팔은 일반 금화 보상이 아니라 현재 보유 금화 자체를 증가시키는 효과다.
+        // 따라서 행운의 주머니(5) 같은 금화 획득량 증가 효과와 중복 적용되지 않도록 EarnGold를 사용하지 않는다.
+        RogueLikeData.Instance.SetCurrentGold(currentGold + addGold);
+        if (UIManager.Instance != null)
+            UIManager.Instance.AnimateGoldChange(currentGold, addGold);
+
+        return addGold;
+    }
+
+    //재상의 보증서 49
     private static void GoldenHorn(WarRelic relic)
     {
-        int id = 50;
+        int id = relic.id;
         int spentGold = RogueLikeData.Instance.GetSpentGold();
 
         var myTeam = RogueLikeData.Instance.GetMyTeam();
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count < 2) return;
 
-        float addValue = spentGold / vals[0] * vals[1];
+        float addValue = (spentGold / vals[0]) * vals[1];
         foreach (var unit in myTeam)
         {
             unit.stats.AddModifier(new StatModifier

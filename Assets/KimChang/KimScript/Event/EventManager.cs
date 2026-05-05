@@ -68,6 +68,25 @@ public class EventManager
     }
 
 
+    // 사용처: 사기 소모 조건 표시/선택 가능 여부 검사 시 실제 사기 소모 배율 계산
+    private static float GetMoraleCostMultiplier()
+    {
+        float multiplier = 1f;
+
+        if (RelicManager.CheckRelicById(33))
+        {
+            WarRelic relic = RelicManager.GetRelicById(33);
+            var vals = relic?.GetAllValuesAsFloatListOrNull();
+
+            if (vals != null && vals.Count > 0)
+                multiplier += vals[0];
+            else
+                multiplier += 0.2f;
+        }
+
+        return multiplier;
+    }
+
     //해당 이벤트가 실행할때 필요한 자원이 있는지 채크
     private static bool CheckRequireCondition(RequireThing thing, RequireForm form, string value, string count)
     {
@@ -77,7 +96,6 @@ public class EventManager
                 if (form == RequireForm.None)
                 {
                     int gold = RogueLikeData.Instance.GetCurrentGold();
-                    if (RogueLikeData.Instance.GetOwnedRelicById(49) != null) gold += 500;
                     return InRange(gold, count);
                 }
                 break;
@@ -85,8 +103,7 @@ public class EventManager
             case RequireThing.Morale:
                 {
                     int morale = RogueLikeData.Instance.GetMorale();
-                    float reduceMorale = 1f;
-                    if (RogueLikeData.Instance.GetOwnedRelicById(33) == null) reduceMorale += 0.2f;
+                    float reduceMorale = GetMoraleCostMultiplier();
                     return InRange(morale, count, true, reduceMorale);
                 }
 
@@ -219,10 +236,6 @@ public class EventManager
     private static bool CheckSpecialRequire(EventData eventData)
     {
         int gold = RogueLikeData.Instance.GetCurrentGold();
-        if (RogueLikeData.Instance.GetOwnedRelicById(49) != null)
-        {
-            gold += 500;
-        }
         int morale = RogueLikeData.Instance.GetMorale();
         if (eventData.eventId == 5)
         {
@@ -481,12 +494,7 @@ public class EventManager
                 case RequireThing.Morale:
                     if (form == RequireForm.None)
                     {
-                        float reduceMorale = 1;
-                        if (RogueLikeData.Instance.GetOwnedRelicById(33) == null)
-                        {
-                            reduceMorale += 0.2f;
-                        }
-                        int moraleCount = (int)(int.Parse(count) * reduceMorale);
+                        int moraleCount = int.Parse(count);
                         moraleCount = RogueLikeData.Instance.ChangeMorale(-moraleCount);
                         requireLog += $"사기가 {-moraleCount}만큼 감소했습니다.";
                     }
@@ -503,6 +511,7 @@ public class EventManager
 
         // 결과 템플릿 치환용 토큰 버퍼
         List<string> resultTokens = new List<string>(4);
+        int resultTextIndex = 0;
 
         //유산 85
         int rarity1Rate = 0;
@@ -524,6 +533,19 @@ public class EventManager
             {
                 case ResultType.Gold:
                     {
+                        if (form == ResultForm.Random)
+                        {
+                            int probability = string.IsNullOrEmpty(value) ? 100 : int.Parse(value);
+                            bool success = RogueLikeData.Instance.GetRandomFloat() < probability * 0.01f;
+                            resultTextIndex = success ? 0 : 1;
+
+                            if (!success)
+                            {
+                                resultLog += "- 아무것도 얻지 못했습니다.\n";
+                                break;
+                            }
+                        }
+
                         int gold = int.Parse(count);
                         if (isBattle) RogueLikeData.Instance.AddGoldReward(gold);
                         else { gold = RogueLikeData.Instance.AddGoldByEventChapter(gold); resultLog += $"- 금화 {gold} 획득\n"; }
@@ -617,7 +639,10 @@ public class EventManager
                             }
                             else if (choiceData.choiceId == 73)
                             {
-                                if (IsUnitVictory(selectedUnits[0]))
+                                bool success = IsUnitVictory(selectedUnits[0]);
+                                resultTextIndex = success ? 0 : 1;
+
+                                if (success)
                                 {
                                     var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
                                     if (relic != null)
@@ -634,7 +659,10 @@ public class EventManager
                             }
                             else if (choiceData.choiceId == 75)
                             {
-                                if (IsUnitVictoryByRarity(selectedUnits[0]))
+                                bool success = IsUnitVictoryByRarity(selectedUnits[0]);
+                                resultTextIndex = success ? 0 : 1;
+
+                                if (success)
                                 {
                                     RogueLikeData.Instance.AddMyTeam(selectedUnits[0]);
                                     var relic = RelicManager.HandleRandomRelic(10, RelicAction.Acquire);
@@ -664,7 +692,10 @@ public class EventManager
                             }
                             else if (choiceData.choiceId == 132)
                             {
-                                int rewardGrade = RogueLikeData.Instance.GetRandomFloat() < 0.5f ? 10 : 0;
+                                bool success = RogueLikeData.Instance.GetRandomFloat() < 0.5f;
+                                resultTextIndex = success ? 0 : 1;
+
+                                int rewardGrade = success ? 10 : 0;
                                 var relic = RelicManager.HandleRandomRelic(rewardGrade, RelicAction.Acquire);
                                 if (relic != null)
                                 {
@@ -913,7 +944,10 @@ public class EventManager
                         }
                         else if (choiceData.choiceId == 37)
                         {
-                            if (UnityEngine.Random.value < 0.5f)
+                            bool success = UnityEngine.Random.value < 0.5f;
+                            resultTextIndex = success ? 0 : 1;
+
+                            if (success)
                             {
                                 WarRelic r = RelicManager.HandleRandomRelic(5, RelicAction.Acquire);
                                 string rName = GameTextDB.GetByForeignKey(TextKind.RelicName, r.id);
@@ -938,10 +972,16 @@ public class EventManager
                         battleGrade = int.Parse(value);
                         if (form == ResultForm.Special)
                         {
-                            if (choiceData.choiceId == 16 && UnityEngine.Random.value < 0.5f)
+                            if (choiceData.choiceId == 16)
                             {
-                                resultLog += "- 아무 일도 일어나지 않았다\n";
-                                break;
+                                bool noBattle = UnityEngine.Random.value < 0.5f;
+                                resultTextIndex = noBattle ? 0 : 1;
+
+                                if (noBattle)
+                                {
+                                    resultLog += "- 아무 일도 일어나지 않았다\n";
+                                    break;
+                                }
                             }
                             else if (choiceData.choiceId == 108)
                             {
@@ -1000,7 +1040,7 @@ public class EventManager
             // 선택 유닛 리스트가 null로 들어오면 RogueLikeData의 선택 목록 사용
             var requires = selectedUnits ?? RogueLikeData.Instance.GetSelectedUnits();
             // JSON 내러티브를 최우선으로 사용
-            resultLog = ComposeResultNarration(choiceData, requires, resultTokens);
+            resultLog = ComposeResultNarration(choiceData, requires, resultTokens, resultTextIndex);
         }
 
         if (isBattle)
@@ -1128,7 +1168,8 @@ public class EventManager
     private static string ComposeResultNarration(
         EventChoiceData choiceData,
         List<RogueUnitDataBase> selectedUnits,
-        List<string> resultTokens)
+        List<string> resultTokens,
+        int resultTextIndex)
     {
         // JSON에 resultText가 없으면 아무것도 출력하지 않음
         if (choiceData.resultText == null || choiceData.resultText.Count == 0)
@@ -1170,8 +1211,11 @@ public class EventManager
             textTokens = null;
         }
 
+        int safeIndex = Mathf.Clamp(resultTextIndex, 0, choiceData.resultText.Count - 1);
+        List<string> selectedResultText = new List<string>(1) { choiceData.resultText[safeIndex] };
+
         return GameTextDB.ComposeLines(
-            choiceData.resultText,
+            selectedResultText,
             requireNames,
             resultTokens,
             textTokens);

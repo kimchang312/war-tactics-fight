@@ -382,20 +382,10 @@ public class RogueLikeData
     {
         return currentGold;
     }
-    // 사용처: 재상의 보증서 보유 시 허용되는 최소 금화 하한 계산
+    // 사용처: 금화 사용 가능 여부 계산. 현재 유산 49는 차용 한도 효과가 아니므로 음수 금화를 허용하지 않는다.
     private int GetMinGoldLimit()
     {
-        if (!RelicManager.CheckRelicById(49))
-            return 0;
-
-        WarRelic relic = RelicManager.GetRelicById(49);
-        var vals = relic?.GetAllValuesAsFloatListOrNull();
-
-        int borrowGold = 500;
-        if (vals != null && vals.Count > 0)
-            borrowGold = Mathf.Abs(Mathf.RoundToInt(vals[0]));
-
-        return -borrowGold;
+        return 0;
     }
 
     // 사용처: 상점/이벤트/강화 등 금화 사용 가능 여부 확인
@@ -701,11 +691,16 @@ public class RogueLikeData
             {
                 WarRelic relic = RelicManager.GetRelicById(60);
                 var vals = relic.GetAllValuesAsFloatListOrNull();
-                if (vals != null)
+                if (vals != null && vals.Count > 0)
                 {
                     var unit = RogueUnitDataBase.GetRandomUnitByRarity((int)vals[0]);
-                    unit.SetEnergyDirect((int)vals[1]);
-                    AddMyTeam(unit);
+                    if (unit != null)
+                    {
+                        // 에너지 값이 없으면 기본 0으로 처리해서 인덱스 예외를 방지한다.
+                        int energy = (vals.Count > 1) ? (int)vals[1] : 0;
+                        unit.SetEnergyDirect(energy);
+                        AddMyTeam(unit);
+                    }
                 }
             }
         }

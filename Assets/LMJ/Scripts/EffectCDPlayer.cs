@@ -33,6 +33,7 @@ public class EffectCDPlayer : MonoBehaviour
     private int originalSortingOrder;
     private TaskCompletionSource<bool> playbackCompletion;
 
+    private bool suppressOnDisableCompletion;
     // ─────────────────────────────────────────────────────────────
     // Public API
     // ─────────────────────────────────────────────────────────────
@@ -118,9 +119,20 @@ public class EffectCDPlayer : MonoBehaviour
                 if (image != null)
                 {
                     image.color = originalColor;
-                    RestoreOriginalState(rectTransform);
+
+                    suppressOnDisableCompletion = true;
+                    try
+                    {
+                        RestoreOriginalState(rectTransform);
+                    }
+                    finally
+                    {
+                        suppressOnDisableCompletion = false;
+                    }
+
                     image.enabled = false;
                 }
+
                 onComplete?.Invoke();
                 playbackCompletion?.TrySetResult(true);
             });
@@ -170,7 +182,16 @@ public class EffectCDPlayer : MonoBehaviour
 
         if (resetVisual && image != null)
         {
-            RestoreOriginalState(image.rectTransform);
+            suppressOnDisableCompletion = true;
+            try
+            {
+                RestoreOriginalState(image.rectTransform);
+            }
+            finally
+            {
+                suppressOnDisableCompletion = false;
+            }
+
             image.enabled = false;
         }
 
@@ -233,7 +254,17 @@ public class EffectCDPlayer : MonoBehaviour
         if (image != null)
         {
             image.color = originalColor;
-            RestoreOriginalState(rectTransform);
+
+            suppressOnDisableCompletion = true;
+            try
+            {
+                RestoreOriginalState(rectTransform);
+            }
+            finally
+            {
+                suppressOnDisableCompletion = false;
+            }
+
             image.enabled = false;
         }
 
@@ -344,7 +375,7 @@ public class EffectCDPlayer : MonoBehaviour
         }
 
         rectTransform.anchoredPosition = offset;
-        originalPosition = offset;   // 복원 기준 업데이트
+
 
         return true;
     }
@@ -433,6 +464,10 @@ public class EffectCDPlayer : MonoBehaviour
     {
         seq?.Kill();
         moveTween?.Kill();
+
+        if (suppressOnDisableCompletion)
+            return;
+
         playbackCompletion?.TrySetResult(false);
     }
 }
