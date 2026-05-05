@@ -372,12 +372,12 @@ public class MapGenerator : MonoBehaviour
     {
         return effect switch
         {
-            BattlefieldEffect.Plains => 1,  // 기본값 (효과 없음)
-            BattlefieldEffect.Hills => 2,    // 언덕: 모든 유닛 방어력 +1
-            BattlefieldEffect.Swamp => 3,    // 늪지대: 모든 유닛 기동력 -2
-            BattlefieldEffect.Forest => 4,   // 숲: 경장갑 기절, 궁병 공격력 -10%
-            BattlefieldEffect.Storm => 5,    // 폭풍: 매 턴 랜덤 유닛 체력 -30
-            _ => 1
+            BattlefieldEffect.Plains => 0,  // 기본값 (효과 없음)
+            BattlefieldEffect.Hills => 1,    // 언덕: 모든 유닛 방어력 +1
+            BattlefieldEffect.Swamp => 2,    // 늪지대: 모든 유닛 기동력 -2
+            BattlefieldEffect.Forest => 3,   // 숲: 경장갑 기절, 궁병 공격력 -10%
+            BattlefieldEffect.Storm => 4,    // 폭풍: 매 턴 랜덤 유닛 체력 -30
+            _ => 0
         };
     }
 

@@ -28,4 +28,28 @@ public class ItemInformation : MonoBehaviour
             buffDeBuffDescription = description
         };
     }
+
+    // 사용처: 특성/기술 아이콘에 툴팁 표시용 데이터를 주입
+    public void SetAbility(int abilityId)
+    {
+        data = new ItemInfoData
+        {
+            isItem = false,
+            isRelic = false,
+            relicId = -1,
+            abilityId = abilityId
+        };
+    }
+
+    // 사용처: UI/스탯 텍스트에 툴팁 표시용 텍스트 ID를 주입
+    public void SetGameText(int gameTextId)
+    {
+        data = new ItemInfoData
+        {
+            isItem = false,
+            isRelic = false,
+            relicId = -1,
+            gameTextId = gameTextId
+        };
+    }
 }
