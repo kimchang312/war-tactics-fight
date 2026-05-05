@@ -411,7 +411,10 @@ public class RogueLikeData
         spentGold += gold;
         currentGold -= gold;
 
-        UIManager.Instance.AnimateGoldChange(baseGold, -gold);
+        if(UIManager.Instance != null)
+        {
+            UIManager.Instance.AnimateGoldChange(baseGold, -gold);
+        }
         return true;
     }
 
@@ -432,8 +435,13 @@ public class RogueLikeData
         gold = (int)(addGold * gold);
         currentGold += gold;
 
-        //골드 애니메이션
-        UIManager.Instance.AnimateGoldChange(baseGold, gold);
+        if(UIManager.Instance != null)
+        {
+            //골드 애니메이션
+            UIManager.Instance.AnimateGoldChange(baseGold, gold);
+        }
+
+        
     }
 
 
@@ -455,6 +463,7 @@ public class RogueLikeData
     {
         return playerMorale;
     }
+
     // 사기 증감 통합 함수
     public int ChangeMorale(int value)
     {
@@ -486,9 +495,12 @@ public class RogueLikeData
             actualChange = Mathf.Max(reduced, -playerMorale); // 최소 0 유지
             playerMorale += actualChange;
         }
-
-        UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
         UnitStateChange.ChangeStateMyUnits();
+
+        if(UIManager.Instance != null)
+        {
+            UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
+        }
         return actualChange;
     }
 
