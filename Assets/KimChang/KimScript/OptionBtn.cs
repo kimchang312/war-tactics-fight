@@ -28,6 +28,7 @@ public class OptionBtn : MonoBehaviour
         goTitle.onClick.AddListener(Movetitle);
 
         gameSpeedToggle.onValueChanged.AddListener(OnToggleChanged);
+        OnToggleChanged(gameSpeedToggle.isOn);
         goTest.onClick.AddListener(GoTestMode);
     }
 

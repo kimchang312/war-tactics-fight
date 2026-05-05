@@ -98,10 +98,25 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             {
                 return;
             }
-            else if(info.data.gameTextId != -1) //UI 마우스오버 텍스트
+            else if (info.data.gameTextId != -1) // UI/스탯 마우스오버 텍스트
             {
-                string text = GameTextDB.Get(info.data.gameTextId);
-                textComponent.text = $"{text}";
+                int id = info.data.gameTextId;
+
+                string title = GameTextDB.Get(id);
+                string description = GameTextDB.GetByTitleKey(TextKind.Stat, id);
+
+                if (string.IsNullOrEmpty(description))
+                {
+                    textComponent.text = title;
+                }
+                else if (string.IsNullOrEmpty(title) || title == description)
+                {
+                    textComponent.text = description;
+                }
+                else
+                {
+                    textComponent.text = $"{title}\n{description}";
+                }
             }
         }
         RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
