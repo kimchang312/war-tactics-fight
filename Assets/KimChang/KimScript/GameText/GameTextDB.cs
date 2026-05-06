@@ -30,6 +30,7 @@ public enum TextKind
 
     BattlefieldEffect = 55,
     Commander = 56,
+    TacticalImprovement = 57,
 
     BuffDeBuff = 60,
 }
@@ -40,6 +41,7 @@ public static class GameTextDB
     class Entry
     {
         public int Idx;
+        public string ID;
         public int kind;
         public string kindName;
         public int TitleKey;
@@ -102,6 +104,10 @@ public static class GameTextDB
     static Dictionary<int, string> _byIdxCur;
     static Dictionary<int, string> _byIdxFb;
 
+    static Dictionary<string, string> _byIdCur;
+    static Dictionary<string, string> _byIdFb;
+    static Dictionary<string, int> _idxById;
+
     // 2-key 캐시(대표 1개만)
     static Dictionary<long, string> _byKindTitleCur;
     static Dictionary<long, string> _byKindTitleFb;
@@ -112,6 +118,7 @@ public static class GameTextDB
     // 3-key 캐시(정확 조회)
     static Dictionary<TripleKey, string> _byKindTitleForeignCur;
     static Dictionary<TripleKey, string> _byKindTitleForeignFb;
+    static Dictionary<TripleKey, int> _idxByKindTitleForeign;
 
     // 역조회: (kind, foreignKey) -> idx (대표 1개만)
     static Dictionary<long, int> _idxByKindForeign;
@@ -142,6 +149,7 @@ public static class GameTextDB
 
         { "BattlefieldEffect", TextKind.BattlefieldEffect },
         { "Commander", TextKind.Commander },
+        { "TacticalImprovement", TextKind.TacticalImprovement },
         { "BuffDeBuff", TextKind.BuffDeBuff },
     };
 
@@ -164,12 +172,16 @@ public static class GameTextDB
             Debug.LogError("[GameTextDB] Resources에 GameTextData가 없거나 비었습니다.");
 #endif
             _byIdxCur = new Dictionary<int, string>(0);
+            _byIdCur = new Dictionary<string, string>(0, StringComparer.OrdinalIgnoreCase);
+            _idxById = new Dictionary<string, int>(0, StringComparer.OrdinalIgnoreCase);
             _byKindTitleCur = new Dictionary<long, string>(0);
             _byKindForeignCur = new Dictionary<long, string>(0);
             _byKindTitleForeignCur = new Dictionary<TripleKey, string>(0);
+            _idxByKindTitleForeign = new Dictionary<TripleKey, int>(0);
             _idxByKindForeign = new Dictionary<long, int>(0);
 
             _byIdxFb = null;
+            _byIdFb = null;
             _byKindTitleFb = null;
             _byKindForeignFb = null;
             _byKindTitleForeignFb = null;
@@ -187,9 +199,14 @@ public static class GameTextDB
         _byIdxCur = new Dictionary<int, string>(cap);
         _byIdxFb = useFb ? new Dictionary<int, string>(cap) : null;
 
+        _byIdCur = new Dictionary<string, string>(cap, StringComparer.OrdinalIgnoreCase);
+        _byIdFb = useFb ? new Dictionary<string, string>(cap, StringComparer.OrdinalIgnoreCase) : null;
+        _idxById = new Dictionary<string, int>(cap, StringComparer.OrdinalIgnoreCase);
+
         // 3-key: (kind, TitleKey, ForeignKey)
         _byKindTitleForeignCur = new Dictionary<TripleKey, string>(cap);
         _byKindTitleForeignFb = useFb ? new Dictionary<TripleKey, string>(cap) : null;
+        _idxByKindTitleForeign = new Dictionary<TripleKey, int>(cap);
 
         // 2-key는 데이터상 중복이 매우 흔하다.
         // 따라서 대표 Entry를 1개만 고르는 pick 맵을 만들고, 이후에 최종 캐시로 변환한다.
@@ -211,12 +228,28 @@ public static class GameTextDB
             if (cur != null) _byIdxCur[e.Idx] = cur;
             else if (useFb && fb != null) _byIdxFb[e.Idx] = fb;
 
+            // ID
+            // 사용처: 엑셀의 ID 컬럼 기반 조회. Idx가 바뀌어도 코드가 덜 깨진다.
+            if (!string.IsNullOrEmpty(e.ID))
+            {
+                if (!_idxById.ContainsKey(e.ID))
+                    _idxById.Add(e.ID, e.Idx);
+
+                if (cur != null && !_byIdCur.ContainsKey(e.ID))
+                    _byIdCur.Add(e.ID, cur);
+                else if (useFb && fb != null && _byIdFb != null && !_byIdFb.ContainsKey(e.ID))
+                    _byIdFb.Add(e.ID, fb);
+            }
+
             // (kind, TitleKey, ForeignKey) 정확 조회용
             // 사용처: TitleKey/ForeignKey를 동시에 주는 호출(또는 한쪽만 주는 호출)
             // 주의: (TitleKey,ForeignKey) 둘 다 -1(미지정)인 데이터는 키 충돌이 매우 많아서 캐싱 대상에서 제외
             if (e.TitleKey != KeyNone || e.ForeignKey != KeyNone)
             {
                 var k3 = new TripleKey(e.kind, e.TitleKey, e.ForeignKey);
+
+                if (!_idxByKindTitleForeign.ContainsKey(k3))
+                    _idxByKindTitleForeign.Add(k3, e.Idx);
 
                 if (cur != null)
                 {
@@ -323,6 +356,54 @@ public static class GameTextDB
         Debug.LogWarning($"[GameTextDB] Missing Idx={idx}");
 #endif
         return string.Empty;
+    }
+
+    // 사용처: 엑셀 ID 기반 텍스트 조회(Idx 변경에 강함)
+    public static string GetById(string id, string notFound = "")
+    {
+        if (string.IsNullOrEmpty(id)) return notFound;
+
+        if (_byIdCur != null && _byIdCur.TryGetValue(id, out var v)) return v;
+        if (_byIdFb != null && _byIdFb.TryGetValue(id, out v)) return v;
+
+#if UNITY_EDITOR
+        Debug.LogWarning($"[GameTextDB] Missing ID={id}");
+#endif
+        return notFound;
+    }
+
+    // 사용처: 엑셀 ID로 ItemInformation에 넣을 GameText Idx를 얻음
+    public static int GetIdxById(string id, int notFound = -1)
+    {
+        if (string.IsNullOrEmpty(id) || _idxById == null) return notFound;
+        return _idxById.TryGetValue(id, out var idx) ? idx : notFound;
+    }
+
+    // 사용처: ID 기반 조회가 가능한지 빠르게 확인
+    public static bool TryGetIdxById(string id, out int idx)
+    {
+        idx = -1;
+        if (string.IsNullOrEmpty(id) || _idxById == null) return false;
+        return _idxById.TryGetValue(id, out idx);
+    }
+
+    // 사용처: (kind,TitleKey,ForeignKey)에 정확히 대응하는 Entry의 Idx 역조회
+    public static int GetIdx(TextKind kind, int titleKey, int foreignKey, int notFound = -1)
+    {
+        if (_idxByKindTitleForeign == null) return notFound;
+
+        var key = new TripleKey((int)kind, titleKey, foreignKey);
+        return _idxByKindTitleForeign.TryGetValue(key, out var idx) ? idx : notFound;
+    }
+
+    // 사용처: 유닛 상세 UI에서 병종/태그 이름에 연결할 설명 툴팁 Idx 조회
+    public static int GetTooltipIdxByForeignKey(TextKind kind, int foreignKey, int notFound = -1)
+    {
+        int titleIdx = GetIdxByForeignKey(kind, foreignKey, notFound);
+        if (titleIdx == notFound) return notFound;
+
+        int tooltipIdx = GetIdx(kind, titleIdx, foreignKey, notFound);
+        return tooltipIdx;
     }
 
     // 사용처: (kind,TitleKey) 기반 조회(외래키를 안 쓰는 데이터)
@@ -473,7 +554,7 @@ public static class GameTextDB
     }
 
     // 아래는 프로젝트에서 쓰던 토큰 치환 관련 유틸(기존 유지)
-        // 사용처: 기존 프로젝트 호환(언어 설정을 RogueLikeData/PlayerPrefs에서 가져와 로드)
+    // 사용처: 기존 프로젝트 호환(언어 설정을 RogueLikeData/PlayerPrefs에서 가져와 로드)
     // - RogueLikeData 타입/필드명이 바뀌어도 컴파일이 깨지지 않도록 리플렉션으로 접근한다.
     public static void LoadFromRogueLike()
     {
