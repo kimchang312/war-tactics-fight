@@ -1570,10 +1570,10 @@ public class AbilityManager
                 if (CalculateAccuracy(defenders[0], attacker, attackers, isTeam, isFirstAttack, i))
                     continue;
 
-                if (damage > 0 && defenders[0].heavyArmor && !attacker.pierce)
-                {
-                    damage = Mathf.Max(0, damage - heavyArmorValue);
-                }
+                //if (damage > 0 && defenders[0].heavyArmor && !attacker.pierce)
+                //{
+                //    damage = Mathf.Max(0, damage - heavyArmorValue);
+                //}
 
                 CalculateBurning(attacker, defenders, isTeam, ref text);
                 CalculateTracker(attacker, defenders[0]);

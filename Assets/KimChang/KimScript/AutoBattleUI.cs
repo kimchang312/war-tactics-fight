@@ -34,6 +34,8 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private Slider enemyHpBar;
     [SerializeField] private Slider mySecondHpBar;
     [SerializeField] private Slider enemySecondHpBar;
+    [SerializeField] private GameObject myRangeBox;
+    [SerializeField] private GameObject enemyRangeBox;
     [SerializeField] private GameObject myRangeCount;
     [SerializeField] private GameObject enemyRangeCount;
 
@@ -275,7 +277,11 @@ public class AutoBattleUI : MonoBehaviour
         int fieldId = RogueLikeData.Instance.GetFieldId();
         switch (fieldId)
         {
-
+            case 1:
+                {
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Hill");
+                    break;
+                }
             case 2:
                 {
                     background.sprite = SpriteCacheManager.GetSprite("EventImages/Forest");
@@ -573,13 +579,13 @@ public class AutoBattleUI : MonoBehaviour
         return new Vector2(hitTeam ? -290f : 290f, 60f + projectileTargetYOffset);
     }
 
-    // 사용처: 화면에 표시된 원거리 유닛 묶음 아이콘 검색
+    // 사용처: 원거리 공격 투사체의 시작 위치로 사용할 원거리 아이콘 검색
     private GameObject FindRangeUnit(bool isMyUnit)
     {
         if (canvasTransform == null)
             return null;
 
-        string unitName = $"{(isMyUnit ? "My" : "Enemy")}RangeUnit";
+        string unitName = isMyUnit ? "MyRangeAttack" : "EnemyRangeAttack";
 
         foreach (Transform child in canvasTransform)
         {
@@ -753,10 +759,12 @@ public class AutoBattleUI : MonoBehaviour
         Vector2 moveBackPos = originPos + new Vector2(direction * -10f, 0f);
         Vector2 moveForwardPos = originPos + new Vector2(direction * 25f, 0f);
 
-        const float backSec = 0.05f;
-        const float waitSec = 0.20f;
-        const float forwardSec = 0.20f;
-        const float returnSec = 0.05f;
+        float speedRate = waittingTime / 500f;
+
+        float backSec = 0.05f * speedRate;
+        float waitSec = 0.20f * speedRate;
+        float forwardSec = 0.20f * speedRate;
+        float returnSec = 0.05f * speedRate;
 
         // 전투 애니 시작 시점에 검을 먼저 "생성"
         StartCoroutine(RunCrashAnimation(team));
@@ -838,11 +846,12 @@ public class AutoBattleUI : MonoBehaviour
 
         CreateUnitImages(myUnits ?? new List<RogueUnitDataBase>(), myPositions, firstSize, secondSize, true, myDodge);
 
-        CreateRangeUnit(myRangeUnits != null ? myRangeUnits.Count : 0, myRangeUnitPos, myRangeCount, true);
+        CreateRangeUnit(myRangeUnits != null ? myRangeUnits.Count : 0, myRangeUnitPos, myRangeBox, myRangeCount, true);
+
+        CreateRangeUnit(enemyRangeUnits != null ? enemyRangeUnits.Count : 0, enemyRangeUnitPos, enemyRangeBox, enemyRangeCount, false);
 
         CreateUnitImages(enemyUnits ?? new List<RogueUnitDataBase>(), enemyPositions, firstSize, secondSize, false, enemyDodge);
 
-        CreateRangeUnit(enemyRangeUnits != null ? enemyRangeUnits.Count : 0, enemyRangeUnitPos, enemyRangeCount, false);
 
         UpdateBuffDeBuffUI(myUnits, enemyUnits);
     }
@@ -857,54 +866,71 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
-    // 사용처: 원거리 공격 가능한 유닛 수를 활 아이콘과 숫자로 표시
-    private void CreateRangeUnit(int rangeUnitCount, Vector3 position, GameObject number, bool isMyTeam)
+    // 사용처: 원거리 공격 가능한 유닛 수에 따라 rangeBox 활성화, 원거리 아이콘, 숫자 이미지를 갱신
+    private void CreateRangeUnit(int rangeUnitCount, Vector3 position, GameObject rangeBox, GameObject number, bool isMyTeam)
     {
+        int displayCount = Mathf.Clamp(rangeUnitCount, 0, 9);
+
         if (isMyTeam)
-            myRangeAttackCount = Mathf.Max(0, rangeUnitCount);
+            myRangeAttackCount = displayCount;
         else
-            enemyRangeAttackCount = Mathf.Max(0, rangeUnitCount);
+            enemyRangeAttackCount = displayCount;
 
-        string myTeam = isMyTeam ? "My" : "Enemy";
-
-        Image numberImg = number.GetComponent<Image>();
-
-        if (rangeUnitCount == 0)
+        if (number != null)
         {
-            numberImg.color = new Color(1, 1, 1, 0);
-            return;
+            number.SetActive(true);
+
+            Image numberImg = number.GetComponent<Image>();
+            if (numberImg != null)
+            {
+                numberImg.enabled = true;
+                numberImg.color = Color.white;
+                numberImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{displayCount}");
+            }
         }
 
-        numberImg.color = new Color(1, 1, 1, 1);
+        bool hasRangeUnit = displayCount > 0;
+
+        if (rangeBox != null)
+            rangeBox.SetActive(hasRangeUnit);
+
+        if (!hasRangeUnit)
+            return;
+
+        string rangeIconName = isMyTeam ? "MyRangeAttack" : "EnemyRangeAttack";
 
         GameObject unit = objectPool.GetBattleUnit();
         unit.transform.SetParent(canvasTransform, false);
-        unit.transform.localScale = isMyTeam ? new Vector2(1, 1) : new Vector2(-1, 1);
+        unit.transform.localScale = Vector3.one;
 
         RestoreGraphicRoot(unit);
 
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = position;
-
         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
         Image img = unit.GetComponent<Image>();
-        img.sprite = SpriteCacheManager.GetSprite("KIcon/AbilityIcon/rangedAttack");
-
-        Transform childUnit = unit.transform.GetChild(0);
-        Image childImg = childUnit.GetComponent<Image>();
-
-        if (childImg != null)
+        if (img != null)
         {
-            childImg.sprite = null;
-            childImg.color = new Color(1f, 1f, 1f, 0f);
+            img.enabled = true;
+            img.color = Color.white;
+            img.sprite = SpriteCacheManager.GetSprite($"KIcon/AbilityIcon/{rangeIconName}");
         }
 
-        numberImg.sprite = SpriteCacheManager.GetSprite($"KIcon/UI_{myTeam}X{rangeUnitCount}");
+        Transform childUnit = unit.transform.childCount > 0 ? unit.transform.GetChild(0) : null;
+        if (childUnit != null)
+        {
+            Image childImg = childUnit.GetComponent<Image>();
+            if (childImg != null)
+            {
+                childImg.sprite = null;
+                childImg.color = new Color(1f, 1f, 1f, 0f);
+            }
+        }
 
-        unit.name = $"{myTeam}RangeUnit";
+        unit.name = rangeIconName;
     }
 
 

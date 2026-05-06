@@ -34,6 +34,20 @@ public class UnitDetailExplain : MonoBehaviour
     public RogueUnitDataBase unit;
     private RogueUnitDataBase cacheData;
 
+    private const int StatHealthTextId = 100;
+    private const int StatArmorTextId = 101;
+    private const int StatAttackTextId = 102;
+    private const int StatRangeTextId = 103;
+    private const int StatMobilityTextId = 1900;
+    private const int EnergyTooltipTextId = 176;
+
+    private static readonly HashSet<int> TraitAbilityIds = new()
+{
+    105, 106, 107, 108, 109, 110, 111, 112, 113,
+    139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149
+};
+
+
     private readonly Dictionary<int, string> branchName = new Dictionary<int, string>()
     {
         {0,"창병" },
@@ -81,6 +95,13 @@ public class UnitDetailExplain : MonoBehaviour
         unitImg.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
         unitFrame.sprite = SpriteCacheManager.GetFrameByRarity(unit.rarity);
 
+        BindTextTooltip(healthText, StatHealthTextId);
+        BindTextTooltip(armorText, StatArmorTextId);
+        BindTextTooltip(attackText, StatAttackTextId);
+        BindTextTooltip(mobilityText, StatMobilityTextId);
+        BindTextTooltip(ranageText, StatRangeTextId);
+        BindTextTooltip(energyText, EnergyTooltipTextId);
+        BindTextTooltip(maxEnergyText, EnergyTooltipTextId);
 
         float frameSize = unit.rarity == 4 ? 200 * 1.185f : 200 * 1.17f;
         RectTransform frameRect = unitFrame.rectTransform;
@@ -119,7 +140,12 @@ public class UnitDetailExplain : MonoBehaviour
 
             explainItem.ItemToolTip = itemToolTip;
 
-            Transform abilityBox = (idx.HasValue && idx.Value < 128) ? traitBox : skillBox;
+            int abilityId = idx ?? -1;
+
+            itemInfo.SetAbility(abilityId);
+            explainItem.ItemToolTip = itemToolTip;
+
+            Transform abilityBox = IsTraitAbility(abilityId) ? traitBox : skillBox;
             ability.transform.SetParent(abilityBox, false);
         }
 
@@ -131,4 +157,29 @@ public class UnitDetailExplain : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    // 사용처: 유닛 상세 스탯 텍스트에 마우스오버 툴팁을 연결
+    private void BindTextTooltip(TextMeshProUGUI target, int gameTextId)
+    {
+        if (target == null) return;
+
+        target.raycastTarget = true;
+
+        ItemInformation itemInfo = target.GetComponent<ItemInformation>();
+        if (itemInfo == null)
+            itemInfo = target.gameObject.AddComponent<ItemInformation>();
+
+        itemInfo.SetGameText(gameTextId);
+
+        ExplainItem explainItem = target.GetComponent<ExplainItem>();
+        if (explainItem == null)
+            explainItem = target.gameObject.AddComponent<ExplainItem>();
+
+        explainItem.ItemToolTip = itemToolTip;
+    }
+
+    // 사용처: 특성/기술 ID가 특성 영역에 들어갈 대상인지 판정
+    private static bool IsTraitAbility(int abilityId)
+    {
+        return TraitAbilityIds.Contains(abilityId);
+    }
 }

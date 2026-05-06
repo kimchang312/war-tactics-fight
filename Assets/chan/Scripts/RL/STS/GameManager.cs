@@ -405,11 +405,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 
                 // 전장 효과를 fieldId로 설정 (AbilityManager에서 사용)
                 int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
-                int nowField = RogueLikeData.Instance.GetFieldId();
-                if(nowField != 0)
-                {
-                    fieldId = nowField;
-                }
+
                 RogueLikeData.Instance.SetFieldId(fieldId);
             }
             
