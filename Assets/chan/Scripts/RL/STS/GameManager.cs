@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Map UI & Enemy Info Panel")]
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
+    [SerializeField] private GameObject topBarCanvas;         // 상단바 캔버스(씬 전환 시 표시/숨김 제어)
     [SerializeField] public GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
     [SerializeField] public GameObject restPanel;
     [SerializeField] public RewardUI rewardUI;
@@ -92,6 +93,14 @@ public class GameManager : MonoBehaviour
         {
             unitListUI = GetComponentInChildren<UnitListUI>(true);
         }
+
+        if (topBarCanvas == null)
+        {
+            // 기존 씬 구성과 호환: 인스펙터 미할당 시 이름으로 자동 탐색
+            Transform topBarTransform = transform.Find("TopBarCanvas");
+            if (topBarTransform != null)
+                topBarCanvas = topBarTransform.gameObject;
+        }
       
 
         HideAllPanels();
@@ -134,7 +143,17 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
  {
         openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
      if (scene.name != "RLmap")
+     {
+        // GameManager가 DontDestroyOnLoad라서 RLmap UI가 남아있을 수 있으므로
+        // 타이틀/전투 등 RLmap 외 씬 진입 시에는 관련 패널을 즉시 정리한다.
+        HideAllPanels();
+        CloseAllUI();
+        SetTopBarCanvasVisible(false);
         return;
+     }
+
+        // RLmap 복귀 시에는 상단바를 다시 표시
+        SetTopBarCanvasVisible(true);
 
         EnsureMapSceneUIReferences();
 
@@ -747,6 +766,19 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         PlacePanel.SetActive(false);
         restPanel.SetActive(false);
         IsPlaceMode = false;
+    }
+
+    private void SetTopBarCanvasVisible(bool visible)
+    {
+        if (topBarCanvas == null)
+        {
+            Transform topBarTransform = transform.Find("TopBarCanvas");
+            if (topBarTransform != null)
+                topBarCanvas = topBarTransform.gameObject;
+        }
+
+        if (topBarCanvas != null)
+            topBarCanvas.SetActive(visible);
     }
     public void SetCurrentStageNull()
     {
