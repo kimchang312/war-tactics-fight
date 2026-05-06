@@ -397,6 +397,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitImage: {fileID: 9094419049533252303}
+  unitFrame: {fileID: 0}
   energyText: {fileID: 5962516928246373913}
   unitNumbering: {fileID: 8240744888074779277}
   placeOrder: {fileID: 625647293106526063}
@@ -645,8 +646,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
