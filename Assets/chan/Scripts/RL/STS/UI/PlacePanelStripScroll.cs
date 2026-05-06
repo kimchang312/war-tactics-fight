@@ -47,7 +47,9 @@ public class PlacePanelStripScroll : MonoBehaviour
             wider = cw > vw + 0.5f;
         }
 
-        bool allow = countOk && (!alsoRequireContentWiderThanViewport || wider);
+        // minChildCount만 보고 horizontal을 끄면, 실제로는 컨텐츠가 viewport를 넘치는데도 스크롤이 막힐 수 있음.
+        // 그래서 "wider"면 개수 조건과 무관하게 horizontal을 켜준다.
+        bool allow = wider || (countOk && (!alsoRequireContentWiderThanViewport || wider));
 
         scrollRect.horizontal = allow;
         if (!allow)
