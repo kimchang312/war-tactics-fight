@@ -27,6 +27,16 @@ public class TopBar : MonoBehaviour
     [SerializeField] private Button optionButton;
     [SerializeField] private Button continueButton;
     [SerializeField] private Button saveAndGoTitleButton;
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     private void Awake()
     {
         optionPanel?.SetActive(false);
@@ -63,6 +73,15 @@ public class TopBar : MonoBehaviour
         optionButton?.onClick.AddListener(() => ToggleOptionPanel(true));
         continueButton?.onClick.AddListener(() => ToggleOptionPanel(false));
         saveAndGoTitleButton?.onClick.AddListener(SaveAndGoTitle);
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // RLmap 외 씬에서는 상단바 관련 토글 패널이 남지 않도록 정리
+        if (scene.name != "RLmap")
+        {
+            CloseAllTopPanels();
+        }
     }
 
     private static void MovePanelToRootIfNeeded(GameObject panel, Transform root)
@@ -138,6 +157,15 @@ public class TopBar : MonoBehaviour
         optionPanel?.SetActive(show);
     }
 
+    private void CloseAllTopPanels()
+    {
+        optionPanel?.SetActive(false);
+        ownedRelicsPanel?.SetActive(false);
+        upgradePanel?.SetActive(false);
+        upgradeStatusPanel?.SetActive(false);
+        academyPanel?.SetActive(false);
+    }
+
     private void TryRefreshUpgradeChoices()
     {
         if (upgradePanel == null || GameManager.Instance == null || !GameManager.Instance.shouldRefreshUpgradeUI)
@@ -155,8 +183,8 @@ public class TopBar : MonoBehaviour
    
         Debug.Log("💾 게임 저장 중...");
         //저장하는 함수
-        // ✅ 옵션 패널 끄기
-        optionPanel?.SetActive(false);
+        // ✅ 타이틀 이동 전에 상단바 관련 패널 모두 정리
+        CloseAllTopPanels();
         Debug.Log("🏁 타이틀 씬으로 이동 중...");
         UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // 씬 이름이 정확해야 함
     }
