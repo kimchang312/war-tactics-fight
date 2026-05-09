@@ -148,7 +148,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 타이틀/전투 등 RLmap 외 씬 진입 시에는 관련 패널을 즉시 정리한다.
         HideAllPanels();
         CloseAllUI();
-        SetTopBarCanvasVisible(false);
+        // 전투 씬에서는 옵션/유물 등을 위해 상단바 유지 (타이틀 등 그 외 씬에서는 숨김)
+        SetTopBarCanvasVisible(scene.name == "AutoBattleScene");
         return;
      }
 
