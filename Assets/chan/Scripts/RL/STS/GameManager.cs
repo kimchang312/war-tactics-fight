@@ -245,9 +245,11 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → chapter:{clickedStage.chapter}, level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
         
-        // 스테이지의 챕터 정보로 설정
-        RogueLikeData.Instance.SetChapter(clickedStage.chapter);
-        Debug.Log($"📌 챕터를 {clickedStage.chapter}로 설정했습니다.");
+        // 스테이지의 챕터 정보로 설정 (구버전 UI는 chapter 기본값 1일 수 있으므로 진행 데이터와 맞춤)
+        int chapterBeforeClick = RogueLikeData.Instance.GetChapter();
+        int resolvedChapter = Mathf.Max(clickedStage.chapter, chapterBeforeClick);
+        RogueLikeData.Instance.SetChapter(resolvedChapter);
+        Debug.Log($"📌 챕터를 {resolvedChapter}로 설정했습니다. (노드 표기:{clickedStage.chapter}, 클릭 전 데이터:{chapterBeforeClick})");
         
         // 잠겨 있으면 아무 동작 안 함
         if (clickedStage.IsLocked)
@@ -406,7 +408,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             var enemies = LoadEnemyUnits(newStage.PresetID);
             var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
 
-            string cmdName = preset.Commander ?? "";
+            string cmdName = preset?.Commander ?? "";
             var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
             panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true);
             
