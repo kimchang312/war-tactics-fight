@@ -367,7 +367,10 @@ public class EffectManager : MonoBehaviour
         effectQueue.Clear();
 
         // 재생 중인 모든 플레이어 중지
-        foreach (var player in activePlayers)
+        // Stop()이 재생 완료 처리를 동기로 이어지게 하면 ReturnPlayer()가 같은 프레임에
+        // activePlayers에서 Remove 하므로, HashSet을 직접 순회하면 InvalidOperationException이 난다.
+        var playingSnapshot = new List<EffectCDPlayer>(activePlayers);
+        foreach (var player in playingSnapshot)
         {
             player.Stop(resetVisual: true);
         }

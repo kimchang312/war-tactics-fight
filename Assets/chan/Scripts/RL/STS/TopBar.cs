@@ -70,7 +70,8 @@ public class TopBar : MonoBehaviour
         closeupgradeStatusButton.onClick.AddListener(CloseUpgradePanelsTogether);
 
         // 옵션 관련 버튼 연결
-        optionButton?.onClick.AddListener(() => ToggleOptionPanel(true));
+        // 임시: 전투 씬에서 옵션을 열면 RLmap 복귀 시 패널이 남는 문제가 있어 전투에서는 무시
+        optionButton?.onClick.AddListener(OnOptionButtonClicked);
         continueButton?.onClick.AddListener(() => ToggleOptionPanel(false));
         saveAndGoTitleButton?.onClick.AddListener(SaveAndGoTitle);
     }
@@ -152,6 +153,13 @@ public class TopBar : MonoBehaviour
         upgradeStatusPanel?.SetActive(false);
         upgradePanel?.SetActive(false);
     }
+    private void OnOptionButtonClicked()
+    {
+        if (SceneManager.GetActiveScene().name == "AutoBattleScene")
+            return;
+        ToggleOptionPanel(true);
+    }
+
     private void ToggleOptionPanel(bool show)
     {
         optionPanel?.SetActive(show);
