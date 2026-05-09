@@ -245,11 +245,10 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → chapter:{clickedStage.chapter}, level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
         
-        // 스테이지의 챕터 정보로 설정 (구버전 UI는 chapter 기본값 1일 수 있으므로 진행 데이터와 맞춤)
-        int chapterBeforeClick = RogueLikeData.Instance.GetChapter();
-        int resolvedChapter = Mathf.Max(clickedStage.chapter, chapterBeforeClick);
-        RogueLikeData.Instance.SetChapter(resolvedChapter);
-        Debug.Log($"📌 챕터를 {resolvedChapter}로 설정했습니다. (노드 표기:{clickedStage.chapter}, 클릭 전 데이터:{chapterBeforeClick})");
+        // 챕터는 진행 데이터(보스 클리어 보상)로만 변경하고, 노드 클릭으로는 변경하지 않는다.
+        // 노드의 chapter 값이 기본값(1)으로 남아 있으면 챕터가 되돌아가 전투 프리셋 분기가 깨질 수 있다.
+        int persistedChapter = RogueLikeData.Instance.GetChapter();
+        Debug.Log($"📌 현재 챕터 유지: {persistedChapter} (노드 표기:{clickedStage.chapter})");
         
         // 잠겨 있으면 아무 동작 안 함
         if (clickedStage.IsLocked)
