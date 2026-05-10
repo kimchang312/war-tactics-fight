@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -61,9 +59,22 @@ public class UpgradeStateUI : MonoBehaviour
 
     [SerializeField] private Button xBtn;
 
+    [Header("좌측 병종 아이콘 툴팁 대상")]
+    [SerializeField] private Graphic spearIcon;
+    [SerializeField] private Graphic swordIcon;
+    [SerializeField] private Graphic bowIcon;
+    [SerializeField] private Graphic heavyIcon;
+    [SerializeField] private Graphic assasinIcon;
+    [SerializeField] private Graphic lightIcon;
+    [SerializeField] private Graphic heavyCIcon;
+    [SerializeField] private Graphic supIcon;
+
     private void Awake()
     {
-        xBtn.onClick.AddListener(()=>gameObject.SetActive(false));  
+        if (xBtn != null)
+            xBtn.onClick.AddListener(() => gameObject.SetActive(false));
+
+        BindUpgradeBranchSummaryInfos();
     }
 
     private void OnEnable()
@@ -71,10 +82,13 @@ public class UpgradeStateUI : MonoBehaviour
         RefreshFromData();
     }
 
-    /// <summary>전술 개량 수치 텍스트를 RogueLikeData와 동기화합니다.</summary>
+
+    // 사용처: 전술 개량 수치 텍스트를 RogueLikeData와 동기화
     public void RefreshFromData()
     {
         UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
+        if (upgrades == null || upgrades.Length < 8)
+            return;
 
         SetLevelUI(spearAttackText, spearAttackGaugeSlots, upgrades[0].attackLevel, true);
         SetLevelUI(spearDeffenseText, spearDefenseGaugeSlots, upgrades[0].defenseLevel, false);
@@ -118,7 +132,6 @@ public class UpgradeStateUI : MonoBehaviour
         Image maxIcon = FindMaxIcon(levelText);
         bool canShowMaxIcon = isMaxLevel && maxIcon != null && maxSprite != null;
 
-        // MAX 스프라이트를 쓸 수 있으면 숫자 텍스트를 숨기고 아이콘으로 대체
         levelText.gameObject.SetActive(!canShowMaxIcon);
         if (!canShowMaxIcon)
         {
@@ -163,10 +176,86 @@ public class UpgradeStateUI : MonoBehaviour
         }
     }
 
+    // 사용처: 전술 개량 설명을 텍스트, MAX 아이콘, 게이지 칸에 동일하게 연결
+    private void BindUpgradeInfo(TextMeshProUGUI levelText, Image[] gaugeSlots, int branchIdx, bool isAttack)
+    {
+        if (levelText != null)
+        {
+            EnsureUpgradeInfo(levelText.gameObject, branchIdx, isAttack);
+
+            Image maxIcon = FindMaxIcon(levelText);
+            if (maxIcon != null)
+                EnsureUpgradeInfo(maxIcon.gameObject, branchIdx, isAttack);
+        }
+
+        if (gaugeSlots == null)
+            return;
+
+        for (int i = 0; i < gaugeSlots.Length; i++)
+        {
+            if (gaugeSlots[i] == null)
+                continue;
+
+            EnsureUpgradeInfo(gaugeSlots[i].gameObject, branchIdx, isAttack);
+        }
+    }
+
+    // 사용처: 툴팁이 필요한 UI 오브젝트에 설명 데이터와 마우스 이벤트 컴포넌트를 보장
+    private static void EnsureUpgradeInfo(GameObject target, int branchIdx, bool isAttack)
+    {
+        if (target == null)
+            return;
+
+        ItemInformation itemInformation = target.GetComponent<ItemInformation>();
+        if (itemInformation == null)
+            itemInformation = target.AddComponent<ItemInformation>();
+
+        itemInformation.SetUpgrade(branchIdx, isAttack);
+
+        if (target.GetComponent<ExplainItem>() == null)
+            target.AddComponent<ExplainItem>();
+
+        Graphic graphic = target.GetComponent<Graphic>();
+        if (graphic != null)
+            graphic.raycastTarget = true;
+    }
+
     private static string FormatLevelText(int level)
     {
         return $"{Mathf.Clamp(level, 0, MaxUpgradeLevel)}/{MaxUpgradeLevel}";
     }
 
+    // 사용처: 좌측 병종 아이콘에 병종별 전술 개량 상태 툴팁을 연결
+    private void BindUpgradeBranchSummaryInfos()
+    {
+        BindUpgradeBranchSummaryInfo(spearIcon, 0);
+        BindUpgradeBranchSummaryInfo(swordIcon, 1);
+        BindUpgradeBranchSummaryInfo(bowIcon, 2);
+        BindUpgradeBranchSummaryInfo(heavyIcon, 3);
+        BindUpgradeBranchSummaryInfo(assasinIcon, 4);
+        BindUpgradeBranchSummaryInfo(lightIcon, 5);
+        BindUpgradeBranchSummaryInfo(heavyCIcon, 6);
+        BindUpgradeBranchSummaryInfo(supIcon, 7);
+    }
+
+    // 사용처: 병종 아이콘 오브젝트에 ItemInformation, ExplainItem, RaycastTarget을 보장
+    private static void BindUpgradeBranchSummaryInfo(Graphic targetGraphic, int branchIdx)
+    {
+        if (targetGraphic == null)
+            return;
+
+        GameObject target = targetGraphic.gameObject;
+
+        ItemInformation itemInformation = target.GetComponent<ItemInformation>();
+        if (itemInformation == null)
+            itemInformation = target.AddComponent<ItemInformation>();
+
+        itemInformation.SetUpgradeBranchSummary(branchIdx);
+
+        if (target.GetComponent<ExplainItem>() == null)
+            target.AddComponent<ExplainItem>();
+
+        targetGraphic.raycastTarget = true;
+    }
 
 }

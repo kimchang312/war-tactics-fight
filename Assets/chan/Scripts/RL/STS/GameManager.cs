@@ -423,9 +423,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 newStage.stageType == StageType.Boss)
             {
                 PlacePanelComponent.ShowBattlefieldEffect(newStage.battlefieldEffect);
-                
+
+
+
                 // 전장 효과를 fieldId로 설정 (AbilityManager에서 사용)
-                int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
+                int fieldId = RogueLikeData.Instance.GetFieldId();
+
+                fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
+
 
                 RogueLikeData.Instance.SetFieldId(fieldId);
             }

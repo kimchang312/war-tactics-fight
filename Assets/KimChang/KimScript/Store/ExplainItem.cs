@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,6 +8,8 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 {
     public GameObject ItemToolTip;
 
+    private const int MaxUpgradeLevel = 5;
+
     private static readonly Dictionary<int, string> gradeText = new()
     {
         { 0, "저주" },
@@ -14,6 +17,18 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         { 10, "전설" },
         { 20, "보스" },
         { 50, "고유" },
+    };
+
+    private static readonly string[] upgradeBranchTextIds =
+    {
+        "SPEARMAN",
+        "WARRIOR",
+        "ARCHER",
+        "HEAVY_INFANTRY",
+        "ASSASSIN",
+        "LIGHT_CALVARY",
+        "HEAVY_CALVARY",
+        "SUPPORTER"
     };
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -135,7 +150,10 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         if (data.isUpgrade)
         {
-            return TryBuildUpgradeTooltip(data.upgradeId, out tooltipText);
+            if (data.upgradeTooltipMode == UpgradeTooltipMode.BranchSummary)
+                return TryBuildUpgradeBranchSummaryTooltip(data, out tooltipText);
+
+            return TryBuildUpgradeTooltip(data, out tooltipText);
         }
 
         if (data.abilityId != -1)
@@ -160,36 +178,145 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         return false;
     }
 
-    // 사용처: 전술 개량 툴팁 텍스트 생성
-    private static bool TryBuildUpgradeTooltip(int upgradeId, out string tooltipText)
+    // 사용처: 전술 개량 단계 UI에서 현재 효과와 다음 단계 효과를 툴팁으로 표시
+    private static bool TryBuildUpgradeTooltip(ItemInfoData data, out string tooltipText)
     {
         tooltipText = string.Empty;
+
+        int branchIdx = data.upgradeBranchIdx;
+        bool isAttack = data.upgradeIsAttack;
+
+        if (branchIdx < 0 && !TryResolveLegacyUpgradeId(data.upgradeId, out branchIdx, out isAttack))
+            return false;
+
+        if (branchIdx < 0 || branchIdx >= upgradeBranchTextIds.Length)
+            return false;
+
+        UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
+        if (upgrades == null || branchIdx >= upgrades.Length || upgrades[branchIdx] == null)
+            return false;
+
+        int currentLevel = isAttack ? upgrades[branchIdx].attackLevel : upgrades[branchIdx].defenseLevel;
+        currentLevel = Mathf.Clamp(currentLevel, 0, MaxUpgradeLevel);
+
+        string branchName = GameTextDB.GetByForeignKey(TextKind.Branch, branchIdx);
+        if (string.IsNullOrWhiteSpace(branchName))
+            branchName = GetFallbackBranchName(branchIdx);
+
+        string upgradeTypeName = isAttack ? "공격 강화" : "방어 강화";
+        string title = $"{branchName} {upgradeTypeName}";
+
+        string noneText = GameTextDB.GetById("UI_NONE", "없음");
+
+        string currentName = currentLevel > 0
+            ? GameTextDB.GetById(GetUpgradeNameTextId(branchIdx, isAttack, currentLevel), string.Empty)
+            : string.Empty;
+
+        string currentEffect = currentLevel > 0
+            ? GameTextDB.GetById(GetUpgradeTooltipTextId(branchIdx, isAttack, currentLevel), string.Empty)
+            : noneText;
+
+        StringBuilder sb = new StringBuilder(128);
+        sb.Append(title);
+        sb.Append('\n');
+        sb.Append("현재 단계: ");
+        sb.Append(currentLevel);
+        sb.Append('/');
+        sb.Append(MaxUpgradeLevel);
+
+        if (!string.IsNullOrWhiteSpace(currentName))
+        {
+            sb.Append('\n');
+            sb.Append("현재 전술: ");
+            sb.Append(currentName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(currentEffect))
+        {
+            sb.Append('\n');
+            sb.Append("현재 효과: ");
+            sb.Append(currentEffect);
+        }
+
+        if (currentLevel < MaxUpgradeLevel)
+        {
+            int nextLevel = currentLevel + 1;
+            string nextName = GameTextDB.GetById(GetUpgradeNameTextId(branchIdx, isAttack, nextLevel), string.Empty);
+            string nextEffect = GameTextDB.GetById(GetUpgradeTooltipTextId(branchIdx, isAttack, nextLevel), string.Empty);
+
+            if (!string.IsNullOrWhiteSpace(nextName))
+            {
+                sb.Append('\n');
+                sb.Append("다음 전술: ");
+                sb.Append(nextName);
+            }
+
+            if (!string.IsNullOrWhiteSpace(nextEffect))
+            {
+                sb.Append('\n');
+                sb.Append("다음 효과: ");
+                sb.Append(nextEffect);
+            }
+        }
+
+        tooltipText = sb.ToString();
+        return !string.IsNullOrWhiteSpace(tooltipText);
+    }
+
+    // 사용처: 기존 upgradeId만 들어오던 호출을 새 branch/isAttack 구조로 변환
+    private static bool TryResolveLegacyUpgradeId(int upgradeId, out int branchIdx, out bool isAttack)
+    {
+        branchIdx = -1;
+        isAttack = true;
 
         if (upgradeId < 0)
             return false;
 
-        var (name, description, addOne, addTwo) = GameTextData.GetLocalizedTextFull(upgradeId);
-        int branch = upgradeId % 180;
+        if (upgradeId < 16)
+        {
+            branchIdx = upgradeId / 2;
+            isAttack = (upgradeId % 2) == 0;
+            return branchIdx >= 0 && branchIdx < upgradeBranchTextIds.Length;
+        }
 
-        if (branch < 0 || branch > 7)
-            return false;
+        int legacyBranch = upgradeId % 180;
+        if (legacyBranch >= 0 && legacyBranch < upgradeBranchTextIds.Length)
+        {
+            branchIdx = legacyBranch;
+            isAttack = true;
+            return true;
+        }
 
-        string branchName = GameTextDB.GetByForeignKey(TextKind.Branch, branch);
-        if (string.IsNullOrEmpty(branchName))
-            return false;
+        return false;
+    }
 
-        UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
-        if (upgrades == null || branch >= upgrades.Length)
-            return false;
+    // 사용처: GameTextDB의 병종 텍스트가 없을 때 전술 개량 툴팁의 제목을 최소한으로 표시
+    private static string GetFallbackBranchName(int branchIdx)
+    {
+        switch (branchIdx)
+        {
+            case 0: return "창병";
+            case 1: return "전사";
+            case 2: return "궁병";
+            case 3: return "중보병";
+            case 4: return "암살자";
+            case 5: return "경기병";
+            case 6: return "중기병";
+            case 7: return "지원";
+            default: return "알 수 없음";
+        }
+    }
 
-        int attackValue = upgrades[branch].attackLevel * 10;
-        int defenseValue = upgrades[branch].defenseLevel * 10;
+    // 사용처: 전술 개량 명칭의 GameTextDB ID를 생성
+    private static string GetUpgradeNameTextId(int branchIdx, bool isAttack, int level)
+    {
+        return $"TI_{upgradeBranchTextIds[branchIdx]}_{(isAttack ? "ATTACK" : "DEFENSE")}_{level}";
+    }
 
-        string attackFull = upgrades[branch].attackLevel > 4 ? description : string.Empty;
-        string defenseFull = upgrades[branch].defenseLevel > 4 ? addTwo : string.Empty;
-
-        tooltipText = $"{branchName}의 추가 능력치\n{name} +{attackValue}%          {addOne} +{defenseValue}%\n{attackFull}           {defenseFull}";
-        return !string.IsNullOrWhiteSpace(tooltipText);
+    // 사용처: 전술 개량 효과 설명의 GameTextDB ID를 생성
+    private static string GetUpgradeTooltipTextId(int branchIdx, bool isAttack, int level)
+    {
+        return $"TI_{upgradeBranchTextIds[branchIdx]}_{(isAttack ? "ATTACK" : "DEFENSE")}_TOOLTIP_{level}";
     }
 
     // 사용처: 제목/설명 중 실제 출력할 내용이 있을 때만 툴팁 문장 구성
@@ -222,4 +349,51 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         if (ItemToolTip != null)
             ItemToolTip.SetActive(false);
     }
+
+    // 사용처: 좌측 전술 개량 병종 아이콘에 현재 공격/방어 강화 상태를 요약 표시
+    private static bool TryBuildUpgradeBranchSummaryTooltip(ItemInfoData data, out string tooltipText)
+    {
+        tooltipText = string.Empty;
+
+        int branchIdx = data.upgradeBranchIdx;
+        if (branchIdx < 0 || branchIdx >= upgradeBranchTextIds.Length)
+            return false;
+
+        UnitUpgrade[] upgrades = RogueLikeData.Instance.GetUpgradeValue();
+        if (upgrades == null || branchIdx >= upgrades.Length || upgrades[branchIdx] == null)
+            return false;
+
+        int attackLevel = Mathf.Clamp(upgrades[branchIdx].attackLevel, 0, MaxUpgradeLevel);
+        int defenseLevel = Mathf.Clamp(upgrades[branchIdx].defenseLevel, 0, MaxUpgradeLevel);
+
+        string branchName = GameTextDB.GetByForeignKey(TextKind.Branch, branchIdx);
+        if (string.IsNullOrWhiteSpace(branchName))
+            branchName = GetFallbackBranchName(branchIdx);
+
+        string attackText = GetCurrentUpgradeValueText(branchIdx, true, attackLevel);
+        string defenseText = GetCurrentUpgradeValueText(branchIdx, false, defenseLevel);
+
+        tooltipText =
+            $"{branchName}\n" +
+            $"공격강화 : {attackText}\n" +
+            $"방어강화 : {defenseText}";
+
+        return true;
+    }
+
+    // 사용처: 현재 강화 단계에 맞는 전술 개량 수치 텍스트를 GameTextDB에서 조회
+    private static string GetCurrentUpgradeValueText(int branchIdx, bool isAttack, int level)
+    {
+        if (level <= 0)
+            return "0단계 / 없음";
+
+        string textId = GetUpgradeTooltipTextId(branchIdx, isAttack, level);
+        string valueText = GameTextDB.GetById(textId, string.Empty);
+
+        if (string.IsNullOrWhiteSpace(valueText))
+            return $"{level}단계";
+
+        return $"{level}단계 / {valueText}";
+    }
+
 }

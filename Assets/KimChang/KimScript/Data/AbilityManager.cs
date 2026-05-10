@@ -755,20 +755,26 @@ public class AbilityManager
         //유산 104
         RelicManager.RunDoubleEdgedAxeOfPride(myUnits, myDeathUnits, enemyUnits, enemyDeathUnits);
 
+        // 사용처: 이번 사망 정리에서 실제 사망자가 있었는지 저장한다.
+        bool anyUnitDiedThisStep = tempMyDeathUnits.Count > 0 || tempEnemyDeathUnits.Count > 0;
+
         // 사용처: 전멸 체크
         if (myUnits.Count == 0 || enemyUnits.Count == 0)
-            return true;
+            return anyUnitDiedThisStep;
 
         // 사용처: 전열 변경 체크(어느 쪽이든 전열이 바뀌었으면 스나이퍼 계산 및 선제권 리셋)
         if ((myUnitDied || enemyUnitDied) && (myFrontUnit != myUnits[0] || enemyFrontUnit != enemyUnits[0]))
         {
             if (myFrontUnit != myUnits[0]) CalculateSniper(myUnits);
             if (enemyFrontUnit != enemyUnits[0]) CalculateSniper(enemyUnits);
+
             isFirstAttack = true;
             return true;
         }
 
-        return false;
+        // 사용처: 후열 사망만 있어도 연쇄 사망 처리를 위해 true를 반환한다.
+        // 전열 변경 여부는 AutoBattleManager.ResolveDeathsAndCheckFrontPairChanged()에서 별도로 판정한다.
+        return anyUnitDiedThisStep;
     }
     // 개별 유닛 사망 처리
     private void ProcessUnitDeath(
@@ -784,8 +790,15 @@ public class AbilityManager
         deadUnit.alive = false;
         tempDeathUnits.Add(deadUnit); // 임시 리스트에 추가
 
-        if (autoBattleUI != null)
+        // 사용처: 사망 데이터는 즉시 처리하지만, 유닛 페이드는 페이즈 애니메이션 종료 후 AutoBattleManager에서 실행한다.
+        if (autoBattleManager != null)
+        {
+            autoBattleManager.QueueDeathVisual(deadUnit, index, isMyUnit);
+        }
+        else if (autoBattleUI != null)
+        {
             autoBattleUI.ChangeInvisibleUnit(deadUnit, index, isMyUnit);
+        }
 
         if (index == 0) unitDied = true;
     }
@@ -1564,7 +1577,7 @@ public class AbilityManager
         {
             RogueUnitDataBase attacker = attackers[i];
 
-            if (!CanUseRangedAttackUnit(attacker))
+            if (!CanUseRangedAttackUnit(attacker, i))
                 continue;
 
             float damage = attacker.attackDamage;
@@ -2344,14 +2357,19 @@ public class AbilityManager
         return damage;
     }
 
-    // 사용처: 지원 페이즈에서 2번째 유닛부터 원거리 공격 가능한 유닛인지 판정한다.
+    // 사용처: 지원 페이즈에서 현재 위치 기준으로 원거리 공격 가능한 유닛인지 판정한다.
+    // range 2 = 2번째 유닛만 가능, range 3 = 2~3번째 유닛 가능.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool CanUseRangedAttackUnit(RogueUnitDataBase unit)
+    private static bool CanUseRangedAttackUnit(RogueUnitDataBase unit, int unitIndex)
     {
-        return unit != null
-            && unit.health > 0
-            && unit.range > 1f
-            && unit.rangedAttack;
+        if (unit == null || unit.health <= 0 || !unit.rangedAttack)
+            return false;
+
+        if (unitIndex <= 0)
+            return false;
+
+        int maxAttackIndex = Mathf.FloorToInt(unit.range) - 1;
+        return unitIndex <= maxAttackIndex;
     }
 
 }

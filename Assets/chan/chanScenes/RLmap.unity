@@ -1891,7 +1891,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMin.x
@@ -1899,15 +1899,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 67
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1939,11 +1939,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 589
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -178.5
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3821,6 +3821,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: 101
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -5285,6 +5288,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -6292,6 +6298,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -9535,6 +9544,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8175744221109589019, guid: c07b8825fd135f646a20a4346f9877be, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1269224702}
+    - targetCorrespondingSourceObject: {fileID: 8175744221109589019, guid: c07b8825fd135f646a20a4346f9877be, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1308492232}
     - targetCorrespondingSourceObject: {fileID: 1441056624340602258, guid: c07b8825fd135f646a20a4346f9877be, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1581788874}
@@ -9591,6 +9603,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: 5
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -10540,8 +10555,6 @@ GameObject:
   - component: {fileID: 681610798}
   - component: {fileID: 681610800}
   - component: {fileID: 681610799}
-  - component: {fileID: 681610802}
-  - component: {fileID: 681610801}
   m_Layer: 5
   m_Name: HeavyCalvary
   m_TagString: Untagged
@@ -10609,63 +10622,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 681610797}
   m_CullTransparentMesh: 1
---- !u!114 &681610801
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 681610797}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data:
-    isItem: 1
-    isRelic: 0
-    item:
-      itemId: -1
-      itemName: 
-      price: 0
-      priceRateMin: 0
-      priceRateMax: 0
-      rarity: 0
-      type: 
-      form: 
-      value: 
-      count: 0
-      condition: 
-      description: 
-    price: 0
-    units: []
-    rerollCount: 0
-    relicId: -1
-    type: 0
-    unitId: -1
-    abilityId: -1
-    isUpgrade: 1
-    upgradeId: -1
-    gameTextId: 98
-    isBuffDeBuff: 0
-    buffDeBuffId: -1
-    buffDeBuffGrade: 0
-    buffDeBuffDuration: 0
-    buffDeBuffName: 
-    buffDeBuffDescription: 
---- !u!114 &681610802
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 681610797}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ItemToolTip: {fileID: 0}
 --- !u!1 &682448697
 GameObject:
   m_ObjectHideFlags: 0
@@ -12060,6 +12016,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -12628,6 +12587,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: 103
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -12685,6 +12647,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: 102
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -12742,6 +12707,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: 100
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -14259,6 +14227,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -14657,7 +14628,6 @@ RectTransform:
   - {fileID: 1165016577}
   - {fileID: 1541897944}
   - {fileID: 676893776}
-  - {fileID: 1308492232}
   - {fileID: 495887424}
   - {fileID: 1006931564}
   - {fileID: 1372538691}
@@ -15310,6 +15280,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -15611,8 +15584,6 @@ GameObject:
   - component: {fileID: 1036284696}
   - component: {fileID: 1036284698}
   - component: {fileID: 1036284697}
-  - component: {fileID: 1036284700}
-  - component: {fileID: 1036284699}
   m_Layer: 5
   m_Name: Supporter
   m_TagString: Untagged
@@ -15680,63 +15651,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1036284695}
   m_CullTransparentMesh: 1
---- !u!114 &1036284699
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1036284695}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data:
-    isItem: 1
-    isRelic: 0
-    item:
-      itemId: -1
-      itemName: 
-      price: 0
-      priceRateMin: 0
-      priceRateMax: 0
-      rarity: 0
-      type: 
-      form: 
-      value: 
-      count: 0
-      condition: 
-      description: 
-    price: 0
-    units: []
-    rerollCount: 0
-    relicId: -1
-    type: 0
-    unitId: -1
-    abilityId: -1
-    isUpgrade: 1
-    upgradeId: -1
-    gameTextId: 99
-    isBuffDeBuff: 0
-    buffDeBuffId: -1
-    buffDeBuffGrade: 0
-    buffDeBuffDuration: 0
-    buffDeBuffName: 
-    buffDeBuffDescription: 
---- !u!114 &1036284700
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1036284695}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ItemToolTip: {fileID: 0}
 --- !u!1 &1037589408
 GameObject:
   m_ObjectHideFlags: 0
@@ -16632,7 +16546,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMin.x
@@ -16640,15 +16554,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 67
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_LocalPosition.x
@@ -16680,11 +16594,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 153
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -178.5
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -18613,7 +18527,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 5cfeef12c4b67d54fae461edf7ac153b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c64bcd2817effe749884a8230125cf0e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -18823,6 +18737,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -18868,14 +18785,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1308492231}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1151360681}
   - {fileID: 1105240311}
-  m_Father: {fileID: 972372225}
+  m_Father: {fileID: 1573700045}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -19107,8 +19024,6 @@ GameObject:
   - component: {fileID: 1347703016}
   - component: {fileID: 1347703018}
   - component: {fileID: 1347703017}
-  - component: {fileID: 1347703020}
-  - component: {fileID: 1347703019}
   m_Layer: 5
   m_Name: Assassin
   m_TagString: Untagged
@@ -19176,63 +19091,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1347703015}
   m_CullTransparentMesh: 1
---- !u!114 &1347703019
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1347703015}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data:
-    isItem: 1
-    isRelic: 0
-    item:
-      itemId: -1
-      itemName: 
-      price: 0
-      priceRateMin: 0
-      priceRateMax: 0
-      rarity: 0
-      type: 
-      form: 
-      value: 
-      count: 0
-      condition: 
-      description: 
-    price: 0
-    units: []
-    rerollCount: 0
-    relicId: -1
-    type: 0
-    unitId: -1
-    abilityId: -1
-    isUpgrade: 1
-    upgradeId: -1
-    gameTextId: 96
-    isBuffDeBuff: 0
-    buffDeBuffId: -1
-    buffDeBuffGrade: 0
-    buffDeBuffDuration: 0
-    buffDeBuffName: 
-    buffDeBuffDescription: 
---- !u!114 &1347703020
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1347703015}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ItemToolTip: {fileID: 0}
 --- !u!1 &1360821286
 GameObject:
   m_ObjectHideFlags: 0
@@ -19470,6 +19328,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 1
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: 92
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -20447,6 +20308,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -20698,8 +20562,6 @@ GameObject:
   - component: {fileID: 1497975702}
   - component: {fileID: 1497975704}
   - component: {fileID: 1497975703}
-  - component: {fileID: 1497975706}
-  - component: {fileID: 1497975705}
   m_Layer: 5
   m_Name: LightCalvary
   m_TagString: Untagged
@@ -20767,63 +20629,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1497975701}
   m_CullTransparentMesh: 1
---- !u!114 &1497975705
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1497975701}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data:
-    isItem: 1
-    isRelic: 0
-    item:
-      itemId: -1
-      itemName: 
-      price: 0
-      priceRateMin: 0
-      priceRateMax: 0
-      rarity: 0
-      type: 
-      form: 
-      value: 
-      count: 0
-      condition: 
-      description: 
-    price: 0
-    units: []
-    rerollCount: 0
-    relicId: -1
-    type: 0
-    unitId: -1
-    abilityId: -1
-    isUpgrade: 1
-    upgradeId: -1
-    gameTextId: 97
-    isBuffDeBuff: 0
-    buffDeBuffId: -1
-    buffDeBuffGrade: 0
-    buffDeBuffDuration: 0
-    buffDeBuffName: 
-    buffDeBuffDescription: 
---- !u!114 &1497975706
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1497975701}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ItemToolTip: {fileID: 0}
 --- !u!1 &1501402176
 GameObject:
   m_ObjectHideFlags: 0
@@ -20910,8 +20715,6 @@ GameObject:
   - component: {fileID: 1504407063}
   - component: {fileID: 1504407065}
   - component: {fileID: 1504407064}
-  - component: {fileID: 1504407067}
-  - component: {fileID: 1504407066}
   m_Layer: 5
   m_Name: Heavy
   m_TagString: Untagged
@@ -20979,63 +20782,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1504407062}
   m_CullTransparentMesh: 1
---- !u!114 &1504407066
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1504407062}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data:
-    isItem: 1
-    isRelic: 0
-    item:
-      itemId: -1
-      itemName: 
-      price: 0
-      priceRateMin: 0
-      priceRateMax: 0
-      rarity: 0
-      type: 
-      form: 
-      value: 
-      count: 0
-      condition: 
-      description: 
-    price: 0
-    units: []
-    rerollCount: 0
-    relicId: -1
-    type: 0
-    unitId: -1
-    abilityId: -1
-    isUpgrade: 1
-    upgradeId: -1
-    gameTextId: 95
-    isBuffDeBuff: 0
-    buffDeBuffId: -1
-    buffDeBuffGrade: 0
-    buffDeBuffDuration: 0
-    buffDeBuffName: 
-    buffDeBuffDescription: 
---- !u!114 &1504407067
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1504407062}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ItemToolTip: {fileID: 0}
 --- !u!1 &1507146528
 GameObject:
   m_ObjectHideFlags: 0
@@ -21474,6 +21220,14 @@ MonoBehaviour:
   - {fileID: 940986833}
   - {fileID: 987847163}
   xBtn: {fileID: 960810701}
+  spearIcon: {fileID: 1404991778}
+  swordIcon: {fileID: 2018949964}
+  bowIcon: {fileID: 1805249220}
+  heavyIcon: {fileID: 1504407064}
+  assasinIcon: {fileID: 1347703017}
+  lightIcon: {fileID: 1497975703}
+  heavyCIcon: {fileID: 681610799}
+  supIcon: {fileID: 1036284697}
 --- !u!1 &1549287224
 GameObject:
   m_ObjectHideFlags: 0
@@ -21756,6 +21510,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -23098,7 +22855,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMin.x
@@ -23106,15 +22863,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 67
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_LocalPosition.x
@@ -23146,11 +22903,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 371
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -178.5
       objectReference: {fileID: 0}
     - target: {fileID: 8840424759578688608, guid: 59fb88184e087b94880d71f2001e8dcb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -24282,8 +24039,6 @@ GameObject:
   - component: {fileID: 1805249219}
   - component: {fileID: 1805249221}
   - component: {fileID: 1805249220}
-  - component: {fileID: 1805249223}
-  - component: {fileID: 1805249222}
   m_Layer: 5
   m_Name: Bowman
   m_TagString: Untagged
@@ -24351,63 +24106,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1805249218}
   m_CullTransparentMesh: 1
---- !u!114 &1805249222
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1805249218}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data:
-    isItem: 1
-    isRelic: 0
-    item:
-      itemId: -1
-      itemName: 
-      price: 0
-      priceRateMin: 0
-      priceRateMax: 0
-      rarity: 0
-      type: 
-      form: 
-      value: 
-      count: 0
-      condition: 
-      description: 
-    price: 0
-    units: []
-    rerollCount: 0
-    relicId: -1
-    type: 0
-    unitId: -1
-    abilityId: -1
-    isUpgrade: 1
-    upgradeId: -1
-    gameTextId: 94
-    isBuffDeBuff: 0
-    buffDeBuffId: -1
-    buffDeBuffGrade: 0
-    buffDeBuffDuration: 0
-    buffDeBuffName: 
-    buffDeBuffDescription: 
---- !u!114 &1805249223
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1805249218}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ItemToolTip: {fileID: 0}
 --- !u!1 &1808050342
 GameObject:
   m_ObjectHideFlags: 0
@@ -24900,6 +24598,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: 176
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -25301,6 +25002,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -25493,7 +25197,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_AnchorMin.x
@@ -25501,15 +25205,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 67
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_LocalPosition.x
@@ -25541,11 +25245,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 115
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -173.5
       objectReference: {fileID: 0}
     - target: {fileID: 1747777033736716290, guid: 1aef9669248aee949a0d9f893656d332, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -26619,6 +26323,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
@@ -26867,8 +26574,6 @@ GameObject:
   - component: {fileID: 2018949963}
   - component: {fileID: 2018949965}
   - component: {fileID: 2018949964}
-  - component: {fileID: 2018949967}
-  - component: {fileID: 2018949966}
   m_Layer: 5
   m_Name: Warrior
   m_TagString: Untagged
@@ -26936,63 +26641,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2018949962}
   m_CullTransparentMesh: 1
---- !u!114 &2018949966
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2018949962}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aec5beafa783d234a9995bc50293f406, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data:
-    isItem: 1
-    isRelic: 0
-    item:
-      itemId: -1
-      itemName: 
-      price: 0
-      priceRateMin: 0
-      priceRateMax: 0
-      rarity: 0
-      type: 
-      form: 
-      value: 
-      count: 0
-      condition: 
-      description: 
-    price: 0
-    units: []
-    rerollCount: 0
-    relicId: -1
-    type: 0
-    unitId: -1
-    abilityId: -1
-    isUpgrade: 1
-    upgradeId: -1
-    gameTextId: 93
-    isBuffDeBuff: 0
-    buffDeBuffId: -1
-    buffDeBuffGrade: 0
-    buffDeBuffDuration: 0
-    buffDeBuffName: 
-    buffDeBuffDescription: 
---- !u!114 &2018949967
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2018949962}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0978a87db93fab1448f5c5c478b0c319, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ItemToolTip: {fileID: 0}
 --- !u!1 &2022410200
 GameObject:
   m_ObjectHideFlags: 0
@@ -28122,6 +27770,9 @@ MonoBehaviour:
     abilityId: -1
     isUpgrade: 0
     upgradeId: -1
+    upgradeBranchIdx: -1
+    upgradeIsAttack: 1
+    upgradeTooltipMode: 0
     gameTextId: -1
     isBuffDeBuff: 0
     buffDeBuffId: -1
