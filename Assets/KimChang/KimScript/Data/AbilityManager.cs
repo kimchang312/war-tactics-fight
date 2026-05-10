@@ -1550,14 +1550,21 @@ public class AbilityManager
 
 
     // 원거리 공격 최적화 코드
-    private (float, string) CalculateRangeAttack(List<RogueUnitDataBase> attackers, List<RogueUnitDataBase> defenders, bool isTeam, float finalDamage, bool isFirstAttack)
+    private (float, string) CalculateRangeAttack(
+        List<RogueUnitDataBase> attackers,
+        List<RogueUnitDataBase> defenders,
+        bool isTeam,
+        float finalDamage,
+        bool isFirstAttack)
     {
-        float allDamage = 0;
+        float allDamage = 0f;
         string text = "원거리 ";
+
         for (int i = 1; i < attackers.Count; i++)
         {
             RogueUnitDataBase attacker = attackers[i];
-            if (!attacker.rangedAttack || attacker.health <= 0 || attacker.range - attackers.IndexOf(attacker) < 1)
+
+            if (!CanUseRangedAttackUnit(attacker))
                 continue;
 
             float damage = attacker.attackDamage;
@@ -1565,15 +1572,11 @@ public class AbilityManager
 
             for (int k = 0; k < 2; k++)
             {
-                if (k == 1 && !attacker.doubleShot) break;
+                if (k == 1 && !attacker.doubleShot)
+                    break;
 
                 if (CalculateAccuracy(defenders[0], attacker, attackers, isTeam, isFirstAttack, i))
                     continue;
-
-                //if (damage > 0 && defenders[0].heavyArmor && !attacker.pierce)
-                //{
-                //    damage = Mathf.Max(0, damage - heavyArmorValue);
-                //}
 
                 CalculateBurning(attacker, defenders, isTeam, ref text);
                 CalculateTracker(attacker, defenders[0]);
@@ -1597,7 +1600,6 @@ public class AbilityManager
                 allDamage += damage;
             }
         }
-
 
         return (allDamage, text);
     }
@@ -2341,4 +2343,15 @@ public class AbilityManager
         }
         return damage;
     }
+
+    // 사용처: 지원 페이즈에서 2번째 유닛부터 원거리 공격 가능한 유닛인지 판정한다.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool CanUseRangedAttackUnit(RogueUnitDataBase unit)
+    {
+        return unit != null
+            && unit.health > 0
+            && unit.range > 1f
+            && unit.rangedAttack;
+    }
+
 }

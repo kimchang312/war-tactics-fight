@@ -29,6 +29,13 @@ public class AutoBattleManager : MonoBehaviour
     RogueUnitDataBase myFrontUnit;
     RogueUnitDataBase enemyFrontUnit;
 
+    // 사용처: 현재 페이즈 시작 시점의 전열 쌍을 저장하여 새 만남 발생 여부를 판정한다.
+    private RogueUnitDataBase phaseStartMyFrontUnit;
+    private RogueUnitDataBase phaseStartEnemyFrontUnit;
+
+    // 사용처: 현재 페이즈 도중 전열 쌍이 바뀌었는지 저장한다.
+    private bool phaseFrontPairChanged;
+
     bool isFirstAttack = true;
 
 
@@ -132,44 +139,69 @@ public class AutoBattleManager : MonoBehaviour
 
     private async Task HandleOneTurn()
     {
+        bool isTurnEffect = abilityManager.ProcessOneTurn();
 
-        bool isTrun = abilityManager.ProcessOneTurn();
+        if (isTurnEffect)
+        {
+            await Task.Delay((int)waittingTime);
 
-        if (isTrun)
-            await Task.Delay((int)waittingTime); // 0.5초 대기
+            UpdateUnitHp();
+
+            // 사용처: 턴 시작 효과로 죽은 유닛을 준비 페이즈 실행 전에 정리한다.
+            ResolveAllDeaths();
+            UpdateUnitUI();
+        }
 
         await Task.Yield();
     }
 
     //페이즈 관리
+    //페이즈 관리
     private async Task HandlePhase(Func<Task<bool>> phaseHandler)
     {
+        CapturePhaseStartFrontPair();
+
         bool phaseHadEffect = await phaseHandler();
 
         await Task.Delay((int)(waittingTime * 0.52f));
         UpdateUnitHp();
 
-        ResolveAllDeaths();
+        // 사용처: 페이즈 함수 내부에서 아직 검사되지 않은 사망과 전열 변경을 마지막으로 정리한다.
+        if (!phaseFrontPairChanged)
+        {
+            ResolveDeathsAndCheckFrontPairChanged();
+        }
 
         int endCode = CheckEnd();
         if (endCode == 3)
         {
-            // 전투 진행
-            switch (currentState)
+            if (phaseFrontPairChanged && currentState != BattleState.Start)
             {
-                case BattleState.Start:
-                    currentState = BattleState.Preparation;
-                    break;
-                case BattleState.Preparation:
-                    currentState = BattleState.Crash;
-                    break;
-                case BattleState.Crash:
-                    currentState = BattleState.Support;
-                    break;
-                case BattleState.Support:
-                    isFirstAttack = false;
-                    currentState = BattleState.Preparation;
-                    break;
+                // 사용처: 새로운 전열 쌍이 만났으므로 다음 페이즈가 아니라 준비 페이즈부터 다시 시작한다.
+                isFirstAttack = true;
+                currentState = BattleState.Preparation;
+            }
+            else
+            {
+                switch (currentState)
+                {
+                    case BattleState.Start:
+                        currentState = BattleState.Preparation;
+                        break;
+
+                    case BattleState.Preparation:
+                        currentState = BattleState.Crash;
+                        break;
+
+                    case BattleState.Crash:
+                        currentState = BattleState.Support;
+                        break;
+
+                    case BattleState.Support:
+                        isFirstAttack = false;
+                        currentState = BattleState.Preparation;
+                        break;
+                }
             }
         }
         else
@@ -182,6 +214,7 @@ public class AutoBattleManager : MonoBehaviour
 
         isProcessing = false;
     }
+
 
     //유닛 갯수 최신화
     private void UpdateUnitCount()
@@ -197,6 +230,7 @@ public class AutoBattleManager : MonoBehaviour
         autoBattleUI.UpdateUnitCountUI(myUnitCount, enemyUnitCount);
     }
 
+
     // 유닛 생성UI 호출
     private void CallCreateUnit()
     {
@@ -204,16 +238,14 @@ public class AutoBattleManager : MonoBehaviour
             return;
 
         List<RogueUnitDataBase> myRangeUnits = new();
-        List<RogueUnitDataBase> enemyRangUnits = new();
+        List<RogueUnitDataBase> enemyRangeUnits = new();
 
         if (myUnits != null)
         {
             for (int i = 1; i < myUnits.Count; i++)
             {
-                if (myUnits[i].rangedAttack && (myUnits[i].range - i > 0) && myUnits[i].health > 0)
-                {
+                if (CanUseRangedAttackUnit(myUnits[i]))
                     myRangeUnits.Add(myUnits[i]);
-                }
             }
         }
 
@@ -221,10 +253,8 @@ public class AutoBattleManager : MonoBehaviour
         {
             for (int i = 1; i < enemyUnits.Count; i++)
             {
-                if (enemyUnits[i].rangedAttack && (enemyUnits[i].range - i > 0) && enemyUnits[i].health > 0)
-                {
-                    enemyRangUnits.Add(enemyUnits[i]);
-                }
+                if (CanUseRangedAttackUnit(enemyUnits[i]))
+                    enemyRangeUnits.Add(enemyUnits[i]);
             }
         }
 
@@ -236,8 +266,26 @@ public class AutoBattleManager : MonoBehaviour
             ? abilityManager.CalculateDodge(enemyUnits[0], false, isFirstAttack)
             : 0f;
 
-        autoBattleUI.CreateUnitBox(myUnits ?? new List<RogueUnitDataBase>(), enemyUnits ?? new List<RogueUnitDataBase>(), myDodge, enemyDodge, myRangeUnits, enemyRangUnits);
+        autoBattleUI.CreateUnitBox(
+            myUnits ?? new List<RogueUnitDataBase>(),
+            enemyUnits ?? new List<RogueUnitDataBase>(),
+            myDodge,
+            enemyDodge,
+            myRangeUnits,
+            enemyRangeUnits
+        );
     }
+
+    // 사용처: 전열을 제외한 2번째 유닛부터 원거리 공격 UI 표시 대상인지 판정한다.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool CanUseRangedAttackUnit(RogueUnitDataBase unit)
+    {
+        return unit != null
+            && unit.health > 0
+            && unit.range > 1f
+            && unit.rangedAttack;
+    }
+
     //전투 입장
     private void ProcessEnter()
     {
@@ -256,6 +304,54 @@ public class AutoBattleManager : MonoBehaviour
     {
         return myUnits != null && enemyUnits != null && myUnits.Count > 0 && enemyUnits.Count > 0;
     }
+    // 사용처: 현재 아군 전열 유닛을 빠르게 가져온다.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private RogueUnitDataBase GetMyFrontUnitOrNull()
+    {
+        return myUnits != null && myUnits.Count > 0 ? myUnits[0] : null;
+    }
+
+    // 사용처: 현재 적군 전열 유닛을 빠르게 가져온다.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private RogueUnitDataBase GetEnemyFrontUnitOrNull()
+    {
+        return enemyUnits != null && enemyUnits.Count > 0 ? enemyUnits[0] : null;
+    }
+
+    // 사용처: 페이즈 시작 시점의 전열 쌍을 저장한다.
+    private void CapturePhaseStartFrontPair()
+    {
+        phaseStartMyFrontUnit = GetMyFrontUnitOrNull();
+        phaseStartEnemyFrontUnit = GetEnemyFrontUnitOrNull();
+
+        myFrontUnit = phaseStartMyFrontUnit;
+        enemyFrontUnit = phaseStartEnemyFrontUnit;
+
+        phaseFrontPairChanged = false;
+    }
+
+    // 사용처: 페이즈 시작 시점과 현재 전열 쌍이 달라졌는지 확인한다.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsPhaseStartFrontPairChanged()
+    {
+        return phaseStartMyFrontUnit != GetMyFrontUnitOrNull()
+            || phaseStartEnemyFrontUnit != GetEnemyFrontUnitOrNull();
+    }
+
+    // 사용처: 사망 정리 후 새 전열 쌍이 만들어졌는지 확인하고, 새 만남이면 준비 페이즈 재진입 상태로 만든다.
+    private bool ResolveDeathsAndCheckFrontPairChanged()
+    {
+        ResolveAllDeaths();
+
+        if (!IsPhaseStartFrontPairChanged())
+            return false;
+
+        phaseFrontPairChanged = true;
+        isFirstAttack = true;
+        UpdateUnitUI();
+
+        return true;
+    }
     //전투 당 한번
     private bool StartBattlePhase()
     {
@@ -268,19 +364,29 @@ public class AutoBattleManager : MonoBehaviour
         return abilityManager.ProcessStartBattle(myUnits, enemyUnits, true)
             | abilityManager.ProcessStartBattle(enemyUnits, myUnits, false);
     }
+
     //준비 페이즈
     private bool PreparationPhase()
     {
         if (!CanRunBattlePhase())
             return false;
 
-        //전열 유닛
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
 
-        bool isPreparation =
-            (abilityManager.ProcessPreparationAbility(myUnits, enemyUnits, isFirstAttack, true) |
-             abilityManager.ProcessPreparationAbility(enemyUnits, myUnits, isFirstAttack, false));
+        bool isPreparation = false;
+
+        isPreparation |= abilityManager.ProcessPreparationAbility(myUnits, enemyUnits, isFirstAttack, true);
+
+        // 사용처: 아군 준비 능력으로 사망/교체가 발생하면 적 준비 능력을 실행하지 않고 새 만남으로 처리한다.
+        if (ResolveDeathsAndCheckFrontPairChanged() || !CanRunBattlePhase())
+            return isPreparation;
+
+        isPreparation |= abilityManager.ProcessPreparationAbility(enemyUnits, myUnits, isFirstAttack, false);
+
+        // 사용처: 적군 준비 능력 이후 전열 쌍 변경 여부를 확인한다.
+        ResolveDeathsAndCheckFrontPairChanged();
+
         return isPreparation;
     }
 
@@ -290,12 +396,19 @@ public class AutoBattleManager : MonoBehaviour
         if (!CanRunBattlePhase())
             return;
 
-        //전열 유닛
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
 
         abilityManager.ProcessChrashAbility(myUnits, enemyUnits, isFirstAttack, true);
+
+        // 사용처: 아군 충돌 처리로 전열 쌍이 바뀌면 적 충돌 처리를 실행하지 않고 준비 페이즈로 되돌린다.
+        if (ResolveDeathsAndCheckFrontPairChanged() || !CanRunBattlePhase())
+            return;
+
         abilityManager.ProcessChrashAbility(enemyUnits, myUnits, isFirstAttack, false);
+
+        // 사용처: 적군 충돌 처리 이후 전열 쌍 변경 여부를 확인한다.
+        ResolveDeathsAndCheckFrontPairChanged();
     }
 
     //지원 페이즈
@@ -304,13 +417,19 @@ public class AutoBattleManager : MonoBehaviour
         if (!CanRunBattlePhase())
             return;
 
-        //전열 유닛
         myFrontUnit = myUnits[0];
         enemyFrontUnit = enemyUnits[0];
 
         abilityManager.ProcessSupportAbility(myUnits, enemyUnits, true, isFirstAttack);
+
+        // 사용처: 아군 지원 처리로 전열 쌍이 바뀌면 적 지원 처리를 실행하지 않고 준비 페이즈로 되돌린다.
+        if (ResolveDeathsAndCheckFrontPairChanged() || !CanRunBattlePhase())
+            return;
+
         abilityManager.ProcessSupportAbility(enemyUnits, myUnits, false, isFirstAttack);
 
+        // 사용처: 적군 지원 처리 이후 전열 쌍 변경 여부를 확인한다.
+        ResolveDeathsAndCheckFrontPairChanged();
     }
 
     //유닛 UI최신화
