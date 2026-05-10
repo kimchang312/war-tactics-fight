@@ -22,7 +22,6 @@ public class SaveAndExit : MonoBehaviour
         }
         // 맵 저장
         SaveSystem.SaveStageFull(mapGenerator.NodeDictionary);
-        Debug.Log("맵 저장 완료!");
 
         // 타이틀 씬으로 이동
         SceneManager.LoadScene("Title");

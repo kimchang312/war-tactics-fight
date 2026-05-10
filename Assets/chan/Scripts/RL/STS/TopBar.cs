@@ -27,6 +27,9 @@ public class TopBar : MonoBehaviour
     [SerializeField] private Button optionButton;
     [SerializeField] private Button continueButton;
     [SerializeField] private Button saveAndGoTitleButton;
+
+    [SerializeField] private GameObject loadingCanvas;
+
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -172,6 +175,7 @@ public class TopBar : MonoBehaviour
         upgradePanel?.SetActive(false);
         upgradeStatusPanel?.SetActive(false);
         academyPanel?.SetActive(false);
+        loadingCanvas?.SetActive(false);
     }
 
     private void TryRefreshUpgradeChoices()
@@ -188,12 +192,8 @@ public class TopBar : MonoBehaviour
 
     private void SaveAndGoTitle()
     {
-   
-        Debug.Log("💾 게임 저장 중...");
-        //저장하는 함수
-        // ✅ 타이틀 이동 전에 상단바 관련 패널 모두 정리
+        Debug.Log("실행");
         CloseAllTopPanels();
-        Debug.Log("🏁 타이틀 씬으로 이동 중...");
         UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // 씬 이름이 정확해야 함
     }
 }
