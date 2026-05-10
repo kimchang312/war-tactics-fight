@@ -30,6 +30,8 @@ public class AutoBattleUI : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI _myDodge;
     [SerializeField] private TextMeshProUGUI _enemyDodge;
+    [SerializeField] private GameObject myFrontUnit;
+    [SerializeField] private GameObject enemyFrontUnit;
     [SerializeField] private Slider myHpBar;
     [SerializeField] private Slider enemyHpBar;
     [SerializeField] private Slider mySecondHpBar;
