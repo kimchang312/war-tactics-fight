@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,8 +14,30 @@ public class EventUIManager : MonoBehaviour
 
     [SerializeField] private UnitListUI unitListUI;
 
+    private float choiceButtonWidth = 580f;
+    private float choiceButtonMinHeight = 80f;
+    private float choiceButtonTextLeft = 32f;
+    private float choiceButtonTextRight = 32f;
+    private float choiceButtonTextTop = 10f;
+    private float choiceButtonTextBottom = 10f;
+
+    private bool useChoiceIcon = false;
+    private float choiceIconSize = 56f;
+    private float choiceIconLeft = 24f;
+    private float choiceIconTextGap = 16f;
+
+    [SerializeField] private Sprite defaultChoiceIcon;
+    [SerializeField] private Sprite battleIcon;
+    [SerializeField] private Sprite goldIcon;
+    [SerializeField] private Sprite moraleIcon;
+    [SerializeField] private Sprite energyIcon;
+    [SerializeField] private Sprite relicIcon;
+    [SerializeField] private Sprite unitIcon;
+    [SerializeField] private Sprite disabledIcon;
+
     private void Awake()
     {
+        ConfigureChoiceButtonParentLayout();
         ResetUI();
     }
 
@@ -49,34 +72,15 @@ public class EventUIManager : MonoBehaviour
             {
                 child.SetActive(true);
 
-                var choiceData = eventChoiceDatas[i];
-                string resultPart = "";
-                // choiceResultText 처리
-                if (choiceData.choiceResultText != null && choiceData.choiceResultText.Count > 0)
-                {
-
-                    if (choiceData.choiceResultText.Count == 1)
-                    {
-                        resultPart = $" <color=green>{choiceData.choiceResultText[0]}</color>";
-
-                    }
-                    else if (choiceData.choiceResultText.Count >= 2)
-                    {
-                        resultPart = $" <color=green>{choiceData.choiceResultText[0]}</color> <color=red>{choiceData.choiceResultText[1]}</color>";
-                    }
-                }
-
-                // 버튼 텍스트 = choiceText + resultPart
+                EventChoiceData choiceData = eventChoiceDatas[i];
                 string choiceText = GetChoiceText(choiceData);
-                resultPart = BuildChoiceResultText(choiceData);
-                child.GetComponentInChildren<TextMeshProUGUI>().text = choiceText + resultPart;
+                bool canSelect = EventManager.CheckChoiceRequireCondition(choiceData);
+
+                ApplyChoiceButtonView(child, choiceData, choiceText, canSelect);
 
                 Button btn = child.GetComponent<Button>();
                 btn.onClick.RemoveAllListeners();
-
-                btn.interactable = EventManager.CheckChoiceRequireCondition(choiceData);
-
-                int index = i;
+                btn.interactable = canSelect;
                 btn.onClick.AddListener(() => HandleChoice(choiceData));
             }
             else
@@ -84,7 +88,7 @@ public class EventUIManager : MonoBehaviour
                 child.SetActive(false);
             }
         }
-
+        LayoutRebuilder.ForceRebuildLayoutImmediate(choiceBtns as RectTransform);
     }
 
     //선택지 버튼 눌렀을때 실행
@@ -239,9 +243,16 @@ public class EventUIManager : MonoBehaviour
         return GetTextOrFallback(TextKind.EventDesc, 100, choiceData.choiceId, choiceData.choiceText);
     }
 
-    // 사용처: 선택지 버튼에 성공/실패 결과 요약을 붙임
-    private static string BuildChoiceResultText(EventChoiceData choiceData)
+    // 사용처: 선택지 버튼 텍스트를 기본 흰색, 위험/소모 붉은색, 보상/이득 초록색으로 조합
+    private static string BuildChoiceButtonRichText(EventChoiceData choiceData, string choiceText, bool canSelect)
     {
+        if (!canSelect)
+        {
+            return
+                $"<color=#9A9A9A>{choiceText}</color>\n" +
+                "<color=#B8A98E>조건 미충족</color>";
+        }
+
         string positive = GameTextDB.Get(TextKind.EventDesc, 110, choiceData.choiceId);
         string negative = GameTextDB.Get(TextKind.EventDesc, 111, choiceData.choiceId);
 
@@ -257,20 +268,203 @@ public class EventUIManager : MonoBehaviour
             if (string.IsNullOrEmpty(resultDescription))
                 resultDescription = choiceData.resultDescription;
 
-            return string.IsNullOrEmpty(resultDescription)
-                ? string.Empty
-                : $" <color=green>{resultDescription}</color>";
+            positive = resultDescription;
         }
 
-        if (!string.IsNullOrEmpty(positive) && !string.IsNullOrEmpty(negative))
-            return $" <color=green>{positive}</color> <color=red>{negative}</color>";
+        StringBuilder sb = new StringBuilder(128);
+
+        sb.Append("<color=#FFFFFF>");
+        sb.Append(choiceText);
+        sb.Append("</color>");
+
+        if (!string.IsNullOrEmpty(negative))
+        {
+            sb.Append('\n');
+            sb.Append("<color=#FF5A3C>");
+            sb.Append(negative);
+            sb.Append("</color>");
+        }
 
         if (!string.IsNullOrEmpty(positive))
-            return $" <color=green>{positive}</color>";
+        {
+            sb.Append('\n');
+            sb.Append("<color=#8DFF4A>");
+            sb.Append(positive);
+            sb.Append("</color>");
+        }
 
-        return $" <color=red>{negative}</color>";
+        return sb.ToString();
+    }
+
+    // 사용처: 선택지 버튼 부모와 버튼 루트의 레이아웃 충돌을 방지하고 고정 폭, 유동 높이 구조로 설정
+    private void ConfigureChoiceButtonParentLayout()
+    {
+        if (choiceBtns == null)
+            return;
+
+        VerticalLayoutGroup layoutGroup = choiceBtns.GetComponent<VerticalLayoutGroup>();
+        if (layoutGroup != null)
+        {
+            layoutGroup.childControlWidth = true;
+            layoutGroup.childControlHeight = true;
+            layoutGroup.childForceExpandWidth = false;
+            layoutGroup.childForceExpandHeight = false;
+        }
+
+        for (int i = 0; i < choiceBtns.childCount; i++)
+        {
+            GameObject buttonObject = choiceBtns.GetChild(i).gameObject;
+
+            ContentSizeFitter fitter = buttonObject.GetComponent<ContentSizeFitter>();
+            if (fitter != null)
+                fitter.enabled = false;
+
+            HorizontalLayoutGroup horizontalLayout = buttonObject.GetComponent<HorizontalLayoutGroup>();
+            if (horizontalLayout != null)
+                horizontalLayout.enabled = false;
+
+            LayoutElement buttonLayout = buttonObject.GetComponent<LayoutElement>();
+            if (buttonLayout == null)
+                buttonLayout = buttonObject.AddComponent<LayoutElement>();
+
+            buttonLayout.minWidth = choiceButtonWidth;
+            buttonLayout.preferredWidth = choiceButtonWidth;
+            buttonLayout.flexibleWidth = 0f;
+        }
     }
 
 
+    // 사용처: 선택지 버튼의 텍스트 색상, 비활성 상태, 아이콘 예약 영역, 유동 높이를 적용
+    private void ApplyChoiceButtonView(GameObject buttonObject, EventChoiceData choiceData, string choiceText, bool canSelect)
+    {
+        if (buttonObject == null)
+            return;
 
+        bool hasIcon = ApplyReservedChoiceIcon(buttonObject, choiceData, canSelect);
+
+        TextMeshProUGUI text = buttonObject.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (text == null)
+            return;
+
+        string displayText = BuildChoiceButtonRichText(choiceData, choiceText, canSelect);
+
+        text.richText = true;
+        text.enableWordWrapping = true;
+        text.overflowMode = TextOverflowModes.Overflow;
+        text.color = Color.white;
+        text.text = displayText;
+
+        RectTransform textRect = text.rectTransform;
+        textRect.anchorMin = new Vector2(0f, 0f);
+        textRect.anchorMax = new Vector2(1f, 1f);
+        textRect.pivot = new Vector2(0.5f, 0.5f);
+
+        float left = hasIcon
+            ? choiceIconLeft + choiceIconSize + choiceIconTextGap
+            : choiceButtonTextLeft;
+
+        textRect.offsetMin = new Vector2(left, choiceButtonTextBottom);
+        textRect.offsetMax = new Vector2(-choiceButtonTextRight, -choiceButtonTextTop);
+
+        float textWidth = choiceButtonWidth - left - choiceButtonTextRight;
+        textWidth = Mathf.Max(1f, textWidth);
+
+        Vector2 preferredTextSize = text.GetPreferredValues(displayText, textWidth, Mathf.Infinity);
+
+        float buttonHeight = preferredTextSize.y + choiceButtonTextTop + choiceButtonTextBottom;
+        buttonHeight = Mathf.Max(choiceButtonMinHeight, Mathf.Ceil(buttonHeight));
+
+        LayoutElement buttonLayout = buttonObject.GetComponent<LayoutElement>();
+        if (buttonLayout == null)
+            buttonLayout = buttonObject.AddComponent<LayoutElement>();
+
+        buttonLayout.minWidth = choiceButtonWidth;
+        buttonLayout.preferredWidth = choiceButtonWidth;
+        buttonLayout.flexibleWidth = 0f;
+
+        buttonLayout.minHeight = buttonHeight;
+        buttonLayout.preferredHeight = buttonHeight;
+        buttonLayout.flexibleHeight = 0f;
+    }
+
+    // 사용처: 추후 선택지 아이콘이 추가되면 자동 사용하고, 현재 아이콘이 없으면 텍스트 전용 버튼으로 처리
+    private bool ApplyReservedChoiceIcon(GameObject buttonObject, EventChoiceData choiceData, bool canSelect)
+    {
+        Transform iconTransform = buttonObject.transform.Find("Icon");
+        if (iconTransform == null)
+            return false;
+
+        Image iconImage = iconTransform.GetComponent<Image>();
+        if (iconImage == null)
+        {
+            iconTransform.gameObject.SetActive(false);
+            return false;
+        }
+
+        Sprite iconSprite = useChoiceIcon ? GetReservedChoiceIcon(choiceData, canSelect) : null;
+
+        if (iconSprite == null)
+        {
+            iconImage.enabled = false;
+            iconTransform.gameObject.SetActive(false);
+            return false;
+        }
+
+        iconTransform.gameObject.SetActive(true);
+        iconImage.enabled = true;
+        iconImage.sprite = iconSprite;
+        iconImage.preserveAspect = true;
+
+        RectTransform iconRect = iconTransform as RectTransform;
+        if (iconRect != null)
+        {
+            iconRect.anchorMin = new Vector2(0f, 0.5f);
+            iconRect.anchorMax = new Vector2(0f, 0.5f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.anchoredPosition = new Vector2(choiceIconLeft + choiceIconSize * 0.5f, 0f);
+            iconRect.sizeDelta = new Vector2(choiceIconSize, choiceIconSize);
+        }
+
+        return true;
+    }
+
+    // 사용처: 선택지 결과 타입을 기준으로 추후 추가될 아이콘 Sprite를 반환
+    private Sprite GetReservedChoiceIcon(EventChoiceData choiceData, bool canSelect)
+    {
+        if (!canSelect && disabledIcon != null)
+            return disabledIcon;
+
+        if (choiceData == null || choiceData.resultType == null || choiceData.resultType.Count == 0)
+            return defaultChoiceIcon;
+
+        for (int i = 0; i < choiceData.resultType.Count; i++)
+        {
+            string resultTypeName = choiceData.resultType[i].ToString();
+
+            switch (resultTypeName)
+            {
+                case "Battle":
+                    return battleIcon != null ? battleIcon : defaultChoiceIcon;
+
+                case "Gold":
+                    return goldIcon != null ? goldIcon : defaultChoiceIcon;
+
+                case "Morale":
+                    return moraleIcon != null ? moraleIcon : defaultChoiceIcon;
+
+                case "Energy":
+                    return energyIcon != null ? energyIcon : defaultChoiceIcon;
+
+                case "Relic":
+                case "Curse":
+                    return relicIcon != null ? relicIcon : defaultChoiceIcon;
+
+                case "Unit":
+                case "Change":
+                    return unitIcon != null ? unitIcon : defaultChoiceIcon;
+            }
+        }
+
+        return defaultChoiceIcon;
+    }
 }

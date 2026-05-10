@@ -17,8 +17,6 @@ public class SettingsUI : MonoBehaviour
 
     [Header("Ingame Buttons Group")]
     [SerializeField] private GameObject ingameButtonsArea; // '전투포기', '저장' 버튼을 담은 부모 오브젝트
-    [SerializeField] private Button giveUpButton;
-    [SerializeField] private Button saveExitButton;
 
     [Header("Confirmation Popup")]
     [SerializeField] private GameObject confirmGiveUpPopup; // 새로 만든 팝업 오브젝트 연결
@@ -45,7 +43,7 @@ public class SettingsUI : MonoBehaviour
         ingameButtonsArea.SetActive(isIngame);
 
         // 저장 버튼은 미구현 상태이므로 상호작용만 꺼둠
-        saveExitButton.interactable = false;
+        //saveExitButton.interactable = false;
 
         // 설정창이 켜질 때 확인 팝업은 무조건 꺼진 상태로 초기화
         if (confirmGiveUpPopup != null)
@@ -87,16 +85,6 @@ public class SettingsUI : MonoBehaviour
     public void OnClickCancelGiveUp()
     {
         confirmGiveUpPopup.SetActive(false);
-    }
-
-    // 3. 팝업창에서 '포기(Yes)'를 누르면 호출됨 (실제 처리)
-    public void OnClickConfirmGiveUp()
-    {
-        // TODO: 포기 시 적용할 페널티 처리 로직 (기력 감소 등 데이터 저장)
-
-        confirmGiveUpPopup.SetActive(false); // 팝업 닫기
-        this.gameObject.SetActive(false);    // 설정창 전체 닫기
-        SceneManager.LoadScene("Title");     // 타이틀로 이동
     }
 
     #endregion
