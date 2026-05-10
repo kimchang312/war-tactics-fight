@@ -378,8 +378,6 @@ public class BGMManager : MonoBehaviour
 
             sePlayer.SetSEKey(GetButtonSEKey(button));
         }
-
-        Debug.Log($"[BGMManager] 버튼 클릭음 자동 등록 완료: {addedCount}개");
     }
 
     // 사용처: 버튼 오브젝트 이름에 따라 기본 클릭음 또는 보물상자 클릭음을 선택
