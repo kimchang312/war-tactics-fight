@@ -42,7 +42,7 @@ public class UpgradeUI : MonoBehaviour
 
             var typeName = UnitTypeNames[unitType];
             var upgradeType = isAttack ? "공격" : "방어";
-            upgradeName = $"{typeName} {upgradeType} {nextLevel}";
+            upgradeName = $"{typeName} {upgradeType} 강화\nLv. {currentLevel} -> Lv. {nextLevel}";
             upgradeCost = cost.ToString();
         }
     }

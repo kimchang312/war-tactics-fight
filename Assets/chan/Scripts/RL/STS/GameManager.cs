@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     [Header("Map UI & Enemy Info Panel")]
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
     [SerializeField] private GameObject topBarCanvas;         // 상단바 캔버스(씬 전환 시 표시/숨김 제어)
+    [SerializeField] private GameObject nodeInfoUIImage;      // 노드 정보 UI 이미지(표시/숨김 토글용)
     [SerializeField] public GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
     [SerializeField] public GameObject restPanel;
     [SerializeField] public RewardUI rewardUI;
@@ -101,6 +102,9 @@ public class GameManager : MonoBehaviour
             if (topBarTransform != null)
                 topBarCanvas = topBarTransform.gameObject;
         }
+
+        if (nodeInfoUIImage != null)
+            nodeInfoUIImage.SetActive(false);
       
 
         HideAllPanels();
@@ -829,6 +833,17 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         
         // PlacePanel에 지휘관 정보 표시
         PlacePanelComponent.ShowCommanderInfo(cmdName);
+    }
+
+    public void ToggleNodeInfoUI()
+    {
+        if (nodeInfoUIImage == null)
+        {
+            Debug.LogWarning("GameManager: nodeInfoUIImage가 연결되지 않았습니다.");
+            return;
+        }
+
+        nodeInfoUIImage.SetActive(!nodeInfoUIImage.activeSelf);
     }
 
     private void changemorale()
