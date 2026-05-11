@@ -18,6 +18,10 @@ public class ItemInfoData
 
     public bool isUpgrade = false;
     public int upgradeId = -1;
+    public int upgradeBranchIdx = -1;
+    public bool upgradeIsAttack = true;
+    public UpgradeTooltipMode upgradeTooltipMode = UpgradeTooltipMode.Single;
+
     public int gameTextId = -1;
 
     public bool isBuffDeBuff = false;
@@ -26,6 +30,12 @@ public class ItemInfoData
     public int buffDeBuffDuration = 0;
     public string buffDeBuffName = "";
     public string buffDeBuffDescription = "";
+}
+
+public enum UpgradeTooltipMode
+{
+    Single,
+    BranchSummary
 }
 
 public enum RewardType

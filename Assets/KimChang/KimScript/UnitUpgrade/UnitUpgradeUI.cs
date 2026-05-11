@@ -110,48 +110,6 @@ public class UnitUpgradeUI : MonoBehaviour
         oneUpgradeWindow.SetActive(true);
     }
 
-    /*//유닛 생성
-    public void CreateUnit()
-    {
-        if (unitPrefab == null || unitParent == null)
-        {
-            Debug.LogWarning("UnitPrefab or UnitParent is not assigned!");
-            return;
-        }
-
-        int branchCount = 7; // 생성할 유닛 수
-        float xDistance = 375; // X축 간격
-        float yDistance = 300; // Y축 간격
-        Vector3 originPos = new (-640, 110, 0); // 시작 위치
-
-        for (int i = 0; i < branchCount; i++)
-        {
-            // 유닛 생성
-            GameObject unit = Instantiate(unitPrefab, unitParent);
-
-            // RectTransform 위치 설정
-            RectTransform rectTransform = unit.GetComponent<RectTransform>();
-
-            // X, Y 좌표 계산
-            float xPos = originPos.x + (i < 4 ? i : i - 4) * xDistance;
-            float yPos = originPos.y + (i > 3 ? -yDistance : 0);
-
-            // 위치 설정
-            rectTransform.anchoredPosition = new Vector2(xPos, yPos);
-
-            //유닛 이름 변경
-            unit.name = $"Unit{i}";
-
-            // 유닛 이미지 변경
-            ChangeUnitImage(unit, i);
-
-            // 강화 수치를 바탕으로 자식 UI 크기 조정
-            AdjustUnitChildSize(unit, i);
-
-            // 유닛 클릭 이벤트 추가
-            AddClickEventToUnit(unit);
-        }
-    }*/
 
     // 유닛 이미지 변경 메서드
     private void ChangeUnitImage(GameObject unit, int index)

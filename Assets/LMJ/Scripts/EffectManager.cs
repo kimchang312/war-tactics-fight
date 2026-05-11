@@ -377,8 +377,6 @@ public class EffectManager : MonoBehaviour
 
         activePlayers.Clear();
         isProcessingQueue = false;
-
-        Debug.Log("[EffectManager] 모든 이펙트 취소됨.");
     }
 
     /// <summary>

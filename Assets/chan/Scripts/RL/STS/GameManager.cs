@@ -141,13 +141,17 @@ public class GameManager : MonoBehaviour
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
  {
-        openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
+     openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
      if (scene.name != "RLmap")
      {
         // GameManager가 DontDestroyOnLoad라서 RLmap UI가 남아있을 수 있으므로
         // 타이틀/전투 등 RLmap 외 씬 진입 시에는 관련 패널을 즉시 정리한다.
-        HideAllPanels();
-        CloseAllUI();
+        if(scene.name != "Title")
+            {
+                HideAllPanels();
+
+            }
+            CloseAllUI();
         // 전투 씬에서는 옵션/유물 등을 위해 상단바 유지 (타이틀 등 그 외 씬에서는 숨김)
         SetTopBarCanvasVisible(scene.name == "AutoBattleScene");
         return;
@@ -423,9 +427,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 newStage.stageType == StageType.Boss)
             {
                 PlacePanelComponent.ShowBattlefieldEffect(newStage.battlefieldEffect);
-                
+
+
+
                 // 전장 효과를 fieldId로 설정 (AbilityManager에서 사용)
-                int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
+                int fieldId = RogueLikeData.Instance.GetFieldId();
+
+                fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
+
 
                 RogueLikeData.Instance.SetFieldId(fieldId);
             }

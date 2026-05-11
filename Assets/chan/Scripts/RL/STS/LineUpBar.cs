@@ -9,9 +9,9 @@ public class LineUpBar : MonoBehaviour
     [Header("할당할 프리팹 & Content")]
     public GameObject unitUIPrefab;      // UnitItemPrefab
     public RectTransform contentParent;    // ScrollView → Content
-    [SerializeField] private Button openUnitSort;
+    //[SerializeField] private Button openUnitSort;
     
-    [SerializeField] private UnitListUI unitListUI;  //유닛 리스트
+    //[SerializeField] private UnitListUI unitListUI;  //유닛 리스트
   
     private void Awake()
     {
@@ -22,7 +22,7 @@ public class LineUpBar : MonoBehaviour
         RefreshUnitList();
 
         //유닛 리스트 가져오기
-        unitListUI = GameManager.Instance.unitListUI;
+        //unitListUI = GameManager.Instance.unitListUI;
 
         //GameObject.Find("CloseBTn").SetActive(false);
     }
@@ -34,12 +34,12 @@ public class LineUpBar : MonoBehaviour
 
     private void Start()
     {
-        if(unitListUI == null)
-        {
-            unitListUI = FindObjectOfType<UnitListUI>(true);
-        }
-        openUnitSort.onClick.RemoveAllListeners();
-        openUnitSort.onClick.AddListener(() => unitListUI.Show());
+        //if(unitListUI == null)
+        //{
+        //    unitListUI = FindObjectOfType<UnitListUI>(true);
+        //}
+        //openUnitSort.onClick.RemoveAllListeners();
+        //openUnitSort.onClick.AddListener(() => unitListUI.Show());
     }
 
     // 유닛 리스트 새로고침

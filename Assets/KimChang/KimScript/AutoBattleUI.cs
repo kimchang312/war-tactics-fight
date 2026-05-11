@@ -30,6 +30,8 @@ public class AutoBattleUI : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI _myDodge;
     [SerializeField] private TextMeshProUGUI _enemyDodge;
+    [SerializeField] private GameObject myFrontUnit;
+    [SerializeField] private GameObject enemyFrontUnit;
     [SerializeField] private Slider myHpBar;
     [SerializeField] private Slider enemyHpBar;
     [SerializeField] private Slider mySecondHpBar;
@@ -251,8 +253,7 @@ public class AutoBattleUI : MonoBehaviour
         if (unitIndex == 0)
         {
             TMP_Text dodge = isMyUnit ? _myDodge : _enemyDodge;
-            if (dodge != null)
-                dodge.gameObject.SetActive(false);
+            FadeOutText(dodge, duration);
 
             FadeOutGraphicRoot((isMyUnit ? myHpBar : enemyHpBar)?.gameObject, duration);
             FadeOutGraphicRoot((isMyUnit ? _myUnitHPUI : _emyUnitHPUI)?.gameObject, duration);
@@ -263,6 +264,18 @@ public class AutoBattleUI : MonoBehaviour
             FadeOutGraphicRoot((isMyUnit ? mySecondHpBar : enemySecondHpBar)?.gameObject, duration);
             FadeOutGraphicRoot((isMyUnit ? _mySecondHpText : _enemySecondHpText)?.gameObject, duration);
         }
+    }
+
+    // 사용처: TMP 텍스트를 즉시 비활성화하지 않고 페이드 후 비활성화한다.
+    private void FadeOutText(TMP_Text text, float duration)
+    {
+        if (text == null || !text.gameObject.activeSelf)
+            return;
+
+        text.DOKill(false);
+        text.DOFade(0f, duration);
+
+        StartCoroutine(DisableUiRootAfterFade(text.gameObject, duration));
     }
 
     private void Start()
@@ -346,7 +359,8 @@ public class AutoBattleUI : MonoBehaviour
         // 원거리/투창은 유닛 돌진 애니메이션을 사용하지 않고 투사체만 사용
         if (!isRangedProjectile && !isThrowSpearProjectile)
         {
-            BattleAnimation(damage, text, team, isAttack);
+            // 사용처: team은 피격 팀이므로 충돌 이동 애니메이션은 공격자인 반대 팀에서 실행한다.
+            BattleAnimation(damage, text, !team, isAttack);
         }
 
         // team은 피격 팀이다. 그대로 그 팀의 유닛을 찾는다.
