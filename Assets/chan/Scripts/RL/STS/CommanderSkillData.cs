@@ -1,7 +1,27 @@
 using System.Collections.Generic;
 
+/// <summary>
+/// 엘리트/보스 지휘관 스킬 설명은 GameTextData.json(Commander, TitleKey+ForeignKey)에서 가져온다.
+/// 그 외(일반 전투 등)는 아래 레거시 딕셔너리로 보조한다.
+/// </summary>
 public static class CommanderSkillData
 {
+    /// <summary>엘리트 지휘관: StagePresets의 Commander ID 1~20 → 이름 Idx = 213+N, FK = 99+N → 툴팁 행과 3-key 매칭.</summary>
+    const int EliteTitleKeyBase = 213;
+    const int EliteForeignKeyBase = 99;
+
+    /// <summary>보스 지휘관: 스테이지 프리셋에 등장하는 순서 1~17 → 이름 Idx = 233+N, FK = 199+N.</summary>
+    const int BossTitleKeyBase = 233;
+    const int BossForeignKeyBase = 199;
+
+    private static readonly Dictionary<string, int> BossCommanderNameToIndex = new Dictionary<string, int>
+    {
+        { "아마록", 1 }, { "브루노", 2 }, { "시리온", 3 }, { "발레릭", 4 }, { "그론달", 5 },
+        { "에레보스", 6 }, { "라자루스", 7 }, { "아그마르", 8 }, { "토르단", 9 }, { "오르테온", 10 },
+        { "아스모데우스", 11 }, { "호쉬", 12 }, { "슈타인", 13 }, { "아지라스", 14 }, { "크롬홀드", 15 },
+        { "벨페고르", 16 }, { "멜세덱", 17 },
+    };
+
     private static readonly Dictionary<string, string> commanderSkills = new()
     {
         // 기존 지휘관들
@@ -48,7 +68,52 @@ public static class CommanderSkillData
         { "멜세덱", "예언자 : 전투 시작 10턴간, 플레이어 유닛 공격력이 10% 감소한다. 10턴 후, 모든 적 유닛의 공격력이 25% 증가한다" }
     };
 
+    /// <summary>GameText 우선, 비어 있으면 레거시 한 줄 텍스트.</summary>
+    public static string GetSkillText(string commanderName, StageType stageType, int? eliteCommanderNumericId)
+    {
+        string fromJson = TryGetSkillDescriptionFromGameText(commanderName, stageType, eliteCommanderNumericId);
+        if (!string.IsNullOrEmpty(fromJson))
+            return fromJson;
+
+        return GetSkillTextLegacy(commanderName);
+    }
+
+    /// <summary>스테이지 타입·엘리트 ID 없이 호출할 때(구 호환).</summary>
     public static string GetSkillText(string commanderName)
+        => GetSkillText(commanderName, StageType.Combat, null);
+
+    static string TryGetSkillDescriptionFromGameText(string commanderName, StageType stageType, int? eliteCommanderNumericId)
+    {
+        if (string.IsNullOrWhiteSpace(commanderName))
+            return null;
+
+        switch (stageType)
+        {
+            case StageType.Elite:
+                if (eliteCommanderNumericId is >= 1 and <= 20)
+                {
+                    int titleKey = EliteTitleKeyBase + eliteCommanderNumericId.Value;
+                    int foreignKey = EliteForeignKeyBase + eliteCommanderNumericId.Value;
+                    string t = GameTextDB.Get(TextKind.Commander, titleKey, foreignKey);
+                    return string.IsNullOrEmpty(t) ? null : t;
+                }
+                break;
+            case StageType.Boss:
+                string trimmed = commanderName.Trim();
+                if (BossCommanderNameToIndex.TryGetValue(trimmed, out int bossIdx))
+                {
+                    int titleKey = BossTitleKeyBase + bossIdx;
+                    int foreignKey = BossForeignKeyBase + bossIdx;
+                    string t = GameTextDB.Get(TextKind.Commander, titleKey, foreignKey);
+                    return string.IsNullOrEmpty(t) ? null : t;
+                }
+                break;
+        }
+
+        return null;
+    }
+
+    static string GetSkillTextLegacy(string commanderName)
     {
         string[] split = commanderName.Trim().Split(' ');
         string key = split.Length > 1 ? split[1] : split[0];

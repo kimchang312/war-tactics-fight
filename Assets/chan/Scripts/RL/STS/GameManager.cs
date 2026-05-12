@@ -416,14 +416,15 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
 
             string cmdName = preset?.Commander ?? "";
+            int? eliteCmdId = preset?.CommanderNumericId;
             var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
-            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true);
+            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true, eliteCmdId);
             
             // 적 프리팹을 PlacePanel에 생성
             PlacePanelComponent.CreateEnemyPrefabs(enemies);
             
             // PlacePanel에 지휘관 정보 표시
-            PlacePanelComponent.ShowCommanderInfo(cmdName);
+            PlacePanelComponent.ShowCommanderInfo(cmdName, newStage.stageType, eliteCmdId);
             
             // PlacePanel에 전장효과 표시 (전투 스테이지만)
             if (newStage.stageType == StageType.Combat || 
@@ -825,14 +826,12 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         var preset = StagePresetLoader.I.GetByID(presetId);
 
         string cmdName = preset.Commander ?? "";
-        /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
-                          ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
-                          : "";*/
+        int? eliteCmdId = preset.CommanderNumericId;
         var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
-        panel.ShowEnemyInfo(type, enemies, cmdName/*, cmdSkill*/);
+        panel.ShowEnemyInfo(type, enemies, cmdName, combined: false, eliteCmdId);
         
         // PlacePanel에 지휘관 정보 표시
-        PlacePanelComponent.ShowCommanderInfo(cmdName);
+        PlacePanelComponent.ShowCommanderInfo(cmdName, type, eliteCmdId);
     }
 
     public void ToggleNodeInfoUI()

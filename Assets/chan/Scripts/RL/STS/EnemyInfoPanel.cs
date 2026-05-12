@@ -27,7 +27,8 @@ public class EnemyInfoPanel : MonoBehaviour
     public void ShowEnemyInfo(StageType stageType,
                               List<RogueUnitDataBase> enemies,
                               string commanderName,
-                              bool combined = false )
+                              bool combined = false,
+                              int? eliteCommanderNumericId = null)
     
         {
         combinedMode = combined;
@@ -68,7 +69,7 @@ public class EnemyInfoPanel : MonoBehaviour
         if (!string.IsNullOrEmpty(commanderName))
         {
             commanderNameText.text = commanderName;
-            commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
+            commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName, stageType, eliteCommanderNumericId);
         }
         else
         {
