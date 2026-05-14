@@ -291,7 +291,7 @@ public class PlacePanel : MonoBehaviour
     }
 
     // 지휘관 정보를 표시하는 메서드
-    public void ShowCommanderInfo(string commanderName)
+    public void ShowCommanderInfo(string commanderName, StageType stageType = StageType.Combat, int? eliteCommanderNumericId = null)
     {
         // 지휘관이 없어도 패널은 항상 표시
         if (commanderInfoPanel != null)
@@ -313,7 +313,7 @@ public class PlacePanel : MonoBehaviour
                 commanderNameText.text = $"지휘관: {commanderName}";
 
             if (commanderSkillText != null)
-                commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
+                commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName, stageType, eliteCommanderNumericId);
         }
 
         // 전장 효과는 별도로 설정해야 함 (ShowBattlefieldEffect 메서드 사용)
