@@ -2514,8 +2514,6 @@ MonoBehaviour:
   sfxSlider: {fileID: 1440865166}
   languageDropdown: {fileID: 1854532080}
   ingameButtonsArea: {fileID: 1819851640}
-  giveUpButton: {fileID: 1301088948}
-  saveExitButton: {fileID: 1150529670}
   confirmGiveUpPopup: {fileID: 69088476}
 --- !u!1 &1032222561
 GameObject:
