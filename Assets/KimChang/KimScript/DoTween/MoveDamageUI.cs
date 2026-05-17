@@ -3,24 +3,30 @@ using UnityEngine;
 
 public class MoveDamageUI : MonoBehaviour
 {
-    private float waittingTime = 500f;
+    private const float BaseWaittingTime = 500f;
+    private float waittingTime = BaseWaittingTime;
 
     private void OnEnable()
     {
-        // Y+1 위치로 0.5초 동안 이동
-        transform.DOMoveY(transform.position.y + 40f, waittingTime/1000f)
-                 .SetEase(Ease.OutQuad);
+        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
+        GameSpeedManager.Instance.OnGameSpeedChanged += ChangeWaittingTime;
+        ChangeWaittingTime(GameSpeedManager.Instance.GameSpeed);
+
+        transform.DOMoveY(transform.position.y + 40f, waittingTime * 0.001f)
+            .SetEase(Ease.OutQuad);
     }
 
     private void OnDisable()
     {
-        // 비활성화 시 수행할 작업
-        transform.DOKill(); // DOTween 애니메이션 중지
-        transform.localPosition = Vector3.zero; // 위치 초기화 예시
+        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
+
+        transform.DOKill();
+        transform.localPosition = Vector3.zero;
     }
 
+    // 사용처: GameSpeedManager의 배속 값이 변경될 때 데미지 텍스트 이동 시간을 기준값 기준으로 재설정한다.
     public void ChangeWaittingTime(float multiple)
     {
-        waittingTime*=multiple; 
+        waittingTime = BaseWaittingTime * Mathf.Max(0.01f, multiple);
     }
 }

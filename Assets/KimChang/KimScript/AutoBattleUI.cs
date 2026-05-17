@@ -24,7 +24,7 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _enemySecondHpText;
 
 
-    [SerializeField] private TextMeshProUGUI moraleText;
+    //[SerializeField] private TextMeshProUGUI moraleText;
     [SerializeField] private ObjectPool objectPool;
     [SerializeField] private GameObject abilityPool;
 
@@ -44,13 +44,13 @@ public class AutoBattleUI : MonoBehaviour
     [SerializeField] private Transform myBackUnitsParent;
     [SerializeField] private Transform enemyBackUnitsParent;
 
-    [SerializeField] private GameObject relicBox;
+    //[SerializeField] private GameObject relicBox;
     [SerializeField] private Transform myAbilityBox;
     [SerializeField] private Transform enemyAbilityBox;
 
     [SerializeField] private GameObject itemToolTip;
     [SerializeField] private Image background;
-    [SerializeField] private GameObject goTestBtn;
+    //[SerializeField] private GameObject goTestBtn;
     [SerializeField] private BattleCrashAnimation battleAnim;
 
     [SerializeField] private GameObject myBuffDeBuff;
@@ -59,7 +59,8 @@ public class AutoBattleUI : MonoBehaviour
     private Vector3 myTeam = new(260, 280, 0);
     private Vector3 enemyTeam = new(-260, 280, 0);
 
-    private float waittingTime = 500f;
+    private const float BaseWaittingTime = 500f;
+    private float waittingTime = BaseWaittingTime;
 
     // 사용처: 데미지 텍스트가 "처음부터" 더 위에서 뜨게 하는 스폰 오프셋
     [SerializeField] private float damageTextSpawnYOffset = 100f;
@@ -117,6 +118,19 @@ public class AutoBattleUI : MonoBehaviour
     4, // 제국 시너지
     8  // 위압
 };
+
+    private void OnEnable()
+    {
+        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
+        GameSpeedManager.Instance.OnGameSpeedChanged += ChangeWaittingTime;
+        ChangeWaittingTime(GameSpeedManager.Instance.GameSpeed);
+    }
+
+    private void OnDisable()
+    {
+        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
+    }
+
     // 사용처: 전투 유닛 화면 오브젝트를 UniqueId 기준으로 빠르게 찾기 위한 키 생성
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string GetUnitViewKey(RogueUnitDataBase unit)
@@ -281,7 +295,7 @@ public class AutoBattleUI : MonoBehaviour
     private void Start()
     {
         if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
-        goTestBtn.SetActive(false);
+        //goTestBtn.SetActive(false);
         if (rewardUI == null)
         {
             rewardUI = GameManager.Instance.rewardUI;
@@ -1214,8 +1228,7 @@ public class AutoBattleUI : MonoBehaviour
     //대기 시간 변경
     public void ChangeWaittingTime(float multiple)
     {
-        waittingTime *= multiple;
-
+        waittingTime = BaseWaittingTime * Mathf.Max(0.01f, multiple);
     }
 
     //유산 생성
@@ -1274,11 +1287,11 @@ public class AutoBattleUI : MonoBehaviour
     public void UpdateMorale()
     {
         int morale = RogueLikeData.Instance.GetMorale();
-        moraleText.text = $"{morale}";
+        //moraleText.text = $"{morale}";
     }
     public void OpenGoTestBtn()
     {
-        goTestBtn.SetActive(true);
+        //goTestBtn.SetActive(true);
     }
     public void UpdateSecondHPUI(bool myActive, float myHp, float myMax, bool enemyActive, float enemyHp, float enemyMax)
     {

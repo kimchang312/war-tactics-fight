@@ -1,8 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 
 public class SettingsUI : MonoBehaviour
@@ -16,77 +14,238 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private TMP_Dropdown languageDropdown;
 
     [Header("Ingame Buttons Group")]
-    [SerializeField] private GameObject ingameButtonsArea; // '전투포기', '저장' 버튼을 담은 부모 오브젝트
+    [SerializeField] private GameObject ingameButtonsArea;
 
     [Header("Confirmation Popup")]
-    [SerializeField] private GameObject confirmGiveUpPopup; // 새로 만든 팝업 오브젝트 연결
+    [SerializeField] private GameObject confirmGiveUpPopup;
+
+    private bool pausedBattleByThisUI;
+    private float previousTimeScale = 1f;
+    private AutoBattleManager pausedBattleManager;
+
+    private void Awake()
+    {
+        BindUIEvents();
+
+#if !UNITY_EDITOR
+        languageDropdown.gameObject.SetActive(false);
+#endif
+    }
 
     private void OnEnable()
     {
-        // 5-2. 데이터 로드 및 UI 반영
-        var data = RogueLikeData.Instance;
-        if (data != null)
-        {
-            masterSlider.value = data.MasterVolume;
-            bgmSlider.value = data.BgmVolume;
-            sfxSlider.value = data.SfxVolume;
+        if (BGMManager.Instance != null)
+            BGMManager.Instance.RegisterButtonSEPlayersInScene();
 
-            // 언어 인덱스 설정 (0:영어, 1:한국어, 2:일본어)
-            languageDropdown.value = data.GetLanguage();
-        }
-
-        // 5-3. 씬 체크 및 버튼 활성화 제어
-        string sceneName = SceneManager.GetActiveScene().name;
-
-        // 타이틀 씬이 아닐 때만 전투 포기/저장 버튼을 보여줌
-        bool isIngame = (sceneName != "Title");
-        ingameButtonsArea.SetActive(isIngame);
-
-        // 저장 버튼은 미구현 상태이므로 상호작용만 꺼둠
-        //saveExitButton.interactable = false;
-
-        // 설정창이 켜질 때 확인 팝업은 무조건 꺼진 상태로 초기화
-        if (confirmGiveUpPopup != null)
-        {
-            confirmGiveUpPopup.SetActive(false);
-        }
+        LoadCurrentSettingValues();
+        RefreshIngameButtonState();
+        ResetConfirmPopup();
+        PauseBattleIfNeeded();
     }
 
+    private void OnDisable()
+    {
+        SaveAudioSettings();
+        ResumeBattleIfNeeded();
+    }
 
-    #region UI Event Functions
-    // 슬라이더 조절 시 데이터 업데이트
-    public void UpdateMasterVolume(float value) => RogueLikeData.Instance.MasterVolume = value;
-    public void UpdateBgmVolume(float value) => RogueLikeData.Instance.BgmVolume = value;
-    public void UpdateSfxVolume(float value) => RogueLikeData.Instance.SfxVolume = value;
+    private void OnDestroy()
+    {
+        UnbindUIEvents();
+    }
 
-    // 언어 변경 시 데이터 업데이트
+    // 사용처: 설정 UI의 슬라이더/드롭다운 이벤트를 코드에서 보장한다.
+    private void BindUIEvents()
+    {
+        if (masterSlider != null)
+            masterSlider.onValueChanged.AddListener(UpdateMasterVolume);
+
+        if (bgmSlider != null)
+            bgmSlider.onValueChanged.AddListener(UpdateBgmVolume);
+
+        if (sfxSlider != null)
+            sfxSlider.onValueChanged.AddListener(UpdateSfxVolume);
+
+        if (languageDropdown != null)
+            languageDropdown.onValueChanged.AddListener(UpdateLanguage);
+    }
+
+    // 사용처: 설정 UI가 제거될 때 동적으로 등록한 이벤트를 해제한다.
+    private void UnbindUIEvents()
+    {
+        if (masterSlider != null)
+            masterSlider.onValueChanged.RemoveListener(UpdateMasterVolume);
+
+        if (bgmSlider != null)
+            bgmSlider.onValueChanged.RemoveListener(UpdateBgmVolume);
+
+        if (sfxSlider != null)
+            sfxSlider.onValueChanged.RemoveListener(UpdateSfxVolume);
+
+        if (languageDropdown != null)
+            languageDropdown.onValueChanged.RemoveListener(UpdateLanguage);
+    }
+
+    // 사용처: 설정창이 열릴 때 저장된 사운드/언어 값을 UI에 반영한다.
+    private void LoadCurrentSettingValues()
+    {
+        BGMManager bgmManager = BGMManager.Instance;
+        RogueLikeData data = RogueLikeData.Instance;
+
+        float master = bgmManager != null ? bgmManager.MasterVolume : 1f;
+        float bgm = bgmManager != null ? bgmManager.BgmVolume : 1f;
+        float sfx = bgmManager != null ? bgmManager.SfxVolume : 1f;
+
+        if (masterSlider != null)
+            masterSlider.SetValueWithoutNotify(master);
+
+        if (bgmSlider != null)
+            bgmSlider.SetValueWithoutNotify(bgm);
+
+        if (sfxSlider != null)
+            sfxSlider.SetValueWithoutNotify(sfx);
+
+        if (languageDropdown != null && data != null)
+            languageDropdown.SetValueWithoutNotify(data.GetLanguage());
+
+        SyncAudioData(master, bgm, sfx);
+    }
+
+    // 사용처: 현재 사운드 설정을 저장한다.
+    private void SaveAudioSettings()
+    {
+        if (BGMManager.Instance != null)
+            BGMManager.Instance.SaveVolumeSettings();
+    }
+
+    // 사용처: BGMManager의 실제 사운드 설정과 RogueLikeData의 표시용 값을 맞춘다.
+    private void SyncAudioData(float master, float bgm, float sfx)
+    {
+        RogueLikeData data = RogueLikeData.Instance;
+        if (data == null)
+            return;
+
+        data.MasterVolume = Mathf.Clamp01(master);
+        data.BgmVolume = Mathf.Clamp01(bgm);
+        data.SfxVolume = Mathf.Clamp01(sfx);
+    }
+
+    // 사용처: 타이틀이 아닌 씬에서만 인게임 버튼 영역을 표시한다.
+    private void RefreshIngameButtonState()
+    {
+        if (ingameButtonsArea == null)
+            return;
+
+        string sceneName = SceneManager.GetActiveScene().name;
+        ingameButtonsArea.SetActive(sceneName != "Title");
+    }
+
+    // 사용처: 설정창을 다시 열 때 전투 포기 확인 팝업을 초기 상태로 닫는다.
+    private void ResetConfirmPopup()
+    {
+        if (confirmGiveUpPopup != null)
+            confirmGiveUpPopup.SetActive(false);
+    }
+
+    // 사용처: 설정창이 열릴 때 현재 로드된 전투 매니저가 있으면 전투를 일시정지한다.
+    private void PauseBattleIfNeeded()
+    {
+        if (pausedBattleByThisUI)
+            return;
+
+        AutoBattleManager manager = FindObjectOfType<AutoBattleManager>();
+        if (manager == null)
+            return;
+
+        previousTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
+
+        manager.SetBattlePaused(true);
+
+        pausedBattleManager = manager;
+        pausedBattleByThisUI = true;
+    }
+
+    // 사용처: 설정창이 닫힐 때 이 설정창이 멈춘 전투만 다시 진행시킨다.
+    private void ResumeBattleIfNeeded()
+    {
+        if (!pausedBattleByThisUI)
+            return;
+
+        if (pausedBattleManager != null)
+        {
+            pausedBattleManager.SetBattlePaused(false);
+        }
+        else
+        {
+            AutoBattleManager manager = FindObjectOfType<AutoBattleManager>();
+            if (manager != null)
+                manager.SetBattlePaused(false);
+        }
+
+        Time.timeScale = previousTimeScale;
+
+        pausedBattleManager = null;
+        pausedBattleByThisUI = false;
+    }
+
+    public void UpdateMasterVolume(float value)
+    {
+        float v = Mathf.Clamp01(value);
+
+        if (BGMManager.Instance != null)
+            BGMManager.Instance.SetMasterVolume(v);
+
+        if (RogueLikeData.Instance != null)
+            RogueLikeData.Instance.MasterVolume = v;
+    }
+
+    public void UpdateBgmVolume(float value)
+    {
+        float v = Mathf.Clamp01(value);
+
+        if (BGMManager.Instance != null)
+            BGMManager.Instance.SetBGMVolume(v);
+
+        if (RogueLikeData.Instance != null)
+            RogueLikeData.Instance.BgmVolume = v;
+    }
+
+    public void UpdateSfxVolume(float value)
+    {
+        float v = Mathf.Clamp01(value);
+
+        if (BGMManager.Instance != null)
+            BGMManager.Instance.SetSEVolume(v);
+
+        if (RogueLikeData.Instance != null)
+            RogueLikeData.Instance.SfxVolume = v;
+    }
+
     public void UpdateLanguage(int index)
     {
-        // 1. 데이터에 언어 인덱스 저장
-        RogueLikeData.Instance.SetLanguage(index);
+        if (RogueLikeData.Instance != null)
+            RogueLikeData.Instance.SetLanguage(index);
 
-        // 2. 폰트 매니저를 통해 화면 내 모든 폰트 즉시 변경
-        FontManager.Instance.ApplyLanguageFont(index);
+        if (FontManager.Instance != null)
+            FontManager.Instance.ApplyLanguageFont(index);
     }
 
-    // 설정창 닫기 (Resume)
     public void OnClickClose()
     {
-        this.gameObject.SetActive(false);
+        SaveAudioSettings();
+        gameObject.SetActive(false);
     }
 
-    // 1. 설정창 하단의 '전투 포기' 버튼을 누르면 호출됨 (팝업 띄우기)
     public void OnClickGiveUpRequest()
     {
-        confirmGiveUpPopup.SetActive(true);
+        if (confirmGiveUpPopup != null)
+            confirmGiveUpPopup.SetActive(true);
     }
 
-    // 2. 팝업창에서 '취소'를 누르면 호출됨 (팝업 닫기)
     public void OnClickCancelGiveUp()
     {
-        confirmGiveUpPopup.SetActive(false);
+        if (confirmGiveUpPopup != null)
+            confirmGiveUpPopup.SetActive(false);
     }
-
-    #endregion
-
 }

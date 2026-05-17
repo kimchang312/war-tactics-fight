@@ -37,13 +37,18 @@ public class BGMManager : MonoBehaviour
     public const string SeButtonClick = "se_btn_click";
     public const string SeTreasure = "se_Treasure";
 
-    private const string TreasureButtonObjectName = "TeasureBox";
+    private const string MasterVolumePrefKey = "RL_MasterVolume";
+    private const string BgmVolumePrefKey = "RL_BgmVolume";
+    private const string SfxVolumePrefKey = "RL_SfxVolume";
+
+    private const string TreasureButtonObjectName = "TreasureBox";
+    private const string LegacyTreasureButtonObjectName = "TeasureBox";
 
     public static BGMManager Instance;
 
     [Header("BGM")]
     [SerializeField] private AudioSource bgmSource;
-    [SerializeField] private List<BGMEntry> bgmList = new();
+    [SerializeField] private List<BGMEntry> bgmList = new List<BGMEntry>();
 
     [Header("SE Audio Sources")]
     [SerializeField] private AudioSource uiSource;
@@ -52,14 +57,19 @@ public class BGMManager : MonoBehaviour
     [SerializeField] private AudioSource worldSource;
 
     [Header("SE List")]
-    [SerializeField] private List<SEEntry> seList = new();
+    [SerializeField] private List<SEEntry> seList = new List<SEEntry>();
 
     [Header("Volume")]
+    [Range(0f, 1f)][SerializeField] private float masterVolume = 1f;
     [Range(0f, 1f)][SerializeField] private float bgmVolume = 1f;
-    [Range(0f, 1f)][SerializeField] private float seVolume = 1f;
+    [Range(0f, 1f)][SerializeField] private float sfxVolume = 1f;
 
-    private readonly Dictionary<string, AudioClip> bgmClips = new();
-    private readonly Dictionary<string, SEEntry> seClips = new();
+    private readonly Dictionary<string, AudioClip> bgmClips = new Dictionary<string, AudioClip>(16);
+    private readonly Dictionary<string, SEEntry> seClips = new Dictionary<string, SEEntry>(64);
+
+    public float MasterVolume => masterVolume;
+    public float BgmVolume => bgmVolume;
+    public float SfxVolume => sfxVolume;
 
     private void Awake()
     {
@@ -75,6 +85,7 @@ public class BGMManager : MonoBehaviour
         InitializeAudioSources();
         InitializeBGMClips();
         InitializeSEClips();
+        LoadVolumeSettings();
         ApplyVolume();
     }
 
@@ -112,6 +123,7 @@ public class BGMManager : MonoBehaviour
             worldSource = gameObject.AddComponent<AudioSource>();
 
         bgmSource.loop = true;
+        bgmSource.playOnAwake = false;
 
         uiSource.loop = false;
         systemSource.loop = false;
@@ -122,7 +134,6 @@ public class BGMManager : MonoBehaviour
         systemSource.playOnAwake = false;
         battleSource.playOnAwake = false;
         worldSource.playOnAwake = false;
-        bgmSource.playOnAwake = false;
     }
 
     // 사용처: Inspector에 등록된 BGM 목록을 빠르게 찾을 수 있도록 Dictionary로 캐싱
@@ -130,8 +141,9 @@ public class BGMManager : MonoBehaviour
     {
         bgmClips.Clear();
 
-        foreach (var entry in bgmList)
+        for (int i = 0; i < bgmList.Count; i++)
         {
+            BGMEntry entry = bgmList[i];
             if (entry == null)
                 continue;
 
@@ -156,8 +168,9 @@ public class BGMManager : MonoBehaviour
     {
         seClips.Clear();
 
-        foreach (var entry in seList)
+        for (int i = 0; i < seList.Count; i++)
         {
+            SEEntry entry = seList[i];
             if (entry == null)
                 continue;
 
@@ -177,6 +190,23 @@ public class BGMManager : MonoBehaviour
         }
     }
 
+    // 사용처: 저장된 볼륨 설정을 불러와 AudioSource 적용 전 내부 값에 반영
+    private void LoadVolumeSettings()
+    {
+        masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(MasterVolumePrefKey, masterVolume));
+        bgmVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(BgmVolumePrefKey, bgmVolume));
+        sfxVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(SfxVolumePrefKey, sfxVolume));
+    }
+
+    // 사용처: 설정 UI를 닫을 때 현재 사운드 설정을 저장
+    public void SaveVolumeSettings()
+    {
+        PlayerPrefs.SetFloat(MasterVolumePrefKey, masterVolume);
+        PlayerPrefs.SetFloat(BgmVolumePrefKey, bgmVolume);
+        PlayerPrefs.SetFloat(SfxVolumePrefKey, sfxVolume);
+        PlayerPrefs.Save();
+    }
+
     // 사용처: 씬 진입 시 현재 씬에 맞는 BGM 재생 및 버튼 클릭음 자동 등록
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -191,24 +221,8 @@ public class BGMManager : MonoBehaviour
                 break;
 
             case "AutoBattleScene":
-                {
-                    if (RogueLikeData.Instance != null)
-                    {
-                        StageType stageType = RogueLikeData.Instance.GetCurrentStageType();
-
-                        if (stageType == StageType.Boss)
-                            PlayBGM("BattleBoss");
-                        else
-                            PlayBGM("BattleNormal");
-                    }
-                    else
-                    {
-                        Debug.LogWarning("[BGMManager] RogueLikeData.Instance가 null입니다. 기본 전투 BGM 재생");
-                        PlayBGM("BattleNormal");
-                    }
-
-                    break;
-                }
+                PlayBattleSceneBGM();
+                break;
 
             default:
                 Debug.Log($"[BGMManager] No BGM assigned for scene: {scene.name}");
@@ -218,10 +232,27 @@ public class BGMManager : MonoBehaviour
         StartCoroutine(RegisterButtonSEPlayersNextFrame());
     }
 
+    // 사용처: 전투 씬 진입 시 현재 스테이지 타입에 맞는 BGM을 선택
+    private void PlayBattleSceneBGM()
+    {
+        if (RogueLikeData.Instance == null)
+        {
+            Debug.LogWarning("[BGMManager] RogueLikeData.Instance가 null입니다. 기본 전투 BGM 재생");
+            PlayBGM("BattleNormal");
+            return;
+        }
+
+        StageType stageType = RogueLikeData.Instance.GetCurrentStageType();
+        PlayBGM(stageType == StageType.Boss ? "BattleBoss" : "BattleNormal");
+    }
+
     // 사용처: key에 해당하는 BGM을 재생
     public void PlayBGM(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
+            return;
+
+        if (bgmSource == null)
             return;
 
         if (!bgmClips.TryGetValue(key, out AudioClip clip))
@@ -230,11 +261,20 @@ public class BGMManager : MonoBehaviour
             return;
         }
 
-        if (bgmSource.clip == clip && bgmSource.isPlaying)
+        float effectiveVolume = GetEffectiveBgmVolume();
+
+        if (bgmSource.clip == clip)
+        {
+            bgmSource.volume = effectiveVolume;
+
+            if (!bgmSource.isPlaying)
+                bgmSource.Play();
+
             return;
+        }
 
         bgmSource.clip = clip;
-        bgmSource.volume = bgmVolume;
+        bgmSource.volume = effectiveVolume;
         bgmSource.Play();
     }
 
@@ -263,24 +303,10 @@ public class BGMManager : MonoBehaviour
     // 사용처: key에 해당하는 효과음을 분류별 AudioSource로 1회 재생
     public void PlaySE(string key)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            return;
-
-        if (!seClips.TryGetValue(key, out SEEntry entry))
-        {
-            Debug.LogWarning($"[BGMManager] No SE found for key: {key}");
-            return;
-        }
-
-        AudioSource source = GetSESource(entry.group);
-
-        if (source == null || entry.clip == null)
-            return;
-
-        source.PlayOneShot(entry.clip, entry.volume * seVolume);
+        PlaySE(key, 1f);
     }
 
-    // 사용처: 전투 타격음처럼 같은 효과음을 다른 볼륨으로 재생
+    // 사용처: 전투 타격음처럼 같은 효과음을 다른 볼륨 배율로 재생
     public void PlaySE(string key, float volumeScale)
     {
         if (string.IsNullOrWhiteSpace(key))
@@ -293,11 +319,11 @@ public class BGMManager : MonoBehaviour
         }
 
         AudioSource source = GetSESource(entry.group);
-
         if (source == null || entry.clip == null)
             return;
 
-        source.PlayOneShot(entry.clip, entry.volume * seVolume * volumeScale);
+        source.volume = GetEffectiveSfxVolume();
+        source.PlayOneShot(entry.clip, Mathf.Clamp01(entry.volume * volumeScale));
     }
 
     // 사용처: 효과음 분류에 맞는 AudioSource를 반환
@@ -326,33 +352,80 @@ public class BGMManager : MonoBehaviour
         }
     }
 
-    // 사용처: BGM 전체 볼륨을 변경
+    // 사용처: 설정 UI에서 마스터/BGM/효과음 볼륨을 한 번에 반영
+    public void SetVolumes(float master, float bgm, float sfx)
+    {
+        masterVolume = Mathf.Clamp01(master);
+        bgmVolume = Mathf.Clamp01(bgm);
+        sfxVolume = Mathf.Clamp01(sfx);
+
+        ApplyVolume();
+    }
+
+    // 사용처: 마스터 볼륨만 변경
+    public void SetMasterVolume(float volume)
+    {
+        masterVolume = Mathf.Clamp01(volume);
+        ApplyVolume();
+    }
+
+    // 사용처: BGM 전체 볼륨만 변경
     public void SetBGMVolume(float volume)
     {
         bgmVolume = Mathf.Clamp01(volume);
-
-        if (bgmSource != null)
-            bgmSource.volume = bgmVolume;
+        ApplyVolume();
     }
 
-    // 사용처: 효과음 전체 볼륨을 변경
+    // 사용처: 효과음 전체 볼륨만 변경
     public void SetSEVolume(float volume)
     {
-        seVolume = Mathf.Clamp01(volume);
+        sfxVolume = Mathf.Clamp01(volume);
+        ApplyVolume();
     }
 
-    // 사용처: 현재 설정된 BGM/SE 볼륨을 AudioSource에 적용
+    // 사용처: 기존 코드에서 SFX 명칭으로 호출할 경우를 위한 호환용 함수
+    public void SetSFXVolume(float volume)
+    {
+        SetSEVolume(volume);
+    }
+
+    // 사용처: 마스터 볼륨과 BGM 볼륨을 합산한 실제 BGM 볼륨을 반환
+    private float GetEffectiveBgmVolume()
+    {
+        return masterVolume * bgmVolume;
+    }
+
+    // 사용처: 마스터 볼륨과 효과음 볼륨을 합산한 실제 효과음 볼륨을 반환
+    private float GetEffectiveSfxVolume()
+    {
+        return masterVolume * sfxVolume;
+    }
+
+    // 사용처: 현재 설정된 마스터/BGM/효과음 볼륨을 실제 AudioSource에 적용
     private void ApplyVolume()
     {
         if (bgmSource != null)
-            bgmSource.volume = bgmVolume;
+            bgmSource.volume = GetEffectiveBgmVolume();
+
+        float effectiveSfxVolume = GetEffectiveSfxVolume();
+
+        if (uiSource != null)
+            uiSource.volume = effectiveSfxVolume;
+
+        if (systemSource != null)
+            systemSource.volume = effectiveSfxVolume;
+
+        if (battleSource != null)
+            battleSource.volume = effectiveSfxVolume;
+
+        if (worldSource != null)
+            worldSource.volume = effectiveSfxVolume;
     }
 
     // 사용처: 씬 로드 후 현재 씬의 버튼에 클릭 효과음을 자동 등록
     private IEnumerator RegisterButtonSEPlayersNextFrame()
     {
         yield return null;
-
         RegisterButtonSEPlayersInScene();
     }
 
@@ -361,20 +434,15 @@ public class BGMManager : MonoBehaviour
     {
         Button[] buttons = FindObjectsOfType<Button>(true);
 
-        int addedCount = 0;
-
-        foreach (Button button in buttons)
+        for (int i = 0; i < buttons.Length; i++)
         {
+            Button button = buttons[i];
             if (button == null)
                 continue;
 
             ButtonSEPlayer sePlayer = button.GetComponent<ButtonSEPlayer>();
-
             if (sePlayer == null)
-            {
                 sePlayer = button.gameObject.AddComponent<ButtonSEPlayer>();
-                addedCount++;
-            }
 
             sePlayer.SetSEKey(GetButtonSEKey(button));
         }
@@ -383,11 +451,13 @@ public class BGMManager : MonoBehaviour
     // 사용처: 버튼 오브젝트 이름에 따라 기본 클릭음 또는 보물상자 클릭음을 선택
     private string GetButtonSEKey(Button button)
     {
-        if (button != null && button.gameObject.name == TreasureButtonObjectName)
+        if (button == null)
+            return SeButtonClick;
+
+        string objectName = button.gameObject.name;
+        if (objectName == TreasureButtonObjectName || objectName == LegacyTreasureButtonObjectName)
             return SeTreasure;
 
         return SeButtonClick;
     }
-
-
 }

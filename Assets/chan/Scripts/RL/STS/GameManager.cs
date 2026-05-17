@@ -585,7 +585,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         mapCanvas.SetActive(true);
         loadingPanel.SetActive(false);
-        
+        openUnitOrderBtn.gameObject.SetActive(true);
         // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
         var all = FindObjectsOfType<StageNodeUI>().ToList();
         
@@ -777,6 +777,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     public void HideAllPanels()
     {
         loadingPanel.SetActive(true);
+        openUnitOrderBtn.gameObject.SetActive(false);
         mapCanvas.SetActive(false);
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
@@ -804,6 +805,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     public void CloseLoading()
     {
         loadingPanel.SetActive(false);
+        openUnitOrderBtn.gameObject.SetActive(true);
     }
 
 

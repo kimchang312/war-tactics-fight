@@ -1,17 +1,24 @@
 using System;
+using UnityEngine;
 
 public class GameSpeedManager
 {
     private static GameSpeedManager _instance;
     public static GameSpeedManager Instance => _instance ??= new GameSpeedManager();
 
-    private float _gameSpeed = 1.0f; // 기본 속도
+    private float _gameSpeed = 1f;
+
     public float GameSpeed
     {
         get => _gameSpeed;
         set
         {
-            _gameSpeed = value;
+            float newValue = Mathf.Max(0.01f, value);
+
+            if (Mathf.Approximately(_gameSpeed, newValue))
+                return;
+
+            _gameSpeed = newValue;
             OnGameSpeedChanged?.Invoke(_gameSpeed);
         }
     }
