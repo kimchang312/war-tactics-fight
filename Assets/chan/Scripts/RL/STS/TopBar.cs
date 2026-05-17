@@ -30,6 +30,7 @@ public class TopBar : MonoBehaviour
 
     [SerializeField] private GameObject loadingCanvas;
 
+
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -158,14 +159,15 @@ public class TopBar : MonoBehaviour
     }
     private void OnOptionButtonClicked()
     {
-        if (SceneManager.GetActiveScene().name == "AutoBattleScene")
-            return;
         ToggleOptionPanel(true);
     }
 
     private void ToggleOptionPanel(bool show)
     {
-        optionPanel?.SetActive(show);
+        optionPanel.SetActive(show);
+
+        if (show)
+            optionPanel.transform.SetAsLastSibling();
     }
 
     private void CloseAllTopPanels()
@@ -176,6 +178,7 @@ public class TopBar : MonoBehaviour
         upgradeStatusPanel?.SetActive(false);
         academyPanel?.SetActive(false);
         loadingCanvas?.SetActive(false);
+
     }
 
     private void TryRefreshUpgradeChoices()

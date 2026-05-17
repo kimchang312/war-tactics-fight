@@ -20,7 +20,10 @@ public class AutoBattleManager : MonoBehaviour
 
     private AbilityManager abilityManager = new AbilityManager();
 
-    private float waittingTime = 500;
+    private const float BaseWaittingTime = 500f;
+    private float waittingTime = BaseWaittingTime;
+
+    private bool isBattlePaused;
 
     List<RogueUnitDataBase> myUnits = new();
     List<RogueUnitDataBase> enemyUnits = new();
@@ -84,11 +87,15 @@ public class AutoBattleManager : MonoBehaviour
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private void Start()
     {
+        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
+        GameSpeedManager.Instance.OnGameSpeedChanged += ChangeWaittingTime;
+        ChangeWaittingTime(GameSpeedManager.Instance.GameSpeed);
+
         if (autoBattleUI == null)
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
         if (isTest)
         {
-            autoBattleUI.OpenGoTestBtn();
+            //autoBattleUI.OpenGoTestBtn();
             return;
         }
         currentState = BattleState.None;
@@ -99,7 +106,7 @@ public class AutoBattleManager : MonoBehaviour
     }
     private async void Update()
     {
-        if (IsManagerInvalid() || isProcessing || Time.timeScale == 0)
+        if (IsManagerInvalid() || isProcessing || isBattlePaused || Time.timeScale == 0f)
             return;
 
         isProcessing = true;
@@ -162,11 +169,14 @@ public class AutoBattleManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
+
         isDestroyed = true;
         pendingDeathVisuals.Clear();
 
         delayedBattleEndCoroutine = null;
     }
+
     //유닛 id를 기반으로 유닛 생성
     private List<RogueUnitDataBase> GetUnitsById(List<int> unitIds)
     {
@@ -195,7 +205,7 @@ public class AutoBattleManager : MonoBehaviour
 
         if (isTurnEffect)
         {
-            await Task.Delay((int)waittingTime);
+            await WaitBattleMilliseconds((int)waittingTime);
 
             UpdateUnitHp();
 
@@ -205,7 +215,7 @@ public class AutoBattleManager : MonoBehaviour
             bool playedDeathVisual = PlayPendingDeathVisuals();
             if (playedDeathVisual)
             {
-                await Task.Delay((int)waittingTime);
+                await WaitBattleMilliseconds((int)waittingTime);
             }
 
             UpdateUnitUI();
@@ -227,7 +237,7 @@ public class AutoBattleManager : MonoBehaviour
         if (IsManagerInvalid())
             return;
 
-        await Task.Delay((int)(waittingTime * 0.52f));
+        await WaitBattleMilliseconds((int)(waittingTime * 0.52f));
 
         if (IsManagerInvalid())
             return;
@@ -243,7 +253,7 @@ public class AutoBattleManager : MonoBehaviour
 
         if (playedDeathVisual)
         {
-            await Task.Delay((int)waittingTime);
+            await WaitBattleMilliseconds((int)waittingTime);
 
             if (IsManagerInvalid())
                 return;
@@ -294,7 +304,7 @@ public class AutoBattleManager : MonoBehaviour
             return;
 
         bool skipWait = (currentState == BattleState.Crash && !phaseHadEffect);
-        await Task.Delay(skipWait ? 0 : (int)waittingTime);
+        await WaitBattleMilliseconds(skipWait ? 0 : (int)waittingTime);
 
         if (IsManagerInvalid())
             return;
@@ -740,7 +750,7 @@ public class AutoBattleManager : MonoBehaviour
             );
 
             // 대기열 처리 시간 확보 (이펙트 재생 시간만큼 대기)
-            await Task.Delay((int)(effectCD.totalDuration * 1000));
+            await WaitBattleMilliseconds((int)(effectCD.totalDuration * 1000));
         }
     }
 
@@ -939,10 +949,49 @@ public class AutoBattleManager : MonoBehaviour
         return 3;
     }
 
+    // 사용처: 설정창 등 외부 UI가 전투 진행을 일시정지/재개할 때 사용한다.
+    public void SetBattlePaused(bool paused)
+    {
+        isBattlePaused = paused;
+    }
+
+    // 사용처: AutoBattleManager의 비동기 전투 대기시간을 설정창 일시정지 상태에 맞춰 대기한다.
+    private async Task WaitBattleMilliseconds(int milliseconds)
+    {
+        if (milliseconds <= 0)
+        {
+            await WaitWhileBattlePaused();
+            return;
+        }
+
+        float remainingSeconds = milliseconds * 0.001f;
+
+        while (remainingSeconds > 0f)
+        {
+            if (IsManagerInvalid())
+                return;
+
+            if (!isBattlePaused && Time.timeScale > 0f)
+                remainingSeconds -= Time.unscaledDeltaTime;
+
+            await Task.Yield();
+        }
+    }
+
+    // 사용처: 대기시간이 없는 구간에서도 설정창이 열린 상태라면 다음 전투 처리로 넘어가지 않게 막는다.
+    private async Task WaitWhileBattlePaused()
+    {
+        while (!IsManagerInvalid() && (isBattlePaused || Time.timeScale == 0f))
+        {
+            await Task.Yield();
+        }
+    }
+
+
     //속도 관리
     public void ChangeWaittingTime(float multiple)
     {
-        waittingTime *= multiple;
+        waittingTime = BaseWaittingTime * Mathf.Max(0.01f, multiple);
     }
 
     //종료관리 전투가 끝났을때 나오게 될것들

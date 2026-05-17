@@ -97,46 +97,12 @@ public class RogueLikeData
 
     private int language = 0;
 
-
-    private float masterVolume = 0;
-    private float bgmVolume = 0;
-    private float sfxVolume = 0;
-
-    public float MasterVolume
-    {
-        get => masterVolume;
-        set
-        {
-            float v = Mathf.Clamp01(value);
-            if (Mathf.Approximately(masterVolume, v)) return;
-
-            masterVolume = v;
-        }
-    }
-
-    public float BgmVolume
-    {
-        get => bgmVolume;
-        set
-        {
-            float v = Mathf.Clamp01(value);
-            if (Mathf.Approximately(bgmVolume, v)) return;
-
-            bgmVolume = v;
-        }
-    }
-
-    public float SfxVolume
-    {
-        get => sfxVolume;
-        set
-        {
-            float v = Mathf.Clamp01(value);
-            if (Mathf.Approximately(sfxVolume, v)) return;
-
-            sfxVolume = v;
-        }
-    }
+    private const string MasterVolumePrefKey = "RL_MasterVolume";
+    private const string BgmVolumePrefKey = "RL_BgmVolume";
+    private const string SfxVolumePrefKey = "RL_SfxVolume";
+    private float masterVolume = 1f;
+    private float bgmVolume = 1f;
+    private float sfxVolume = 1f;
 
     private RogueLikeData()
     {
@@ -149,7 +115,11 @@ public class RogueLikeData
             relicIdsByType[type] = new HashSet<int>();
         }
         for (int i = 0; i < upgradeValues.Length; i++)
+        {
             upgradeValues[i] = new UnitUpgrade();
+        }
+
+        LoadAudioSettings();
     }
     public SavePlayerData GetRogueLikeData()
     {
@@ -1342,4 +1312,74 @@ public class RogueLikeData
         return language;
     }
 
+    public float MasterVolume
+    {
+        get => masterVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(masterVolume, v)) return;
+
+            masterVolume = v;
+            ApplyAudioVolumeToManager();
+        }
+    }
+
+    public float BgmVolume
+    {
+        get => bgmVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(bgmVolume, v)) return;
+
+            bgmVolume = v;
+            ApplyAudioVolumeToManager();
+        }
+    }
+
+    public float SfxVolume
+    {
+        get => sfxVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(sfxVolume, v)) return;
+
+            sfxVolume = v;
+            ApplyAudioVolumeToManager();
+        }
+    }
+
+    // 사용처: 게임 시작 시 저장된 사운드 설정을 불러온다.
+    public void LoadAudioSettings()
+    {
+        masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(MasterVolumePrefKey, 1f));
+        bgmVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(BgmVolumePrefKey, 1f));
+        sfxVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(SfxVolumePrefKey, 1f));
+
+        ApplyAudioVolumeToManager();
+    }
+
+    // 사용처: 설정창을 닫을 때 현재 사운드 설정을 저장한다.
+    public void SaveAudioSettings()
+    {
+        PlayerPrefs.SetFloat(MasterVolumePrefKey, masterVolume);
+        PlayerPrefs.SetFloat(BgmVolumePrefKey, bgmVolume);
+        PlayerPrefs.SetFloat(SfxVolumePrefKey, sfxVolume);
+        PlayerPrefs.Save();
+    }
+
+    // 사용처: RogueLikeData의 사운드 값을 실제 BGMManager에 반영한다.
+    public void ApplyAudioVolumeToManager()
+    {
+        if (BGMManager.Instance == null)
+            return;
+
+        BGMManager.Instance.SetVolumes(masterVolume, bgmVolume, sfxVolume);
+    }
+
+
+
 }
+
