@@ -94,6 +94,9 @@ public class RewardUI : MonoBehaviour
         }
     }
 
+    public bool IsTreasureRewardVisible =>
+        teasureBox != null && teasureBox.gameObject.activeInHierarchy;
+
     // 이 함수는 보물 상자 UI를 활성화하고 클릭 이벤트를 세팅할 때 사용한다.
     public void SetActiveTeasureBox()
     {
@@ -303,6 +306,7 @@ public class RewardUI : MonoBehaviour
         }
 
         ResetUI();
+        GameManager.Instance?.RefreshNodeInfoButtonVisibility();
     }
 
     // 이 함수는 유닛/유물 보상 선택창을 열 때 사용한다.

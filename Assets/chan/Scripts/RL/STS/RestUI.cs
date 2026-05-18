@@ -47,6 +47,7 @@ public class RestUI : MonoBehaviour
     {
         gameObject.SetActive(false);
         UIManager.Instance.UIUpdateAll();
+        GameManager.Instance.RefreshNodeInfoButtonVisibility();
         GameManager.Instance.itemToolTip.SetActive(false);
         Debug.Log("[RestUI] Hide() 호출됨");
     }

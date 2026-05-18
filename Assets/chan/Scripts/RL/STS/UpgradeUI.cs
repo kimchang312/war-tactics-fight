@@ -42,7 +42,7 @@ public class UpgradeUI : MonoBehaviour
 
             var typeName = UnitTypeNames[unitType];
             var upgradeType = isAttack ? "공격" : "방어";
-            upgradeName = $"{typeName} {upgradeType} 강화\nLv. {currentLevel} -> Lv. {nextLevel}";
+            upgradeName = $"{typeName} {upgradeType} 강화\nLv. {currentLevel} → Lv. {nextLevel}";
             upgradeCost = cost.ToString();
         }
     }
@@ -86,21 +86,48 @@ public class UpgradeUI : MonoBehaviour
         // 현재 표시된 옵션들의 가격 텍스트를 업데이트
         foreach (Transform child in optionContainer)
         {
-            var nameTxt = child.Find("업그레이드종류")?.GetComponent<TextMeshProUGUI>()
-                       ?? child.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
-            var costTxt = child.Find("소모비용")?.GetComponent<TextMeshProUGUI>()
-                       ?? child.Find("업그레이드비용")?.GetComponent<TextMeshProUGUI>()
-                       ?? child.Find("UpgradeCost")?.GetComponent<TextMeshProUGUI>();
-            if (nameTxt != null && costTxt != null && _currentChoices != null)
-            {
-                var matched = _currentChoices.FirstOrDefault(o => o.upgradeName == nameTxt.text);
-                if (matched != null)
-                {
-                    costTxt.text = matched.upgradeCost;
-                }
-            }
+            if (!TryGetOptionTexts(child, out var nameTxt, out var costTxt))
+                continue;
+            if (_currentChoices == null)
+                continue;
+
+            var matched = _currentChoices.FirstOrDefault(o => o.upgradeName == nameTxt.text);
+            if (matched != null)
+                costTxt.text = matched.upgradeCost;
         }
     }
+
+    private static bool TryGetOptionTexts(Transform root, out TextMeshProUGUI nameTxt, out TextMeshProUGUI costTxt)
+    {
+        nameTxt =
+            root.Find("업그레이드종류")?.GetComponent<TextMeshProUGUI>()
+            ?? root.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
+
+        costTxt =
+            root.Find("소모비용")?.GetComponent<TextMeshProUGUI>()
+            ?? root.Find("업그레이드비용")?.GetComponent<TextMeshProUGUI>()
+            ?? root.Find("UpgradeCost")?.GetComponent<TextMeshProUGUI>();
+
+        if (nameTxt == null || costTxt == null)
+        {
+            var allTexts = root.GetComponentsInChildren<TextMeshProUGUI>(true);
+            if (nameTxt == null)
+            {
+                nameTxt = allTexts.FirstOrDefault(t =>
+                    t != null && (t.gameObject.name.Contains("종류") || t.gameObject.name.Contains("UpgradeName")));
+            }
+            if (costTxt == null)
+            {
+                costTxt = allTexts.FirstOrDefault(t =>
+                    t != null && (t.gameObject.name.Contains("비용") || t.gameObject.name.Contains("Cost")));
+            }
+        }
+
+        return nameTxt != null && costTxt != null;
+    }
+
+    private static Button GetOptionButton(Transform root) =>
+        root.GetComponent<Button>() ?? root.GetComponentInChildren<Button>(true);
 
     public void ShowRandomChoices()
     {
@@ -151,8 +178,7 @@ public class UpgradeUI : MonoBehaviour
             }
 
             var go = Instantiate(prefab, optionContainer);
-            // 프리팹이 Button을 루트에 두지 않고 자식에 둔 케이스도 대응
-            var btn = go.GetComponent<Button>() ?? go.GetComponentInChildren<Button>(true);
+            var btn = GetOptionButton(go.transform);
             var iconImage = go.transform.Find("병종아이콘")?.GetComponent<Image>();
             if (iconImage != null)
             {
@@ -172,35 +198,10 @@ public class UpgradeUI : MonoBehaviour
             {
                 Debug.LogWarning("UpgradeUI: 프리팹 자식에서 '병종아이콘' Image를 찾지 못했습니다.");
             }
-            // 프리팹 내부 오브젝트 이름이 조금 달라도(예: 업그레이드비용) 최대한 자동으로 찾아준다.
-            var nameTxt =
-                go.transform.Find("업그레이드종류")?.GetComponent<TextMeshProUGUI>()
-                ?? go.transform.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
-
-            var costTxt =
-                go.transform.Find("소모비용")?.GetComponent<TextMeshProUGUI>()
-                ?? go.transform.Find("업그레이드비용")?.GetComponent<TextMeshProUGUI>() // 프리팹에 따라 이름이 다른 경우 대응
-                ?? go.transform.Find("UpgradeCost")?.GetComponent<TextMeshProUGUI>();
-
-            // fallback: 텍스트를 전부 훑어서 이름에 키워드가 포함된 걸로 추정
-            if (nameTxt == null || costTxt == null)
-            {
-                var allTexts = go.GetComponentsInChildren<TextMeshProUGUI>(true);
-                if (nameTxt == null)
-                {
-                    // "종류", "UpgradeName" 같은 키워드가 포함된 텍스트를 우선으로 추정
-                    nameTxt = allTexts.FirstOrDefault(t =>
-                        t != null && (t.gameObject.name.Contains("종류") || t.gameObject.name.Contains("UpgradeName")));
-                }
-                if (costTxt == null)
-                {
-                    // "비용", "Cost", "UpgradeCost" 같은 키워드가 포함된 텍스트를 우선으로 추정
-                    costTxt = allTexts.FirstOrDefault(t =>
-                        t != null && (t.gameObject.name.Contains("비용") || t.gameObject.name.Contains("Cost")));
-                }
-            }
-
-            if (btn == null || nameTxt == null || costTxt == null)
+            TextMeshProUGUI nameTxt = null;
+            TextMeshProUGUI costTxt = null;
+            bool hasOptionTexts = TryGetOptionTexts(go.transform, out nameTxt, out costTxt);
+            if (btn == null || !hasOptionTexts)
             {
                 Debug.LogWarning(
                     $"UpgradeUI: 버튼 또는 텍스트 컴포넌트를 찾지 못해 옵션 생성을 건너뜁니다. " +
@@ -235,39 +236,33 @@ public class UpgradeUI : MonoBehaviour
 
         foreach (Transform child in optionContainer)
         {
-            var nameTxt =
-                child.Find("업그레이드종류")?.GetComponent<TextMeshProUGUI>()
-                ?? child.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
+            if (!TryGetOptionTexts(child, out var nameTxt, out var costTxt))
+                continue;
 
-            var costTxt =
-                child.Find("소모비용")?.GetComponent<TextMeshProUGUI>()
-                ?? child.Find("업그레이드비용")?.GetComponent<TextMeshProUGUI>()
-                ?? child.Find("UpgradeCost")?.GetComponent<TextMeshProUGUI>();
-            var btn = child.GetComponent<Button>();
+            var btn = GetOptionButton(child);
+            if (btn == null || !btn.interactable || nameTxt.text == opt.upgradeName)
+                continue;
 
-            if (btn != null && btn.interactable && nameTxt != null && nameTxt.text != opt.upgradeName)
+            var matched = _currentChoices.FirstOrDefault(o => o.upgradeName == nameTxt.text);
+            if (matched != null && matched.cost == 0)
             {
-                var matched = _currentChoices.FirstOrDefault(o => o.upgradeName == nameTxt.text);
-                if (matched != null && matched.cost == 0)
-                {
-                    matched.cost = matched.originalCost;
-                    matched.upgradeCost = matched.originalCost.ToString();
-                    costTxt.text = matched.upgradeCost;
-                }
+                matched.cost = matched.originalCost;
+                matched.upgradeCost = matched.originalCost.ToString();
+                costTxt.text = matched.upgradeCost;
             }
         }
         foreach (Transform child in optionContainer)
         {
-            var nameTxt =
-                child.Find("업그레이드종류")?.GetComponent<TextMeshProUGUI>()
-                ?? child.Find("UpgradeName")?.GetComponent<TextMeshProUGUI>();
-            if (nameTxt != null && nameTxt.text == opt.upgradeName)
-            {
-                var btn = child.GetComponent<Button>();
-                if (btn != null)
-                    btn.interactable = false;
-                break;
-            }
+            if (!TryGetOptionTexts(child, out var nameTxt, out _))
+                continue;
+
+            if (nameTxt.text != opt.upgradeName)
+                continue;
+
+            var btn = GetOptionButton(child);
+            if (btn != null)
+                btn.interactable = false;
+            break;
         }
         UIManager.Instance.UIUpdateAll();
 

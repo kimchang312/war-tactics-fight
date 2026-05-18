@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
     [SerializeField] private GameObject topBarCanvas;         // 상단바 캔버스(씬 전환 시 표시/숨김 제어)
     [SerializeField] private GameObject nodeInfoUIImage;      // 노드 정보 UI 이미지(표시/숨김 토글용)
+    [SerializeField] private Button nodeInfoButton;           // NodeInfoBTN (맵 전용 화면에서만 표시)
     [SerializeField] public GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
     [SerializeField] public GameObject restPanel;
     [SerializeField] public RewardUI rewardUI;
@@ -141,6 +142,73 @@ public class GameManager : MonoBehaviour
             uIGenerator.EnsureMapGeneratorReference();
             uIGenerator.RehydrateMapFromExistingUIIfNeeded();
         }
+
+        EnsureNodeInfoButtonReference();
+    }
+
+    private void EnsureNodeInfoButtonReference()
+    {
+        if (nodeInfoButton != null)
+            return;
+        if (SceneManager.GetActiveScene().name != "RLmap")
+            return;
+
+        foreach (var btn in FindObjectsOfType<Button>(true))
+        {
+            if (btn.gameObject.name == "NodeInfoBTN")
+            {
+                nodeInfoButton = btn;
+                return;
+            }
+        }
+    }
+
+    private bool IsMapPanelViewActive()
+    {
+        if (SceneManager.GetActiveScene().name != "RLmap")
+            return false;
+
+        if (mapCanvas == null || !mapCanvas.activeInHierarchy)
+            return false;
+
+        if (loadingPanel != null && loadingPanel.activeInHierarchy)
+            return false;
+
+        if (enemyInfoPanel != null && enemyInfoPanel.activeInHierarchy)
+            return false;
+
+        if (PlacePanel != null && PlacePanel.activeInHierarchy)
+            return false;
+
+        if (restPanel != null && restPanel.activeInHierarchy)
+            return false;
+
+        if (eventManager != null && eventManager.activeInHierarchy)
+            return false;
+
+        if (storeManager != null && storeManager.activeInHierarchy)
+            return false;
+
+        if (rewardUI != null && rewardUI.IsTreasureRewardVisible)
+            return false;
+
+        return true;
+    }
+
+    public void RefreshNodeInfoButtonVisibility() => RefreshNodeInfoButton();
+
+    private void RefreshNodeInfoButton()
+    {
+        EnsureNodeInfoButtonReference();
+        if (nodeInfoButton == null)
+            return;
+
+        bool show = IsMapPanelViewActive();
+        nodeInfoButton.gameObject.SetActive(show);
+        nodeInfoButton.interactable = show;
+
+        if (!show && nodeInfoUIImage != null && nodeInfoUIImage.activeSelf)
+            nodeInfoUIImage.SetActive(false);
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -158,6 +226,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             CloseAllUI();
         // 전투 씬에서는 옵션/유물 등을 위해 상단바 유지 (타이틀 등 그 외 씬에서는 숨김)
         SetTopBarCanvasVisible(scene.name == "AutoBattleScene");
+        RefreshNodeInfoButton();
         return;
      }
 
@@ -209,6 +278,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
         // 전투 끝나고 돌아왔을 경우만 갱신 요청
         GameManager.Instance.shouldRefreshUpgradeUI = true;
+        RefreshNodeInfoButton();
 
     }
 
@@ -443,8 +513,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
                 RogueLikeData.Instance.SetFieldId(fieldId);
             }
-            
-            
+
+            RefreshNodeInfoButton();
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---
@@ -494,6 +564,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             // 기존 restUI.Show() 대신
             restPanel.SetActive(true);
             currentStage?.StopSelectableEffect();
+            RefreshNodeInfoButton();
             return;
         }
         else if (newStage.stageType == StageType.Event)
@@ -530,7 +601,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             currentStage?.StopSelectableEffect();
             rewardUI.SetActiveTeasureBox();
         }
-        
+
+        RefreshNodeInfoButton();
         Debug.Log($"📌 SetCurrentStage: {newStage.level}_{newStage.row}");
     }
 
@@ -602,6 +674,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 s.UnlockStage();
             }
             Debug.Log("🆕 첫 진입: 레벨 0 전투 스테이지 해제");
+            RefreshNodeInfoButton();
             return;
         }
 
@@ -636,6 +709,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
+        RefreshNodeInfoButton();
     }
     private List<RogueUnitDataBase> LoadEnemyUnits(int presetID)
     {
@@ -772,6 +846,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlacePanel.SetActive(open);
         IsPlaceMode = open;
+        RefreshNodeInfoButton();
     }
     
     public void HideAllPanels()
@@ -782,6 +857,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         PlacePanel.SetActive(false);
         restPanel.SetActive(false);
         IsPlaceMode = false;
+        RefreshNodeInfoButton();
     }
 
     private void SetTopBarCanvasVisible(bool visible)
@@ -815,6 +891,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         restPanel.SetActive(false);
         enemyInfoPanel.SetActive(false);
         //rewardUI.gameObject.SetActive(false);
+        RefreshNodeInfoButton();
     }
 
     public void OpenBattlePanel()
@@ -832,10 +909,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         
         // PlacePanel에 지휘관 정보 표시
         PlacePanelComponent.ShowCommanderInfo(cmdName, type, eliteCmdId);
+        RefreshNodeInfoButton();
     }
 
     public void ToggleNodeInfoUI()
     {
+        if (!IsMapPanelViewActive())
+            return;
+
         if (nodeInfoUIImage == null)
         {
             Debug.LogWarning("GameManager: nodeInfoUIImage가 연결되지 않았습니다.");
