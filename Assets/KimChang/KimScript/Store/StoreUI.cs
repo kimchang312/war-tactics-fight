@@ -89,7 +89,11 @@ public class StoreUI : MonoBehaviour
         SetStoreMainButtonsInteractable(true);
     }
 
-    private void CloseStore() => gameObject.SetActive(false);
+    private void CloseStore()
+    {
+        gameObject.SetActive(false);
+        GameManager.Instance.RefreshNodeInfoButtonVisibility();
+    }
 
     private float GetSaleRatio() => RogueLikeData.Instance.GetOwnedRelicById(0) != null ? 0.8f : 1f;
 

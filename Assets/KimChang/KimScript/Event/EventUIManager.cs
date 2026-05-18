@@ -216,6 +216,7 @@ public class EventUIManager : MonoBehaviour
     private void OnDisable()
     {
         GameManager.Instance.UpdateAllUI();
+        GameManager.Instance.RefreshNodeInfoButtonVisibility();
     }
 
     // 사용처: GameTextDB에 텍스트가 있으면 우선 사용하고, 없으면 JSON 원문을 사용
