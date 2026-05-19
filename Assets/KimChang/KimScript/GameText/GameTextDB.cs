@@ -831,5 +831,24 @@ public static class GameTextDB
         }
     }
 
+    // 사용처: kind, titleKey, foreignKey가 모두 정확히 일치할 때만 텍스트를 가져온다.
+    // 선택지 보상/소모처럼 누락 시 다른 텍스트로 대체되면 안 되는 곳에서 사용한다.
+    public static string GetExact(TextKind kind, int titleKey, int foreignKey)
+    {
+        var key = new TripleKey((int)kind, titleKey, foreignKey);
 
+        if (_byKindTitleForeignCur != null &&
+            _byKindTitleForeignCur.TryGetValue(key, out var value))
+        {
+            return value;
+        }
+
+        if (_byKindTitleForeignFb != null &&
+            _byKindTitleForeignFb.TryGetValue(key, out value))
+        {
+            return value;
+        }
+
+        return string.Empty;
+    }
 }

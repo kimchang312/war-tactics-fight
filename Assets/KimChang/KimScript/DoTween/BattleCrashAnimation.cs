@@ -16,16 +16,12 @@ public sealed class BattleCrashAnimation : MonoBehaviour
     private const float BaseWaittingTime = 500f;
     private float waittingTime = BaseWaittingTime;
 
-    // 내부 상수(위치 오프셋)
-    private static readonly Vector2 MyStartOffset = new Vector2(-50f, 0f);
-    private static readonly Vector2 EnemyStartOffset = new Vector2(+50f, 0f);
-
     // 사용처: PlayCrashAsync 무기 시작/도착 각도 튜닝 (스프라이트 기본 각도 기준)
     private float mySwordStartZ = 45f;   // 시작: 수직(검끝 위)로 보이게 만드는 각도(대부분 45가 맞음)
     private float mySwordEndZ = 0f;      // 끝: "이미지처럼" 보이게(보통 0)
 
     // 사용처: PlayCrashAsync 충돌 지점 보정(중앙에서 약간 위/아래로 맞추고 싶을 때)
-    private Vector2 crashPointOffset = Vector2.zero;
+    private Vector2 crashPointOffset = new Vector2(0,-5f);
 
     // 사용처: PlayCrashAsync 충돌 이펙트 스케일
     private float crashEffectScale = 1f;

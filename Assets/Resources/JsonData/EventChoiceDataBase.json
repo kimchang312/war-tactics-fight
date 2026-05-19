@@ -545,7 +545,7 @@
       "금화를 100만큼 상실."
     ],
     "resultText": [
-      "병사들 몰래 금화를 내밀자, 상인은 만족스런 미소와 함께 {선택된 전쟁 유산}을(를) 건넸다."
+      "병사들 몰래 금화를 내밀자, 상인은 만족스런 미소와 함께 {result[0]}을(를) 건넸다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 12,
@@ -589,7 +589,7 @@
       "사기가 30만큼 감소."
     ],
     "resultText": [
-      "군량 일부를 내주자, 상인은 웃음을 머금고 {선택된 전쟁 유산}을(를) 내밀었다. 병사들 사이에는 불만 섞인 눈빛이 오갔다."
+      "군량 일부를 내주자, 상인은 웃음을 머금고 {result[0]}을(를) 내밀었다. 병사들 사이에는 불만 섞인 눈빛이 오갔다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 13,
@@ -806,7 +806,7 @@
       "무작위 숙련 또는 영웅 유닛을 희생."
     ],
     "resultText": [
-      "검은 망토의 자와 손을 맞잡자, 피로 새겨진 서약이 맺어졌다. 그 대가로 {선택된 전쟁 유산}이(가) 주어졌고, {require[0]}은(는) 조용히 자취를 감췄다."
+      "검은 망토의 자와 손을 맞잡자, 피로 새겨진 서약이 맺어졌다. 그 대가로 {result[0]}이(가) 주어졌고, {require[0]}은(는) 조용히 자취를 감췄다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 18,
@@ -850,7 +850,7 @@
       "무작위 유닛의 기력을 1로 변경"
     ],
     "resultText": [
-      "{require[0]}의 피 몇 방울이 제단을 적셨고, {선택된 전쟁 유산}이(가) 모습을 드러냈다. 남은 이들은 떨리는 숨을 고르며 손을 움켜쥐었다."
+      "{require[0]}의 피 몇 방울이 제단을 적셨고, {result[0]}이(가) 모습을 드러냈다. 남은 이들은 떨리는 숨을 고르며 손을 움켜쥐었다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 19,
@@ -1107,7 +1107,7 @@
       "선택한 유닛을 파견."
     ],
     "resultText": [
-      "상인은 {희귀도에 따른 보상}을 건네며 만족스러운 미소를 지었고, {require[0]}은(는) 마지막 인사를 남긴 채 그의 뒤를 따랐다."
+      "상인은 {result[0]}을 건네며 만족스러운 미소를 지었고, {require[0]}은(는) 마지막 인사를 남긴 채 그의 뒤를 따랐다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 25,
@@ -1231,8 +1231,8 @@
       "0"
     ],
     "resultCount": [
-      "1150",
-      ""
+      "1",
+      "300"
     ],
     "choiceResultText": [
       "승리 시 금화를 300만큼 획득하는",
@@ -1420,7 +1420,7 @@
       "무작위 일반 등급 전쟁 유산을 제거."
     ],
     "resultText": [
-      "정령은 고요히 고개를 끄덕였고, 샘에서 {획득한 전설 전쟁 유산}이(가) 떠올랐다. 그 순간, {제거된 전쟁 유산}은(는) 흔적도 없이 사라졌다."
+      "정령은 고요히 고개를 끄덕였고, 샘에서 {result[0]}이(가) 떠올랐다. 그 순간, {require[0]}은(는) 흔적도 없이 사라졌다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 32,
@@ -1468,7 +1468,7 @@
       "저주 등급 전쟁 유산을 획득."
     ],
     "resultText": [
-      "정령은 한참을 바라보더니 조용히 {result[0]}을(를) 내밀었다. 하지만 수면 아래 어른거린 그림자 끝에 {획득한 저주 유산}이(가) 따라붙었다."
+      "정령은 한참을 바라보더니 조용히 {result[0]}을(를) 내밀었다. 하지만 수면 아래 어른거린 그림자 끝에 {result[1]}이(가) 따라붙었다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 33,
@@ -1554,7 +1554,7 @@
       "무작위 유닛 2명이 전직"
     ],
     "resultText": [
-      "병사들은 각자 방식으로 기량을 갈고닦았고, 그중 {require[0]}, {require[0]}이 눈에 띄게 성장해 {result[0]}, {result[0]}로 새로운 모습을 갖췄다."
+      "병사들은 각자 방식으로 기량을 갈고닦았고, 그중 {require[0]}, {require[1]}이 눈에 띄게 성장해 {result[0]}, {result[1]}로 새로운 모습을 갖췄다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 35,
@@ -1729,7 +1729,7 @@
       "무작위 저주 등급 전쟁 유산을 획득."
     ],
     "resultText": [
-      "병사들은 {result[0]}을(를) 급히 낚아채 달아났지만, 그 과정에서 {획득한 저주 유산}도 같이 들고 오고 말았다."
+      "병사들은 {result[0]}을(를) 급히 낚아채 달아났지만, 그 과정에서 {result[1]}도 같이 들고 오고 말았다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 39,
@@ -1902,7 +1902,7 @@
       "금화를 500만큼 상실."
     ],
     "resultText": [
-      "한때 적이었고, 한때는 아군이었던 얼굴들이 금화를 받고 미소를 지었다. {획득한 유닛}, {획득한 유닛}, {획득한 유닛}이 합류했다."
+      "한때 적이었고, 한때는 아군이었던 얼굴들이 금화를 받고 미소를 지었다. {result[0]}, {result[1]}, {result[2]}이 합류했다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 43,
@@ -2001,7 +2001,7 @@
     "choiceId": 46,
     "eventId": 17,
     "choiceText": "늪지대를 가로지른다.",
-    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용.",
+    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용",
     "requireThing": [
       "None"
     ],
@@ -2117,7 +2117,7 @@
       "무작위 일반 유닛 획득."
     ],
     "resultText": [
-      "한 명의 신병이 전열에 모습을 드러냈다. {획득한 유닛}이(가) 긴장된 표정으로 줄을 맞췄다."
+      "한 명의 신병이 전열에 모습을 드러냈다. {result[0]}이(가) 긴장된 표정으로 줄을 맞췄다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 48,
@@ -2377,7 +2377,7 @@
       "무작위 일반 또는 숙련 유닛 5명이 '저주받은 기사'로 변화."
     ],
     "resultText": [
-      "미처 도망치지 못한 병사들에게 검은 불꽃이 스며들었다. {require[0]}, {require[0]}, {require[0]}, {require[0]}, {require[0]}이(가) 몸을 떨기 시작하더니, '저주받은 기사'로 변모했다."
+      "미처 도망치지 못한 병사들에게 검은 불꽃이 스며들었다. {require[0]}, {require[1]}, {require[2]}, {require[3]}, {require[4]}이(가) 몸을 떨기 시작하더니, '저주받은 기사'로 변모했다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 54,
@@ -2532,7 +2532,7 @@
     "choiceId": 58,
     "eventId": 21,
     "choiceText": "길을 되돌아 간다.",
-    "resultDescription": "사기 -5",
+    "resultDescription": "사기 -5, 이벤트 반복 종료",
     "requireThing": [
       "Morale"
     ],
@@ -2610,7 +2610,7 @@
     ],
     "resultText": [
       "석관이 삐걱이며 열리자, 내부에서 {result[0]}이(가) 모습을 드러냈다.",
-      "석관이 삐걱이며 열리자, 내부에서 {result[0]}이(가) 모습을 드러냈다. 그러나 공기가 무겁게 뒤틀리며, {획득한 저주 유산}이(가) 어둠 속에서 모습을 드러냈다."
+      "석관이 삐걱이며 열리자, 내부에서 {result[0]}이(가) 모습을 드러냈다. 그러나 공기가 무겁게 뒤틀리며, {result[1]}이(가) 어둠 속에서 모습을 드러냈다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 59,
@@ -2695,7 +2695,7 @@
       "금화를 500만큼 상실."
     ],
     "resultText": [
-      "{획득한 유닛}, {획득한 유닛}, {획득한 유닛}이(가) 우리 군에 합류했다. 병사들 사이에는 긴장과 기대가 뒤섞였다."
+      "{result[0]}, {result[1]}, {result[2]}이(가) 우리 군에 합류했다. 병사들 사이에는 긴장과 기대가 뒤섞였다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 61,
@@ -2739,7 +2739,7 @@
       "금화를 100만큼 상실."
     ],
     "resultText": [
-      "금화를 건네자, {획득한 유닛}이(가) 우리 군에 합류했다. 그는 전장에 설 준비가 끝난 듯 보였다."
+      "금화를 건네자, {result[0]}이(가) 우리 군에 합류했다. 그는 전장에 설 준비가 끝난 듯 보였다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 62,
@@ -3049,7 +3049,7 @@
       "금화를 300만큼 상실."
     ],
     "resultText": [
-      "해주 물약의 연기가 퍼지자, {result[0]}이(가) 서서히 빛 속으로 사라졌다."
+      "해주 물약의 연기가 퍼지자, {require[0]}이(가) 서서히 빛 속으로 사라졌다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 69,
@@ -3359,7 +3359,7 @@
       "저주 등급 전쟁 유산을 획득."
     ],
     "resultText": [
-      "비열한 수단으로 검은 기사를 쓰러뜨렸고, {require[0]}, {require[0]}, {require[0]}이(가) 새로운 힘을 각성해 {result[0]}, {result[0]}, {result[0]}이 되었다. 하지만 그 대가로 {획득한 저주 유산}이(가) 뒤따랐다."
+      "비열한 수단으로 검은 기사를 쓰러뜨렸고, {require[0]}, {require[1]}, {require[2]}이(가) 새로운 힘을 각성해 {result[0]}, {result[1]}, {result[2]}이 되었다. 하지만 그 대가로 {result[3]}이(가) 뒤따랐다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 76,
@@ -3565,8 +3565,8 @@
       ""
     ],
     "requireCount": [
-      "20100",
-      ""
+      "20",
+      "100"
     ],
     "resultType": [
       "Field"
@@ -4202,7 +4202,7 @@
       "실패 시 사망. 성공에 상관없이 무작위 저주 등급 전쟁 유산을 획득."
     ],
     "resultText": [
-      "{require[0]}은(는) 의식 속에서 고통에 몸부림쳤지만, 끝내 {result[0]}으로 각성했다. 그러나 그 손엔 {result[0]}이(가) 함께 쥐어져 있었다.",
+      "{require[0]}은(는) 의식 속에서 고통에 몸부림쳤지만, 끝내 {result[0]}으로 각성했다. 그러나 그 손엔 {result[1]}이(가) 함께 쥐어져 있었다.",
       "{require[0]}은(는) 의식 속에서 비명을 질렀고, 그 몸은 산산이 부서졌다. 자리에 남은 건 {result[0]}뿐이었다."
     ],
     "gameTextKind": "EventDesc",
@@ -4425,7 +4425,7 @@
       "0"
     ],
     "resultCount": [
-      "2000",
+      "5000",
       "3"
     ],
     "choiceResultText": [
@@ -4433,7 +4433,7 @@
       "무작위 저주 등급 전쟁 유산을 3개 획득."
     ],
     "resultText": [
-      "동전이 쏟아지는 소리에 병사들의 눈빛이 번쩍였다. 탐욕의 기쁨은 잠시였고, 그 틈을 타 {result[0]}, {result[0]}, {result[0]}이(가) 모습을 드러냈다."
+      "동전이 쏟아지는 소리에 병사들의 눈빛이 번쩍였다. 탐욕의 기쁨은 잠시였고, 그 틈을 타 {result[0]}, {result[1]}, {result[2]}이(가) 모습을 드러냈다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 100,
@@ -4449,31 +4449,31 @@
     "choiceText": "힘을 원한다.",
     "resultDescription": "모든 희귀도 1 유닛을 희귀도 2 이상의 유닛으로 전직.",
     "requireThing": [
-      "Unit"
+      "None"
     ],
     "requireForm": [
-      "Random"
+      "None"
     ],
     "requireValue": [
-      "1"
+      ""
     ],
     "requireCount": [
-      "1"
+      ""
     ],
     "resultType": [
       "Change",
       "Relic"
     ],
     "resultForm": [
-      "Select",
+      "Special",
       "Select"
     ],
     "resultValue": [
-      "0",
+      "",
       "116"
     ],
     "resultCount": [
-      "100",
+      "1",
       "1"
     ],
     "choiceResultText": [
@@ -4666,7 +4666,7 @@
       "금화를 100만큼 상실."
     ],
     "resultText": [
-      "금화가 제단에 쏟아졌다. 신의 빛이 번쩍이자, {선택된 병사}, {선택된 병사}, {선택된 병사}이(가) {result[0]}, {result[0]}, {result[0]}으로 거듭났다. 병영엔 숨죽인 경외가 감돌았다."
+      "금화가 제단에 쏟아졌다. 신의 빛이 번쩍이자, {require[0]}, {require[1]}, {require[2]}이(가) {result[0]}, {result[1]}, {result[2]}으로 거듭났다. 병영엔 숨죽인 경외가 감돌았다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 105,
@@ -5071,7 +5071,7 @@
     "choiceId": 115,
     "eventId": 42,
     "choiceText": "산을 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '산' 전장 효과 적용.",
+    "resultDescription": "다음 전투에서 '산' 전장 효과 적용",
     "requireThing": [
       "None"
     ],
@@ -5114,7 +5114,7 @@
     "choiceId": 116,
     "eventId": 42,
     "choiceText": "숲을 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '숲' 전장 효과 적용.",
+    "resultDescription": "다음 전투에서 '숲' 전장 효과 적용",
     "requireThing": [
       "None"
     ],
@@ -5157,7 +5157,7 @@
     "choiceId": 117,
     "eventId": 43,
     "choiceText": "숲을 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '숲' 전장 효과 적용.",
+    "resultDescription": "다음 전투에서 '숲' 전장 효과 적용",
     "requireThing": [
       "None"
     ],
@@ -5200,7 +5200,7 @@
     "choiceId": 118,
     "eventId": 43,
     "choiceText": "늪지를 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용.",
+    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용",
     "requireThing": [
       "None"
     ],
@@ -5243,7 +5243,7 @@
     "choiceId": 119,
     "eventId": 44,
     "choiceText": "늪지를 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용.",
+    "resultDescription": "다음 전투에서 '늪지대' 전장 효과 적용",
     "requireThing": [
       "None"
     ],
@@ -5286,7 +5286,7 @@
     "choiceId": 120,
     "eventId": 44,
     "choiceText": "산을 향해 진군한다.",
-    "resultDescription": "다음 전투에서 '산' 전장 효과 적용.",
+    "resultDescription": "다음 전투에서 '산' 전장 효과 적용",
     "requireThing": [
       "None"
     ],
@@ -5363,7 +5363,7 @@
       "금화를 100만큼 상실."
     ],
     "resultText": [
-      "노인은 미소를 흘리며 {선택된 병사}를 불렀다. 광기 어린 훈련 속에서, 그는 끝내 {result[0]}으로 거듭났다."
+      "노인은 미소를 흘리며 {require[0]}를 불렀다. 광기 어린 훈련 속에서, 그는 끝내 {result[0]}으로 거듭났다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 121,
@@ -5627,7 +5627,7 @@
       "금화를 500만큼 상실."
     ],
     "resultText": [
-      "돈 주머니를 내밀자 양아치 무리는 눈을 빛내며 따라왔다. 그렇게 {require[0]}, {require[0]}, {require[0]}이(가) 부대에 들어섰다."
+      "돈 주머니를 내밀자 양아치 무리는 눈을 빛내며 따라왔다. 그렇게 {require[0]}, {require[1]}, {require[2]}이(가) 부대에 들어섰다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 127,
@@ -5716,7 +5716,7 @@
       "무작위 저주 등급 전쟁 유산을 획득."
     ],
     "resultText": [
-      "{선택된 병사}가 거울 앞에 섰다. 빛이 일그러지며 그와 똑같은 모습이 나타났다. 하지만 거울 속 그의 손에는 {result[0]}이(가) 들려 있었다."
+      "{require[0]}가 거울 앞에 섰다. 빛이 일그러지며 그와 똑같은 모습이 나타났다. 하지만 거울 속 그의 손에는 {result[0]}이(가) 들려 있었다."
     ],
     "gameTextKind": "EventDesc",
     "gameTextForeignKey": 129,

@@ -57,7 +57,15 @@ public static class EventDataLoader
 
                     // 새 필드 추가
                     choiceResultText = ParseStringList(obj["choiceResultText"]),
-                    resultText = ParseStringList(obj["resultText"])
+                    resultText = ParseStringList(obj["resultText"]),
+
+                    gameTextKind = obj["gameTextKind"]?.ToString(),
+                    gameTextForeignKey = obj["gameTextForeignKey"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_choiceText = obj["gameTextTitleKey_choiceText"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_positive = obj["gameTextTitleKey_positive"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_negative = obj["gameTextTitleKey_negative"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_resultDescription = obj["gameTextTitleKey_resultDescription"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_resultTextBase = obj["gameTextTitleKey_resultTextBase"]?.ToObject<int>() ?? 0
                 };
                 NormalizeChoiceData(choice);
                 EventChoiceDataDict[choice.choiceId] = choice;
@@ -173,7 +181,14 @@ public static class EventDataLoader
         PadList(choice.resultValue, resultCount, string.Empty);
         PadList(choice.resultCount, resultCount, string.Empty);
 
+        if (string.IsNullOrEmpty(choice.gameTextKind)) choice.gameTextKind = "EventDesc";
         if (choice.gameTextForeignKey == 0 && choice.choiceId != 0)
             choice.gameTextForeignKey = choice.choiceId;
+
+        if (choice.gameTextTitleKey_choiceText == 0) choice.gameTextTitleKey_choiceText = 100;
+        if (choice.gameTextTitleKey_positive == 0) choice.gameTextTitleKey_positive = 110;
+        if (choice.gameTextTitleKey_negative == 0) choice.gameTextTitleKey_negative = 111;
+        if (choice.gameTextTitleKey_resultDescription == 0) choice.gameTextTitleKey_resultDescription = 120;
+        if (choice.gameTextTitleKey_resultTextBase == 0) choice.gameTextTitleKey_resultTextBase = 130;
     }
 }

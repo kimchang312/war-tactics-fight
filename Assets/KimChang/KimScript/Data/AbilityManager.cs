@@ -92,10 +92,15 @@ public class AbilityManager
             case 2:
                 {
                     var allUnits = new List<RogueUnitDataBase>();
-                    allUnits.AddRange(RogueLikeData.Instance.GetMyUnits());
-                    allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
+                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+                    if (myUnits != null) allUnits.AddRange(myUnits);
+                    if (enemyUnits != null) allUnits.AddRange(enemyUnits);
                     foreach (var unit in allUnits)
                     {
+                        if (unit == null || unit.stats == null)
+                            continue;
+
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.Armor,
@@ -113,10 +118,15 @@ public class AbilityManager
                 {
                     int id = 9, type = 1, rank = 1, duration = -1;
                     var allUnits = new List<RogueUnitDataBase>();
-                    allUnits.AddRange(RogueLikeData.Instance.GetMyUnits());
-                    allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
+                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+                    if (myUnits != null) allUnits.AddRange(myUnits);
+                    if (enemyUnits != null) allUnits.AddRange(enemyUnits);
                     foreach (var unit in allUnits)
                     {
+                        if (unit == null || unit.stats == null || unit.effectDictionary == null)
+                            continue;
+
                         unit.stats.AddModifier(new StatModifier
                         {
                             stat = StatType.Mobility,
@@ -133,10 +143,15 @@ public class AbilityManager
                 {
                     int id = 10, type = 0, rank = 1, duration = -1;
                     var allUnits = new List<RogueUnitDataBase>();
-                    allUnits.AddRange(RogueLikeData.Instance.GetMyUnits());
-                    allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
+                    var myUnits = RogueLikeData.Instance.GetMyUnits();
+                    var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+                    if (myUnits != null) allUnits.AddRange(myUnits);
+                    if (enemyUnits != null) allUnits.AddRange(enemyUnits);
                     foreach (var unit in allUnits)
                     {
+                        if (unit == null || unit.stats == null || unit.effectDictionary == null)
+                            continue;
+
                         if (unit.lightArmor) unit.effectDictionary[id] = new BuffDebuffData(id, type, rank, duration);
                         if (unit.rangedAttack)
                         {
@@ -177,24 +192,26 @@ public class AbilityManager
     private bool CalculateStromMap()
     {
         int fieldId = RogueLikeData.Instance.GetFieldId();
-        if (fieldId != 5) return false;
+        if (fieldId != 5)
+            return false;
 
-        bool isMyTeam = true;
-        int randomIndex;
-        RogueUnitDataBase damagedUnit;
-        if (RogueLikeData.Instance.GetRandomInt(0, 2) == 0)
-        {
-            var myUnits = RogueLikeData.Instance.GetMyUnits();
-            randomIndex = RogueLikeData.Instance.GetRandomInt(0, myUnits.Count);
-            damagedUnit = myUnits[randomIndex];
-        }
-        else
-        {
-            isMyTeam = false;
-            var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-            randomIndex = RogueLikeData.Instance.GetRandomInt(0, enemyUnits.Count);
-            damagedUnit = enemyUnits[randomIndex];
-        }
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+
+        bool canHitMy = myUnits != null && myUnits.Count > 0;
+        bool canHitEnemy = enemyUnits != null && enemyUnits.Count > 0;
+
+        if (!canHitMy && !canHitEnemy)
+            return false;
+
+        bool isMyTeam = canHitMy && (!canHitEnemy || RogueLikeData.Instance.GetRandomInt(0, 2) == 0);
+        List<RogueUnitDataBase> targetUnits = isMyTeam ? myUnits : enemyUnits;
+
+        int randomIndex = RogueLikeData.Instance.GetRandomInt(0, targetUnits.Count);
+        RogueUnitDataBase damagedUnit = targetUnits[randomIndex];
+
+        if (damagedUnit == null)
+            return false;
 
         if (autoBattleManager != null)
         {
@@ -651,7 +668,7 @@ public class AbilityManager
         if (enemyDeathUnits == null) enemyDeathUnits = new List<RogueUnitDataBase>();
 
         if (myUnits.Count == 0 || enemyUnits.Count == 0)
-            return true;
+            return false;
 
         bool myUnitDied = false;
         bool enemyUnitDied = false;
@@ -678,8 +695,8 @@ public class AbilityManager
                     continue;
                 }
 
-                ProcessUnitDeath(myUnits, i, tempMyDeathUnits, ref myUnitDied, autoBattleUI, true);
-                myDeathIndexes.Add(i);
+                if (ProcessUnitDeath(myUnits, i, tempMyDeathUnits, ref myUnitDied, autoBattleUI, true))
+                    myDeathIndexes.Add(i);
             }
         }
 
@@ -688,8 +705,8 @@ public class AbilityManager
         {
             if (enemyUnits[i].health <= 0)
             {
-                ProcessUnitDeath(enemyUnits, i, tempEnemyDeathUnits, ref enemyUnitDied, autoBattleUI, false);
-                enemyDeathIndexes.Add(i);
+                if (ProcessUnitDeath(enemyUnits, i, tempEnemyDeathUnits, ref enemyUnitDied, autoBattleUI, false))
+                    enemyDeathIndexes.Add(i);
             }
         }
 
@@ -720,8 +737,8 @@ public class AbilityManager
 
                 if (enemyUnits[0].health <= 0)
                 {
-                    ProcessUnitDeath(enemyUnits, 0, tempEnemyDeathUnits, ref enemyUnitDied, autoBattleUI, false);
-                    enemyUnits.RemoveAt(0);
+                    if (ProcessUnitDeath(enemyUnits, 0, tempEnemyDeathUnits, ref enemyUnitDied, autoBattleUI, false))
+                        enemyUnits.RemoveAt(0);
                 }
             }
         }
@@ -776,17 +793,38 @@ public class AbilityManager
         // 전열 변경 여부는 AutoBattleManager.ResolveDeathsAndCheckFrontPairChanged()에서 별도로 판정한다.
         return anyUnitDiedThisStep;
     }
+    // 사용처: 불사 버프가 있는 유닛은 사망 처리와 UI 페이드 예약 전에 체력을 복구한다.
+    private bool TryConsumeImmortality(RogueUnitDataBase unit)
+    {
+        if (unit == null || unit.effectDictionary == null)
+            return false;
+
+        int id = 7;
+        if (!unit.effectDictionary.ContainsKey(id))
+            return false;
+
+        unit.effectDictionary.Remove(id);
+        unit.health = 10;
+        unit.alive = true;
+        return true;
+    }
+
     // 개별 유닛 사망 처리
-    private void ProcessUnitDeath(
+    private bool ProcessUnitDeath(
         List<RogueUnitDataBase> units, int index,
         List<RogueUnitDataBase> tempDeathUnits,
         ref bool unitDied, AutoBattleUI autoBattleUI, bool isMyUnit)
     {
         if (units == null || index < 0 || index >= units.Count)
-            return;
-        CalculateMartyrdom(units, index, isMyUnit);
+            return false;
 
         RogueUnitDataBase deadUnit = units[index];
+
+        if (TryConsumeImmortality(deadUnit))
+            return false;
+
+        CalculateMartyrdom(units, index, isMyUnit);
+
         deadUnit.alive = false;
         tempDeathUnits.Add(deadUnit); // 임시 리스트에 추가
 
@@ -801,13 +839,14 @@ public class AbilityManager
         }
 
         if (index == 0) unitDied = true;
+        return true;
     }
 
 
     // 유닛 사망 시 실행되는 함수 (추가 기능 확장 가능)
     private void OnUnitDeath(List<RogueUnitDataBase> deadAttackers, List<RogueUnitDataBase> deadDefenders, ref List<RogueUnitDataBase> attackers, bool isTeam, bool isFrontAttackerDead, bool isFrontDefendrDead, bool isFirstAttack)
     {
-        if (attackers.Count == 0) return;
+        if (attackers == null || attackers.Count == 0) return;
         RogueUnitDataBase frontAttacker = attackers[0];
 
         //봉인 풀린 자 채크
@@ -1851,14 +1890,24 @@ public class AbilityManager
     //불사 효과
     private void CalculateImmortality(ref List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
+        if (deadUnits == null || deadUnits.Count == 0)
+            return;
+
+        if (units == null)
+            units = new List<RogueUnitDataBase>();
+
         int id = 7;
         for (int i = 0; i < deadUnits.Count; i++)
         {
             RogueUnitDataBase unit = deadUnits[i];
+            if (unit == null || unit.effectDictionary == null)
+                continue;
+
             if (unit.effectDictionary.ContainsKey(id))
             {
                 unit.effectDictionary.Remove(id);
                 unit.health = 10;
+                unit.alive = true;
                 units.Add(unit);
             }
 

@@ -87,23 +87,34 @@ public class AutoBattleManager : MonoBehaviour
     //이 씬이 로드되었을 때== 구매 배치로 전투 씬 입장했을때
     private void Start()
     {
-        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
-        GameSpeedManager.Instance.OnGameSpeedChanged += ChangeWaittingTime;
-        ChangeWaittingTime(GameSpeedManager.Instance.GameSpeed);
+        var speedManager = GameSpeedManager.Instance;
+        if (speedManager != null)
+        {
+            speedManager.OnGameSpeedChanged -= ChangeWaittingTime;
+            speedManager.OnGameSpeedChanged += ChangeWaittingTime;
+            ChangeWaittingTime(speedManager.GameSpeed);
+        }
 
         if (autoBattleUI == null)
             autoBattleUI = FindObjectOfType<AutoBattleUI>();
+
+        if (battleAnim == null)
+            battleAnim = FindObjectOfType<BattleCrashAnimation>();
+
+        if (effectManager == null)
+            effectManager = EffectManager.Instance;
+
         if (isTest)
         {
             //autoBattleUI.OpenGoTestBtn();
             return;
         }
+
         currentState = BattleState.None;
-        if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
-        if (effectManager == null) effectManager = EffectManager.Instance;
         InitializeRogueLike();
         //RelicManager.HandleRandomRelic()
     }
+
     private async void Update()
     {
         if (IsManagerInvalid() || isProcessing || isBattlePaused || Time.timeScale == 0f)
@@ -116,7 +127,6 @@ public class AutoBattleManager : MonoBehaviour
             switch (currentState)
             {
                 case BattleState.None:
-                    isProcessing = false;
                     break;
 
                 case BattleState.Check:
@@ -135,8 +145,6 @@ public class AutoBattleManager : MonoBehaviour
 
                     if (!HandleEnd())
                         await HandlePhase(HandlePreparation);
-                    else
-                        isProcessing = false;
                     break;
 
                 case BattleState.Crash:
@@ -153,7 +161,6 @@ public class AutoBattleManager : MonoBehaviour
 
                 case BattleState.Death:
                 case BattleState.End:
-                    isProcessing = false;
                     break;
             }
         }
@@ -165,29 +172,51 @@ public class AutoBattleManager : MonoBehaviour
         {
             Debug.LogException(e);
         }
+        finally
+        {
+            if (!isDestroyed)
+                isProcessing = false;
+        }
     }
 
     private void OnDestroy()
     {
-        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
+        var speedManager = GameSpeedManager.Instance;
+        if (speedManager != null)
+            speedManager.OnGameSpeedChanged -= ChangeWaittingTime;
 
         isDestroyed = true;
         pendingDeathVisuals.Clear();
 
-        delayedBattleEndCoroutine = null;
+        if (delayedBattleEndCoroutine != null)
+        {
+            StopCoroutine(delayedBattleEndCoroutine);
+            delayedBattleEndCoroutine = null;
+        }
     }
 
     //유닛 id를 기반으로 유닛 생성
     private List<RogueUnitDataBase> GetUnitsById(List<int> unitIds)
     {
         List<RogueUnitDataBase> units = new();
+
+        if (unitIds == null || UnitLoader.Instance == null)
+            return units;
+
         foreach (int unitId in unitIds)
         {
             RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(unitId, false);
+            if (unit == null)
+            {
+                Debug.LogWarning($"[AutoBattleManager] 유닛 생성 실패: unitId={unitId}");
+                continue;
+            }
+
             unit.NormalizeStateModifiers();
             unit.ApplyModifiers();
             units.Add(unit);
         }
+
         return units;
     }
 
@@ -316,13 +345,22 @@ public class AutoBattleManager : MonoBehaviour
     //유닛 갯수 최신화
     private void UpdateUnitCount()
     {
+        if (autoBattleUI == null)
+            return;
+
         int myUnitCount = 0;
-        for (int i = 0; i < myUnits.Count; i++)
-            if (myUnits[i].health > 0) myUnitCount++;
+        if (myUnits != null)
+        {
+            for (int i = 0; i < myUnits.Count; i++)
+                if (myUnits[i] != null && myUnits[i].health > 0) myUnitCount++;
+        }
 
         int enemyUnitCount = 0;
-        for (int i = 0; i < enemyUnits.Count; i++)
-            if (enemyUnits[i].health > 0) enemyUnitCount++;
+        if (enemyUnits != null)
+        {
+            for (int i = 0; i < enemyUnits.Count; i++)
+                if (enemyUnits[i] != null && enemyUnits[i].health > 0) enemyUnitCount++;
+        }
 
         autoBattleUI.UpdateUnitCountUI(myUnitCount, enemyUnitCount);
     }
@@ -341,7 +379,7 @@ public class AutoBattleManager : MonoBehaviour
         {
             for (int i = 1; i < myUnits.Count; i++)
             {
-                if (CanUseRangedAttackUnit(myUnits[i],i))
+                if (CanUseRangedAttackUnit(myUnits[i], i))
                     myRangeUnits.Add(myUnits[i]);
             }
         }
@@ -350,7 +388,7 @@ public class AutoBattleManager : MonoBehaviour
         {
             for (int i = 1; i < enemyUnits.Count; i++)
             {
-                if (CanUseRangedAttackUnit(enemyUnits[i],i))
+                if (CanUseRangedAttackUnit(enemyUnits[i], i))
                     enemyRangeUnits.Add(enemyUnits[i]);
             }
         }
@@ -590,36 +628,49 @@ public class AutoBattleManager : MonoBehaviour
     {
         ResetData();
 
+        if (RogueLikeData.Instance == null)
+        {
+            Debug.LogError("[AutoBattleManager] RogueLikeData.Instance가 없습니다.");
+            if (GameManager.Instance != null)
+                GameManager.Instance.CloseLoading();
+            currentState = BattleState.End;
+            return;
+        }
+
         if (UnitStateChange.CalculateRunMorale() != null)
         {
 
         }
 
         int presetId = RogueLikeData.Instance.GetPresetID();
-        if (presetId == -1)
+        var preset = (presetId != -1 && StagePresetLoader.I != null) ? StagePresetLoader.I.GetByID(presetId) : null;
+
+        if (presetId == -1 || preset == null || preset.UnitList == null)
         {
-            Debug.Log("프리셋 아이디 오류");
+            Debug.LogError($"[AutoBattleManager] 프리셋 데이터 오류: presetId={presetId}");
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.CloseLoading();
+
+            HandleEnd(false);
             return;
         }
-        List<int> unitIds = StagePresetLoader.I.GetByID(presetId).UnitList;
+
+        List<int> unitIds = preset.UnitList;
 
         enemyUnits = GetUnitsById(unitIds) ?? new List<RogueUnitDataBase>();
         myUnits = RogueLikeData.Instance.GetMyUnits() ?? new List<RogueUnitDataBase>();
 
         RogueLikeData.Instance.ClearSavedMyUnits();
-
         RogueLikeData.Instance.SetBattleUnitCount(myUnits.Count);
 
         ProcessEnter();
 
         SetBaseData();
 
-        // ✅ 로그라이크 전투 진입 시에도 사기/유산/전술개량(Upgrade) 상태를 즉시 반영
-        // (기존 InitializeBattle 쪽에는 있었지만, 로그라이크 루트에는 누락되어 첫 전투에 강화가 미적용되는 문제가 발생)
-        //RogueLikeData.Instance.SetMyTeam(myUnits);
+        // 로그라이크 전투 진입 시 사기/유산/전술개량 상태를 즉시 반영한다.
         UnitStateChange.ChangeStateMyUnits();
 
-        //데이터 저장
         SaveData saveData = new SaveData();
         saveData.SaveDataFile();
 
@@ -628,14 +679,27 @@ public class AutoBattleManager : MonoBehaviour
         //사기로 안한 유닛 0
         if (myUnits.Count == 0)
         {
-            GameManager.Instance.CloseLoading();
+            if (GameManager.Instance != null)
+                GameManager.Instance.CloseLoading();
+
             HandleEnd(false);
             return;
         }
+
+        if (enemyUnits.Count == 0)
+        {
+            if (GameManager.Instance != null)
+                GameManager.Instance.CloseLoading();
+
+            HandleEnd(true);
+            return;
+        }
+
         UpdateUnitUI();
 
         //로딩창 종료
-        GameManager.Instance.CloseLoading();
+        if (GameManager.Instance != null)
+            GameManager.Instance.CloseLoading();
 
         currentState = BattleState.Check;
     }
@@ -660,9 +724,8 @@ public class AutoBattleManager : MonoBehaviour
             return;
         }
 
-        await Task.Delay((int)waittingTime);
+        await WaitBattleMilliseconds((int)waittingTime);
         currentState = BattleState.Start;
-        isProcessing = false; // 체크가 끝난 후 상태를 변경
 
     }
     // 시작 단계 처리 (전투 시작을 위한 초기화)
@@ -737,8 +800,8 @@ public class AutoBattleManager : MonoBehaviour
         if (effectCD != null)
         {
             // 유닛 Transform 가져오기 (전열 기준)
-            RectTransform targetTransform = autoBattleUI.GetUnitCardTransform(0, false); // 적 전열
-            RectTransform casterTransform = autoBattleUI.GetUnitCardTransform(0, true);  // 아군 전열
+            RectTransform targetTransform = autoBattleUI != null ? autoBattleUI.GetUnitCardTransform(0, false) : null; // 적 전열
+            RectTransform casterTransform = autoBattleUI != null ? autoBattleUI.GetUnitCardTransform(0, true) : null;  // 아군 전열
 
             // 대기열에 이펙트 요청 (자동으로 순차 재생됨)
             effectManager.RequestEffect(
@@ -808,8 +871,8 @@ public class AutoBattleManager : MonoBehaviour
         if (abilityEffect != null)
         {
             // 유닛 Transform 가져오기
-            RectTransform targetTransform = autoBattleUI.GetUnitCardTransform(targetIndex, isTargetMyUnit);
-            RectTransform casterTransform = autoBattleUI.GetUnitCardTransform(casterIndex, isCasterMyUnit);
+            RectTransform targetTransform = autoBattleUI != null ? autoBattleUI.GetUnitCardTransform(targetIndex, isTargetMyUnit) : null;
+            RectTransform casterTransform = autoBattleUI != null ? autoBattleUI.GetUnitCardTransform(casterIndex, isCasterMyUnit) : null;
 
             Debug.Log($"[AutoBattleManager] targetTransform={targetTransform?.name ?? "null"} | casterTransform={casterTransform?.name ?? "null"}");
 
@@ -1076,6 +1139,9 @@ public class AutoBattleManager : MonoBehaviour
         if (autoBattleUI != null)
             autoBattleUI.FightEnd();
 
+        if (RogueLikeData.Instance == null)
+            yield break;
+
         RogueLikeData.Instance.SetFieldId(0);
         RogueLikeData.Instance.ClearBuffDeBuff();
         RogueLikeData.Instance.SetBattleUnitCount(0);
@@ -1109,7 +1175,8 @@ public class AutoBattleManager : MonoBehaviour
     private void ProcessRelic()
     {
         //유산 이미지 생성
-        autoBattleUI.CreateWarRelic();
+        if (autoBattleUI != null)
+            autoBattleUI.CreateWarRelic();
     }
 
     private void SetTest()
@@ -1146,6 +1213,9 @@ public class AutoBattleManager : MonoBehaviour
     // 전투 중 매 프레임 호출: 뷰 스냅샷 생성 후 UI에 반영
     private void UpdateUnitHp()
     {
+        if (autoBattleUI == null)
+            return;
+
         var data = BuildHpViewData();
         autoBattleUI.ApplyHp(data, myUnits, enemyUnits);
     }
@@ -1153,8 +1223,8 @@ public class AutoBattleManager : MonoBehaviour
     // 도메인 규칙(예: 2번 유닛은 체력 0 이하면 숨김)을 적용한 뷰 스냅샷 생성
     private HpViewData BuildHpViewData()
     {
-        var my0 = myUnits.Count > 0 ? myUnits[0] : null;
-        var en0 = enemyUnits.Count > 0 ? enemyUnits[0] : null;
+        var my0 = myUnits != null && myUnits.Count > 0 ? myUnits[0] : null;
+        var en0 = enemyUnits != null && enemyUnits.Count > 0 ? enemyUnits[0] : null;
 
         bool myActive = my0 != null;
         bool enActive = en0 != null;
@@ -1164,8 +1234,8 @@ public class AutoBattleManager : MonoBehaviour
         int enHp = enActive ? ClampNonNegToInt(en0.health) : 0;
         int enMax = enActive ? ClampNonNegToInt(en0.maxHealth) : 1;
 
-        var my1 = myUnits.Count > 1 ? myUnits[1] : null;
-        var en1 = enemyUnits.Count > 1 ? enemyUnits[1] : null;
+        var my1 = myUnits != null && myUnits.Count > 1 ? myUnits[1] : null;
+        var en1 = enemyUnits != null && enemyUnits.Count > 1 ? enemyUnits[1] : null;
 
         // 규칙: 2번 유닛은 존재하고 체력 > 0일 때만 표시
         bool mySecondActive = my1 != null && my1.health > 0;
@@ -1262,7 +1332,8 @@ public class AutoBattleManager : MonoBehaviour
         for (int i = 0; i < pendingDeathVisuals.Count; i++)
         {
             DeathVisualRequest request = pendingDeathVisuals[i];
-            autoBattleUI.ChangeInvisibleUnit(request.Unit, request.UnitIndex, request.IsMyUnit);
+            if (autoBattleUI != null)
+                autoBattleUI.ChangeInvisibleUnit(request.Unit, request.UnitIndex, request.IsMyUnit);
         }
 
         pendingDeathVisuals.Clear();
