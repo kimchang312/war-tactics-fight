@@ -167,20 +167,16 @@
     ],
     "requireCondition": "금화 100 이상 or 사기 31 이상",
     "requireThing": [
-      "Gold",
-      "Morale"
+      "Special"
     ],
     "requireForm": [
-      "None",
-      "None"
+      "Special"
     ],
     "requireValue": [
-      "",
       ""
     ],
     "requireCount": [
-      "100",
-      "31"
+      ""
     ],
     "gameTextKindTitle": "EventTitle",
     "gameTextKindDesc": "EventDesc",
@@ -1340,8 +1336,7 @@
       "Special"
     ],
     "requireValue": [
-      "100",
-      "5"
+      ""
     ],
     "requireCount": [
       ""
@@ -1370,10 +1365,10 @@
       "None"
     ],
     "requireValue": [
-      "50"
+      ""
     ],
     "requireCount": [
-      ""
+      "51"
     ],
     "gameTextKindTitle": "EventTitle",
     "gameTextKindDesc": "EventDesc",

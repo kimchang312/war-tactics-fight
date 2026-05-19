@@ -241,7 +241,10 @@ public class EventUIManager : MonoBehaviour
     // 사용처: 선택지 버튼의 기본 문장을 현재 언어 기준으로 가져옴
     private static string GetChoiceText(EventChoiceData choiceData)
     {
-        return GetTextOrFallback(TextKind.EventDesc, 100, choiceData.choiceId, choiceData.choiceText);
+        int titleKey = choiceData.gameTextTitleKey_choiceText != 0 ? choiceData.gameTextTitleKey_choiceText : 100;
+        int foreignKey = choiceData.gameTextForeignKey != 0 ? choiceData.gameTextForeignKey : choiceData.choiceId;
+        string text = GameTextDB.GetExact(TextKind.EventDesc, titleKey, foreignKey);
+        return string.IsNullOrEmpty(text) ? choiceData.choiceText : text;
     }
 
     // 사용처: 선택지 버튼 텍스트를 기본 흰색, 위험/소모 붉은색, 보상/이득 초록색으로 조합
@@ -254,8 +257,12 @@ public class EventUIManager : MonoBehaviour
                 "<color=#B8A98E>조건 미충족</color>";
         }
 
-        string positive = GameTextDB.Get(TextKind.EventDesc, 110, choiceData.choiceId);
-        string negative = GameTextDB.Get(TextKind.EventDesc, 111, choiceData.choiceId);
+        int foreignKey = choiceData.gameTextForeignKey != 0 ? choiceData.gameTextForeignKey : choiceData.choiceId;
+        int positiveKey = choiceData.gameTextTitleKey_positive != 0 ? choiceData.gameTextTitleKey_positive : 110;
+        int negativeKey = choiceData.gameTextTitleKey_negative != 0 ? choiceData.gameTextTitleKey_negative : 111;
+
+        string positive = GameTextDB.GetExact(TextKind.EventDesc, positiveKey, foreignKey);
+        string negative = GameTextDB.GetExact(TextKind.EventDesc, negativeKey, foreignKey);
 
         if (string.IsNullOrEmpty(positive) && choiceData.choiceResultText != null && choiceData.choiceResultText.Count > 0)
             positive = choiceData.choiceResultText[0];
@@ -265,7 +272,8 @@ public class EventUIManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(positive) && string.IsNullOrEmpty(negative))
         {
-            string resultDescription = GameTextDB.Get(TextKind.EventDesc, 120, choiceData.choiceId);
+            int resultDescriptionKey = choiceData.gameTextTitleKey_resultDescription != 0 ? choiceData.gameTextTitleKey_resultDescription : 120;
+            string resultDescription = GameTextDB.GetExact(TextKind.EventDesc, resultDescriptionKey, foreignKey);
             if (string.IsNullOrEmpty(resultDescription))
                 resultDescription = choiceData.resultDescription;
 

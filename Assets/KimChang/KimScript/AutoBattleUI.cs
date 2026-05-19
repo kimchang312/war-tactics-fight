@@ -100,6 +100,9 @@ public class AutoBattleUI : MonoBehaviour
     private int myRangeAttackCount;
     private int enemyRangeAttackCount;
 
+    // 사용처: 원거리 공격 가능 아이콘을 풀에서 재사용할 때 항상 같은 크기로 고정
+    [SerializeField] private Vector2 rangeAttackIconSize = new Vector2(120f, 120f);
+
 
 
     // 사용처: 좌표 변환(월드 -> 캔버스 로컬) 캐싱
@@ -121,14 +124,20 @@ public class AutoBattleUI : MonoBehaviour
 
     private void OnEnable()
     {
-        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
-        GameSpeedManager.Instance.OnGameSpeedChanged += ChangeWaittingTime;
-        ChangeWaittingTime(GameSpeedManager.Instance.GameSpeed);
+        var speedManager = GameSpeedManager.Instance;
+        if (speedManager == null)
+            return;
+
+        speedManager.OnGameSpeedChanged -= ChangeWaittingTime;
+        speedManager.OnGameSpeedChanged += ChangeWaittingTime;
+        ChangeWaittingTime(speedManager.GameSpeed);
     }
 
     private void OnDisable()
     {
-        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWaittingTime;
+        var speedManager = GameSpeedManager.Instance;
+        if (speedManager != null)
+            speedManager.OnGameSpeedChanged -= ChangeWaittingTime;
     }
 
     // 사용처: 전투 유닛 화면 오브젝트를 UniqueId 기준으로 빠르게 찾기 위한 키 생성
@@ -296,44 +305,46 @@ public class AutoBattleUI : MonoBehaviour
     {
         if (battleAnim == null) battleAnim = FindObjectOfType<BattleCrashAnimation>();
         //goTestBtn.SetActive(false);
-        if (rewardUI == null)
+        if (rewardUI == null && GameManager.Instance != null)
         {
             rewardUI = GameManager.Instance.rewardUI;
         }
 
-        int fieldId = RogueLikeData.Instance.GetFieldId();
-        switch (fieldId)
+        int fieldId = RogueLikeData.Instance != null ? RogueLikeData.Instance.GetFieldId() : 0;
+        if (background != null)
         {
-            case 1:
-                {
-                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Hill");
+            switch (fieldId)
+            {
+                case 1:
+                    {
+                        background.sprite = SpriteCacheManager.GetSprite("EventImages/Hill");
+                        break;
+                    }
+                case 2:
+                    {
+                        background.sprite = SpriteCacheManager.GetSprite("EventImages/Forest");
+                        break;
+                    }
+                case 3:
+                    {
+                        background.sprite = SpriteCacheManager.GetSprite("EventImages/Mountain");
+                        break;
+                    }
+                case 4:
+                    {
+                        background.sprite = SpriteCacheManager.GetSprite("EventImages/Swampland");
+                        break;
+                    }
+                default:
+                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Background");
                     break;
-                }
-            case 2:
-                {
-                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Forest");
-                    break;
-                }
-            case 3:
-                {
-                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Mountain");
-                    break;
-                }
-            case 4:
-                {
-                    background.sprite = SpriteCacheManager.GetSprite("EventImages/Swampland");
-                    break;
-                }
-            default:
-                background.sprite = SpriteCacheManager.GetSprite("EventImages/Background");
-
-                break;
+            }
         }
 
         ResetUIActive();
 
-        myHpBar.interactable = false;
-        enemyHpBar.interactable = false;
+        if (myHpBar != null) myHpBar.interactable = false;
+        if (enemyHpBar != null) enemyHpBar.interactable = false;
         if (mySecondHpBar != null) mySecondHpBar.interactable = false;
         if (enemySecondHpBar != null) enemySecondHpBar.interactable = false;
 
@@ -341,24 +352,37 @@ public class AutoBattleUI : MonoBehaviour
     }
     public void UpdateUnitCountUI(int myUnitCount, int enemyUnitCount)
     {
-        _myUnitCountUI.text = $"{myUnitCount}";
-        _enemyUnitCountUI.text = $"{enemyUnitCount}";
+        if (_myUnitCountUI != null)
+            _myUnitCountUI.text = $"{myUnitCount}";
+
+        if (_enemyUnitCountUI != null)
+            _enemyUnitCountUI.text = $"{enemyUnitCount}";
 
     }
     public void UpdateUnitHPUI(float myUnitHP, float enemyUnitHP, float myMaxHp, float enemyMaxHp)
     {
-        // 널 체크 버그 수정
-        if (_myUnitHPUI != null && _emyUnitHPUI != null)
-        {
+        myMaxHp = Mathf.Max(1f, myMaxHp);
+        enemyMaxHp = Mathf.Max(1f, enemyMaxHp);
+        myUnitHP = Mathf.Clamp(myUnitHP, 0f, myMaxHp);
+        enemyUnitHP = Mathf.Clamp(enemyUnitHP, 0f, enemyMaxHp);
+
+        if (_myUnitHPUI != null)
             _myUnitHPUI.text = $"{myUnitHP}/{myMaxHp}";
+
+        if (_emyUnitHPUI != null)
             _emyUnitHPUI.text = $"{enemyUnitHP}/{enemyMaxHp}";
+
+        if (myHpBar != null)
+        {
+            myHpBar.maxValue = myMaxHp;
+            myHpBar.value = myUnitHP;
         }
 
-        myHpBar.maxValue = myMaxHp;
-        myHpBar.value = myUnitHP;
-
-        enemyHpBar.maxValue = enemyMaxHp;
-        enemyHpBar.value = enemyUnitHP;
+        if (enemyHpBar != null)
+        {
+            enemyHpBar.maxValue = enemyMaxHp;
+            enemyHpBar.value = enemyUnitHP;
+        }
     }
     //데미지 텍스트 표기 함수
     public void ShowDamage(float _damage, string text, bool team, bool isAttack, int unitIndex)
@@ -437,21 +461,31 @@ public class AutoBattleUI : MonoBehaviour
     }
     private void ShowDamageInternalWithPosition(float damage, string text, Vector2 anchoredPosition)
     {
+        if (objectPool == null || canvasTransform == null)
+            return;
+
         GameObject go = objectPool.GetDamageText();
+        if (go == null)
+            return;
 
         // damageText는 UI이므로 반드시 캔버스 아래에 두기
         if (go.transform.parent != canvasTransform)
             go.transform.SetParent(canvasTransform, false);
 
         // ObjectPool.GetDamageText()에서 이미 SetActive(true)지만 혹시 모를 케이스 방어
-        if (!go.activeSelf) go.SetActive(true);
+        if (!go.activeSelf)
+            go.SetActive(true);
 
-        // MoveDamageUI가 OnEnable에서 월드좌표 트윈을 자동 시작할 수 있음
-        // 여기서 즉시 Kill하면 첫 프레임 이동도 막힌다
         go.transform.DOKill(false);
 
         RectTransform rt = go.GetComponent<RectTransform>();
         TextMeshProUGUI tmp = go.GetComponent<TextMeshProUGUI>();
+
+        if (rt == null || tmp == null)
+        {
+            objectPool.ReturnDamageText(go);
+            return;
+        }
 
         // 이전에 걸린 "go 타겟 시퀀스" 정리 (complete=false로 OnComplete가 튀는 상황 방지)
         DOTween.Kill(go, false);
@@ -473,11 +507,14 @@ public class AutoBattleUI : MonoBehaviour
             .Join(tmp.DOFade(0f, dur))
             .OnComplete(() =>
             {
-                // 풀로 돌려주기 전에 알파 복구
-                var c = tmp.color;
-                tmp.color = new Color(c.r, c.g, c.b, 1f);
+                if (tmp != null)
+                {
+                    var c = tmp.color;
+                    tmp.color = new Color(c.r, c.g, c.b, 1f);
+                }
 
-                objectPool.ReturnDamageText(go);
+                if (objectPool != null && go != null)
+                    objectPool.ReturnDamageText(go);
             });
     }
 
@@ -658,6 +695,9 @@ public class AutoBattleUI : MonoBehaviour
     {
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
+
+        if (objectPool == null || canvasTransform == null)
+            yield break;
 
         GameObject go = objectPool.GetWeaponImage();
         if (go == null)
@@ -888,6 +928,9 @@ public class AutoBattleUI : MonoBehaviour
     {
         unitViewMap.Clear();
 
+        if (objectPool == null)
+            return;
+
         foreach (var unit in objectPool.GetActiveBattleUnits())
         {
             objectPool.ReturnBattleUnit(unit);
@@ -925,19 +968,22 @@ public class AutoBattleUI : MonoBehaviour
         if (!hasRangeUnit)
             return;
 
+        if (objectPool == null || canvasTransform == null)
+            return;
+
         string rangeIconName = isMyTeam ? "MyRangeAttack" : "EnemyRangeAttack";
 
         GameObject unit = objectPool.GetBattleUnit();
+        if (unit == null)
+            return;
+
         unit.transform.SetParent(canvasTransform, false);
         unit.transform.localScale = Vector3.one;
 
         RestoreGraphicRoot(unit);
 
         RectTransform rectTransform = unit.GetComponent<RectTransform>();
-        rectTransform.anchoredPosition = position;
-        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        ApplyRangeAttackIconLayout(rectTransform, position);
 
         Image img = unit.GetComponent<Image>();
         if (img != null)
@@ -961,6 +1007,23 @@ public class AutoBattleUI : MonoBehaviour
         unit.name = rangeIconName;
     }
 
+    // 사용처: 원거리 공격 아이콘을 생성/재사용할 때 위치와 크기를 매번 동일하게 초기화
+    private void ApplyRangeAttackIconLayout(RectTransform rectTransform, Vector3 position)
+    {
+        if (rectTransform == null)
+            return;
+
+        rectTransform.DOKill(false);
+        rectTransform.localScale = Vector3.one;
+        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.anchoredPosition = position;
+
+        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rangeAttackIconSize.x);
+        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rangeAttackIconSize.y);
+    }
+
 
     // 유닛 이미지 생성
     private void CreateUnitImages(
@@ -969,7 +1032,7 @@ public class AutoBattleUI : MonoBehaviour
         float firstSize, float secondSize,
         bool isMyUnit, float dodge)
     {
-        if (units == null)
+        if (units == null || objectPool == null || canvasTransform == null)
             return;
 
         for (int i = 0; i < units.Count; i++)
@@ -980,17 +1043,35 @@ public class AutoBattleUI : MonoBehaviour
             string unitTeam = isMyUnit ? "My" : "Enemy";
             Transform backParent = isMyUnit ? myBackUnitsParent : enemyBackUnitsParent;
             Transform targetParent = i < 2 ? canvasTransform : backParent;
+            if (targetParent == null)
+                continue;
 
             GameObject unitImage = objectPool.GetBattleUnit();
+            if (unitImage == null)
+                continue;
+
             unitImage.transform.SetParent(targetParent, false);
             unitImage.transform.localScale = isMyUnit ? new(1, 1, 1) : new(-1, 1, 1);
 
             RestoreGraphicRoot(unitImage);
 
+            if (unitImage.transform.childCount == 0)
+            {
+                objectPool.ReturnBattleUnit(unitImage);
+                continue;
+            }
+
             Transform childUnit = unitImage.transform.GetChild(0);
             Image unitFrame = childUnit.GetComponent<Image>();
-            unitFrame.sprite = SpriteCacheManager.GetFrameByRarity(unit.rarity);
             RectTransform rectTransform = unitImage.GetComponent<RectTransform>();
+
+            if (unitFrame == null || rectTransform == null)
+            {
+                objectPool.ReturnBattleUnit(unitImage);
+                continue;
+            }
+
+            unitFrame.sprite = SpriteCacheManager.GetFrameByRarity(unit.rarity);
             RectTransform frameRect = unitFrame.rectTransform;
 
             float unitSize = (i == 0) ? firstSize : secondSize;
@@ -1011,7 +1092,8 @@ public class AutoBattleUI : MonoBehaviour
             }
 
             Image img = unitImage.GetComponent<Image>();
-            img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
+            if (img != null)
+                img.sprite = SpriteCacheManager.GetSprite($"UnitImages/Unit_Img_{unit.idx}");
 
             unitImage.name = $"{(isMyUnit ? "My" : "Enemy")}Unit{i}";
             RegisterUnitView(unit, unitImage);
@@ -1055,7 +1137,7 @@ public class AutoBattleUI : MonoBehaviour
     }
     private void CreateAbilityIcons(RogueUnitDataBase unit, bool isTeam)
     {
-        if (unit == null)
+        if (unit == null || objectPool == null)
             return;
 
         Transform abilityBox = isTeam ? myAbilityBox : enemyAbilityBox;
@@ -1108,6 +1190,9 @@ public class AutoBattleUI : MonoBehaviour
             }
 
             GameObject iconGO = objectPool.GetAbility();
+            if (iconGO == null)
+                continue;
+
             RestoreGraphicRoot(iconGO);
 
             Image img = iconGO.GetComponent<Image>();
@@ -1138,6 +1223,9 @@ public class AutoBattleUI : MonoBehaviour
 
     private void ClearExistingAbilityIcons()
     {
+        if (objectPool == null)
+            return;
+
         foreach (var unit in objectPool.GetActiveAbilitys())
         {
             objectPool.ReturnAbility(unit);
@@ -1147,17 +1235,24 @@ public class AutoBattleUI : MonoBehaviour
     //전투 종료
     public void FightEnd()
     {
-        if (rewardUI == null)
+        if (rewardUI == null && GameManager.Instance != null)
         {
             rewardUI = GameManager.Instance.rewardUI;
         }
 
-        rewardUI.AnimateBattleEnd();
+        if (rewardUI != null)
+            rewardUI.AnimateBattleEnd();
     }
     //true 승리, false 패배
     public void GameEnd(bool isWin)
     {
-        rewardUI.StartGameOverSequence(isWin);
+        if (rewardUI == null && GameManager.Instance != null)
+        {
+            rewardUI = GameManager.Instance.rewardUI;
+        }
+
+        if (rewardUI != null)
+            rewardUI.StartGameOverSequence(isWin);
     }
     //능력 창 띄위기
     public void CreateAbility(string ability, bool myTeam)
@@ -1286,7 +1381,7 @@ public class AutoBattleUI : MonoBehaviour
     //사기 값 수정
     public void UpdateMorale()
     {
-        int morale = RogueLikeData.Instance.GetMorale();
+        int morale = RogueLikeData.Instance != null ? RogueLikeData.Instance.GetMorale() : 0;
         //moraleText.text = $"{morale}";
     }
     public void OpenGoTestBtn()
