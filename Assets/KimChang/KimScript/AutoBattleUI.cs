@@ -886,8 +886,8 @@ public class AutoBattleUI : MonoBehaviour
     {
         Vector3[] myPositions = { new Vector3(-290, 60, 0), new Vector3(-575, 110, 0) };
         Vector3[] enemyPositions = { new Vector3(290, 60, 0), new Vector3(575, 110, 0) };
-        Vector3 myRangeUnitPos = new Vector3(-830, -220, 0);
-        Vector3 enemyRangeUnitPos = new Vector3(830, -220, 0);
+        Vector3 myRangeUnitPos = new Vector3(-850, -230, 0);
+        Vector3 enemyRangeUnitPos = new Vector3(850, -230, 0);
 
         // 변경: 첫 유닛 240, 이후 140
         float firstSize = 240f;

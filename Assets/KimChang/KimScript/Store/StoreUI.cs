@@ -375,15 +375,7 @@ public class StoreUI : MonoBehaviour
         ItemInformation info = btn.GetComponent<ItemInformation>();
         if (info != null && info.data.isItem)
         {
-            //주사위 예외처리
-            if (!info.data.isRelic && info.data.item.itemId == 60)
-            {
-                btn.transform.GetChild(2).gameObject.SetActive(true); // 체크 표시
-            }
-            else
-            {
-                btn.transform.GetChild(3).gameObject.SetActive(true); // 체크 표시
-            }
+            btn.transform.GetChild(3).gameObject.SetActive(true); // 체크 표시
 
             checkedBtn = btn;
         }

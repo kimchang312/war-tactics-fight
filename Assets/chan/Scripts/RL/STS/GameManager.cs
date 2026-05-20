@@ -881,7 +881,6 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     public void CloseLoading()
     {
         loadingPanel.SetActive(false);
-        openUnitOrderBtn.gameObject.SetActive(true);
     }
 
 
