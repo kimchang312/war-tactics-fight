@@ -3,6 +3,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -31,6 +32,11 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         "SUPPORTER"
     };
 
+    [Header("Tooltip Bounds")]
+    private Vector2 tooltipOffset = new Vector2(20f, -100f);
+    private float tooltipMaxWidth = 580f;
+    private float tooltipScreenPadding = 20f;
+    private float tooltipMaxHeightRatio = 0.85f;
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (!TryBuildTooltipText(out string tooltipText))
@@ -40,7 +46,7 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
 
         if (ItemToolTip == null)
-            ItemToolTip = GameManager.Instance.itemToolTip;
+            ItemToolTip = GameManager.Instance != null ? GameManager.Instance.itemToolTip : null;
 
         if (ItemToolTip == null)
             return;
@@ -48,8 +54,6 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         TextMeshProUGUI textComponent = ItemToolTip.GetComponentInChildren<TextMeshProUGUI>(true);
         if (textComponent == null)
             return;
-
-        textComponent.text = tooltipText;
 
         RectTransform tooltipRect = ItemToolTip.GetComponent<RectTransform>();
         if (tooltipRect == null)
@@ -59,45 +63,108 @@ public class ExplainItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         if (canvas == null)
             return;
 
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvas.transform as RectTransform,
-            Input.mousePosition,
-            canvas.worldCamera,
-            out var mousePosition
-        );
-
-        Vector2 offset = new Vector2(20, -100);
-        Vector2 desiredPosition = mousePosition + offset;
-
-        Vector2 tooltipSize = tooltipRect.sizeDelta;
         RectTransform canvasRect = canvas.transform as RectTransform;
         if (canvasRect == null)
             return;
 
-        float canvasWidth = canvasRect.rect.width;
-        float canvasHeight = canvasRect.rect.height;
-
-        float minX = -canvasWidth / 2 + tooltipSize.x / 2;
-        float maxX = canvasWidth / 2 - tooltipSize.x / 2;
-        float minY = -canvasHeight / 2 + tooltipSize.y / 2;
-        float maxY = canvasHeight / 2 - tooltipSize.y / 2;
-
-        desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
-        desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
-
-        tooltipRect.anchoredPosition = desiredPosition;
-
-        Canvas.ForceUpdateCanvases();
-
         ItemToolTip.SetActive(true);
         ItemToolTip.transform.SetAsLastSibling();
+
+        textComponent.enableWordWrapping = true;
+        textComponent.overflowMode = TextOverflowModes.Ellipsis;
+        textComponent.text = tooltipText;
+
+        RefreshTooltipLayout(textComponent, tooltipRect);
+
+        LimitTooltipSizeToCanvas(textComponent, tooltipRect, canvasRect);
+
+        RefreshTooltipLayout(textComponent, tooltipRect);
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            Input.mousePosition,
+            canvas.worldCamera,
+            out Vector2 mousePosition
+        );
+
+        Vector2 desiredPosition = mousePosition + tooltipOffset;
+        Vector2 tooltipSize = tooltipRect.rect.size;
+
+        tooltipRect.anchoredPosition = ClampTooltipPosition(
+            desiredPosition,
+            tooltipSize,
+            tooltipRect.pivot,
+            canvasRect.rect.size
+        );
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         HideToolTip();
     }
+    // 사용처: 툴팁 텍스트 변경 후 실제 UI 크기를 즉시 계산
+    private static void RefreshTooltipLayout(TextMeshProUGUI textComponent, RectTransform tooltipRect)
+    {
+        textComponent.ForceMeshUpdate();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(textComponent.rectTransform);
+        LayoutRebuilder.ForceRebuildLayoutImmediate(tooltipRect);
+        Canvas.ForceUpdateCanvases();
+    }
 
+    // 사용처: 설명이 길어져도 툴팁 크기가 화면보다 커지지 않도록 제한
+    private void LimitTooltipSizeToCanvas(TextMeshProUGUI textComponent, RectTransform tooltipRect, RectTransform canvasRect)
+    {
+        float canvasWidth = canvasRect.rect.width;
+        float canvasHeight = canvasRect.rect.height;
+
+        float maxWidth = Mathf.Min(tooltipMaxWidth, canvasWidth - tooltipScreenPadding * 2f);
+        float maxHeight = canvasHeight * tooltipMaxHeightRatio;
+
+        maxWidth = Mathf.Max(100f, maxWidth);
+        maxHeight = Mathf.Max(100f, maxHeight);
+
+        Vector2 currentSize = tooltipRect.rect.size;
+
+        if (currentSize.x > maxWidth)
+            tooltipRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, maxWidth);
+
+        if (currentSize.y > maxHeight)
+            tooltipRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, maxHeight);
+
+        RectTransform textRect = textComponent.rectTransform;
+        Vector2 limitedSize = tooltipRect.rect.size;
+
+        if (textRect.rect.width > limitedSize.x)
+            textRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, limitedSize.x);
+
+        if (textRect.rect.height > limitedSize.y)
+            textRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, limitedSize.y);
+    }
+
+    // 사용처: 툴팁 위치가 캔버스 밖으로 나가지 않도록 보정
+    private Vector2 ClampTooltipPosition(Vector2 desiredPosition, Vector2 tooltipSize, Vector2 pivot, Vector2 canvasSize)
+    {
+        float halfCanvasWidth = canvasSize.x * 0.5f;
+        float halfCanvasHeight = canvasSize.y * 0.5f;
+
+        float minX = -halfCanvasWidth + tooltipScreenPadding + tooltipSize.x * pivot.x;
+        float maxX = halfCanvasWidth - tooltipScreenPadding - tooltipSize.x * (1f - pivot.x);
+
+        float minY = -halfCanvasHeight + tooltipScreenPadding + tooltipSize.y * pivot.y;
+        float maxY = halfCanvasHeight - tooltipScreenPadding - tooltipSize.y * (1f - pivot.y);
+
+        if (minX <= maxX)
+            desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
+        else
+            desiredPosition.x = 0f;
+
+        if (minY <= maxY)
+            desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
+        else
+            desiredPosition.y = 0f;
+
+        return desiredPosition;
+    }
     // 사용처: 설명 데이터가 없는 오브젝트는 툴팁을 열지 않도록 판정
     private bool TryBuildTooltipText(out string tooltipText)
     {

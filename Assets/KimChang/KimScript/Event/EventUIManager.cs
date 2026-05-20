@@ -41,7 +41,6 @@ public class EventUIManager : MonoBehaviour
     private void Awake()
     {
         ConfigureChoiceButtonParentLayout();
-        ConfigureLeaveButtonLayout();
         ResetUI();
     }
 
@@ -143,7 +142,6 @@ public class EventUIManager : MonoBehaviour
         SaveData saveData = new();
         saveData.SaveDataFile();
         if (resultText.Item2) gameObject.SetActive(false);
-        ConfigureLeaveButtonLayout();
         leaveBtn.gameObject.SetActive(true);
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
     }
@@ -308,50 +306,6 @@ public class EventUIManager : MonoBehaviour
         }
 
         return sb.ToString();
-    }
-
-    // 사용처: 선택지 처리 후 표시되는 떠나기 버튼의 폭과 높이를 고정하여 부모 Layout 또는 프리팹 설정에 의한 크기 깨짐을 방지
-    private void ConfigureLeaveButtonLayout()
-    {
-        if (leaveBtn == null)
-            return;
-
-        GameObject buttonObject = leaveBtn.gameObject;
-
-        ContentSizeFitter fitter = buttonObject.GetComponent<ContentSizeFitter>();
-        if (fitter != null)
-            fitter.enabled = false;
-
-        HorizontalLayoutGroup horizontalLayout = buttonObject.GetComponent<HorizontalLayoutGroup>();
-        if (horizontalLayout != null)
-            horizontalLayout.enabled = false;
-
-        LayoutElement layoutElement = buttonObject.GetComponent<LayoutElement>();
-        if (layoutElement == null)
-            layoutElement = buttonObject.AddComponent<LayoutElement>();
-
-        layoutElement.minWidth = leaveButtonWidth;
-        layoutElement.preferredWidth = leaveButtonWidth;
-        layoutElement.flexibleWidth = 0f;
-
-        layoutElement.minHeight = leaveButtonHeight;
-        layoutElement.preferredHeight = leaveButtonHeight;
-        layoutElement.flexibleHeight = 0f;
-
-        RectTransform rect = leaveBtn.transform as RectTransform;
-        if (rect != null)
-        {
-            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, leaveButtonWidth);
-            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, leaveButtonHeight);
-        }
-
-        Image image = leaveBtn.GetComponent<Image>();
-        if (image != null)
-            image.preserveAspect = false;
-
-        RectTransform parentRect = leaveBtn.transform.parent as RectTransform;
-        if (parentRect != null)
-            LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
     }
 
 
