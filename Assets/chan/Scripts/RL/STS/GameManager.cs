@@ -899,17 +899,43 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         int presetId = RogueLikeData.Instance.GetPresetID();
         StageType type = RogueLikeData.Instance.GetCurrentStageType();
-        enemyInfoPanel.SetActive(true);
-        var enemies = LoadEnemyUnits(presetId);
-        var preset = StagePresetLoader.I.GetByID(presetId);
 
-        string cmdName = preset.Commander ?? "";
-        int? eliteCmdId = preset.CommanderNumericId;
-        var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
-        panel.ShowEnemyInfo(type, enemies, cmdName, combined: false, eliteCmdId);
-        
-        // PlacePanel에 지휘관 정보 표시
-        PlacePanelComponent.ShowCommanderInfo(cmdName, type, eliteCmdId);
+        OpenBattlePlacePanel(presetId, type, currentStage != null ? currentStage.battlefieldEffect : null);
+    }
+
+    private void OpenBattlePlacePanel(int presetId, StageType stageType, BattlefieldEffect? battlefieldEffect)
+    {
+        PlacePanel placePanel = PlacePanelComponent;
+        if (placePanel == null)
+        {
+            Debug.LogError("[GameManager] PlacePanel 컴포넌트를 찾을 수 없습니다.");
+            return;
+        }
+
+        List<RogueUnitDataBase> enemies = LoadEnemyUnits(presetId);
+
+        var preset = StagePresetLoader.I.GetByID(presetId);
+        string commanderName = preset?.Commander ?? "";
+        int? eliteCommanderId = preset?.CommanderNumericId;
+
+        if (enemyInfoPanel != null)
+            enemyInfoPanel.SetActive(false);
+
+        TogglePlacePanel(true);
+
+        placePanel.ClearPlacePanel();
+        placePanel.UpdateMaxUnitText();
+        placePanel.CreateEnemyPrefabs(enemies);
+        placePanel.ShowCommanderInfo(commanderName, stageType, eliteCommanderId);
+
+        if (battlefieldEffect.HasValue)
+        {
+            placePanel.ShowBattlefieldEffect(battlefieldEffect.Value);
+
+            int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(battlefieldEffect.Value);
+            RogueLikeData.Instance.SetFieldId(fieldId);
+        }
+
         RefreshNodeInfoButton();
     }
 

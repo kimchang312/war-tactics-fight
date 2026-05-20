@@ -732,6 +732,59 @@ public static class GameTextDB
             }
         }
 
+        return RemoveUnresolvedTemplateTokens(s);
+    }
+
+    // 사용처: 이벤트 결과 문장에 남은 미치환 토큰이 그대로 노출되지 않도록 제거
+    private static string RemoveUnresolvedTemplateTokens(string s)
+    {
+        if (string.IsNullOrEmpty(s) || s.IndexOf('{') < 0)
+            return s;
+
+        s = RemoveUnresolvedTemplateTokensByPrefix(s, "{require[");
+        s = RemoveUnresolvedTemplateTokensByPrefix(s, "{result[");
+        s = RemoveUnresolvedTemplateTokensByPrefix(s, "{text[");
+
+        return s;
+    }
+
+    // 사용처: 특정 토큰 계열의 미치환 토큰만 빠르게 제거
+    private static string RemoveUnresolvedTemplateTokensByPrefix(string s, string prefix)
+    {
+        int searchIndex = 0;
+
+        while (searchIndex < s.Length)
+        {
+            int startIndex = s.IndexOf(prefix, searchIndex, StringComparison.Ordinal);
+            if (startIndex < 0)
+                break;
+
+            int numberStartIndex = startIndex + prefix.Length;
+            int endIndex = s.IndexOf("]}", numberStartIndex, StringComparison.Ordinal);
+            if (endIndex < 0)
+                break;
+
+            bool isValidNumber = endIndex > numberStartIndex;
+            for (int i = numberStartIndex; i < endIndex; i++)
+            {
+                if (!char.IsDigit(s[i]))
+                {
+                    isValidNumber = false;
+                    break;
+                }
+            }
+
+            if (!isValidNumber)
+            {
+                searchIndex = numberStartIndex;
+                continue;
+            }
+
+            int removeLength = endIndex + 2 - startIndex;
+            s = s.Remove(startIndex, removeLength);
+            searchIndex = startIndex;
+        }
+
         return s;
     }
 
