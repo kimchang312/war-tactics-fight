@@ -35,6 +35,8 @@ public class EventUIManager : MonoBehaviour
     [SerializeField] private Sprite unitIcon;
     [SerializeField] private Sprite disabledIcon;
 
+    [SerializeField] private LineUpBar lineUpBar;
+
     private float leaveButtonWidth = 580f;
     private float leaveButtonHeight = 80f;
 
@@ -144,6 +146,10 @@ public class EventUIManager : MonoBehaviour
         if (resultText.Item2) gameObject.SetActive(false);
         leaveBtn.gameObject.SetActive(true);
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
+        if(lineUpBar != null)
+        {
+            lineUpBar.RefreshUnitList();
+        }
     }
     private void OpenSelectdUnit(EventChoiceData choiceData)
     {

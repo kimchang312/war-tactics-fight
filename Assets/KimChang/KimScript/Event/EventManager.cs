@@ -651,14 +651,20 @@ public class EventManager
                         }
                         else if (form == ResultForm.Special)
                         {
-                            if (choiceData.choiceId == 59 && RogueLikeData.Instance.GetRandomFloat() < 0.5f)
+                            if (choiceData.choiceId == 59)
                             {
-                                var relic = RelicManager.HandleRandomRelic(0, RelicAction.Acquire);
-                                if (relic != null)
+                                bool hasCurse = RogueLikeData.Instance.GetRandomFloat() < 0.5f;
+                                resultTextIndex = hasCurse ? 1 : 0;
+
+                                if (hasCurse)
                                 {
-                                    string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
-                                    resultLog += $"- 전쟁 유산 획득: {name}\n";
-                                    PushResultToken(resultTokens, name);
+                                    var relic = RelicManager.HandleRandomRelic(0, RelicAction.Acquire);
+                                    if (relic != null)
+                                    {
+                                        string name = GameTextDB.GetByForeignKey(TextKind.RelicName, relic.id);
+                                        resultLog += $"- 전쟁 유산 획득: {name}\n";
+                                        PushResultToken(resultTokens, name);
+                                    }
                                 }
                             }
                             else if (choiceData.choiceId == 73)
@@ -819,11 +825,22 @@ public class EventManager
                         {
                             var origin = selectedUnits[0];
                             float chance = origin.rarity switch { 1 => 0.3f, 2 => 0.6f, 3 => 1.0f, _ => 0f };
-                            if (RogueLikeData.Instance.GetRandomFloat() < chance)
+                            bool success = RogueLikeData.Instance.GetRandomFloat() < chance;
+                            if (choiceData.choiceId == 95)
+                                resultTextIndex = success ? 0 : 1;
+
+                            if (success)
                             {
                                 var myIdx = new HashSet<int>(RogueLikeData.Instance.GetMyTeam().Select(u => u.idx));
                                 var valid = UnitLoader.Instance.GetAllCachedUnits().Where(u => u.rarity == 4 && !myIdx.Contains(u.idx)).ToList();
-                                if (valid.Count == 0) { resultLog += "모든 영웅 유닛 보유\n"; break; }
+                                if (valid.Count == 0)
+                                {
+                                    if (choiceData.choiceId == 95)
+                                        resultTextIndex = 1;
+
+                                    resultLog += "모든 영웅 유닛 보유\n";
+                                    break;
+                                }
 
                                 int ri = RogueLikeData.Instance.GetRandomInt(0, valid.Count);
                                 var pick = valid[ri];
@@ -1152,6 +1169,8 @@ public class EventManager
 
                 case ResultType.Training:
                     {
+                        int appliedTrainingCount = 0;
+
                         for (int k = 0; k < choiceData.resultValue.Count; k++)
                         {
                             string valueStr = choiceData.resultValue[k];
@@ -1160,7 +1179,10 @@ public class EventManager
 
                             for (int j = 0; j < upCnt; j++)
                             {
-                                if (useRandom) RogueLikeData.Instance.IncreaseRandomUpgrade(false);
+                                if (useRandom)
+                                {
+                                    RogueLikeData.Instance.IncreaseRandomUpgrade(false);
+                                }
                                 else
                                 {
                                     var parts = valueStr.Split(',');
@@ -1170,10 +1192,15 @@ public class EventManager
                                     bool isAttack = UnityEngine.Random.value < 0.5f;
                                     RogueLikeData.Instance.IncreaseUpgrade(randomType, isAttack, false);
                                 }
+
+                                appliedTrainingCount++;
+                                PushResultToken(resultTokens, "전술 개량");
                             }
                         }
-                        resultLog += "랜덤 병종 강화 적용\n";
-                        PushResultToken(resultTokens, "전술 개량");
+
+                        resultLog += appliedTrainingCount > 0
+                            ? $"랜덤 병종 강화 {appliedTrainingCount}회 적용\n"
+                            : "랜덤 병종 강화 적용\n";
                         break;
                     }
 

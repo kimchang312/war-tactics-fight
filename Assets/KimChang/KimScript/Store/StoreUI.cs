@@ -23,6 +23,7 @@ public class StoreUI : MonoBehaviour
     [SerializeField] private Transform relicField;
     [SerializeField] private Transform itemField;
 
+    [SerializeField] private LineUpBar lineUpBar;
 
     private List<StoreItemData> cachedUnitItems;
     private List<List<RogueUnitDataBase>> cachedUnitPackages;
@@ -272,6 +273,10 @@ public class StoreUI : MonoBehaviour
         new SaveData().SaveDataFile();
 
         unitPackageUI.gameObject.SetActive(false);
+        if(lineUpBar != null)
+        {
+            lineUpBar.RefreshUnitList();
+        }
         ClosePackageBack();
     }
 
@@ -552,6 +557,7 @@ public class StoreUI : MonoBehaviour
     public void ClosePackageBack()
     {
         packagePanel.SetActive(false);
+        VisiblePurchaseLeaveBtn();
     }
 
 
