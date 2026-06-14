@@ -113,8 +113,8 @@ public class RelicManager
 
         // 5, 7 → 희귀도 변환 로직 유지
         var random = RogueLikeData.Instance.GetRandomBySeed();
-        if (grade == 5) grade = random.Next(0, 10) < 2 ? 10 : 1; // 20% 전설
-        else if (grade == 7) grade = random.Next(0, 10) < 5 ? 10 : 1; // 50% 전설
+        if (grade == 5) grade = RollLegendaryRelicGrade(random, 0.2f); // 20% 전설
+        else if (grade == 7) grade = RollLegendaryRelicGrade(random, 0.5f); // 50% 전설
 
         var srcIds = GetRelicIdsByGrade(grade);
         if (srcIds == null || srcIds.Count == 0)
@@ -141,6 +141,23 @@ public class RelicManager
             }
         }
         return result;
+    }
+
+    private static int RollLegendaryRelicGrade(System.Random random, float baseChance)
+    {
+        float chance = ApplyBrokenMirrorChance(baseChance);
+        int threshold = Mathf.RoundToInt(chance * 10000f);
+        return random.Next(0, 10000) < threshold ? 10 : 1;
+    }
+
+    private static float ApplyBrokenMirrorChance(float baseChance)
+    {
+        WarRelic relic = GetRelicById(90);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+        if (vals == null || vals.Count == 0)
+            return Mathf.Clamp01(baseChance);
+
+        return Mathf.Clamp01(baseChance * (1f + vals[0]));
     }
 
 
@@ -408,7 +425,7 @@ public class RelicManager
             var relic = kv.Value;
             if (relic == null) continue;
 
-            if (relic.type == RelicType.StateBoost || relic.type == RelicType.ActiveState)
+            if (relic.HasType(RelicType.StateBoost))
             {
                 if (curseBlock && relic.grade == 0) continue;
                 relic.Execute();
@@ -932,7 +949,7 @@ public class RelicManager
         if (!RogueLikeData.Instance.TryAddOwnedRelic(relic))
             return false;
 
-        if (relic.type == RelicType.GetEffect)
+        if (relic.HasType(RelicType.GetEffect))
             relic.Execute();
 
         UnitStateChange.ChangeStateMyUnits();

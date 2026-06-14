@@ -88,6 +88,11 @@ public class RogueLikeData
     private StoreSnapshot currentStore;
     private Dictionary<string, StoreSnapshot> storeSessions;
 
+    // 사용처: 저장/로드 시 현재 진행 중인 UI 상태 복원
+    private EventSnapshot currentEvent;
+    private SaveProgressState progressState = SaveProgressState.StageSelect;
+    private bool hasLoadedSaveData = false;
+
     // 사용처: 상점 좌표 → 유니크 키
     private string BuildStoreKey(int chapter, int x, int y) => $"{chapter}:{x}:{y}";
 
@@ -125,8 +130,8 @@ public class RogueLikeData
     {
         SavePlayerData data = new(
             0,
-            myUnits,
-            relicsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            new List<RogueUnitDataBase>(myTeam),
+            ownedRelicsById.Values.ToList(),
             encounteredEvent.Values.ToList(),
             currentGold, spentGold, playerMorale,
             currentStageX, currentStageY, chapter, currentStageType,
@@ -135,18 +140,119 @@ public class RogueLikeData
             language, fieldId, presetID, rerollChance, unitOrder, nextEventToTreasure
         );
         data.currentStore = currentStore;
+        data.currentEvent = currentEvent;
+        data.progressState = progressState;
+        data.randomSeed = randomSeed;
+        data.stageCallCount = stageCallCount;
+        data.rainbowKeyUses = GetRainbowKeyUsesSnapshot();
         return data;
     }
-    // 사용처: SaveData.LoadData()에서 로드한 스냅샷을 주입
+
+    // 사용처: SaveData.LoadData()에서 로드한 상점 스냅샷을 현재 세션에도 복원
     public void SetCurrentStoreSnapshot(StoreSnapshot snap)
     {
         currentStore = snap;
+
+        if (snap == null)
+            return;
+
+        storeSessions ??= new Dictionary<string, StoreSnapshot>();
+        string key = BuildStoreKey(snap.chapter, snap.stageX, snap.stageY);
+        storeSessions[key] = snap;
     }
+
+    // 사용처: 이벤트 UI가 처음 열릴 때 현재 이벤트를 저장
+    public void OpenEventSnapshot(int eventId)
+    {
+        currentEvent = new EventSnapshot
+        {
+            eventId = eventId,
+            selectedChoiceId = -1,
+            resultApplied = false,
+            resultText = "",
+            closeEventAfterResult = false
+        };
+
+        progressState = SaveProgressState.EventOpen;
+    }
+
+    // 사용처: 이벤트 선택 결과 적용 후 중복 보상 적용을 막기 위해 결과 상태를 저장
+    public void SetEventResultSnapshot(int eventId, int choiceId, string resultText, bool closeAfterResult)
+    {
+        currentEvent = new EventSnapshot
+        {
+            eventId = eventId,
+            selectedChoiceId = choiceId,
+            resultApplied = true,
+            resultText = resultText ?? "",
+            closeEventAfterResult = closeAfterResult
+        };
+
+        progressState = closeAfterResult
+            ? SaveProgressState.BattlePending
+            : SaveProgressState.EventResult;
+    }
+
+    // 사용처: 이벤트 종료 후 스테이지 선택 상태로 되돌림
+    public void ClearEventSnapshot()
+    {
+        currentEvent = null;
+
+        if (progressState == SaveProgressState.EventOpen ||
+            progressState == SaveProgressState.EventResult ||
+            progressState == SaveProgressState.BattlePending)
+        {
+            progressState = SaveProgressState.StageSelect;
+        }
+    }
+
+    // 사용처: SaveData.LoadData()에서 저장된 이벤트 스냅샷을 복원
+    public void SetCurrentEventSnapshot(EventSnapshot snapshot)
+    {
+        currentEvent = snapshot;
+    }
+
+    // 사용처: EventUIManager, GameManager에서 저장된 이벤트 상태 확인
+    public EventSnapshot GetCurrentEventSnapshot()
+    {
+        return currentEvent;
+    }
+
+    // 사용처: SaveData.LoadData(), StoreUI 종료, 이벤트 종료 등에서 현재 진행 상태 갱신
+    public void SetProgressState(SaveProgressState state)
+    {
+        progressState = state;
+    }
+
+    // 사용처: GameManager가 로드 후 어떤 UI를 복원할지 판단
+    public SaveProgressState GetProgressState()
+    {
+        return progressState;
+    }
+
+    // 사용처: 상점 닫기 후 현재 UI 진행 상태만 스테이지 선택으로 되돌림
+    public void ClearStoreOpenState()
+    {
+        if (progressState == SaveProgressState.StoreOpen)
+            progressState = SaveProgressState.StageSelect;
+    }
+
+    // 사용처: GameManager가 실제 저장 파일 로드 성공 여부에 따라 위치/UI 복원을 제한
+    public void SetHasLoadedSaveData(bool value)
+    {
+        hasLoadedSaveData = value;
+    }
+
+    public bool HasLoadedSaveData()
+    {
+        return hasLoadedSaveData;
+    }
+
     // RogueLikeData.cs
     // 사용처: 상점 구매/이벤트/전투 보상 등 데이터 변경 완료 후 최종 저장
     public void SaveNow()
     {
-        new SaveData().SaveDataFile();
+        new SaveData().SaveGame();
     }
     public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
@@ -162,7 +268,7 @@ public class RogueLikeData
         SavePlayerData data = new(
             0,
             savedCopy,
-            relicsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            ownedRelicsById.Values.ToList(),
             encounteredEvent.Values.ToList(),
             currentGold, spentGold, playerMorale,
             currentStageX, currentStageY, chapter, currentStageType,
@@ -170,7 +276,16 @@ public class RogueLikeData
             // 추가 필드
             language, fieldId, presetID, rerollChance, unitOrder, nextEventToTreasure
         );
+        data.currentStore = currentStore;
+        data.currentEvent = null;
+        data.progressState = SaveProgressState.RewardOpen;
+        data.randomSeed = randomSeed;
+        data.stageCallCount = stageCallCount;
+        data.rainbowKeyUses = GetRainbowKeyUsesSnapshot();
+
         myTeam = savedCopy;
+        currentEvent = null;
+        progressState = SaveProgressState.RewardOpen;
         savedMyUnits.Clear();
         return data;
     }
@@ -381,7 +496,7 @@ public class RogueLikeData
         spentGold += gold;
         currentGold -= gold;
 
-        if(UIManager.Instance != null)
+        if (UIManager.Instance != null)
         {
             UIManager.Instance.AnimateGoldChange(baseGold, -gold);
         }
@@ -405,13 +520,13 @@ public class RogueLikeData
         gold = (int)(addGold * gold);
         currentGold += gold;
 
-        if(UIManager.Instance != null)
+        if (UIManager.Instance != null)
         {
             //골드 애니메이션
             UIManager.Instance.AnimateGoldChange(baseGold, gold);
         }
 
-        
+
     }
 
 
@@ -467,7 +582,7 @@ public class RogueLikeData
         }
         UnitStateChange.ChangeStateMyUnits();
 
-        if(UIManager.Instance != null)
+        if (UIManager.Instance != null)
         {
             UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
         }
@@ -538,7 +653,7 @@ public class RogueLikeData
     //만난 이벤트 추가
     public void AddEncounteredEvent(int id)
     {
-        encounteredEvent.Add(id, id);
+        encounteredEvent[id] = id;
     }
     //아군 데이터 저장
     public void AddSavedMyUnits(RogueUnitDataBase unit)
@@ -730,10 +845,16 @@ public class RogueLikeData
     public void SetLoadData(List<int> eventId, int gold, int sentGold, int morale,
         int stageX, int stageY, int chapter, StageType stageType, int sariSatck, BattleRewardData battleReward, int nextUniqueId, int score)
     {
-        foreach (int id in eventId)
+        encounteredEvent.Clear();
+
+        if (eventId != null)
         {
-            encounteredEvent[id] = id;
+            foreach (int id in eventId)
+            {
+                encounteredEvent[id] = id;
+            }
         }
+
         this.currentGold = gold;
         this.spentGold = sentGold;
         this.playerMorale = morale;
@@ -742,10 +863,26 @@ public class RogueLikeData
         this.chapter = chapter;
         this.currentStageType = stageType;
         this.sariStack = sariSatck;
-        this.battleReward = battleReward;
+        this.battleReward = battleReward ?? new BattleRewardData();
         this.nextUnitUniqueId = nextUniqueId;
         this.score = score;
+        SetStage();
     }
+    // 사용처: 저장 데이터 로드 시 전술 개량 수치를 복원
+    public void SetUpgradeValues(UnitUpgrade[] values)
+    {
+        if (values == null || values.Length == 0)
+            return;
+
+        upgradeValues = values;
+
+        for (int i = 0; i < upgradeValues.Length; i++)
+        {
+            if (upgradeValues[i] == null)
+                upgradeValues[i] = new UnitUpgrade();
+        }
+    }
+
     //강화 반환
     public UnitUpgrade[] GetUpgradeValue()
     {
@@ -1030,6 +1167,9 @@ public class RogueLikeData
         isTestMode = false;
         currentStore = null;
         storeSessions = null;
+        currentEvent = null;
+        progressState = SaveProgressState.StageSelect;
+        hasLoadedSaveData = false;
 
     }
 
@@ -1064,17 +1204,21 @@ public class RogueLikeData
         // warRelics를 타입별로 분류해서 추가
         foreach (WarRelic relic in warRelics)
         {
+            WarRelicDatabase.RebindRuntime(relic);
+
             relicsByType[relic.type].Add(relic);
             relicIdsByType[relic.type].Add(relic.id);
             ownedRelicsById[relic.id] = relic;
-
-            WarRelicDatabase.RebindRuntime(relic);
         }
     }
     //랜덤 시드 고정
     public void SetRandomSeed(int seed)
     {
         randomSeed = seed;
+    }
+    public void SetStageCallCount(int count)
+    {
+        stageCallCount = Mathf.Max(0, count);
     }
 
     //랜덤 시드 무작위로 설정
@@ -1189,6 +1333,29 @@ public class RogueLikeData
         return GetRainbowKeyUses(chapter) < 2;
     }
 
+    public List<ChapterCounterSaveEntry> GetRainbowKeyUsesSnapshot()
+    {
+        return rainbowKeyUsesPerChapter
+            .Select(kvp => new ChapterCounterSaveEntry(kvp.Key, kvp.Value))
+            .ToList();
+    }
+
+    public void SetRainbowKeyUsesFromSave(List<ChapterCounterSaveEntry> entries)
+    {
+        rainbowKeyUsesPerChapter.Clear();
+
+        if (entries == null)
+            return;
+
+        foreach (var entry in entries)
+        {
+            if (entry == null)
+                continue;
+
+            rainbowKeyUsesPerChapter[entry.chapter] = Mathf.Max(0, entry.count);
+        }
+    }
+
     #endregion
 
     #region 상점 스냅샷
@@ -1221,10 +1388,11 @@ public class RogueLikeData
             storeSessions[key] = snap;
         }
         currentStore = snap;
+        progressState = SaveProgressState.StoreOpen;
 
         SetCurrentStage(x, y, StageType.Shop);
 
-        new SaveData().SaveDataFile();
+        SaveNow();
         return snap;
     }
 

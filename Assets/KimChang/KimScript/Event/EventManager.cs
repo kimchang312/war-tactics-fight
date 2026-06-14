@@ -24,6 +24,12 @@ public class EventManager
             .Select(kv => kv.Value)
             .ToList();
 
+        if (candidates.Count == 0)
+        {
+            Debug.LogWarning("등장 가능한 이벤트가 없습니다.");
+            return null;
+        }
+
         int idx = RogueLikeData.Instance.GetRandomInt(0, candidates.Count);
         return candidates[idx];
     }
@@ -537,12 +543,12 @@ public class EventManager
         int resultTextIndex = 0;
 
         //유산 85
-        int rarity1Rate = 0;
+        float rarity1Rate = 0f;
         WarRelic relic85 = RelicManager.GetRelicById(85);
         var vals = relic85?.GetAllValuesAsFloatListOrNull();
         if (vals != null)
         {
-            rarity1Rate += (int)vals[0];
+            rarity1Rate += Mathf.Clamp01(Mathf.Abs(vals[0]));
         }
 
         for (int i = 0; i < choiceData.resultType.Count; i++)
@@ -760,6 +766,7 @@ public class EventManager
                                 int unitCount = int.Parse(count);
                                 var (min, max) = ParseRange(value);
                                 var all = UnitLoader.Instance.GetAllCachedUnits().Where(u => u.rarity >= min && u.rarity <= max).ToList();
+                                RemoveCommonUnitChoicesIfNeeded(all);
 
                                 for (int k = 0; k < unitCount && all.Count > 0; k++)
                                 {
@@ -797,6 +804,7 @@ public class EventManager
                                     }
                                 }
                                 else valid = all.Where(u => u.rarity == unitRarity).ToList();
+                                RemoveCommonUnitChoicesIfNeeded(valid);
 
                                 for (int k = 0; k < unitCount && valid.Count > 0; k++)
                                 {
@@ -1042,6 +1050,7 @@ public class EventManager
                                         var all = UnitLoader.Instance.GetAllCachedUnits();
                                         var myIdx = System.Linq.Enumerable.ToHashSet(RogueLikeData.Instance.GetMyTeam().Select(u => u.idx));
                                         var cands = all.Where(u => u.rarity >= min && u.rarity <= max && !myIdx.Contains(u.idx)).ToList();
+                                        RemoveCommonUnitChoicesIfNeeded(cands);
                                         if (cands.Count > 0)
                                         {
                                             int selIdx = (rarity1Rate > 0f)
@@ -1288,6 +1297,18 @@ public class EventManager
         int v = (int)(baseValue * addtion);
         return useMinBound ? actual >= v : actual <= v;
     }
+    // 사용처: 저장된 이벤트 복원. 이미 열린 이벤트이므로 등장 조건은 다시 검사하지 않는다.
+    public static EventData GetEventByIdRaw(int eventId)
+    {
+        EventDataLoader.LoadData();
+
+        if (EventDataLoader.EventDataDict.TryGetValue(eventId, out var eventData))
+            return eventData;
+
+        Debug.LogWarning($"저장된 이벤트 {eventId}를 찾지 못했습니다.");
+        return null;
+    }
+
     public static EventData GetEventById(int eventId)
     {
         if (EventDataLoader.EventDataDict.TryGetValue(eventId, out var eventData))
@@ -1423,6 +1444,15 @@ public class EventManager
     private static void PushResultToken(List<string> tokens, string value)
     {
         if (!string.IsNullOrEmpty(value)) tokens.Add(value);
+    }
+
+    private static void RemoveCommonUnitChoicesIfNeeded(List<RogueUnitDataBase> units)
+    {
+        if (units == null || units.Count == 0)
+            return;
+
+        if (RelicManager.CheckRelicById(111))
+            units.RemoveAll(unit => unit != null && unit.rarity == 1);
     }
 
     // 사용처: 유산85 보유 시 rarity==1 유닛의 선택 확률을 vals[0]만큼 낮춘 가중 랜덤 인덱스 선택

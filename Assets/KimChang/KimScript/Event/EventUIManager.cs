@@ -51,7 +51,27 @@ public class EventUIManager : MonoBehaviour
         ResetUI();
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
 
-        EventData eventData = EventManager.GetRandomEvent();
+        EventSnapshot snapshot = RogueLikeData.Instance.GetCurrentEventSnapshot();
+        EventData eventData = null;
+
+        if (snapshot != null && snapshot.eventId >= 0)
+        {
+            eventData = EventManager.GetEventByIdRaw(snapshot.eventId);
+        }
+
+        if (eventData == null)
+        {
+            eventData = EventManager.GetRandomEvent();
+            if (eventData == null)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
+            RogueLikeData.Instance.OpenEventSnapshot(eventData.eventId);
+            RogueLikeData.Instance.SaveNow();
+            snapshot = RogueLikeData.Instance.GetCurrentEventSnapshot();
+        }
 
         List<EventChoiceData> eventChoiceDatas = new();
 
@@ -67,7 +87,16 @@ public class EventUIManager : MonoBehaviour
         eventImage.sprite = SpriteCacheManager.GetSprite($"EventImages/Event{eventData.eventId}");
 
         eventNameText.text = GetEventTitle(eventData);
-        eventDescriptionText.text = GetEventDescription(eventData);
+        eventDescriptionText.text = snapshot != null && snapshot.resultApplied
+            ? snapshot.resultText
+            : GetEventDescription(eventData);
+
+        if (snapshot != null && snapshot.resultApplied)
+        {
+            ResetButtonUI();
+            leaveBtn.gameObject.SetActive(!snapshot.closeEventAfterResult);
+            return;
+        }
 
         for (int i = 0; i < choiceBtns.childCount; i++)
         {
@@ -125,6 +154,7 @@ public class EventUIManager : MonoBehaviour
 
         EventManager.ReduceRequire(choiceData);
         (string, bool) resultText = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
+        RogueLikeData.Instance.SetEventResultSnapshot(choiceData.eventId, choiceData.choiceId, resultText.Item1, resultText.Item2);
         eventDescriptionText.text = resultText.Item1;
         //만약 56~57 이라면
         if ((choiceData.choiceId >= 56 && choiceData.choiceId <= 57))
@@ -136,17 +166,17 @@ public class EventUIManager : MonoBehaviour
                 choiceBtns.GetChild(1).gameObject.GetComponent<Button>().interactable = false;
             }
             RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
+            RogueLikeData.Instance.SaveNow();
             return;
         }
 
         ResetButtonUI();
         RogueLikeData.Instance.AddEncounteredEvent(choiceData.eventId);
-        SaveData saveData = new();
-        saveData.SaveDataFile();
+        RogueLikeData.Instance.SaveNow();
         if (resultText.Item2) gameObject.SetActive(false);
         leaveBtn.gameObject.SetActive(true);
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
-        if(lineUpBar != null)
+        if (lineUpBar != null)
         {
             lineUpBar.RefreshUnitList();
         }
@@ -220,6 +250,8 @@ public class EventUIManager : MonoBehaviour
     //
     private void ClickLeaveBtn()
     {
+        RogueLikeData.Instance.ClearEventSnapshot();
+        RogueLikeData.Instance.SaveNow();
         gameObject.SetActive(false);
     }
     private void OnDisable()
