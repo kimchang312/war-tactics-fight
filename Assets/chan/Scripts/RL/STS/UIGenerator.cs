@@ -130,6 +130,7 @@ public class UIGenerator : MonoBehaviour
         {
             StageNode node = new(entry.level, entry.row, entry.stageType);
             node.presetID = entry.presetID;
+            node.battlefieldEffect = entry.battlefieldEffect;
             string key = $"{node.level}_{node.row}";
             dict[key] = node;
         }

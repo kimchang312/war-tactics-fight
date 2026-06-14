@@ -5,14 +5,17 @@ public class ContinueButton : MonoBehaviour
 {
     public void OnContinue()
     {
-        var save = SaveSystem.LoadFull();
-        if (save != null)
+        if (SaveData.HasContinueLoadRequest())
+            return;
+
+        SaveData saveData = new();
+        if (saveData.RequestContinueLoadFromTitle())
         {
             SceneManager.LoadScene("RLmap");
         }
         else
         {
-            Debug.Log("저장된 맵이 없습니다!");
+            Debug.Log("불러올 저장 데이터가 없습니다!");
         }
     }
 }

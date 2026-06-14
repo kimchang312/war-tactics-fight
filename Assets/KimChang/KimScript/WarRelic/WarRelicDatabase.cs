@@ -17,6 +17,7 @@ public static class WarRelicDatabase
     private static Action<WarRelic>[] s_execById;
     // 값 캐시: id -> JSON value 배열
     private static Dictionary<int, string[]> s_valuesById;
+    private static Dictionary<int, RelicType[]> s_typesById;
 
     static WarRelicDatabase()
     {
@@ -236,6 +237,12 @@ public static class WarRelicDatabase
         {
             relic.BindConfig(vals); // WarRelic.BindConfig(string[])
         }
+
+        if (s_typesById != null && s_typesById.TryGetValue(relic.id, out var types))
+        {
+            relic.BindTypes(types);
+            relic.type = GetPrimaryType(types);
+        }
     }
 
     // DB에 만들어 둔 모든 유산에 실행 함수 일괄 바인딩
@@ -267,6 +274,11 @@ public static class WarRelicDatabase
         s_valuesById = valuesById ?? new Dictionary<int, string[]>(0);
     }
 
+    public static void BindTypesFromCatalog(Dictionary<int, RelicType[]> typesById)
+    {
+        s_typesById = typesById ?? new Dictionary<int, RelicType[]>(0);
+    }
+
     // 모든 유산에 값 일괄 바인딩(카탈로그 로드 직후 보정용)
     public static void BindValuesOnAllRelics()
     {
@@ -293,26 +305,31 @@ public static class WarRelicDatabase
 
         relics.Clear();
         var valuesById = new Dictionary<int, string[]>(dict.Count);
+        var typesById = new Dictionary<int, RelicType[]>(dict.Count);
 
         foreach (var kv in dict)
         {
             var rec = kv.Value;
+            var relicTypes = ParseTypes(rec.type);
             var relic = new WarRelic
             {
                 id = rec.id,
                 grade = rec.grade,
                 used = false,
-                type = ParseType(rec.type), // JSON에 타입 문자열이 있다면 파싱 가능
+                type = GetPrimaryType(relicTypes),
+                types = relicTypes,
                 name = rec.name,
                 description = rec.description
             };
             relic.BindConfig(rec.value);
             relics.Add(relic);
             valuesById[rec.id] = rec.value;
+            typesById[rec.id] = relicTypes;
         }
 
         // 값/액션 바인딩
         BindValuesFromCatalog(valuesById);
+        BindTypesFromCatalog(typesById);
         BindExecOnAllRelics();
 
     }
@@ -336,27 +353,47 @@ public static class WarRelicDatabase
         {
             relic.BindConfig(vals);
         }
+
+        if (s_typesById != null && s_typesById.TryGetValue(relic.id, out var types))
+        {
+            relic.BindTypes(types);
+            relic.type = GetPrimaryType(types);
+        }
     }
 
-    private static RelicType ParseType(string[] types)
+    private static RelicType[] ParseTypes(string[] types)
     {
-        if (types == null || types.Length == 0) return RelicType.AllEffect;
+        if (types == null || types.Length == 0)
+            return new[] { RelicType.AllEffect };
+
+        var parsed = new List<RelicType>(types.Length);
+        for (int i = 0; i < types.Length; i++)
+        {
+            if (Enum.TryParse<RelicType>(types[i], out var t) && !parsed.Contains(t))
+                parsed.Add(t);
+        }
+
+        if (parsed.Count == 0)
+            parsed.Add(RelicType.AllEffect);
+
+        return parsed.ToArray();
+    }
+
+    private static RelicType GetPrimaryType(RelicType[] types)
+    {
+        if (types == null || types.Length == 0)
+            return RelicType.AllEffect;
 
         bool hasBattle = false, hasState = false;
-        RelicType first = RelicType.AllEffect;
 
         for (int i = 0; i < types.Length; i++)
         {
-            if (Enum.TryParse<RelicType>(types[i], out var t))
-            {
-                if (i == 0) first = t;
-                if (t == RelicType.BattleActive) hasBattle = true;
-                if (t == RelicType.StateBoost) hasState = true;
-            }
+            if (types[i] == RelicType.BattleActive) hasBattle = true;
+            if (types[i] == RelicType.StateBoost) hasState = true;
         }
 
         if (hasBattle && hasState) return RelicType.ActiveState;
-        return first;
+        return types[0];
     }
     #endregion
 
@@ -2037,7 +2074,7 @@ public static class WarRelicDatabase
         int id = 92;
         var myUnits = RogueLikeData.Instance.GetMyTeam();
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count < 3) return;
 
         foreach (var unit in myUnits)
         {
@@ -2053,7 +2090,7 @@ public static class WarRelicDatabase
                 });
 
             }
-            else if (unit.rarity == 4)
+            else if (unit.rarity == 3)
             {
                 unit.stats.AddModifier(new StatModifier
                 {
@@ -2064,12 +2101,12 @@ public static class WarRelicDatabase
                     isPercent = false
                 });
             }
-            else if (unit.rarity == 3)
+            else if (unit.rarity == 4)
             {
                 unit.stats.AddModifier(new StatModifier
                 {
-                    stat = StatType.Health,
-                    value = unit.baseHealth * vals[2],
+                    stat = StatType.AttackDamage,
+                    value = unit.baseAttackDamage * vals[2],
                     source = SourceType.Relic,
                     modifierId = id,
                     isPercent = false

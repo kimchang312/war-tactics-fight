@@ -195,8 +195,15 @@ public class TopBar : MonoBehaviour
 
     private void SaveAndGoTitle()
     {
-        Debug.Log("실행");
         CloseAllTopPanels();
+
+        SaveData saveData = new();
+        if (!saveData.SaveGame())
+        {
+            Debug.LogWarning("저장에 실패했거나 맵 저장 데이터가 완전하지 않습니다.");
+            return;
+        }
+
         UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // 씬 이름이 정확해야 함
     }
-}
+    }

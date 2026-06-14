@@ -45,6 +45,8 @@ public class RestUI : MonoBehaviour
 
     public void Hide()
     {
+        RogueLikeData.Instance.SetProgressState(SaveProgressState.StageSelect);
+        RogueLikeData.Instance.SaveNow();
         gameObject.SetActive(false);
         UIManager.Instance.UIUpdateAll();
         GameManager.Instance.RefreshNodeInfoButtonVisibility();

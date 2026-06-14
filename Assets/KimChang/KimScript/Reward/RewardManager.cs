@@ -263,7 +263,7 @@ public static class RewardManager
         var vals = relic?.GetAllValuesAsFloatListOrNull();
         if (vals != null)
         {
-            rarity1Rate = (int)(vals[0] * 100);
+            rarity1Rate = Mathf.RoundToInt(vals[0] * 100f);
         }
 
         var allUnits = UnitLoader.Instance.GetAllCachedUnits();
@@ -275,6 +275,8 @@ public static class RewardManager
             10 => new() { { 1, 0 }, { 2, 40 }, { 3, 40 }, { 4, 20 } },
             _ => new() { { 1, 100 } }
         };
+        ApplyOrbOfContemptUnitFilter(rarityWeights);
+        ApplyBrokenMirrorHeroPenalty(rarityWeights);
 
         Dictionary<int, List<RogueUnitDataBase>> unitsByRarity = new();
         foreach (var unit in allUnits)
@@ -300,6 +302,67 @@ public static class RewardManager
         }
 
         return selectedUnits;
+    }
+
+    private static void ApplyOrbOfContemptUnitFilter(Dictionary<int, int> rarityWeights)
+    {
+        if (!RelicManager.CheckRelicById(111))
+            return;
+
+        if (!rarityWeights.TryGetValue(1, out int commonWeight) || commonWeight <= 0)
+            return;
+
+        rarityWeights[1] = 0;
+
+        int targetRarity = rarityWeights
+            .Where(kvp => kvp.Key != 1 && kvp.Value > 0)
+            .OrderBy(kvp => kvp.Key)
+            .Select(kvp => kvp.Key)
+            .FirstOrDefault();
+
+        if (targetRarity == 0)
+            targetRarity = 2;
+
+        if (!rarityWeights.ContainsKey(targetRarity))
+            rarityWeights[targetRarity] = 0;
+
+        rarityWeights[targetRarity] += commonWeight;
+    }
+
+    private static void ApplyBrokenMirrorHeroPenalty(Dictionary<int, int> rarityWeights)
+    {
+        WarRelic relic = RelicManager.GetRelicById(90);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+        if (vals == null || vals.Count == 0)
+            return;
+
+        if (!rarityWeights.TryGetValue(4, out int heroWeight) || heroWeight <= 0)
+            return;
+
+        int adjustedHeroWeight = Mathf.Max(0, Mathf.RoundToInt(heroWeight * (1f + vals[0])));
+        int shiftedWeight = heroWeight - adjustedHeroWeight;
+        if (shiftedWeight <= 0)
+            return;
+
+        rarityWeights[4] = adjustedHeroWeight;
+
+        int targetRarity = 1;
+        if (!rarityWeights.ContainsKey(targetRarity) || rarityWeights[targetRarity] <= 0)
+        {
+            targetRarity = rarityWeights
+                .Where(kvp => kvp.Key != 4 && kvp.Value > 0)
+                .OrderBy(kvp => kvp.Key)
+                .Select(kvp => kvp.Key)
+                .FirstOrDefault();
+        }
+
+        if (targetRarity == 0)
+            targetRarity = 1;
+
+        if (!rarityWeights.ContainsKey(targetRarity))
+            rarityWeights[targetRarity] = 0;
+
+        rarityWeights[targetRarity] += shiftedWeight;
     }
 
     private static int GetRandomRarityByWeight(Dictionary<int, int> weights)

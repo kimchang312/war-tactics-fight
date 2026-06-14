@@ -12,5 +12,9 @@ public class BattleRewardData
     public List<int> unitGrade = new();
     public List<RogueUnitDataBase> newUnits = new();
     public List<RogueUnitDataBase> changedUnits = new();
+    public RewardType pendingChoiceType = RewardType.None;
+    public int pendingChoiceGrade = 0;
+    public List<int> pendingUnitIds = new();
+    public List<int> pendingRelicIds = new();
 
 }

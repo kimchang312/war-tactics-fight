@@ -671,8 +671,7 @@ public class AutoBattleManager : MonoBehaviour
         // 로그라이크 전투 진입 시 사기/유산/전술개량 상태를 즉시 반영한다.
         UnitStateChange.ChangeStateMyUnits();
 
-        SaveData saveData = new SaveData();
-        saveData.SaveDataFile();
+        RogueLikeData.Instance.SaveNow();
 
         ProcessRelic();
 

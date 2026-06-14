@@ -153,6 +153,8 @@ public class PlacePanel : MonoBehaviour
     private void OnStartBattleClicked()
     {
         RogueLikeData.Instance.SetAllMyUnits(placedUnits);
+        RogueLikeData.Instance.SetProgressState(SaveProgressState.BattlePlacement);
+        RogueLikeData.Instance.SaveNow();
         GameManager.Instance.HideAllPanels();
         ClearPlacePanel();
         SceneManager.LoadScene("AutoBattleScene");

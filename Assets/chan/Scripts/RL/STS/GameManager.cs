@@ -48,6 +48,8 @@ public class GameManager : MonoBehaviour
     public bool IsPlaceMode { get; private set; }
     public bool _hasInitialized = false;
     public bool shouldRefreshUpgradeUI = false;
+    private bool mapInitializedForScene = false;
+    private bool restoredSavedGameForScene = false;
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
@@ -76,6 +78,7 @@ public class GameManager : MonoBehaviour
             // 최초 인스턴스라면 여기서 고정
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            _hasInitialized = true;
         }
         else if (Instance != this)
         {
@@ -216,6 +219,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
      if (scene.name != "RLmap")
      {
+        mapInitializedForScene = false;
+        restoredSavedGameForScene = false;
         // GameManager가 DontDestroyOnLoad라서 RLmap UI가 남아있을 수 있으므로
         // 타이틀/전투 등 RLmap 외 씬 진입 시에는 관련 패널을 즉시 정리한다.
         if(scene.name != "Title")
@@ -230,6 +235,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         return;
      }
 
+        mapInitializedForScene = false;
+        restoredSavedGameForScene = false;
+
         // RLmap 복귀 시에는 상단바를 다시 표시
         SetTopBarCanvasVisible(true);
 
@@ -241,7 +249,19 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         allStages = FindObjectsOfType<StageNodeUI>().ToList();
         HideAllPanels();
         UIManager.Instance.UIUpdateAll();
-        InitializeStageLocks();
+
+        if (SaveData.HasContinueLoadRequest())
+        {
+            mapInitializedForScene = LoadSavedGame();
+            SaveData.ClearContinueLoadRequest();
+
+            if (mapInitializedForScene)
+            {
+                GameManager.Instance.shouldRefreshUpgradeUI = true;
+                RefreshNodeInfoButton();
+                return;
+            }
+        }
 
         if (playerMarker == null)
         {
@@ -267,6 +287,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             UIManager.Instance.UpdateChapter(RogueLikeData.Instance.GetChapter());
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             uIGenerator.RegenerateMap();
+            mapInitializedForScene = true;
         }
         else if (RogueLikeData.Instance.GetResetMap())
         {
@@ -274,6 +295,11 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             RogueLikeData.Instance.SetResetMap(false);
             uIGenerator.RegenerateMap();
+            mapInitializedForScene = true;
+        }
+        else
+        {
+            InitializeStageLocks();
         }
 
         // 전투 끝나고 돌아왔을 경우만 갱신 요청
@@ -286,22 +312,41 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         allStages.AddRange(FindObjectsOfType<StageNodeUI>());
 
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "RLmap")
+            return;
+
+        if (mapInitializedForScene)
+        {
+            if (!restoredSavedGameForScene)
+                InitializeStageLocks();
+            return;
+        }
+
+        if (SaveData.HasContinueLoadRequest())
+        {
+            mapInitializedForScene = LoadSavedGame();
+            SaveData.ClearContinueLoadRequest();
+            if (mapInitializedForScene)
+                return;
+        }
+
         // 새 게임은 항상 새 맵 생성
         uIGenerator.RegenerateMap();
+        mapInitializedForScene = true;
         Debug.Log("새 맵을 생성합니다.");
 
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
-            InitializeStageLocks();
+        InitializeStageLocks();
     }
     
     /// <summary>
     /// 저장된 게임을 불러옵니다. (불러오기 버튼에서 호출)
     /// </summary>
-    public void LoadSavedGame()
+    public bool LoadSavedGame()
     {
-        var save = SaveSystem.LoadFull();
-        if (save != null)
+        SaveData saveData = new();
+        if (saveData.LoadGame(out StageFullSaveData save))
         {
+            EnsureMapSceneUIReferences();
             uIGenerator.RegenerateMapFromSaveFull(save);
             
             // RogueLikeData에 저장된 플레이어 위치로 currentStage 복원
@@ -309,12 +354,16 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             
             // 잠금 상태 업데이트
             InitializeStageLocks();
+            RestoreSavedProgressUI();
             
             Debug.Log("✅ 저장된 맵을 불러왔습니다.");
+            restoredSavedGameForScene = true;
+            return true;
         }
         else
         {
             Debug.LogWarning("⚠️ 불러올 저장 데이터가 없습니다.");
+            return false;
         }
     }
 
@@ -514,6 +563,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 RogueLikeData.Instance.SetFieldId(fieldId);
             }
 
+            RogueLikeData.Instance.SetProgressState(SaveProgressState.BattlePlacement);
+            RogueLikeData.Instance.SaveNow();
             RefreshNodeInfoButton();
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
@@ -562,6 +613,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         if (newStage.stageType == StageType.Rest)
         {
             // 기존 restUI.Show() 대신
+            RogueLikeData.Instance.SetProgressState(SaveProgressState.RestOpen);
+            RogueLikeData.Instance.SaveNow();
             restPanel.SetActive(true);
             currentStage?.StopSelectableEffect();
             RefreshNodeInfoButton();
@@ -598,6 +651,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         else if (newStage.stageType == StageType.Treasure)
         {
             //rewardUI.gameObject.SetActive(true);
+            RogueLikeData.Instance.SetProgressState(SaveProgressState.TreasureOpen);
+            RogueLikeData.Instance.SaveNow();
             currentStage?.StopSelectableEffect();
             rewardUI.SetActiveTeasureBox();
         }
@@ -878,6 +933,22 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         currentStage = null;
     }
 
+    public bool TryGetCurrentStagePosition(out int level, out int row, out StageType type)
+    {
+        if (currentStage == null)
+        {
+            level = -1;
+            row = -1;
+            type = StageType.Unknown;
+            return false;
+        }
+
+        level = currentStage.level;
+        row = currentStage.row;
+        type = currentStage.stageType;
+        return true;
+    }
+
     public void CloseLoading()
     {
         loadingPanel.SetActive(false);
@@ -901,6 +972,48 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         StageType type = RogueLikeData.Instance.GetCurrentStageType();
 
         OpenBattlePlacePanel(presetId, type, currentStage != null ? currentStage.battlefieldEffect : null);
+    }
+
+    private void RestoreSavedProgressUI()
+    {
+        SaveProgressState state = RogueLikeData.Instance.GetProgressState();
+
+        switch (state)
+        {
+            case SaveProgressState.StoreOpen:
+                storeManager.SetActive(true);
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.EventOpen:
+            case SaveProgressState.EventResult:
+                eventManager.SetActive(true);
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.BattlePending:
+            case SaveProgressState.BattlePlacement:
+                OpenBattlePanel();
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.RestOpen:
+                restPanel.SetActive(true);
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.TreasureOpen:
+                rewardUI.SetActiveTeasureBox();
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.RewardOpen:
+                rewardUI.CreateRewardUI();
+                currentStage?.StopSelectableEffect();
+                break;
+        }
+
+        RefreshNodeInfoButton();
     }
 
     private void OpenBattlePlacePanel(int presetId, StageType stageType, BattlefieldEffect? battlefieldEffect)
