@@ -25,11 +25,20 @@ public class SettingsUI : MonoBehaviour
 
     private void Awake()
     {
+        NormalizeLanguageDropdownOptions();
         BindUIEvents();
+    }
 
-#if !UNITY_EDITOR
-        languageDropdown.gameObject.SetActive(false);
-#endif
+    private void NormalizeLanguageDropdownOptions()
+    {
+        if (languageDropdown == null)
+            return;
+
+        languageDropdown.options.Clear();
+        languageDropdown.options.Add(new TMP_Dropdown.OptionData("한국어"));
+        languageDropdown.options.Add(new TMP_Dropdown.OptionData("English"));
+        languageDropdown.options.Add(new TMP_Dropdown.OptionData("日本語"));
+        languageDropdown.RefreshShownValue();
     }
 
     private void OnEnable()
@@ -224,11 +233,21 @@ public class SettingsUI : MonoBehaviour
 
     public void UpdateLanguage(int index)
     {
-        if (RogueLikeData.Instance != null)
-            RogueLikeData.Instance.SetLanguage(index);
+        int selectedIndex = languageDropdown != null
+            ? languageDropdown.value
+            : Mathf.Clamp(index, 0, 2);
+
+        Debug.Log(selectedIndex);
+
+        RogueLikeData data = RogueLikeData.Instance;
+        if (data != null && data.GetLanguage() == selectedIndex)
+            return;
+
+        if (data != null)
+            data.SetLanguage(selectedIndex);
 
         if (FontManager.Instance != null)
-            FontManager.Instance.ApplyLanguageFont(index);
+            FontManager.Instance.ApplyLanguageFont(selectedIndex);
     }
 
     public void OnClickClose()

@@ -53,6 +53,23 @@ public class UnitDetailExplain : MonoBehaviour
 
     private void OnEnable()
     {
+        GameTextDB.LanguageChanged += RefreshLocalizedText;
+        RefreshView();
+    }
+
+    private void OnDisable()
+    {
+        GameTextDB.LanguageChanged -= RefreshLocalizedText;
+    }
+
+    private void RefreshLocalizedText()
+    {
+        cacheData = null;
+        RefreshView();
+    }
+
+    private void RefreshView()
+    {
         foreach (var unit in objectPool.GetActiveAbilitys())
             objectPool.ReturnAbility(unit);
 
