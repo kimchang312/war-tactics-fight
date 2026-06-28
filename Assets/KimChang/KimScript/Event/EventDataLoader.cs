@@ -28,6 +28,7 @@ public static class EventDataLoader
             var eventList = JsonConvert.DeserializeObject<List<EventData>>(eventDataJson.text);
             foreach (var data in eventList)
             {
+                NormalizeEventData(data);
                 EventDataDict[data.eventId] = data;
             }
 
@@ -56,9 +57,17 @@ public static class EventDataLoader
 
                     // 새 필드 추가
                     choiceResultText = ParseStringList(obj["choiceResultText"]),
-                    resultText = ParseStringList(obj["resultText"])
-                };
+                    resultText = ParseStringList(obj["resultText"]),
 
+                    gameTextKind = obj["gameTextKind"]?.ToString(),
+                    gameTextForeignKey = obj["gameTextForeignKey"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_choiceText = obj["gameTextTitleKey_choiceText"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_positive = obj["gameTextTitleKey_positive"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_negative = obj["gameTextTitleKey_negative"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_resultDescription = obj["gameTextTitleKey_resultDescription"]?.ToObject<int>() ?? 0,
+                    gameTextTitleKey_resultTextBase = obj["gameTextTitleKey_resultTextBase"]?.ToObject<int>() ?? 0
+                };
+                NormalizeChoiceData(choice);
                 EventChoiceDataDict[choice.choiceId] = choice;
 
             }
@@ -73,18 +82,39 @@ public static class EventDataLoader
     {
         var list = new List<T>();
 
-        if (token is JArray array)
+        if (token is not JArray array)
+            return list;
+
+        foreach (var item in array)
         {
-            foreach (var item in array)
+            string raw = item?.ToString();
+
+            if (string.IsNullOrWhiteSpace(raw))
+                continue;
+
+            if (TryParseEnumToken(raw, out T value))
             {
-                if (Enum.TryParse(item.ToString(), out T value))
-                {
-                    list.Add(value);
-                }
+                list.Add(value);
+            }
+            else
+            {
+                Debug.LogError($"EventDataLoader: enum 파싱 실패. Type={typeof(T).Name}, Value={raw}");
             }
         }
 
         return list;
+    }
+
+    private static bool TryParseEnumToken<T>(string raw, out T value) where T : struct
+    {
+        if (typeof(T) == typeof(ResultType) && raw == "Curse")
+        {
+            object boxed = ResultType.Curse;
+            value = (T)boxed;
+            return true;
+        }
+
+        return Enum.TryParse(raw, true, out value);
     }
 
     private static List<string> ParseStringList(JToken token)
@@ -100,5 +130,65 @@ public static class EventDataLoader
         }
         return list;
     }
+    private static void PadList<T>(List<T> list, int targetCount, T defaultValue)
+    {
+        if (list == null)
+            return;
 
+        while (list.Count < targetCount)
+            list.Add(defaultValue);
+    }
+
+    private static void NormalizeEventData(EventData data)
+    {
+        if (data.requireThing == null) data.requireThing = new List<RequireThing>();
+        if (data.requireForm == null) data.requireForm = new List<RequireForm>();
+        if (data.requireValue == null) data.requireValue = new List<string>();
+        if (data.requireCount == null) data.requireCount = new List<string>();
+
+        int requireCount = data.requireThing.Count;
+
+        PadList(data.requireForm, requireCount, RequireForm.None);
+        PadList(data.requireValue, requireCount, string.Empty);
+        PadList(data.requireCount, requireCount, string.Empty);
+
+        if (data.gameTextForeignKey == 0 && data.eventId != 0)
+            data.gameTextForeignKey = data.eventId;
+    }
+
+    private static void NormalizeChoiceData(EventChoiceData choice)
+    {
+        if (choice.requireThing == null) choice.requireThing = new List<RequireThing>();
+        if (choice.requireForm == null) choice.requireForm = new List<RequireForm>();
+        if (choice.requireValue == null) choice.requireValue = new List<string>();
+        if (choice.requireCount == null) choice.requireCount = new List<string>();
+
+        if (choice.resultType == null) choice.resultType = new List<ResultType>();
+        if (choice.resultForm == null) choice.resultForm = new List<ResultForm>();
+        if (choice.resultValue == null) choice.resultValue = new List<string>();
+        if (choice.resultCount == null) choice.resultCount = new List<string>();
+
+        if (choice.choiceResultText == null) choice.choiceResultText = new List<string>();
+        if (choice.resultText == null) choice.resultText = new List<string>();
+
+        int requireCount = choice.requireThing.Count;
+        PadList(choice.requireForm, requireCount, RequireForm.None);
+        PadList(choice.requireValue, requireCount, string.Empty);
+        PadList(choice.requireCount, requireCount, string.Empty);
+
+        int resultCount = choice.resultType.Count;
+        PadList(choice.resultForm, resultCount, ResultForm.None);
+        PadList(choice.resultValue, resultCount, string.Empty);
+        PadList(choice.resultCount, resultCount, string.Empty);
+
+        if (string.IsNullOrEmpty(choice.gameTextKind)) choice.gameTextKind = "EventDesc";
+        if (choice.gameTextForeignKey == 0 && choice.choiceId != 0)
+            choice.gameTextForeignKey = choice.choiceId;
+
+        if (choice.gameTextTitleKey_choiceText == 0) choice.gameTextTitleKey_choiceText = 100;
+        if (choice.gameTextTitleKey_positive == 0) choice.gameTextTitleKey_positive = 110;
+        if (choice.gameTextTitleKey_negative == 0) choice.gameTextTitleKey_negative = 111;
+        if (choice.gameTextTitleKey_resultDescription == 0) choice.gameTextTitleKey_resultDescription = 120;
+        if (choice.gameTextTitleKey_resultTextBase == 0) choice.gameTextTitleKey_resultTextBase = 130;
+    }
 }

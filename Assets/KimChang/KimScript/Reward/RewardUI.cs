@@ -94,6 +94,9 @@ public class RewardUI : MonoBehaviour
         }
     }
 
+    public bool IsTreasureRewardVisible =>
+        teasureBox != null && teasureBox.gameObject.activeInHierarchy;
+
     // 이 함수는 보물 상자 UI를 활성화하고 클릭 이벤트를 세팅할 때 사용한다.
     public void SetActiveTeasureBox()
     {
@@ -126,6 +129,8 @@ public class RewardUI : MonoBehaviour
         goldResult.onClick.AddListener(() => ClickGoldResult(gold));
 
         RogueLikeData.Instance.SetBattleReward(reward);
+        RogueLikeData.Instance.SetProgressState(SaveProgressState.RewardOpen);
+        RogueLikeData.Instance.SaveNow();
 
         relicResult.onClick.RemoveAllListeners();
         relicResult.onClick.AddListener(() => OpenReward(false));
@@ -190,6 +195,8 @@ public class RewardUI : MonoBehaviour
             }
 
             RogueLikeData.Instance.AddReroll(reward.rerollChance);
+            reward.rerollChance = 0;
+            RogueLikeData.Instance.SaveNow();
         }
 
     }
@@ -295,7 +302,8 @@ public class RewardUI : MonoBehaviour
         SafeSetActive(rewardWindow, false);
 
         RogueLikeData.Instance.ClearBattleReward();
-        new SaveData().SaveDataFile();
+        RogueLikeData.Instance.SetProgressState(SaveProgressState.StageSelect);
+        RogueLikeData.Instance.SaveNow();
 
         if (SceneManager.GetActiveScene().name != "RLmap")
         {
@@ -303,6 +311,7 @@ public class RewardUI : MonoBehaviour
         }
 
         ResetUI();
+        GameManager.Instance?.RefreshNodeInfoButtonVisibility();
     }
 
     // 이 함수는 유닛/유물 보상 선택창을 열 때 사용한다.
@@ -320,7 +329,7 @@ public class RewardUI : MonoBehaviour
 
             if (reward.unitGrade.Count > 0)
             {
-                var units = RewardManager.GetRandomUnitsByGrade(reward.unitGrade[0]);
+                var units = GetOrCreatePendingUnitChoices(reward, reward.unitGrade[0]);
                 int count = Mathf.Min(units.Count, selectUnitRewards.transform.childCount);
 
                 for (int i = 0; i < count; i++)
@@ -350,22 +359,7 @@ public class RewardUI : MonoBehaviour
             if (reward.relicGrade.Count > 0)
             {
                 int grade = reward.relicGrade[0];
-                var selected = new List<WarRelic>();
-                var selectedIds = new HashSet<int>();
-
-                int attempts = 0;
-                while (selected.Count < 3 && attempts++ < 100)
-                {
-                    int id = RelicManager.GetRandomRelicId(grade, RelicManager.RelicAction.Acquire);
-                    if (id == -1 || selectedIds.Contains(id)) continue;
-
-                    var relic = WarRelicDatabase.GetRelicById(id);
-                    if (relic != null)
-                    {
-                        selected.Add(relic);
-                        selectedIds.Add(id);
-                    }
-                }
+                var selected = GetOrCreatePendingRelicChoices(reward, grade);
 
                 int count = Mathf.Min(selected.Count, selectRelicRewards.transform.childCount);
                 for (int i = 0; i < count; i++)
@@ -403,6 +397,99 @@ public class RewardUI : MonoBehaviour
     }
 
     // 이 함수는 보상 버튼 클릭 시 실제 보상 적용을 처리할 때 사용한다.
+    private List<RogueUnitDataBase> GetOrCreatePendingUnitChoices(BattleRewardData reward, int grade)
+    {
+        if (reward.pendingChoiceType == RewardType.UnitGrade &&
+            reward.pendingChoiceGrade == grade &&
+            reward.pendingUnitIds != null &&
+            reward.pendingUnitIds.Count > 0)
+        {
+            List<RogueUnitDataBase> savedUnits = new();
+            foreach (int unitId in reward.pendingUnitIds)
+            {
+                RogueUnitDataBase unit = UnitLoader.Instance.GetCloneUnitById(unitId);
+                if (unit != null)
+                    savedUnits.Add(unit);
+            }
+
+            if (savedUnits.Count > 0)
+                return savedUnits;
+        }
+
+        List<RogueUnitDataBase> units = RewardManager.GetRandomUnitsByGrade(grade);
+        reward.pendingChoiceType = RewardType.UnitGrade;
+        reward.pendingChoiceGrade = grade;
+        reward.pendingUnitIds = new List<int>();
+        reward.pendingRelicIds = new List<int>();
+
+        foreach (RogueUnitDataBase unit in units)
+        {
+            if (unit != null)
+                reward.pendingUnitIds.Add(unit.idx);
+        }
+
+        RogueLikeData.Instance.SaveNow();
+        return units;
+    }
+
+    private List<WarRelic> GetOrCreatePendingRelicChoices(BattleRewardData reward, int grade)
+    {
+        if (reward.pendingChoiceType == RewardType.RelicGrade &&
+            reward.pendingChoiceGrade == grade &&
+            reward.pendingRelicIds != null &&
+            reward.pendingRelicIds.Count > 0)
+        {
+            List<WarRelic> savedRelics = new();
+            foreach (int relicId in reward.pendingRelicIds)
+            {
+                WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
+                if (relic != null)
+                    savedRelics.Add(relic);
+            }
+
+            if (savedRelics.Count > 0)
+                return savedRelics;
+        }
+
+        var selected = new List<WarRelic>();
+        var selectedIds = new HashSet<int>();
+        var selectedRelicIds = new List<int>();
+
+        int attempts = 0;
+        while (selected.Count < 3 && attempts++ < 100)
+        {
+            int id = RelicManager.GetRandomRelicId(grade, RelicManager.RelicAction.Acquire);
+            if (id == -1 || selectedIds.Contains(id)) continue;
+
+            WarRelic relic = WarRelicDatabase.GetRelicById(id);
+            if (relic != null)
+            {
+                selected.Add(relic);
+                selectedIds.Add(id);
+                selectedRelicIds.Add(id);
+            }
+        }
+
+        reward.pendingChoiceType = RewardType.RelicGrade;
+        reward.pendingChoiceGrade = grade;
+        reward.pendingUnitIds = new List<int>();
+        reward.pendingRelicIds = selectedRelicIds;
+
+        RogueLikeData.Instance.SaveNow();
+        return selected;
+    }
+
+    private static void ClearPendingRewardChoice(BattleRewardData reward)
+    {
+        if (reward == null)
+            return;
+
+        reward.pendingChoiceType = RewardType.None;
+        reward.pendingChoiceGrade = 0;
+        reward.pendingUnitIds?.Clear();
+        reward.pendingRelicIds?.Clear();
+    }
+
     private void ClickReward(ItemInformation info)
     {
         if (info.data.isItem) return;
@@ -466,7 +553,9 @@ public class RewardUI : MonoBehaviour
                 info.data.type == RewardType.NewUnit ||
                 info.data.type == RewardType.ChangeUnit;
 
+            ClearPendingRewardChoice(RogueLikeData.Instance.GetBattleReward());
             OpenReward(isUnitReward);
+            RogueLikeData.Instance.SaveNow();
             return;
         }
 
@@ -497,6 +586,8 @@ public class RewardUI : MonoBehaviour
             case RewardType.RelicGrade: reward.relicGrade.RemoveAt(0); break;
             case RewardType.NewRelic: reward.relicIds.RemoveAt(0); break;
         }
+        ClearPendingRewardChoice(reward);
+        RogueLikeData.Instance.SaveNow();
 
         if (HasUnitReward(reward))
         {
@@ -616,7 +707,9 @@ public class RewardUI : MonoBehaviour
 
     private void OnDisable()
     {
-        RogueLikeData.Instance.ClearBattleReward();
+        SaveProgressState state = RogueLikeData.Instance.GetProgressState();
+        if (state != SaveProgressState.RewardOpen && state != SaveProgressState.TreasureOpen)
+            RogueLikeData.Instance.ClearBattleReward();
     }
 
     // 이 함수는 보물 상자를 닫힌 스프라이트로 바꿀 때 사용한다.
@@ -817,9 +910,13 @@ public class RewardUI : MonoBehaviour
     {
         if (gold <= 0) return;
         RogueLikeData.Instance.EarnGold(gold);
+        BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
+        if (reward != null)
+            reward.gold = 0;
         UIManager.Instance.UpdateGold(); // 금화 UI 즉시 갱신
         goldResult.onClick.RemoveAllListeners();
         goldResult.gameObject.SetActive(false);
+        RogueLikeData.Instance.SaveNow();
 
         TryLeaveReward();
     }

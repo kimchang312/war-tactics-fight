@@ -27,6 +27,7 @@ public class WarRelic
     public int grade;
     public bool used;
     public RelicType type;
+    public RelicType[] types;
     public string name;
     public string description;
 
@@ -46,6 +47,37 @@ public class WarRelic
     public void BindExecute(Action<WarRelic> action) => executeAction = action;
 
     public void BindConfig(string[] values) => _values = values;
+
+    public void BindTypes(RelicType[] relicTypes)
+    {
+        types = relicTypes;
+    }
+
+    public bool HasType(RelicType targetType)
+    {
+        if (type == targetType)
+            return true;
+
+        if (type == RelicType.ActiveState &&
+            (targetType == RelicType.BattleActive || targetType == RelicType.StateBoost))
+            return true;
+
+        if (types == null)
+            return false;
+
+        for (int i = 0; i < types.Length; i++)
+        {
+            RelicType current = types[i];
+            if (current == targetType)
+                return true;
+
+            if (current == RelicType.ActiveState &&
+                (targetType == RelicType.BattleActive || targetType == RelicType.StateBoost))
+                return true;
+        }
+
+        return false;
+    }
 
     public void Execute() => executeAction?.Invoke(this);
 

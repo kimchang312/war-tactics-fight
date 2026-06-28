@@ -13,18 +13,15 @@ public sealed class BattleCrashAnimation : MonoBehaviour
 {
     [Header("속도 제어(ms)")]
     [Tooltip("500 = 기본, 250 = 2배속, 1000 = 0.5배속")]
-    public float waitingTime = 500;
-
-    // 내부 상수(위치 오프셋)
-    private static readonly Vector2 MyStartOffset = new Vector2(-50f, 0f);
-    private static readonly Vector2 EnemyStartOffset = new Vector2(+50f, 0f);
+    private const float BaseWaittingTime = 500f;
+    private float waittingTime = BaseWaittingTime;
 
     // 사용처: PlayCrashAsync 무기 시작/도착 각도 튜닝 (스프라이트 기본 각도 기준)
     private float mySwordStartZ = 45f;   // 시작: 수직(검끝 위)로 보이게 만드는 각도(대부분 45가 맞음)
     private float mySwordEndZ = 0f;      // 끝: "이미지처럼" 보이게(보통 0)
 
     // 사용처: PlayCrashAsync 충돌 지점 보정(중앙에서 약간 위/아래로 맞추고 싶을 때)
-    private Vector2 crashPointOffset = Vector2.zero;
+    private Vector2 crashPointOffset = new Vector2(0,-5f);
 
     // 사용처: PlayCrashAsync 충돌 이펙트 스케일
     private float crashEffectScale = 1f;
@@ -32,6 +29,24 @@ public sealed class BattleCrashAnimation : MonoBehaviour
     // 사용처: PlayCrashAsync에서 무기가 유닛 중심이 아니라 전방에서 시작하도록 하는 거리
     private float weaponFrontStartDistance = 250f;
     private float crashEffectYOffset = 30f;
+
+    private void OnEnable()
+    {
+        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWattingTime;
+        GameSpeedManager.Instance.OnGameSpeedChanged += ChangeWattingTime;
+        ChangeWattingTime(GameSpeedManager.Instance.GameSpeed);
+    }
+
+    private void OnDisable()
+    {
+        GameSpeedManager.Instance.OnGameSpeedChanged -= ChangeWattingTime;
+    }
+
+    // 사용처: GameSpeedManager의 배속 값이 변경될 때 충돌 연출 대기시간을 기준값 기준으로 재설정한다.
+    public void ChangeWattingTime(float multiple)
+    {
+        waittingTime = BaseWaittingTime * Mathf.Max(0.01f, multiple);
+    }
     // 사용처: Tween 완료 대기
     private static Task Await(Tween t)
     {
@@ -66,7 +81,7 @@ public sealed class BattleCrashAnimation : MonoBehaviour
     // 사용처: 입장(전투 씬 들어올 때 간단한 등장 연출)
     private async Task PlayEnterAsync(RectTransform myAttach, RectTransform enemyAttach, ObjectPool pool)
     {
-        float sec = Mathf.Max(0.05f, waitingTime * 0.001f);
+        float sec = Mathf.Max(0.05f, waittingTime * 0.001f);
         // 경량: 페이드/살짝 이동 정도의 간단 연출 (이미지 풀 사용 X)
         await Task.Delay((int)(sec * 1000f));
     }
@@ -74,21 +89,21 @@ public sealed class BattleCrashAnimation : MonoBehaviour
     // 사용처: 체크(전투 시작 전 확인 단계)
     private async Task PlayCheckAsync(RectTransform myAttach, RectTransform enemyAttach, ObjectPool pool)
     {
-        float sec = Mathf.Max(0.05f, waitingTime * 0.001f);
+        float sec = Mathf.Max(0.05f, waittingTime * 0.001f);
         await Task.Delay((int)(sec * 1000f));
     }
 
     // 사용처: 시작(전투 당 1회)
     private async Task PlayStartAsync(RectTransform myAttach, RectTransform enemyAttach, ObjectPool pool)
     {
-        float sec = Mathf.Max(0.05f, waitingTime * 0.001f);
+        float sec = Mathf.Max(0.05f, waittingTime * 0.001f);
         await Task.Delay((int)(sec * 1000f));
     }
 
     // 사용처: 준비(사이드 흔들림 등 간단한 텔레그래프 연출)
     private async Task PlayPreparationAsync(RectTransform myAttach, RectTransform enemyAttach, ObjectPool pool)
     {
-        float sec = Mathf.Max(0.05f, waitingTime * 0.001f);
+        float sec = Mathf.Max(0.05f, waittingTime * 0.001f);
         await Task.Delay((int)(sec * 1000f));
     }
 
@@ -104,9 +119,9 @@ public sealed class BattleCrashAnimation : MonoBehaviour
 
         // 사용처: AutoBattleUI의 공격 시퀀스(뒤로 0.05 + 대기 0.2 + 앞으로 0.2)에 맞춘 타이밍
         // 500ms 기준: preDelay=0.25s / approach=0.2s
-        float preDelaySec = Mathf.Clamp(waitingTime * 0.0005f, 0.01f, 2.0f);
-        float approachSec = Mathf.Clamp(waitingTime * 0.0004f, 0.05f, 2.0f);
-        float crashHoldSec = Mathf.Clamp(waitingTime * 0.0002f, 0.05f, 1.0f);
+        float preDelaySec = Mathf.Clamp(waittingTime * 0.0005f, 0.01f, 2.0f);
+        float approachSec = Mathf.Clamp(waittingTime * 0.0004f, 0.05f, 2.0f);
+        float crashHoldSec = Mathf.Clamp(waittingTime * 0.0002f, 0.05f, 1.0f);
 
         // 1) 오브젝트 풀에서 이미지 꺼내기
         GameObject myGo = pool.GetWeaponImage();
@@ -236,20 +251,20 @@ public sealed class BattleCrashAnimation : MonoBehaviour
     // 사용처: 지원(원거리 투사체 등은 추후 확장, 지금은 타이밍만 유지)
     private async Task PlaySupportAsync(RectTransform myAttach, RectTransform enemyAttach, ObjectPool pool)
     {
-        float sec = Mathf.Max(0.05f, waitingTime * 0.001f);
+        float sec = Mathf.Max(0.05f, waittingTime * 0.001f);
         await Task.Delay((int)(sec * 1000f));
     }
 
     // 사용처: 사망(사망자 흔들림/알파 다운 등 추후 확장 가능)
     private async Task PlayDeathAsync(RectTransform myAttach, RectTransform enemyAttach, ObjectPool pool)
     {
-        float sec = Mathf.Max(0.05f, waitingTime * 0.001f);
+        float sec = Mathf.Max(0.05f, waittingTime * 0.001f);
         await Task.Delay((int)(sec * 1000f));
     }
 
-    public void ChangeWattingTime(float time)
+    public void ChangeWaittingTime(float time)
     {
-        waitingTime *= time;
+         waittingTime = BaseWaittingTime * Mathf.Max(0.01f, time);
     }
 
 

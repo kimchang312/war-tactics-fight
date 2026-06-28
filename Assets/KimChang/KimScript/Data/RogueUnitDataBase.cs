@@ -85,12 +85,13 @@ public class RogueUnitDataBase
 
                 int diff = oldValue - newValue;
                 WarRelic heavy = RelicManager.GetRelicById(105);
-                if(heavy != null)
+                if (heavy != null)
                 {
                     var vals = heavy.GetAllValuesAsFloatListOrNull();
-                    if (vals != null && RogueLikeData.Instance.GetRandomFloat() < vals[1])
+                    if (vals != null && vals.Count > 1 && RogueLikeData.Instance.GetRandomFloat() < vals[1])
                     {
-                        diff *= (int)vals[2];
+                        int energyMultiplier = vals.Count > 2 ? Mathf.Max(1, Mathf.RoundToInt(vals[2])) : 2;
+                        diff *= energyMultiplier;
                         newValue = oldValue - diff;
                     }
                 }
@@ -517,7 +518,7 @@ public class RogueUnitDataBase
         if (r == null) return 0f;
         var vals = r.GetAllValuesAsFloatListOrNull();
         if (vals == null || vals.Count == 0) return 0f;
-        float v = vals[0];
+        float v = Mathf.Abs(vals[0]);
         if (v <= 0f) return 0f;
         if (v >= 1f) return 1f;
         return v;

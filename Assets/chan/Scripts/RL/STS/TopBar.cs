@@ -27,6 +27,20 @@ public class TopBar : MonoBehaviour
     [SerializeField] private Button optionButton;
     [SerializeField] private Button continueButton;
     [SerializeField] private Button saveAndGoTitleButton;
+
+    [SerializeField] private GameObject loadingCanvas;
+
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     private void Awake()
     {
         optionPanel?.SetActive(false);
@@ -40,34 +54,39 @@ public class TopBar : MonoBehaviour
         // 토글 패널들은 Canvas 루트(TopBar의 부모)로 올려서 TopBar 레이아웃에 종속되지 않게 한다.
         var canvasRoot = transform.parent;
         MovePanelToRootIfNeeded(ownedRelicsPanel, canvasRoot);
-        MovePanelToRootIfNeeded(upgradePanel, canvasRoot);
         MovePanelToRootIfNeeded(upgradeStatusPanel, canvasRoot);
         MovePanelToRootIfNeeded(academyPanel, canvasRoot);
+        EnsureChildPanel(upgradeStatusPanel, upgradePanel);
 
         relicsToggleButton?.onClick.AddListener(() => ToggleOnly(ownedRelicsPanel));
         upgradeToggleButton?.onClick.AddListener(() => {
-            ToggleOnly(upgradePanel);
-
-            if (upgradePanel.activeSelf && GameManager.Instance.shouldRefreshUpgradeUI)
-            {
-                var upgradeUI = upgradePanel.GetComponent<UpgradeUI>();
-                if (upgradeUI != null)
-                {
-                    upgradeUI.ShowRandomChoices();
-                    GameManager.Instance.shouldRefreshUpgradeUI = false;
-                }
-            }
+            ToggleUpgradePanelsTogether();
+            TryRefreshUpgradeChoices();
         });
-        upgradeStatusButton?.onClick.AddListener(() => ToggleOnly(upgradeStatusPanel));
+        upgradeStatusButton?.onClick.AddListener(() =>
+        {
+            ToggleUpgradePanelsTogether();
+            TryRefreshUpgradeChoices();
+        });
         academyToggleButton?.onClick.AddListener(() => ToggleOnly(academyPanel));
         // 닫기 버튼에도 같은 토글 메서드 연결
         closeRelicsButton.onClick.AddListener(() => ToggleOnly(ownedRelicsPanel));
-        closeupgradeStatusButton.onClick.AddListener(() => ToggleOnly(upgradeStatusPanel));
+        closeupgradeStatusButton.onClick.AddListener(CloseUpgradePanelsTogether);
 
         // 옵션 관련 버튼 연결
-        optionButton?.onClick.AddListener(() => ToggleOptionPanel(true));
+        // 임시: 전투 씬에서 옵션을 열면 RLmap 복귀 시 패널이 남는 문제가 있어 전투에서는 무시
+        optionButton?.onClick.AddListener(OnOptionButtonClicked);
         continueButton?.onClick.AddListener(() => ToggleOptionPanel(false));
         saveAndGoTitleButton?.onClick.AddListener(SaveAndGoTitle);
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // RLmap 외 씬에서는 상단바 관련 토글 패널이 남지 않도록 정리
+        if (scene.name != "RLmap")
+        {
+            CloseAllTopPanels();
+        }
     }
 
     private static void MovePanelToRootIfNeeded(GameObject panel, Transform root)
@@ -85,6 +104,14 @@ public class TopBar : MonoBehaviour
         t.localPosition = localPos;
         t.localRotation = localRot;
         t.localScale = localScale;
+    }
+
+    private static void EnsureChildPanel(GameObject parentPanel, GameObject childPanel)
+    {
+        if (parentPanel == null || childPanel == null) return;
+        if (childPanel.transform.parent == parentPanel.transform) return;
+
+        childPanel.transform.SetParent(parentPanel.transform, worldPositionStays: false);
     }
     
     private void ToggleOnly(GameObject panel)
@@ -104,19 +131,79 @@ public class TopBar : MonoBehaviour
         if (panel.activeSelf)
             panel.transform.SetAsLastSibling();
     }
+
+    private void ToggleUpgradePanelsTogether()
+    {
+        bool wereBothActive = (upgradeStatusPanel != null && upgradeStatusPanel.activeSelf)
+                             && (upgradePanel != null && upgradePanel.activeSelf);
+
+        // 먼저 모든 패널을 닫고
+        ownedRelicsPanel?.SetActive(false);
+        upgradePanel?.SetActive(false);
+        upgradeStatusPanel?.SetActive(false);
+        academyPanel?.SetActive(false);
+
+        // 둘 다 열려 있었다면 닫기, 아니면 둘 다 열기
+        if (wereBothActive) return;
+
+        upgradeStatusPanel?.SetActive(true);
+        upgradePanel?.SetActive(true);
+        upgradeStatusPanel?.transform.SetAsLastSibling();
+        upgradePanel?.transform.SetAsLastSibling();
+    }
+
+    private void CloseUpgradePanelsTogether()
+    {
+        upgradeStatusPanel?.SetActive(false);
+        upgradePanel?.SetActive(false);
+    }
+    private void OnOptionButtonClicked()
+    {
+        ToggleOptionPanel(true);
+    }
+
     private void ToggleOptionPanel(bool show)
     {
-        optionPanel?.SetActive(show);
+        optionPanel.SetActive(show);
+
+        if (show)
+            optionPanel.transform.SetAsLastSibling();
+    }
+
+    private void CloseAllTopPanels()
+    {
+        optionPanel?.SetActive(false);
+        ownedRelicsPanel?.SetActive(false);
+        upgradePanel?.SetActive(false);
+        upgradeStatusPanel?.SetActive(false);
+        academyPanel?.SetActive(false);
+        loadingCanvas?.SetActive(false);
+
+    }
+
+    private void TryRefreshUpgradeChoices()
+    {
+        if (upgradePanel == null || GameManager.Instance == null || !GameManager.Instance.shouldRefreshUpgradeUI)
+            return;
+
+        var upgradeUI = upgradePanel.GetComponent<UpgradeUI>();
+        if (upgradeUI == null) return;
+
+        upgradeUI.ShowRandomChoices();
+        GameManager.Instance.shouldRefreshUpgradeUI = false;
     }
 
     private void SaveAndGoTitle()
     {
-   
-        Debug.Log("💾 게임 저장 중...");
-        //저장하는 함수
-        // ✅ 옵션 패널 끄기
-        optionPanel?.SetActive(false);
-        Debug.Log("🏁 타이틀 씬으로 이동 중...");
+        CloseAllTopPanels();
+
+        SaveData saveData = new();
+        if (!saveData.SaveGame())
+        {
+            Debug.LogWarning("저장에 실패했거나 맵 저장 데이터가 완전하지 않습니다.");
+            return;
+        }
+
         UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // 씬 이름이 정확해야 함
     }
-}
+    }

@@ -17,6 +17,7 @@ public static class WarRelicDatabase
     private static Action<WarRelic>[] s_execById;
     // 값 캐시: id -> JSON value 배열
     private static Dictionary<int, string[]> s_valuesById;
+    private static Dictionary<int, RelicType[]> s_typesById;
 
     static WarRelicDatabase()
     {
@@ -69,8 +70,8 @@ public static class WarRelicDatabase
         RegisterExec(46, TechnicalSecretTome); // Technical Secret Tome
         RegisterExec(47, TreasureMap); // Treasure Map
         RegisterExec(48, RainbowKey); // Rainbow Key
-        RegisterExec(49, CreditAuthorization); // Credit Authorization
-        RegisterExec(50, GoldenHorn); // Golden Horn
+        RegisterExec(49, GoldenHorn); // 재상의 보증서: 금화 소모량 기반 공격력 증가
+        RegisterExec(50, GoldenHornEliteGoldReward); // 순금 나팔: 엘리트 승리 골드 증가
         RegisterExec(51, ThickTacticsManual); // Thick Tactics Manual
         RegisterExec(52, ExplorersCompass); // Explorer's Compass
         RegisterExec(53, UnluckyGoldCoin); // Unlucky Gold Coin
@@ -236,6 +237,12 @@ public static class WarRelicDatabase
         {
             relic.BindConfig(vals); // WarRelic.BindConfig(string[])
         }
+
+        if (s_typesById != null && s_typesById.TryGetValue(relic.id, out var types))
+        {
+            relic.BindTypes(types);
+            relic.type = GetPrimaryType(types);
+        }
     }
 
     // DB에 만들어 둔 모든 유산에 실행 함수 일괄 바인딩
@@ -267,6 +274,11 @@ public static class WarRelicDatabase
         s_valuesById = valuesById ?? new Dictionary<int, string[]>(0);
     }
 
+    public static void BindTypesFromCatalog(Dictionary<int, RelicType[]> typesById)
+    {
+        s_typesById = typesById ?? new Dictionary<int, RelicType[]>(0);
+    }
+
     // 모든 유산에 값 일괄 바인딩(카탈로그 로드 직후 보정용)
     public static void BindValuesOnAllRelics()
     {
@@ -293,26 +305,31 @@ public static class WarRelicDatabase
 
         relics.Clear();
         var valuesById = new Dictionary<int, string[]>(dict.Count);
+        var typesById = new Dictionary<int, RelicType[]>(dict.Count);
 
         foreach (var kv in dict)
         {
             var rec = kv.Value;
+            var relicTypes = ParseTypes(rec.type);
             var relic = new WarRelic
             {
                 id = rec.id,
                 grade = rec.grade,
                 used = false,
-                type = ParseType(rec.type), // JSON에 타입 문자열이 있다면 파싱 가능
+                type = GetPrimaryType(relicTypes),
+                types = relicTypes,
                 name = rec.name,
                 description = rec.description
             };
             relic.BindConfig(rec.value);
             relics.Add(relic);
             valuesById[rec.id] = rec.value;
+            typesById[rec.id] = relicTypes;
         }
 
         // 값/액션 바인딩
         BindValuesFromCatalog(valuesById);
+        BindTypesFromCatalog(typesById);
         BindExecOnAllRelics();
 
     }
@@ -336,27 +353,47 @@ public static class WarRelicDatabase
         {
             relic.BindConfig(vals);
         }
+
+        if (s_typesById != null && s_typesById.TryGetValue(relic.id, out var types))
+        {
+            relic.BindTypes(types);
+            relic.type = GetPrimaryType(types);
+        }
     }
 
-    private static RelicType ParseType(string[] types)
+    private static RelicType[] ParseTypes(string[] types)
     {
-        if (types == null || types.Length == 0) return RelicType.AllEffect;
+        if (types == null || types.Length == 0)
+            return new[] { RelicType.AllEffect };
+
+        var parsed = new List<RelicType>(types.Length);
+        for (int i = 0; i < types.Length; i++)
+        {
+            if (Enum.TryParse<RelicType>(types[i], out var t) && !parsed.Contains(t))
+                parsed.Add(t);
+        }
+
+        if (parsed.Count == 0)
+            parsed.Add(RelicType.AllEffect);
+
+        return parsed.ToArray();
+    }
+
+    private static RelicType GetPrimaryType(RelicType[] types)
+    {
+        if (types == null || types.Length == 0)
+            return RelicType.AllEffect;
 
         bool hasBattle = false, hasState = false;
-        RelicType first = RelicType.AllEffect;
 
         for (int i = 0; i < types.Length; i++)
         {
-            if (Enum.TryParse<RelicType>(types[i], out var t))
-            {
-                if (i == 0) first = t;
-                if (t == RelicType.BattleActive) hasBattle = true;
-                if (t == RelicType.StateBoost) hasState = true;
-            }
+            if (types[i] == RelicType.BattleActive) hasBattle = true;
+            if (types[i] == RelicType.StateBoost) hasState = true;
         }
 
         if (hasBattle && hasState) return RelicType.ActiveState;
-        return first;
+        return types[0];
     }
     #endregion
 
@@ -422,11 +459,22 @@ public static class WarRelicDatabase
 
     }
 
+    // 사용처: 보유 금화 기반 유산 계산. 49번 유산 보유 시 소모한 금화도 소지 금화처럼 취급
+    private static int GetEffectiveGoldForRelic()
+    {
+        int gold = RogueLikeData.Instance.GetCurrentGold();
+
+        if (RelicManager.CheckRelicById(49))
+            gold += Mathf.Max(0, RogueLikeData.Instance.GetSpentGold());
+
+        return gold;
+    }
+
     //순금 검 8
     private static void PureGoldSword(WarRelic relic)
     {
         int id = 8;
-        int gold = RogueLikeData.Instance.GetCurrentGold();
+        int gold = GetEffectiveGoldForRelic();
         var vals = relic.GetAllValuesAsFloatListOrNull();
         if (vals == null) return;
         float addValue = gold / vals[0] * vals[1];
@@ -1309,23 +1357,48 @@ public static class WarRelicDatabase
         Debug.Log("[WarRelicDatabase] 무지개 열쇠(48) 획득: 챕터당 2회, 연결되지 않은 '다음 레벨'로 이동할 수 있습니다.");
     }
 
-    //재상의 보증서 49
-    private static void CreditAuthorization()
+    //순금 나팔 50
+    private static void GoldenHornEliteGoldReward(WarRelic relic)
     {
-
+        // 실제 골드 증가는 엘리트 전투 승리 보상 확정 시점에서 ApplyGoldenHornEliteGoldReward()를 호출해서 처리한다.
     }
 
-    //순금 나팔 50
+    // 사용처: 엘리트 전투 승리 후 현재 보유 금화를 순금 나팔 효과만큼 증가
+    public static int ApplyGoldenHornEliteGoldReward()
+    {
+        if (!RelicManager.CheckRelicById(50))
+            return 0;
+
+        WarRelic relic = RelicManager.GetRelicById(50);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+        if (vals == null || vals.Count == 0)
+            return 0;
+
+        int currentGold = RogueLikeData.Instance.GetCurrentGold();
+        int addGold = Mathf.RoundToInt(currentGold * vals[0]);
+        if (addGold <= 0)
+            return 0;
+
+        // 순금 나팔은 일반 금화 보상이 아니라 현재 보유 금화 자체를 증가시키는 효과다.
+        // 따라서 행운의 주머니(5) 같은 금화 획득량 증가 효과와 중복 적용되지 않도록 EarnGold를 사용하지 않는다.
+        RogueLikeData.Instance.SetCurrentGold(currentGold + addGold);
+        if (UIManager.Instance != null)
+            UIManager.Instance.AnimateGoldChange(currentGold, addGold);
+
+        return addGold;
+    }
+
+    //재상의 보증서 49
     private static void GoldenHorn(WarRelic relic)
     {
-        int id = 50;
+        int id = relic.id;
         int spentGold = RogueLikeData.Instance.GetSpentGold();
 
         var myTeam = RogueLikeData.Instance.GetMyTeam();
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count < 2) return;
 
-        float addValue = spentGold / vals[0] * vals[1];
+        float addValue = (spentGold / vals[0]) * vals[1];
         foreach (var unit in myTeam)
         {
             unit.stats.AddModifier(new StatModifier
@@ -2001,7 +2074,7 @@ public static class WarRelicDatabase
         int id = 92;
         var myUnits = RogueLikeData.Instance.GetMyTeam();
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count < 3) return;
 
         foreach (var unit in myUnits)
         {
@@ -2017,7 +2090,7 @@ public static class WarRelicDatabase
                 });
 
             }
-            else if (unit.rarity == 4)
+            else if (unit.rarity == 3)
             {
                 unit.stats.AddModifier(new StatModifier
                 {
@@ -2028,12 +2101,12 @@ public static class WarRelicDatabase
                     isPercent = false
                 });
             }
-            else if (unit.rarity == 3)
+            else if (unit.rarity == 4)
             {
                 unit.stats.AddModifier(new StatModifier
                 {
-                    stat = StatType.Health,
-                    value = unit.baseHealth * vals[2],
+                    stat = StatType.AttackDamage,
+                    value = unit.baseAttackDamage * vals[2],
                     source = SourceType.Relic,
                     modifierId = id,
                     isPercent = false

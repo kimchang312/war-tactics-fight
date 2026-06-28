@@ -38,8 +38,12 @@ public class RelicManager
             int id = kv.Key;
             var r = kv.Value;
 
+            if (r.type != null && r.type.Any(t => t == "Delete"))
+                continue;
+
             if (!_idsByGrade.TryGetValue(r.grade, out var list))
                 _idsByGrade[r.grade] = list = new List<int>(16);
+
             list.Add(id);
 
             if (r.value != null && r.value.Length > 0)
@@ -109,8 +113,8 @@ public class RelicManager
 
         // 5, 7 → 희귀도 변환 로직 유지
         var random = RogueLikeData.Instance.GetRandomBySeed();
-        if (grade == 5) grade = random.Next(0, 10) < 2 ? 10 : 1; // 20% 전설
-        else if (grade == 7) grade = random.Next(0, 10) < 5 ? 10 : 1; // 50% 전설
+        if (grade == 5) grade = RollLegendaryRelicGrade(random, 0.2f); // 20% 전설
+        else if (grade == 7) grade = RollLegendaryRelicGrade(random, 0.5f); // 50% 전설
 
         var srcIds = GetRelicIdsByGrade(grade);
         if (srcIds == null || srcIds.Count == 0)
@@ -139,6 +143,23 @@ public class RelicManager
         return result;
     }
 
+    private static int RollLegendaryRelicGrade(System.Random random, float baseChance)
+    {
+        float chance = ApplyBrokenMirrorChance(baseChance);
+        int threshold = Mathf.RoundToInt(chance * 10000f);
+        return random.Next(0, 10000) < threshold ? 10 : 1;
+    }
+
+    private static float ApplyBrokenMirrorChance(float baseChance)
+    {
+        WarRelic relic = GetRelicById(90);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+        if (vals == null || vals.Count == 0)
+            return Mathf.Clamp01(baseChance);
+
+        return Mathf.Clamp01(baseChance * (1f + vals[0]));
+    }
+
 
     /// <summary>
     /// 사용처: 랜덤 유산 id 하나 반환(등급/획득/삭제 공용)
@@ -158,15 +179,19 @@ public class RelicManager
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
     {
         var available = GetAvailableRelics(grade, action);
-        if (available.Count == 0) return null;
+        if (available.Count == 0)
+            return null;
 
         var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
-            AcquireRelic(selected.id);
-        else
-            RogueLikeData.Instance.RemoveRelicById(selected.id);
+        {
+            return TryAcquireRelic(selected.id, out WarRelic acquiredRelic)
+                ? acquiredRelic
+                : null;
+        }
 
+        RogueLikeData.Instance.RemoveRelicById(selected.id);
         return selected;
     }
 
@@ -404,7 +429,7 @@ public class RelicManager
             var relic = kv.Value;
             if (relic == null) continue;
 
-            if (relic.type == RelicType.StateBoost || relic.type == RelicType.ActiveState)
+            if (relic.HasType(RelicType.StateBoost))
             {
                 if (curseBlock && relic.grade == 0) continue;
                 relic.Execute();
@@ -463,6 +488,11 @@ public class RelicManager
             foreach (var kv in _catalogById)
             {
                 int id = kv.Key;
+                var rec = kv.Value;
+
+                if (rec.type != null && rec.type.Any(t => t == "Delete"))
+                    continue;
+
                 bool isOwned = ownedMap != null && ownedMap.ContainsKey(id);
                 if ((action == RelicAction.Acquire && !isOwned) ||
                     (action == RelicAction.Remove && isOwned))
@@ -481,19 +511,19 @@ public class RelicManager
     public static WarRelic HandleRandomRelicAllGrades(RelicAction action)
     {
         var available = GetAvailableRelicsAllGrades(action);
-        if (available.Count == 0) return null;
+        if (available.Count == 0)
+            return null;
 
         var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
         {
-            AcquireRelic(selected.id);
-        }
-        else
-        {
-            RogueLikeData.Instance.RemoveRelicById(selected.id);
+            return TryAcquireRelic(selected.id, out WarRelic acquiredRelic)
+                ? acquiredRelic
+                : null;
         }
 
+        RogueLikeData.Instance.RemoveRelicById(selected.id);
         return selected;
     }
 
@@ -893,9 +923,19 @@ public class RelicManager
         return filtered[index].id;
     }
 
-    // 사용처: 이벤트/상점/테스트/특수보상 등 모든 직접 유물 획득 진입점
+    // 사용처: 이벤트/상점/테스트/특수보상 등 모든 직접 유산 획득 진입점
     public static bool AcquireRelic(int relicId)
     {
+        return TryAcquireRelic(relicId, out _);
+    }
+
+    /// <summary>
+    /// 사용처: 무작위/직접 유산 획득 후 실제로 보유 목록에 추가된 유산 객체를 호출부에 전달한다.
+    /// </summary>
+    public static bool TryAcquireRelic(int relicId, out WarRelic acquiredRelic)
+    {
+        acquiredRelic = null;
+
         if (!InitializeRelicCatalog())
             return false;
 
@@ -908,23 +948,29 @@ public class RelicManager
 
         WarRelicDatabase.RebindRuntime(relic);
 
-        // 사용처: 53번은 자기 자신을 제외한 다른 전설 유산으로 대체
+        // 사용처: 53번 유산은 조건 충족 시 자신이 아닌 다른 전설 유산으로 대체한다.
         if (relicId == 53)
         {
             var vals = relic.GetAllValuesAsFloatListOrNull();
             if (vals != null && vals.Count > 1 && RogueLikeData.Instance.GetRandomFloat() < vals[1])
             {
                 int replaceId = GetRandomRelicIdExcept(10, RelicAction.Acquire, 53);
-                if (replaceId >= 0)
-                    return AcquireRelic(replaceId);
+                if (replaceId < 0)
+                    return false;
+
+                return TryAcquireRelic(replaceId, out acquiredRelic);
             }
         }
 
         if (!RogueLikeData.Instance.TryAddOwnedRelic(relic))
             return false;
 
-        if (relic.type == RelicType.GetEffect)
-            relic.Execute();
+        acquiredRelic = RogueLikeData.Instance.GetOwnedRelicById(relic.id);
+        if (acquiredRelic == null)
+            return false;
+
+        if (acquiredRelic.HasType(RelicType.GetEffect))
+            acquiredRelic.Execute();
 
         UnitStateChange.ChangeStateMyUnits();
         return true;

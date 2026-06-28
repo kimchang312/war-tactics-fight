@@ -25,8 +25,7 @@ public class TitleScene : MonoBehaviour
         StoreManager.LoadStoreData();
         QuestManager.LoadQuestData();
         GameTextDB.Boot();
-        string filePath = Application.persistentDataPath + "/PlayerData.json";
-        if (File.Exists(filePath))
+        if (SaveData.CanContinueRun())
         {
             loadBtn.interactable = true;
             loadBtn.onClick.AddListener(LoadRogueLike);
@@ -46,8 +45,10 @@ public class TitleScene : MonoBehaviour
 
     private void GoRogueLike()
     {
-        SaveData saveData = new SaveData();
+        SaveData saveData = new();
+
         saveData.ResetGameData();
+
         RogueLikeData.Instance.SetResetMap(true);
         if (GameManager.Instance != null)
         {
@@ -58,8 +59,11 @@ public class TitleScene : MonoBehaviour
     private void LoadRogueLike()
     {
         SaveData saveData = new SaveData();
-        saveData.LoadData();
-        SceneManager.LoadScene("RLmap");
+
+        if (saveData.RequestContinueLoadFromTitle())
+        {
+            SceneManager.LoadScene("RLmap");
+        }
     }
     private void QuitGame()
     {

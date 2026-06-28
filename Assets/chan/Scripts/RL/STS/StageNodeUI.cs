@@ -77,6 +77,9 @@ public class StageNodeUI : MonoBehaviour, IPointerClickHandler
         row = node.row;
         stageType = node.stageType;
         battlefieldEffect = node.battlefieldEffect;
+        // 맵 생성 시점의 진행 챕터와 동기화 (미설정 시 기본값 1이라 챕2에서 SetChapter(1)로 깨지는 문제 방지)
+        if (RogueLikeData.Instance != null)
+            chapter = RogueLikeData.Instance.GetChapter();
         // 1) StageType별로 스프라이트 교체
         image.sprite = stageType switch
         {

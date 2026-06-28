@@ -20,6 +20,7 @@ public class StageNodeSaveEntry
     public int row;
     public StageType stageType;
     public int presetID;
+    public BattlefieldEffect battlefieldEffect;
     public List<StageConnectionData> connections = new();
 }
 

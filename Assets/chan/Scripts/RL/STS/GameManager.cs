@@ -21,6 +21,9 @@ public class GameManager : MonoBehaviour
 
     [Header("Map UI & Enemy Info Panel")]
     [SerializeField] private GameObject mapCanvas;            // 기존에 쓰던 map 전체 Canvas
+    [SerializeField] private GameObject topBarCanvas;         // 상단바 캔버스(씬 전환 시 표시/숨김 제어)
+    [SerializeField] private GameObject nodeInfoUIImage;      // 노드 정보 UI 이미지(표시/숨김 토글용)
+    [SerializeField] private Button nodeInfoButton;           // NodeInfoBTN (맵 전용 화면에서만 표시)
     [SerializeField] public GameObject enemyInfoPanel;       // 새로 추가: 적 정보 패널
     [SerializeField] public GameObject restPanel;
     [SerializeField] public RewardUI rewardUI;
@@ -45,6 +48,8 @@ public class GameManager : MonoBehaviour
     public bool IsPlaceMode { get; private set; }
     public bool _hasInitialized = false;
     public bool shouldRefreshUpgradeUI = false;
+    private bool mapInitializedForScene = false;
+    private bool restoredSavedGameForScene = false;
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
@@ -73,6 +78,7 @@ public class GameManager : MonoBehaviour
             // 최초 인스턴스라면 여기서 고정
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            _hasInitialized = true;
         }
         else if (Instance != this)
         {
@@ -92,6 +98,17 @@ public class GameManager : MonoBehaviour
         {
             unitListUI = GetComponentInChildren<UnitListUI>(true);
         }
+
+        if (topBarCanvas == null)
+        {
+            // 기존 씬 구성과 호환: 인스펙터 미할당 시 이름으로 자동 탐색
+            Transform topBarTransform = transform.Find("TopBarCanvas");
+            if (topBarTransform != null)
+                topBarCanvas = topBarTransform.gameObject;
+        }
+
+        if (nodeInfoUIImage != null)
+            nodeInfoUIImage.SetActive(false);
       
 
         HideAllPanels();
@@ -128,13 +145,101 @@ public class GameManager : MonoBehaviour
             uIGenerator.EnsureMapGeneratorReference();
             uIGenerator.RehydrateMapFromExistingUIIfNeeded();
         }
+
+        EnsureNodeInfoButtonReference();
+    }
+
+    private void EnsureNodeInfoButtonReference()
+    {
+        if (nodeInfoButton != null)
+            return;
+        if (SceneManager.GetActiveScene().name != "RLmap")
+            return;
+
+        foreach (var btn in FindObjectsOfType<Button>(true))
+        {
+            if (btn.gameObject.name == "NodeInfoBTN")
+            {
+                nodeInfoButton = btn;
+                return;
+            }
+        }
+    }
+
+    private bool IsMapPanelViewActive()
+    {
+        if (SceneManager.GetActiveScene().name != "RLmap")
+            return false;
+
+        if (mapCanvas == null || !mapCanvas.activeInHierarchy)
+            return false;
+
+        if (loadingPanel != null && loadingPanel.activeInHierarchy)
+            return false;
+
+        if (enemyInfoPanel != null && enemyInfoPanel.activeInHierarchy)
+            return false;
+
+        if (PlacePanel != null && PlacePanel.activeInHierarchy)
+            return false;
+
+        if (restPanel != null && restPanel.activeInHierarchy)
+            return false;
+
+        if (eventManager != null && eventManager.activeInHierarchy)
+            return false;
+
+        if (storeManager != null && storeManager.activeInHierarchy)
+            return false;
+
+        if (rewardUI != null && rewardUI.IsTreasureRewardVisible)
+            return false;
+
+        return true;
+    }
+
+    public void RefreshNodeInfoButtonVisibility() => RefreshNodeInfoButton();
+
+    private void RefreshNodeInfoButton()
+    {
+        EnsureNodeInfoButtonReference();
+        if (nodeInfoButton == null)
+            return;
+
+        bool show = IsMapPanelViewActive();
+        nodeInfoButton.gameObject.SetActive(show);
+        nodeInfoButton.interactable = show;
+
+        if (!show && nodeInfoUIImage != null && nodeInfoUIImage.activeSelf)
+            nodeInfoUIImage.SetActive(false);
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
  {
-        openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
+     openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
      if (scene.name != "RLmap")
+     {
+        mapInitializedForScene = false;
+        restoredSavedGameForScene = false;
+        // GameManager가 DontDestroyOnLoad라서 RLmap UI가 남아있을 수 있으므로
+        // 타이틀/전투 등 RLmap 외 씬 진입 시에는 관련 패널을 즉시 정리한다.
+        if(scene.name != "Title")
+            {
+                HideAllPanels();
+
+            }
+            CloseAllUI();
+        // 전투 씬에서는 옵션/유물 등을 위해 상단바 유지 (타이틀 등 그 외 씬에서는 숨김)
+        SetTopBarCanvasVisible(scene.name == "AutoBattleScene");
+        RefreshNodeInfoButton();
         return;
+     }
+
+        mapInitializedForScene = false;
+        restoredSavedGameForScene = false;
+
+        // RLmap 복귀 시에는 상단바를 다시 표시
+        SetTopBarCanvasVisible(true);
 
         EnsureMapSceneUIReferences();
 
@@ -144,7 +249,19 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         allStages = FindObjectsOfType<StageNodeUI>().ToList();
         HideAllPanels();
         UIManager.Instance.UIUpdateAll();
-        InitializeStageLocks();
+
+        if (SaveData.HasContinueLoadRequest())
+        {
+            mapInitializedForScene = LoadSavedGame();
+            SaveData.ClearContinueLoadRequest();
+
+            if (mapInitializedForScene)
+            {
+                GameManager.Instance.shouldRefreshUpgradeUI = true;
+                RefreshNodeInfoButton();
+                return;
+            }
+        }
 
         if (playerMarker == null)
         {
@@ -170,6 +287,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             UIManager.Instance.UpdateChapter(RogueLikeData.Instance.GetChapter());
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             uIGenerator.RegenerateMap();
+            mapInitializedForScene = true;
         }
         else if (RogueLikeData.Instance.GetResetMap())
         {
@@ -177,10 +295,16 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             RogueLikeData.Instance.SetResetMap(false);
             uIGenerator.RegenerateMap();
+            mapInitializedForScene = true;
+        }
+        else
+        {
+            InitializeStageLocks();
         }
 
         // 전투 끝나고 돌아왔을 경우만 갱신 요청
         GameManager.Instance.shouldRefreshUpgradeUI = true;
+        RefreshNodeInfoButton();
 
     }
 
@@ -188,22 +312,41 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         allStages.AddRange(FindObjectsOfType<StageNodeUI>());
 
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "RLmap")
+            return;
+
+        if (mapInitializedForScene)
+        {
+            if (!restoredSavedGameForScene)
+                InitializeStageLocks();
+            return;
+        }
+
+        if (SaveData.HasContinueLoadRequest())
+        {
+            mapInitializedForScene = LoadSavedGame();
+            SaveData.ClearContinueLoadRequest();
+            if (mapInitializedForScene)
+                return;
+        }
+
         // 새 게임은 항상 새 맵 생성
         uIGenerator.RegenerateMap();
+        mapInitializedForScene = true;
         Debug.Log("새 맵을 생성합니다.");
 
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RLmap")
-            InitializeStageLocks();
+        InitializeStageLocks();
     }
     
     /// <summary>
     /// 저장된 게임을 불러옵니다. (불러오기 버튼에서 호출)
     /// </summary>
-    public void LoadSavedGame()
+    public bool LoadSavedGame()
     {
-        var save = SaveSystem.LoadFull();
-        if (save != null)
+        SaveData saveData = new();
+        if (saveData.LoadGame(out StageFullSaveData save))
         {
+            EnsureMapSceneUIReferences();
             uIGenerator.RegenerateMapFromSaveFull(save);
             
             // RogueLikeData에 저장된 플레이어 위치로 currentStage 복원
@@ -211,12 +354,16 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             
             // 잠금 상태 업데이트
             InitializeStageLocks();
+            RestoreSavedProgressUI();
             
             Debug.Log("✅ 저장된 맵을 불러왔습니다.");
+            restoredSavedGameForScene = true;
+            return true;
         }
         else
         {
             Debug.LogWarning("⚠️ 불러올 저장 데이터가 없습니다.");
+            return false;
         }
     }
 
@@ -225,9 +372,10 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 디버그: 클릭된 정보 찍기
         Debug.Log($"OnStageClicked → chapter:{clickedStage.chapter}, level:{clickedStage.level}, row:{clickedStage.row}, locked:{clickedStage.IsLocked}, currentStage:{(currentStage == null ? "null" : currentStage.level.ToString())}");
         
-        // 스테이지의 챕터 정보로 설정
-        RogueLikeData.Instance.SetChapter(clickedStage.chapter);
-        Debug.Log($"📌 챕터를 {clickedStage.chapter}로 설정했습니다.");
+        // 챕터는 진행 데이터(보스 클리어 보상)로만 변경하고, 노드 클릭으로는 변경하지 않는다.
+        // 노드의 chapter 값이 기본값(1)으로 남아 있으면 챕터가 되돌아가 전투 프리셋 분기가 깨질 수 있다.
+        int persistedChapter = RogueLikeData.Instance.GetChapter();
+        Debug.Log($"📌 현재 챕터 유지: {persistedChapter} (노드 표기:{clickedStage.chapter})");
         
         // 잠겨 있으면 아무 동작 안 함
         if (clickedStage.IsLocked)
@@ -386,15 +534,16 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             var enemies = LoadEnemyUnits(newStage.PresetID);
             var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
 
-            string cmdName = preset.Commander ?? "";
+            string cmdName = preset?.Commander ?? "";
+            int? eliteCmdId = preset?.CommanderNumericId;
             var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
-            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true);
+            panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true, eliteCmdId);
             
             // 적 프리팹을 PlacePanel에 생성
             PlacePanelComponent.CreateEnemyPrefabs(enemies);
             
             // PlacePanel에 지휘관 정보 표시
-            PlacePanelComponent.ShowCommanderInfo(cmdName);
+            PlacePanelComponent.ShowCommanderInfo(cmdName, newStage.stageType, eliteCmdId);
             
             // PlacePanel에 전장효과 표시 (전투 스테이지만)
             if (newStage.stageType == StageType.Combat || 
@@ -402,18 +551,21 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 newStage.stageType == StageType.Boss)
             {
                 PlacePanelComponent.ShowBattlefieldEffect(newStage.battlefieldEffect);
-                
+
+
+
                 // 전장 효과를 fieldId로 설정 (AbilityManager에서 사용)
-                int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
-                int nowField = RogueLikeData.Instance.GetFieldId();
-                if(nowField != 0)
-                {
-                    fieldId = nowField;
-                }
+                int fieldId = RogueLikeData.Instance.GetFieldId();
+
+                fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(newStage.battlefieldEffect);
+
+
                 RogueLikeData.Instance.SetFieldId(fieldId);
             }
-            
-            
+
+            RogueLikeData.Instance.SetProgressState(SaveProgressState.BattlePlacement);
+            RogueLikeData.Instance.SaveNow();
+            RefreshNodeInfoButton();
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
         // --- 그 외 맵 내 이벤트(휴식/상점/이벤트) 시에는 기존 UI 잠금/해제 로직 실행 ---
@@ -461,8 +613,11 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         if (newStage.stageType == StageType.Rest)
         {
             // 기존 restUI.Show() 대신
+            RogueLikeData.Instance.SetProgressState(SaveProgressState.RestOpen);
+            RogueLikeData.Instance.SaveNow();
             restPanel.SetActive(true);
             currentStage?.StopSelectableEffect();
+            RefreshNodeInfoButton();
             return;
         }
         else if (newStage.stageType == StageType.Event)
@@ -496,10 +651,13 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         else if (newStage.stageType == StageType.Treasure)
         {
             //rewardUI.gameObject.SetActive(true);
+            RogueLikeData.Instance.SetProgressState(SaveProgressState.TreasureOpen);
+            RogueLikeData.Instance.SaveNow();
             currentStage?.StopSelectableEffect();
             rewardUI.SetActiveTeasureBox();
         }
-        
+
+        RefreshNodeInfoButton();
         Debug.Log($"📌 SetCurrentStage: {newStage.level}_{newStage.row}");
     }
 
@@ -554,7 +712,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         mapCanvas.SetActive(true);
         loadingPanel.SetActive(false);
-        
+        openUnitOrderBtn.gameObject.SetActive(true);
         // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
         var all = FindObjectsOfType<StageNodeUI>().ToList();
         
@@ -571,6 +729,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 s.UnlockStage();
             }
             Debug.Log("🆕 첫 진입: 레벨 0 전투 스테이지 해제");
+            RefreshNodeInfoButton();
             return;
         }
 
@@ -605,6 +764,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
+        RefreshNodeInfoButton();
     }
     private List<RogueUnitDataBase> LoadEnemyUnits(int presetID)
     {
@@ -741,20 +901,52 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlacePanel.SetActive(open);
         IsPlaceMode = open;
+        RefreshNodeInfoButton();
     }
     
     public void HideAllPanels()
     {
         loadingPanel.SetActive(true);
+        openUnitOrderBtn.gameObject.SetActive(false);
         mapCanvas.SetActive(false);
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
         restPanel.SetActive(false);
         IsPlaceMode = false;
+        RefreshNodeInfoButton();
+    }
+
+    private void SetTopBarCanvasVisible(bool visible)
+    {
+        if (topBarCanvas == null)
+        {
+            Transform topBarTransform = transform.Find("TopBarCanvas");
+            if (topBarTransform != null)
+                topBarCanvas = topBarTransform.gameObject;
+        }
+
+        if (topBarCanvas != null)
+            topBarCanvas.SetActive(visible);
     }
     public void SetCurrentStageNull()
     {
         currentStage = null;
+    }
+
+    public bool TryGetCurrentStagePosition(out int level, out int row, out StageType type)
+    {
+        if (currentStage == null)
+        {
+            level = -1;
+            row = -1;
+            type = StageType.Unknown;
+            return false;
+        }
+
+        level = currentStage.level;
+        row = currentStage.row;
+        type = currentStage.stageType;
+        return true;
     }
 
     public void CloseLoading()
@@ -771,25 +963,107 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         restPanel.SetActive(false);
         enemyInfoPanel.SetActive(false);
         //rewardUI.gameObject.SetActive(false);
+        RefreshNodeInfoButton();
     }
 
     public void OpenBattlePanel()
     {
         int presetId = RogueLikeData.Instance.GetPresetID();
         StageType type = RogueLikeData.Instance.GetCurrentStageType();
-        enemyInfoPanel.SetActive(true);
-        var enemies = LoadEnemyUnits(presetId);
-        var preset = StagePresetLoader.I.GetByID(presetId);
 
-        string cmdName = preset.Commander ?? "";
-        /*string cmdSkill = !string.IsNullOrEmpty(preset.CommanderID)
-                          ? SkillLoader.Instance.GetSkillNameById(preset.CommanderID)
-                          : "";*/
-        var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
-        panel.ShowEnemyInfo(type, enemies, cmdName/*, cmdSkill*/);
-        
-        // PlacePanel에 지휘관 정보 표시
-        PlacePanelComponent.ShowCommanderInfo(cmdName);
+        OpenBattlePlacePanel(presetId, type, currentStage != null ? currentStage.battlefieldEffect : null);
+    }
+
+    private void RestoreSavedProgressUI()
+    {
+        SaveProgressState state = RogueLikeData.Instance.GetProgressState();
+
+        switch (state)
+        {
+            case SaveProgressState.StoreOpen:
+                storeManager.SetActive(true);
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.EventOpen:
+            case SaveProgressState.EventResult:
+                eventManager.SetActive(true);
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.BattlePending:
+            case SaveProgressState.BattlePlacement:
+                OpenBattlePanel();
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.RestOpen:
+                restPanel.SetActive(true);
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.TreasureOpen:
+                rewardUI.SetActiveTeasureBox();
+                currentStage?.StopSelectableEffect();
+                break;
+
+            case SaveProgressState.RewardOpen:
+                rewardUI.CreateRewardUI();
+                currentStage?.StopSelectableEffect();
+                break;
+        }
+
+        RefreshNodeInfoButton();
+    }
+
+    private void OpenBattlePlacePanel(int presetId, StageType stageType, BattlefieldEffect? battlefieldEffect)
+    {
+        PlacePanel placePanel = PlacePanelComponent;
+        if (placePanel == null)
+        {
+            Debug.LogError("[GameManager] PlacePanel 컴포넌트를 찾을 수 없습니다.");
+            return;
+        }
+
+        List<RogueUnitDataBase> enemies = LoadEnemyUnits(presetId);
+
+        var preset = StagePresetLoader.I.GetByID(presetId);
+        string commanderName = preset?.Commander ?? "";
+        int? eliteCommanderId = preset?.CommanderNumericId;
+
+        if (enemyInfoPanel != null)
+            enemyInfoPanel.SetActive(false);
+
+        TogglePlacePanel(true);
+
+        placePanel.ClearPlacePanel();
+        placePanel.UpdateMaxUnitText();
+        placePanel.CreateEnemyPrefabs(enemies);
+        placePanel.ShowCommanderInfo(commanderName, stageType, eliteCommanderId);
+
+        if (battlefieldEffect.HasValue)
+        {
+            placePanel.ShowBattlefieldEffect(battlefieldEffect.Value);
+
+            int fieldId = MapGenerator.GetFieldIdFromBattlefieldEffect(battlefieldEffect.Value);
+            RogueLikeData.Instance.SetFieldId(fieldId);
+        }
+
+        RefreshNodeInfoButton();
+    }
+
+    public void ToggleNodeInfoUI()
+    {
+        if (!IsMapPanelViewActive())
+            return;
+
+        if (nodeInfoUIImage == null)
+        {
+            Debug.LogWarning("GameManager: nodeInfoUIImage가 연결되지 않았습니다.");
+            return;
+        }
+
+        nodeInfoUIImage.SetActive(!nodeInfoUIImage.activeSelf);
     }
 
     private void changemorale()
@@ -849,12 +1123,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
     private void ClickOpenUnitOrderUI()
     {
-        bool active = unitListUI.gameObject.activeSelf;
-        if (active) {
+        Image img = openUnitOrderBtn.GetComponent<Image>();
+        if (unitListUI.gameObject.activeSelf) {
+            img.sprite = SpriteCacheManager.GetSprite("KIcon/UI/Img_OpenUnit");
             unitListUI.CloseWithAnimation();
         }
         else
         {
+            img.sprite = SpriteCacheManager.GetSprite("KIcon/UI/Img_CloseUnit");
             unitListUI.gameObject.SetActive(true);
         }
         

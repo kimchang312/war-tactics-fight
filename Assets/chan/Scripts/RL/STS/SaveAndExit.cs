@@ -20,9 +20,12 @@ public class SaveAndExit : MonoBehaviour
             Debug.LogError("NodeDictionary가 null입니다!");
             return;
         }
-        // 맵 저장
-        SaveSystem.SaveStageFull(mapGenerator.NodeDictionary);
-        Debug.Log("맵 저장 완료!");
+        SaveData saveData = new();
+        if (!saveData.SaveGame(mapGenerator))
+        {
+            Debug.LogWarning("저장에 실패했거나 맵 저장 데이터가 완전하지 않습니다.");
+            return;
+        }
 
         // 타이틀 씬으로 이동
         SceneManager.LoadScene("Title");

@@ -18,6 +18,7 @@ public class PlacePanel : MonoBehaviour
 
     [Header("플레이어 유닛 배치")]
     public GameObject battleUnitPrefab;
+    [SerializeField] private GameObject emptyBattleSlotPrefab;
     public RectTransform PrefabContainer;
     
     [Header("적 유닛 배치")]
@@ -86,7 +87,7 @@ public class PlacePanel : MonoBehaviour
         // UI 생성 & 순서 반환
         int order = placedUnits.Count;
 
-        CreateBattleUnitUI(unit, unit.UniqueId, order);
+        RebuildPlayerSlots();
 
         // 배치 유닛 수 갱신
         UpdateCountTexts();
@@ -110,8 +111,7 @@ public class PlacePanel : MonoBehaviour
     {
         placedUnits.Clear();
         PlacedUniqueIds.Clear();
-        foreach (Transform child in PrefabContainer)
-            Destroy(child.gameObject);
+        RebuildPlayerSlots();
         // 적 유닛 프리팹도 정리
         ClearEnemyPrefabs();
         // 지휘관 정보 초기화
@@ -135,27 +135,15 @@ public class PlacePanel : MonoBehaviour
     }
     public void RemoveUnitFromBattle(RogueUnitDataBase unit)
     {
-        // 1) PrefabContainer 안에서 이 unit.UniqueId와 매칭되는 UI를 찾는다
-        var uiToRemove = PrefabContainer
-            .GetComponentsInChildren<UnitUIPrefab>()
-            .FirstOrDefault(ui => ui.uniqueId == unit.UniqueId);
-
         var lineupUI = GameManager.Instance.LineUpBarComponent.GetUnitUIByUniqueId(unit.UniqueId);
         if (lineupUI != null)
             lineupUI.RestoreFromPlaced();
 
-        // 3) 데이터 리스트에서 UniqueId로 제거
+        // 데이터 리스트에서 UniqueId로 제거
         placedUnits.RemoveAll(u => u.UniqueId == unit.UniqueId);
         PlacedUniqueIds.Remove(unit.UniqueId);
 
-        DestroyImmediate(uiToRemove.gameObject);
-
-        // 5) 남은 BattleUnitP 번호 재부여
-        var remainingUIs = PrefabContainer.GetComponentsInChildren<UnitUIPrefab>();
-        for (int i = 0; i < remainingUIs.Length; i++)
-        {
-            remainingUIs[i].SetNumber(i + 1);
-        }
+        RebuildPlayerSlots();
         UpdateCountTexts();
         //배치 유닛 제거 후 MyPrefabs숫자 갱신
         GameManager.Instance.LineUpBarComponent.UpdateLineupNumbers(PlacedUniqueIds);
@@ -165,6 +153,8 @@ public class PlacePanel : MonoBehaviour
     private void OnStartBattleClicked()
     {
         RogueLikeData.Instance.SetAllMyUnits(placedUnits);
+        RogueLikeData.Instance.SetProgressState(SaveProgressState.BattlePlacement);
+        RogueLikeData.Instance.SaveNow();
         GameManager.Instance.HideAllPanels();
         ClearPlacePanel();
         SceneManager.LoadScene("AutoBattleScene");
@@ -185,6 +175,7 @@ public class PlacePanel : MonoBehaviour
         // 최대 배치 가능 수 표시
         int maxUnits = RogueLikeData.Instance.GetMaxUnits();
         maxUnitCount.text = $"/ {maxUnits.ToString()}";
+        RebuildPlayerSlots();
     }
     
     public void UpdateEnemyUnitCount(int count)
@@ -268,8 +259,41 @@ public class PlacePanel : MonoBehaviour
         Canvas.ForceUpdateCanvases();
     }
 
+    private void RebuildPlayerSlots()
+    {
+        if (PrefabContainer == null)
+            return;
+
+        foreach (Transform child in PrefabContainer)
+            Destroy(child.gameObject);
+
+        int maxUnits = RogueLikeData.Instance.GetMaxUnits();
+        for (int i = 0; i < maxUnits; i++)
+        {
+            if (i < placedUnits.Count)
+            {
+                var unit = placedUnits[i];
+                CreateBattleUnitUI(unit, unit.UniqueId, i + 1);
+            }
+            else
+            {
+                CreateEmptyBattleSlotUI();
+            }
+        }
+
+        RefreshPlayerUnitStripLayout();
+    }
+
+    private void CreateEmptyBattleSlotUI()
+    {
+        if (emptyBattleSlotPrefab == null)
+            return;
+
+        Instantiate(emptyBattleSlotPrefab, PrefabContainer);
+    }
+
     // 지휘관 정보를 표시하는 메서드
-    public void ShowCommanderInfo(string commanderName)
+    public void ShowCommanderInfo(string commanderName, StageType stageType = StageType.Combat, int? eliteCommanderNumericId = null)
     {
         // 지휘관이 없어도 패널은 항상 표시
         if (commanderInfoPanel != null)
@@ -291,7 +315,7 @@ public class PlacePanel : MonoBehaviour
                 commanderNameText.text = $"지휘관: {commanderName}";
 
             if (commanderSkillText != null)
-                commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName);
+                commanderSkillText.text = CommanderSkillData.GetSkillText(commanderName, stageType, eliteCommanderNumericId);
         }
 
         // 전장 효과는 별도로 설정해야 함 (ShowBattlefieldEffect 메서드 사용)

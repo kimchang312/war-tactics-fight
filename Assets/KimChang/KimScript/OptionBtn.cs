@@ -9,111 +9,138 @@ public class OptionBtn : MonoBehaviour
     [SerializeField] private Button goTitle;
     [SerializeField] private GameObject optionWindow;
     [SerializeField] private Toggle gameSpeedToggle;
-
-    [SerializeField] private AutoBattleManager autoBattleManager;
-    [SerializeField] private AutoBattleUI autoBattleUI;
-    [SerializeField] private MoveDamageUI moveDamageUI;
-    [SerializeField] private MoveAbilityUI moveAbilityUI;
-    [SerializeField] private BattleCrashAnimation battleCrashAnimation;
     [SerializeField] private Button goTest;
-    private bool isPaused=false;
 
-    private float animationSpeed = 1f;
+    private bool isPaused;
+    private float previousTimeScale = 1f;
+    private AutoBattleManager pausedBattleManager;
 
-    void Start()
+    private const float NormalSpeed = 1f;
+    private const float FastSpeed = 0.5f;
+
+    private void Start()
     {
-        optionWindow.SetActive(false);
-        optionBtn.onClick.AddListener(ToggleOptionWindow);
-        resumeGame.onClick.AddListener(ResumeGame);
-        goTitle.onClick.AddListener(Movetitle);
+        if (optionWindow != null)
+            optionWindow.SetActive(false);
 
-        gameSpeedToggle.onValueChanged.AddListener(OnToggleChanged);
-        goTest.onClick.AddListener(GoTestMode);
+        if (optionBtn != null)
+            optionBtn.onClick.AddListener(ToggleOptionWindow);
+
+        if (resumeGame != null)
+            resumeGame.onClick.AddListener(ResumeGame);
+
+        if (goTitle != null)
+            goTitle.onClick.AddListener(Movetitle);
+
+        if (goTest != null)
+            goTest.onClick.AddListener(GoTestMode);
+
+
+#if !UNITY_EDITOR
+    gameSpeedToggle.gameObject.SetActive(false);
+#else
+        gameSpeedToggle.gameObject.SetActive(true);
+#endif
+
+        if (gameSpeedToggle != null)
+        {
+            gameSpeedToggle.onValueChanged.RemoveListener(OnToggleChanged);
+            gameSpeedToggle.onValueChanged.AddListener(OnToggleChanged);
+
+            OnToggleChanged(gameSpeedToggle.isOn);
+        }
     }
 
     private void OnDestroy()
     {
-        gameSpeedToggle.onValueChanged.RemoveListener(OnToggleChanged);
+        if (optionBtn != null)
+            optionBtn.onClick.RemoveListener(ToggleOptionWindow);
+
+        if (resumeGame != null)
+            resumeGame.onClick.RemoveListener(ResumeGame);
+
+        if (goTitle != null)
+            goTitle.onClick.RemoveListener(Movetitle);
+
+        if (goTest != null)
+            goTest.onClick.RemoveListener(GoTestMode);
+
+        if (gameSpeedToggle != null)
+            gameSpeedToggle.onValueChanged.RemoveListener(OnToggleChanged);
     }
-    private void GoTestMode()
-    {
-        SceneManager.LoadScene("Test");
-    }
-    void Update()
+
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
-        {
             ToggleOptionWindow();
-        }
     }
+
     private void ToggleOptionWindow()
     {
         if (isPaused)
-        {
             ResumeGame();
-        }
         else
-        {
             PauseGame();
-        }
     }
 
-
-    // 게임을 멈추는 함수
+    // 사용처: AutoBattleScene 안의 옵션창을 열 때 전투 진행을 멈춘다.
     private void PauseGame()
     {
-        optionWindow.transform.SetAsLastSibling();
+        if (optionWindow != null)
+        {
+            optionWindow.transform.SetAsLastSibling();
+            optionWindow.SetActive(true);
+        }
 
-        optionWindow.SetActive(true);
+        previousTimeScale = Time.timeScale > 0f ? Time.timeScale : 1f;
         Time.timeScale = 0f;
+
+        pausedBattleManager = FindObjectOfType<AutoBattleManager>();
+        if (pausedBattleManager != null)
+            pausedBattleManager.SetBattlePaused(true);
+
         isPaused = true;
     }
 
-
-    // 게임을 재개하는 함수
+    // 사용처: AutoBattleScene 안의 옵션창을 닫을 때 전투 진행을 재개한다.
     private void ResumeGame()
     {
-        optionWindow.SetActive(false); // 옵션 창 비활성화
-        Time.timeScale = 1f;          // 게임 재개
-        isPaused = false;             // 멈춤 상태 해제
+        if (optionWindow != null)
+            optionWindow.SetActive(false);
+
+        if (pausedBattleManager != null)
+            pausedBattleManager.SetBattlePaused(false);
+
+        Time.timeScale = previousTimeScale > 0f ? previousTimeScale : 1f;
+
+        pausedBattleManager = null;
+        isPaused = false;
     }
 
-    //타이틀로 가는 함수
+    // 사용처: 테스트 씬 이동 버튼 클릭 시 테스트 씬으로 이동한다.
+    private void GoTestMode()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Test");
+    }
+
+    // 사용처: 전투 포기 후 타이틀로 이동한다.
     private void Movetitle()
     {
-        if (isPaused)
-        {
-            SaveData saveData = new SaveData();
-            Time.timeScale = 1f; // 게임 속도 초기화
-            saveData.ResetGameData();
-            GameManager.Instance.SetCurrentStageNull();
-            RogueLikeData.Instance.SetResetMap(true);
-            SceneManager.LoadScene("Title");
-        }
+        Time.timeScale = 1f;
+
+        SaveData saveData = new SaveData();
+        saveData.ResetGameData();
+
+        GameManager.Instance.SetCurrentStageNull();
+        RogueLikeData.Instance.SetResetMap(true);
+
+        SceneManager.LoadScene("Title");
     }
 
-    // 토글 상태 변경 시 호출될 메서드
+    // 사용처: AutoBattleScene의 배속 토글 값을 전역 배속 상태에 저장한다.
     private void OnToggleChanged(bool isOn)
     {
-        if (isOn)
-        {
-            animationSpeed = 0.5f;
-
-            ManageTimeSpeed();
-        }
-        else
-        {
-            animationSpeed = 2f;
-            ManageTimeSpeed();
-        }
-    }
-
-    private void ManageTimeSpeed()
-    {
-        autoBattleManager.ChangeWaittingTime(animationSpeed);
-        autoBattleUI.ChangeWaittingTime(animationSpeed);
-        moveDamageUI.ChangeWaittingTime(animationSpeed);
-        moveAbilityUI.ChangeWaittingTime(animationSpeed);
-        battleCrashAnimation.ChangeWattingTime(animationSpeed);
+        GameSpeedManager.Instance.GameSpeed = isOn ? FastSpeed : NormalSpeed;
     }
 }

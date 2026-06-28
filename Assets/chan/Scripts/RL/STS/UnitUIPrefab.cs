@@ -209,8 +209,8 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
         // 기력 텍스트 "현재/최대"
         if (energyText != null)
         {
-            // 적 유닛은 기력을 표시하지 않음
-            if (PrefabType == Context.Enemy)
+            // 배치/적 유닛은 기력을 표시하지 않음
+            if (PrefabType == Context.Enemy || PrefabType == Context.Placed)
             {
                 energyText.gameObject.SetActive(false);
             }

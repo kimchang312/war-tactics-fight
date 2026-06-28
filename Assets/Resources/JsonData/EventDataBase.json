@@ -25,10 +25,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 0
+    ]
   },
   {
     "eventId": 1,
@@ -55,10 +52,7 @@
     ],
     "requireCount": [
       "26"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 1
+    ]
   },
   {
     "eventId": 2,
@@ -85,10 +79,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 2
+    ]
   },
   {
     "eventId": 3,
@@ -115,10 +106,7 @@
     ],
     "requireCount": [
       "1"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 3
+    ]
   },
   {
     "eventId": 4,
@@ -146,10 +134,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 4
+    ]
   },
   {
     "eventId": 5,
@@ -180,10 +165,7 @@
     "requireCount": [
       "100",
       "31"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 5
+    ]
   },
   {
     "eventId": 6,
@@ -211,10 +193,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 6
+    ]
   },
   {
     "eventId": 7,
@@ -242,10 +221,7 @@
     ],
     "requireCount": [
       "2"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 7
+    ]
   },
   {
     "eventId": 8,
@@ -274,10 +250,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 8
+    ]
   },
   {
     "eventId": 9,
@@ -304,10 +277,7 @@
     ],
     "requireCount": [
       "2"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 9
+    ]
   },
   {
     "eventId": 10,
@@ -332,10 +302,7 @@
     ],
     "requireCount": [
       "1"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 10
+    ]
   },
   {
     "eventId": 11,
@@ -361,10 +328,7 @@
     ],
     "requireCount": [
       "34~50"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 11
+    ]
   },
   {
     "eventId": 12,
@@ -389,10 +353,7 @@
     ],
     "requireCount": [
       "1"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 12
+    ]
   },
   {
     "eventId": 13,
@@ -418,10 +379,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 13
+    ]
   },
   {
     "eventId": 14,
@@ -446,10 +404,7 @@
     ],
     "requireCount": [
       "9"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 14
+    ]
   },
   {
     "eventId": 15,
@@ -476,10 +431,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 15
+    ]
   },
   {
     "eventId": 16,
@@ -505,10 +457,7 @@
     ],
     "requireCount": [
       "100"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 16
+    ]
   },
   {
     "eventId": 17,
@@ -533,10 +482,7 @@
     ],
     "requireCount": [
       "1"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 17
+    ]
   },
   {
     "eventId": 18,
@@ -562,10 +508,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 18
+    ]
   },
   {
     "eventId": 19,
@@ -591,10 +534,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 19
+    ]
   },
   {
     "eventId": 20,
@@ -619,10 +559,7 @@
     ],
     "requireCount": [
       "5"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 20
+    ]
   },
   {
     "eventId": 21,
@@ -648,10 +585,7 @@
     ],
     "requireCount": [
       "25"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 21
+    ]
   },
   {
     "eventId": 22,
@@ -676,10 +610,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 22
+    ]
   },
   {
     "eventId": 23,
@@ -705,10 +636,7 @@
     ],
     "requireCount": [
       "100"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 23
+    ]
   },
   {
     "eventId": 24,
@@ -734,10 +662,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 24
+    ]
   },
   {
     "eventId": 25,
@@ -745,7 +670,7 @@
     "eventChapter": [
       2
     ],
-    "description": "떠돌이 연금술사가 말을 걸어 왔다. \"좋은 물약. 있어요. 필요한 걸로 골라보시죠.\"",
+    "description": "떠돌이 연금술사가 말을 걸어 왔다. \"좋은 물약 있어요. 필요한 걸로 골라보시죠.\"",
     "choiceIds": [
       67,
       68,
@@ -764,10 +689,7 @@
     ],
     "requireCount": [
       "200"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 25
+    ]
   },
   {
     "eventId": 26,
@@ -775,7 +697,7 @@
     "eventChapter": [
       2
     ],
-    "description": "한 도시에서 유명한 기병 경주가 열리고 있다. 많은 병사들이 경기를 구경하며 내기를 하고 있고, 나 또한 금화를 100만큼 지불했다.",
+    "description": "한 도시에서 유명한 기병 경주가 열리고 있다. 많은 병사들이 경기를 구경하며 내기를 하고 있다.(금화 -100)",
     "choiceIds": [
       71,
       72,
@@ -794,10 +716,7 @@
     ],
     "requireCount": [
       "100"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 26
+    ]
   },
   {
     "eventId": 27,
@@ -822,10 +741,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 27
+    ]
   },
   {
     "eventId": 28,
@@ -851,10 +767,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 28
+    ]
   },
   {
     "eventId": 29,
@@ -879,10 +792,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 29
+    ]
   },
   {
     "eventId": 30,
@@ -895,7 +805,7 @@
       82,
       83
     ],
-    "requireCondition": "오래된 방패, 붉은 보석, 푸른 보석 중 2개 보유",
+    "requireCondition": "비어있는 보석 건틀렛, 작은 보석 더미, 커다란 보석 중 2개 보유",
     "requireThing": [
       "Special"
     ],
@@ -907,10 +817,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 30
+    ]
   },
   {
     "eventId": 31,
@@ -918,7 +825,7 @@
     "eventChapter": [
       3
     ],
-    "description": "['적의 정찰대가 부대를 발견하고 기습을 감행했다.', '']",
+    "description": "적의 정찰대가 부대를 발견하고 기습을 감행했다.(일반 몬스터와 강제 전투)",
     "choiceIds": [
       84,
       85
@@ -935,18 +842,15 @@
     ],
     "requireCount": [
       "9"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 31
+    ]
   },
   {
     "eventId": 32,
-    "eventName": "전설인가, 군대인가",
+    "eventName": "영웅인가, 군대인가",
     "eventChapter": [
       3
     ],
-    "description": "전쟁에서 승리를 결정짓는 것은 한 명의 전설인가, 아니면 철저히 훈련된 군대인가",
+    "description": "전쟁에서 승리를 결정짓는 것은 한 명의 영웅인가, 아니면 철저히 훈련된 군대인가",
     "choiceIds": [
       86,
       87,
@@ -964,10 +868,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 32
+    ]
   },
   {
     "eventId": 33,
@@ -994,18 +895,15 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 33
+    ]
   },
   {
     "eventId": 34,
-    "eventName": "방황하는 전설",
+    "eventName": "방황하는 영웅",
     "eventChapter": [
       3
     ],
-    "description": "그는 한때 전설이라 불렸다. 그러나 지금, 낡은 망토를 두른 채 폐허를 떠도는 나그네일 뿐이다.",
+    "description": "그는 한때 영웅이라 불렸다. 그러나 지금, 낡은 망토를 두른 채 폐허를 떠도는 나그네일 뿐이다.",
     "choiceIds": [
       93,
       94
@@ -1022,10 +920,7 @@
     ],
     "requireCount": [
       "9"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 34
+    ]
   },
   {
     "eventId": 35,
@@ -1050,10 +945,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 35
+    ]
   },
   {
     "eventId": 36,
@@ -1079,10 +971,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 36
+    ]
   },
   {
     "eventId": 37,
@@ -1109,10 +998,7 @@
     ],
     "requireCount": [
       "9"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 37
+    ]
   },
   {
     "eventId": 38,
@@ -1139,10 +1025,7 @@
     ],
     "requireCount": [
       "9"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 38
+    ]
   },
   {
     "eventId": 39,
@@ -1167,10 +1050,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 39
+    ]
   },
   {
     "eventId": 40,
@@ -1197,10 +1077,7 @@
     ],
     "requireCount": [
       "100"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 40
+    ]
   },
   {
     "eventId": 41,
@@ -1225,11 +1102,8 @@
       ""
     ],
     "requireCount": [
-      "71"
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 41
+      "79"
+    ]
   },
   {
     "eventId": 42,
@@ -1255,10 +1129,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 42
+    ]
   },
   {
     "eventId": 43,
@@ -1284,10 +1155,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 43
+    ]
   },
   {
     "eventId": 44,
@@ -1313,10 +1181,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 44
+    ]
   },
   {
     "eventId": 45,
@@ -1344,10 +1209,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 45
+    ]
   },
   {
     "eventId": 46,
@@ -1373,10 +1235,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 46
+    ]
   },
   {
     "eventId": 47,
@@ -1403,10 +1262,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 47
+    ]
   },
   {
     "eventId": 48,
@@ -1433,10 +1289,7 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 48
+    ]
   },
   {
     "eventId": 49,
@@ -1462,9 +1315,6 @@
     ],
     "requireCount": [
       ""
-    ],
-    "gameTextKindTitle": "EventTitle",
-    "gameTextKindDesc": "EventDesc",
-    "gameTextForeignKey": 49
+    ]
   }
 ]

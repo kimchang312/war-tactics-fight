@@ -88,6 +88,11 @@ public class RogueLikeData
     private StoreSnapshot currentStore;
     private Dictionary<string, StoreSnapshot> storeSessions;
 
+    // 사용처: 저장/로드 시 현재 진행 중인 UI 상태 복원
+    private EventSnapshot currentEvent;
+    private SaveProgressState progressState = SaveProgressState.StageSelect;
+    private bool hasLoadedSaveData = false;
+
     // 사용처: 상점 좌표 → 유니크 키
     private string BuildStoreKey(int chapter, int x, int y) => $"{chapter}:{x}:{y}";
 
@@ -97,49 +102,18 @@ public class RogueLikeData
 
     private int language = 0;
 
-
-    private float masterVolume = 0;
-    private float bgmVolume = 0;
-    private float sfxVolume = 0;
-
-    public float MasterVolume
-    {
-        get => masterVolume;
-        set
-        {
-            float v = Mathf.Clamp01(value);
-            if (Mathf.Approximately(masterVolume, v)) return;
-
-            masterVolume = v;
-        }
-    }
-
-    public float BgmVolume
-    {
-        get => bgmVolume;
-        set
-        {
-            float v = Mathf.Clamp01(value);
-            if (Mathf.Approximately(bgmVolume, v)) return;
-
-            bgmVolume = v;
-        }
-    }
-
-    public float SfxVolume
-    {
-        get => sfxVolume;
-        set
-        {
-            float v = Mathf.Clamp01(value);
-            if (Mathf.Approximately(sfxVolume, v)) return;
-
-            sfxVolume = v;
-        }
-    }
+    private const string MasterVolumePrefKey = "RL_MasterVolume";
+    private const string BgmVolumePrefKey = "RL_BgmVolume";
+    private const string SfxVolumePrefKey = "RL_SfxVolume";
+    private const string LanguagePrefKey = "Language";
+    private float masterVolume = 1f;
+    private float bgmVolume = 1f;
+    private float sfxVolume = 1f;
 
     private RogueLikeData()
     {
+        language = Mathf.Clamp(PlayerPrefs.GetInt(LanguagePrefKey, language), 0, 2);
+
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
         relicIdsByType = new Dictionary<RelicType, HashSet<int>>();
 
@@ -149,14 +123,18 @@ public class RogueLikeData
             relicIdsByType[type] = new HashSet<int>();
         }
         for (int i = 0; i < upgradeValues.Length; i++)
+        {
             upgradeValues[i] = new UnitUpgrade();
+        }
+
+        LoadAudioSettings();
     }
     public SavePlayerData GetRogueLikeData()
     {
         SavePlayerData data = new(
             0,
-            myUnits,
-            relicsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            new List<RogueUnitDataBase>(myTeam),
+            ownedRelicsById.Values.ToList(),
             encounteredEvent.Values.ToList(),
             currentGold, spentGold, playerMorale,
             currentStageX, currentStageY, chapter, currentStageType,
@@ -165,18 +143,119 @@ public class RogueLikeData
             language, fieldId, presetID, rerollChance, unitOrder, nextEventToTreasure
         );
         data.currentStore = currentStore;
+        data.currentEvent = currentEvent;
+        data.progressState = progressState;
+        data.randomSeed = randomSeed;
+        data.stageCallCount = stageCallCount;
+        data.rainbowKeyUses = GetRainbowKeyUsesSnapshot();
         return data;
     }
-    // 사용처: SaveData.LoadData()에서 로드한 스냅샷을 주입
+
+    // 사용처: SaveData.LoadData()에서 로드한 상점 스냅샷을 현재 세션에도 복원
     public void SetCurrentStoreSnapshot(StoreSnapshot snap)
     {
         currentStore = snap;
+
+        if (snap == null)
+            return;
+
+        storeSessions ??= new Dictionary<string, StoreSnapshot>();
+        string key = BuildStoreKey(snap.chapter, snap.stageX, snap.stageY);
+        storeSessions[key] = snap;
     }
+
+    // 사용처: 이벤트 UI가 처음 열릴 때 현재 이벤트를 저장
+    public void OpenEventSnapshot(int eventId)
+    {
+        currentEvent = new EventSnapshot
+        {
+            eventId = eventId,
+            selectedChoiceId = -1,
+            resultApplied = false,
+            resultText = "",
+            closeEventAfterResult = false
+        };
+
+        progressState = SaveProgressState.EventOpen;
+    }
+
+    // 사용처: 이벤트 선택 결과 적용 후 중복 보상 적용을 막기 위해 결과 상태를 저장
+    public void SetEventResultSnapshot(int eventId, int choiceId, string resultText, bool closeAfterResult)
+    {
+        currentEvent = new EventSnapshot
+        {
+            eventId = eventId,
+            selectedChoiceId = choiceId,
+            resultApplied = true,
+            resultText = resultText ?? "",
+            closeEventAfterResult = closeAfterResult
+        };
+
+        progressState = closeAfterResult
+            ? SaveProgressState.BattlePending
+            : SaveProgressState.EventResult;
+    }
+
+    // 사용처: 이벤트 종료 후 스테이지 선택 상태로 되돌림
+    public void ClearEventSnapshot()
+    {
+        currentEvent = null;
+
+        if (progressState == SaveProgressState.EventOpen ||
+            progressState == SaveProgressState.EventResult ||
+            progressState == SaveProgressState.BattlePending)
+        {
+            progressState = SaveProgressState.StageSelect;
+        }
+    }
+
+    // 사용처: SaveData.LoadData()에서 저장된 이벤트 스냅샷을 복원
+    public void SetCurrentEventSnapshot(EventSnapshot snapshot)
+    {
+        currentEvent = snapshot;
+    }
+
+    // 사용처: EventUIManager, GameManager에서 저장된 이벤트 상태 확인
+    public EventSnapshot GetCurrentEventSnapshot()
+    {
+        return currentEvent;
+    }
+
+    // 사용처: SaveData.LoadData(), StoreUI 종료, 이벤트 종료 등에서 현재 진행 상태 갱신
+    public void SetProgressState(SaveProgressState state)
+    {
+        progressState = state;
+    }
+
+    // 사용처: GameManager가 로드 후 어떤 UI를 복원할지 판단
+    public SaveProgressState GetProgressState()
+    {
+        return progressState;
+    }
+
+    // 사용처: 상점 닫기 후 현재 UI 진행 상태만 스테이지 선택으로 되돌림
+    public void ClearStoreOpenState()
+    {
+        if (progressState == SaveProgressState.StoreOpen)
+            progressState = SaveProgressState.StageSelect;
+    }
+
+    // 사용처: GameManager가 실제 저장 파일 로드 성공 여부에 따라 위치/UI 복원을 제한
+    public void SetHasLoadedSaveData(bool value)
+    {
+        hasLoadedSaveData = value;
+    }
+
+    public bool HasLoadedSaveData()
+    {
+        return hasLoadedSaveData;
+    }
+
     // RogueLikeData.cs
     // 사용처: 상점 구매/이벤트/전투 보상 등 데이터 변경 완료 후 최종 저장
     public void SaveNow()
     {
-        new SaveData().SaveDataFile();
+        new SaveData().SaveGame();
     }
     public SavePlayerData GetBattleEndRogueLikeData(List<RogueUnitDataBase> units, List<RogueUnitDataBase> deadUnits)
     {
@@ -192,7 +271,7 @@ public class RogueLikeData
         SavePlayerData data = new(
             0,
             savedCopy,
-            relicsByType.Values.SelectMany(hashSet => hashSet).ToList(),
+            ownedRelicsById.Values.ToList(),
             encounteredEvent.Values.ToList(),
             currentGold, spentGold, playerMorale,
             currentStageX, currentStageY, chapter, currentStageType,
@@ -200,7 +279,16 @@ public class RogueLikeData
             // 추가 필드
             language, fieldId, presetID, rerollChance, unitOrder, nextEventToTreasure
         );
+        data.currentStore = currentStore;
+        data.currentEvent = null;
+        data.progressState = SaveProgressState.RewardOpen;
+        data.randomSeed = randomSeed;
+        data.stageCallCount = stageCallCount;
+        data.rainbowKeyUses = GetRainbowKeyUsesSnapshot();
+
         myTeam = savedCopy;
+        currentEvent = null;
+        progressState = SaveProgressState.RewardOpen;
         savedMyUnits.Clear();
         return data;
     }
@@ -326,11 +414,6 @@ public class RogueLikeData
     // 사용처: 전투/이벤트에서 보유 유산 전체 순회(할당 없이)
     public IReadOnlyDictionary<int, WarRelic> GetOwnedRelicMap()
     {
-        foreach (var relic in ownedRelicsById)
-        {
-            Debug.Log(relic.Key + "," + relic.Value);
-
-        }
         return ownedRelicsById;
     }
 
@@ -382,20 +465,10 @@ public class RogueLikeData
     {
         return currentGold;
     }
-    // 사용처: 재상의 보증서 보유 시 허용되는 최소 금화 하한 계산
+    // 사용처: 금화 사용 가능 여부 계산. 현재 유산 49는 차용 한도 효과가 아니므로 음수 금화를 허용하지 않는다.
     private int GetMinGoldLimit()
     {
-        if (!RelicManager.CheckRelicById(49))
-            return 0;
-
-        WarRelic relic = RelicManager.GetRelicById(49);
-        var vals = relic?.GetAllValuesAsFloatListOrNull();
-
-        int borrowGold = 500;
-        if (vals != null && vals.Count > 0)
-            borrowGold = Mathf.Abs(Mathf.RoundToInt(vals[0]));
-
-        return -borrowGold;
+        return 0;
     }
 
     // 사용처: 상점/이벤트/강화 등 금화 사용 가능 여부 확인
@@ -421,7 +494,10 @@ public class RogueLikeData
         spentGold += gold;
         currentGold -= gold;
 
-        UIManager.Instance.AnimateGoldChange(baseGold, -gold);
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.AnimateGoldChange(baseGold, -gold);
+        }
         return true;
     }
 
@@ -442,8 +518,13 @@ public class RogueLikeData
         gold = (int)(addGold * gold);
         currentGold += gold;
 
-        //골드 애니메이션
-        UIManager.Instance.AnimateGoldChange(baseGold, gold);
+        if (UIManager.Instance != null)
+        {
+            //골드 애니메이션
+            UIManager.Instance.AnimateGoldChange(baseGold, gold);
+        }
+
+
     }
 
 
@@ -465,6 +546,7 @@ public class RogueLikeData
     {
         return playerMorale;
     }
+
     // 사기 증감 통합 함수
     public int ChangeMorale(int value)
     {
@@ -496,9 +578,12 @@ public class RogueLikeData
             actualChange = Mathf.Max(reduced, -playerMorale); // 최소 0 유지
             playerMorale += actualChange;
         }
-
-        UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
         UnitStateChange.ChangeStateMyUnits();
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.AnimateMoraleChange(baseMorale, actualChange);
+        }
         return actualChange;
     }
 
@@ -566,7 +651,7 @@ public class RogueLikeData
     //만난 이벤트 추가
     public void AddEncounteredEvent(int id)
     {
-        encounteredEvent.Add(id, id);
+        encounteredEvent[id] = id;
     }
     //아군 데이터 저장
     public void AddSavedMyUnits(RogueUnitDataBase unit)
@@ -689,11 +774,16 @@ public class RogueLikeData
             {
                 WarRelic relic = RelicManager.GetRelicById(60);
                 var vals = relic.GetAllValuesAsFloatListOrNull();
-                if (vals != null)
+                if (vals != null && vals.Count > 0)
                 {
                     var unit = RogueUnitDataBase.GetRandomUnitByRarity((int)vals[0]);
-                    unit.SetEnergyDirect((int)vals[1]);
-                    AddMyTeam(unit);
+                    if (unit != null)
+                    {
+                        // 에너지 값이 없으면 기본 0으로 처리해서 인덱스 예외를 방지한다.
+                        int energy = (vals.Count > 1) ? (int)vals[1] : 0;
+                        unit.SetEnergyDirect(energy);
+                        AddMyTeam(unit);
+                    }
                 }
             }
         }
@@ -753,10 +843,16 @@ public class RogueLikeData
     public void SetLoadData(List<int> eventId, int gold, int sentGold, int morale,
         int stageX, int stageY, int chapter, StageType stageType, int sariSatck, BattleRewardData battleReward, int nextUniqueId, int score)
     {
-        foreach (int id in eventId)
+        encounteredEvent.Clear();
+
+        if (eventId != null)
         {
-            encounteredEvent[id] = id;
+            foreach (int id in eventId)
+            {
+                encounteredEvent[id] = id;
+            }
         }
+
         this.currentGold = gold;
         this.spentGold = sentGold;
         this.playerMorale = morale;
@@ -765,10 +861,26 @@ public class RogueLikeData
         this.chapter = chapter;
         this.currentStageType = stageType;
         this.sariStack = sariSatck;
-        this.battleReward = battleReward;
+        this.battleReward = battleReward ?? new BattleRewardData();
         this.nextUnitUniqueId = nextUniqueId;
         this.score = score;
+        SetStage();
     }
+    // 사용처: 저장 데이터 로드 시 전술 개량 수치를 복원
+    public void SetUpgradeValues(UnitUpgrade[] values)
+    {
+        if (values == null || values.Length == 0)
+            return;
+
+        upgradeValues = values;
+
+        for (int i = 0; i < upgradeValues.Length; i++)
+        {
+            if (upgradeValues[i] == null)
+                upgradeValues[i] = new UnitUpgrade();
+        }
+    }
+
     //강화 반환
     public UnitUpgrade[] GetUpgradeValue()
     {
@@ -1053,6 +1165,9 @@ public class RogueLikeData
         isTestMode = false;
         currentStore = null;
         storeSessions = null;
+        currentEvent = null;
+        progressState = SaveProgressState.StageSelect;
+        hasLoadedSaveData = false;
 
     }
 
@@ -1087,17 +1202,21 @@ public class RogueLikeData
         // warRelics를 타입별로 분류해서 추가
         foreach (WarRelic relic in warRelics)
         {
+            WarRelicDatabase.RebindRuntime(relic);
+
             relicsByType[relic.type].Add(relic);
             relicIdsByType[relic.type].Add(relic.id);
             ownedRelicsById[relic.id] = relic;
-
-            WarRelicDatabase.RebindRuntime(relic);
         }
     }
     //랜덤 시드 고정
     public void SetRandomSeed(int seed)
     {
         randomSeed = seed;
+    }
+    public void SetStageCallCount(int count)
+    {
+        stageCallCount = Mathf.Max(0, count);
     }
 
     //랜덤 시드 무작위로 설정
@@ -1212,6 +1331,29 @@ public class RogueLikeData
         return GetRainbowKeyUses(chapter) < 2;
     }
 
+    public List<ChapterCounterSaveEntry> GetRainbowKeyUsesSnapshot()
+    {
+        return rainbowKeyUsesPerChapter
+            .Select(kvp => new ChapterCounterSaveEntry(kvp.Key, kvp.Value))
+            .ToList();
+    }
+
+    public void SetRainbowKeyUsesFromSave(List<ChapterCounterSaveEntry> entries)
+    {
+        rainbowKeyUsesPerChapter.Clear();
+
+        if (entries == null)
+            return;
+
+        foreach (var entry in entries)
+        {
+            if (entry == null)
+                continue;
+
+            rainbowKeyUsesPerChapter[entry.chapter] = Mathf.Max(0, entry.count);
+        }
+    }
+
     #endregion
 
     #region 상점 스냅샷
@@ -1244,10 +1386,11 @@ public class RogueLikeData
             storeSessions[key] = snap;
         }
         currentStore = snap;
+        progressState = SaveProgressState.StoreOpen;
 
         SetCurrentStage(x, y, StageType.Shop);
 
-        new SaveData().SaveDataFile();
+        SaveNow();
         return snap;
     }
 
@@ -1327,7 +1470,9 @@ public class RogueLikeData
 
     public void SetLanguage(int _language)
     {
-        language = _language;
+        language = Mathf.Clamp(_language, 0, 2);
+        PlayerPrefs.SetInt(LanguagePrefKey, language);
+        PlayerPrefs.Save();
         GameTextDB.LoadFromRogueLike();
     }
     public int GetLanguage()
@@ -1335,4 +1480,74 @@ public class RogueLikeData
         return language;
     }
 
+    public float MasterVolume
+    {
+        get => masterVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(masterVolume, v)) return;
+
+            masterVolume = v;
+            ApplyAudioVolumeToManager();
+        }
+    }
+
+    public float BgmVolume
+    {
+        get => bgmVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(bgmVolume, v)) return;
+
+            bgmVolume = v;
+            ApplyAudioVolumeToManager();
+        }
+    }
+
+    public float SfxVolume
+    {
+        get => sfxVolume;
+        set
+        {
+            float v = Mathf.Clamp01(value);
+            if (Mathf.Approximately(sfxVolume, v)) return;
+
+            sfxVolume = v;
+            ApplyAudioVolumeToManager();
+        }
+    }
+
+    // 사용처: 게임 시작 시 저장된 사운드 설정을 불러온다.
+    public void LoadAudioSettings()
+    {
+        masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(MasterVolumePrefKey, 1f));
+        bgmVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(BgmVolumePrefKey, 1f));
+        sfxVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(SfxVolumePrefKey, 1f));
+
+        ApplyAudioVolumeToManager();
+    }
+
+    // 사용처: 설정창을 닫을 때 현재 사운드 설정을 저장한다.
+    public void SaveAudioSettings()
+    {
+        PlayerPrefs.SetFloat(MasterVolumePrefKey, masterVolume);
+        PlayerPrefs.SetFloat(BgmVolumePrefKey, bgmVolume);
+        PlayerPrefs.SetFloat(SfxVolumePrefKey, sfxVolume);
+        PlayerPrefs.Save();
+    }
+
+    // 사용처: RogueLikeData의 사운드 값을 실제 BGMManager에 반영한다.
+    public void ApplyAudioVolumeToManager()
+    {
+        if (BGMManager.Instance == null)
+            return;
+
+        BGMManager.Instance.SetVolumes(masterVolume, bgmVolume, sfxVolume);
+    }
+
+
+
 }
+

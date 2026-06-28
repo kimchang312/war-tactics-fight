@@ -23,6 +23,7 @@ public class StoreUI : MonoBehaviour
     [SerializeField] private Transform relicField;
     [SerializeField] private Transform itemField;
 
+    [SerializeField] private LineUpBar lineUpBar;
 
     private List<StoreItemData> cachedUnitItems;
     private List<List<RogueUnitDataBase>> cachedUnitPackages;
@@ -31,7 +32,7 @@ public class StoreUI : MonoBehaviour
     private List<StoreItemData> cachedItemItems;
     private StoreItemData cachedRerollItem;
     private Button checkedBtn;
-    
+
     private const float aniTime = 0.5f;
 
     private void Awake()
@@ -74,7 +75,7 @@ public class StoreUI : MonoBehaviour
     {
         leaveBtn.onClick.RemoveAllListeners();
         leaveBtn.onClick.AddListener(CloseStore);
-        
+
         leavePackageBtn.onClick.RemoveAllListeners();
 
         purchaseBtn.onClick.RemoveAllListeners();
@@ -89,15 +90,22 @@ public class StoreUI : MonoBehaviour
         SetStoreMainButtonsInteractable(true);
     }
 
-    private void CloseStore() => gameObject.SetActive(false);
+    private void CloseStore()
+    {
+        RogueLikeData.Instance.ClearStoreOpenState();
+        RogueLikeData.Instance.SaveNow();
+        gameObject.SetActive(false);
+        GameManager.Instance.RefreshNodeInfoButtonVisibility();
+    }
 
     private float GetSaleRatio() => RogueLikeData.Instance.GetOwnedRelicById(0) != null ? 0.8f : 1f;
 
     private int CalculateDiscountedPrice(StoreItemData item)
     {
-        int cost =  (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
+        int cost = (int)(item.price * StoreManager.GetRandomBetweenValue(item.priceRateMin, item.priceRateMax));
         float sale = 1;
-        if (RelicManager.CheckRelicById(0)) {
+        if (RelicManager.CheckRelicById(0))
+        {
             WarRelic discountCoupon = RelicManager.GetRelicById(0);
             var vals = discountCoupon.GetAllValuesAsFloatListOrNull();
             if (vals != null)
@@ -105,7 +113,7 @@ public class StoreUI : MonoBehaviour
                 sale += vals[0];
             }
         }
-        if(RelicManager.CheckRelicById(58))
+        if (RelicManager.CheckRelicById(58))
         {
             WarRelic evidenceOfEmbezzlement = RelicManager.GetRelicById(58);
             var vals = evidenceOfEmbezzlement.GetAllValuesAsFloatListOrNull();
@@ -177,7 +185,10 @@ public class StoreUI : MonoBehaviour
 
             _ => new()
         };
-        
+
+        if (RelicManager.CheckRelicById(111))
+            filtered.RemoveAll(unit => unit != null && unit.rarity == 1);
+
         List<RogueUnitDataBase> result = new();
         for (int i = 0; i < item.count; i++)
         {
@@ -265,9 +276,13 @@ public class StoreUI : MonoBehaviour
             RogueLikeData.Instance.AddMyTeam(units[i]);
         }
 
-        new SaveData().SaveDataFile();
+        RogueLikeData.Instance.SaveNow();
 
         unitPackageUI.gameObject.SetActive(false);
+        if (lineUpBar != null)
+        {
+            lineUpBar.RefreshUnitList();
+        }
         ClosePackageBack();
     }
 
@@ -303,6 +318,15 @@ public class StoreUI : MonoBehaviour
         if (info == null) return;
 
         int price = info.data.price;
+
+        if (type == StoreSlotType.Item &&
+            info.data.item != null &&
+            info.data.item.type == "Energy" &&
+            info.data.item.form == "Select")
+        {
+            OpenEnergySelectPurchase(type, slotIndex, checkedBtn, info.data.item, price);
+            return;
+        }
 
         if (!RogueLikeData.Instance.TryMarkSold(type, slotIndex))
             return;
@@ -351,7 +375,7 @@ public class StoreUI : MonoBehaviour
             }
         }
 
-        new SaveData().SaveDataFile();
+        RogueLikeData.Instance.SaveNow();
 
         checkedBtn.transform.GetChild(2).gameObject.SetActive(true);
         checkedBtn.transform.GetChild(3).gameObject.SetActive(false);
@@ -371,15 +395,7 @@ public class StoreUI : MonoBehaviour
         ItemInformation info = btn.GetComponent<ItemInformation>();
         if (info != null && info.data.isItem)
         {
-            //주사위 예외처리
-            if (!info.data.isRelic && info.data.item.itemId == 60)
-            {
-                btn.transform.GetChild(2).gameObject.SetActive(true); // 체크 표시
-            }
-            else
-            {
-                btn.transform.GetChild(3).gameObject.SetActive(true); // 체크 표시
-            }
+            btn.transform.GetChild(3).gameObject.SetActive(true); // 체크 표시
 
             checkedBtn = btn;
         }
@@ -419,6 +435,82 @@ public class StoreUI : MonoBehaviour
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => ClickItemAndCheck(btn));
         }
+    }
+
+
+    // 사용처: 선택형 기력 아이템은 유닛 선택이 끝난 뒤에만 결제/판매/저장 처리
+    private void OpenEnergySelectPurchase(StoreSlotType type, int slotIndex, Button btn, StoreItemData item, int price)
+    {
+        List<RogueUnitDataBase> canSelect = RogueLikeData.Instance.GetMyTeam();
+        List<RogueUnitDataBase> filtered = new List<RogueUnitDataBase>(canSelect.Count);
+
+        for (int i = 0; i < canSelect.Count; i++)
+        {
+            RogueUnitDataBase unit = canSelect[i];
+            if (unit != null && unit.Energy < unit.MaxEnergy)
+                filtered.Add(unit);
+        }
+
+        if (filtered.Count < item.count)
+            return;
+
+        SetStoreMainButtonsInteractable(false);
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
+
+        unitListUI.Show(
+            item.count,
+            filtered,
+            () => CompleteEnergySelectPurchase(type, slotIndex, btn, item, price),
+            () => SetStoreMainButtonsInteractable(true)
+        );
+    }
+
+    // 사용처: 선택형 기력 아이템의 선택 완료 후 실제 구매를 확정
+    private void CompleteEnergySelectPurchase(StoreSlotType type, int slotIndex, Button btn, StoreItemData item, int price)
+    {
+        if (!RogueLikeData.Instance.TryMarkSold(type, slotIndex))
+        {
+            SetStoreMainButtonsInteractable(true);
+            return;
+        }
+
+        if (!SpendGold(price))
+        {
+            RogueLikeData.Instance.UnmarkSold(type, slotIndex);
+            SetStoreMainButtonsInteractable(true);
+            return;
+        }
+
+        ApplyEnergyToSelectedUnits(item);
+        SoldOutItemBtn(btn);
+
+        if (btn != null && btn.transform.childCount > 3)
+            btn.transform.GetChild(3).gameObject.SetActive(false);
+
+        if (checkedBtn == btn)
+            checkedBtn = null;
+
+        RogueLikeData.Instance.SaveNow();
+        SetStoreMainButtonsInteractable(true);
+
+        if (lineUpBar != null)
+            lineUpBar.RefreshUnitList();
+    }
+
+    // 사용처: 선택형 기력 아이템 구매 확정 후 선택된 유닛에게 회복 적용
+    private void ApplyEnergyToSelectedUnits(StoreItemData item)
+    {
+        int amount = int.TryParse(item.value, out var parsed) ? parsed : 0;
+        List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+
+        for (int i = 0; i < selectedUnits.Count; i++)
+        {
+            RogueUnitDataBase unit = selectedUnits[i];
+            if (unit == null) continue;
+            unit.Energy = Math.Min(unit.MaxEnergy, unit.Energy + amount);
+        }
+
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
     }
 
 
@@ -556,6 +648,7 @@ public class StoreUI : MonoBehaviour
     public void ClosePackageBack()
     {
         packagePanel.SetActive(false);
+        VisiblePurchaseLeaveBtn();
     }
 
 
@@ -597,9 +690,9 @@ public class StoreUI : MonoBehaviour
     }
     private void PackagePanelChildDisActive()
     {
-        foreach(Transform child in packagePanel.transform)
+        foreach (Transform child in packagePanel.transform)
         {
-            child.gameObject.SetActive(false);  
+            child.gameObject.SetActive(false);
         }
 
     }

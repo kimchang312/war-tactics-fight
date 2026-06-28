@@ -17,7 +17,8 @@ public class StagePreset
     public int? UnitCount;
     public string Faction;
     public string Commander;
-    public string CommanderID;
+    [JsonProperty("Commander ID")]
+    public int? CommanderNumericId;
     public string Description;
     [JsonProperty("BattlefieldEffect")]
     public string BattlefieldEffect;
