@@ -105,12 +105,15 @@ public class RogueLikeData
     private const string MasterVolumePrefKey = "RL_MasterVolume";
     private const string BgmVolumePrefKey = "RL_BgmVolume";
     private const string SfxVolumePrefKey = "RL_SfxVolume";
+    private const string LanguagePrefKey = "Language";
     private float masterVolume = 1f;
     private float bgmVolume = 1f;
     private float sfxVolume = 1f;
 
     private RogueLikeData()
     {
+        language = Mathf.Clamp(PlayerPrefs.GetInt(LanguagePrefKey, language), 0, 2);
+
         relicsByType = new Dictionary<RelicType, List<WarRelic>>();
         relicIdsByType = new Dictionary<RelicType, HashSet<int>>();
 
@@ -411,11 +414,6 @@ public class RogueLikeData
     // 사용처: 전투/이벤트에서 보유 유산 전체 순회(할당 없이)
     public IReadOnlyDictionary<int, WarRelic> GetOwnedRelicMap()
     {
-        foreach (var relic in ownedRelicsById)
-        {
-            Debug.Log(relic.Key + "," + relic.Value);
-
-        }
         return ownedRelicsById;
     }
 
@@ -1472,7 +1470,9 @@ public class RogueLikeData
 
     public void SetLanguage(int _language)
     {
-        language = _language;
+        language = Mathf.Clamp(_language, 0, 2);
+        PlayerPrefs.SetInt(LanguagePrefKey, language);
+        PlayerPrefs.Save();
         GameTextDB.LoadFromRogueLike();
     }
     public int GetLanguage()

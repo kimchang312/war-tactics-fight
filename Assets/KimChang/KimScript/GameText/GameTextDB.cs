@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using TMPro;
 using UnityEngine;
 
 public enum TextKind
@@ -37,6 +38,8 @@ public enum TextKind
 
 public static class GameTextDB
 {
+    public static event Action LanguageChanged;
+
     [Serializable]
     class Entry
     {
@@ -107,6 +110,7 @@ public static class GameTextDB
     static Dictionary<string, string> _byIdCur;
     static Dictionary<string, string> _byIdFb;
     static Dictionary<string, int> _idxById;
+    static Dictionary<string, int> _idxByLocalizedText;
 
     // 2-key 캐시(대표 1개만)
     static Dictionary<long, string> _byKindTitleCur;
@@ -156,7 +160,9 @@ public static class GameTextDB
     // 사용처: 게임 시작 시 1회 초기화
     public static void Boot(string defaultLang = "kr", string fallback = "en")
     {
-        Load(defaultLang, fallback);
+        string savedLang = ResolveLanguageFromRogueLikeOrPrefs();
+        Load(string.IsNullOrEmpty(savedLang) ? defaultLang : savedLang, fallback);
+        RefreshLoadedSceneTexts(_idxByLocalizedText);
     }
 
     // 사용처: 언어 변경(옵션 메뉴 등)
@@ -174,6 +180,7 @@ public static class GameTextDB
             _byIdxCur = new Dictionary<int, string>(0);
             _byIdCur = new Dictionary<string, string>(0, StringComparer.OrdinalIgnoreCase);
             _idxById = new Dictionary<string, int>(0, StringComparer.OrdinalIgnoreCase);
+            _idxByLocalizedText = new Dictionary<string, int>(0, StringComparer.Ordinal);
             _byKindTitleCur = new Dictionary<long, string>(0);
             _byKindForeignCur = new Dictionary<long, string>(0);
             _byKindTitleForeignCur = new Dictionary<TripleKey, string>(0);
@@ -192,6 +199,7 @@ public static class GameTextDB
         var root = JsonUtility.FromJson<Root>(ta.text);
         var arr = root?.entries ?? Array.Empty<Entry>();
         int cap = Mathf.Max(16, arr.Length * 2);
+        _idxByLocalizedText = BuildLocalizedTextLookup(arr);
 
         bool useFb = _fbLang != null;
 
@@ -558,13 +566,94 @@ public static class GameTextDB
     // - RogueLikeData 타입/필드명이 바뀌어도 컴파일이 깨지지 않도록 리플렉션으로 접근한다.
     public static void LoadFromRogueLike()
     {
-        string lang = ResolveLanguageFromRogueLikeOrPrefs();
-        if (string.IsNullOrEmpty(lang)) lang = "kr";
+        int languageIndex = RogueLikeData.Instance != null
+            ? RogueLikeData.Instance.GetLanguage()
+            : 0;
 
-        // 기존 코드들이 LoadFromRogueLike()만 호출하는 경우가 많아서,
-        // fallback은 기본 en으로 고정(필요하면 PlayerPrefs에서 별도 키로 확장 가능)
-        Load(lang, "en");
+        LoadLanguage(languageIndex);
     }
+
+    public static void LoadLanguage(int languageIndex)
+    {
+        Load(GetLanguageCode(languageIndex), "en");
+        RefreshLoadedSceneTexts(_idxByLocalizedText);
+        LanguageChanged?.Invoke();
+    }
+
+    static string GetLanguageCode(int languageIndex)
+    {
+        switch (Mathf.Clamp(languageIndex, 0, 2))
+        {
+            case 1: return "en";
+            case 2: return "jp";
+            default: return "kr";
+        }
+    }
+
+    static Dictionary<string, int> BuildLocalizedTextLookup(Entry[] entries)
+    {
+        var lookup = new Dictionary<string, int>(StringComparer.Ordinal);
+        var duplicates = new HashSet<string>(StringComparer.Ordinal);
+
+        for (int i = 0; i < entries.Length; i++)
+        {
+            Entry entry = entries[i];
+            if (entry == null) continue;
+
+            AddLocalizedText(entry.kr, entry.Idx, lookup, duplicates);
+            AddLocalizedText(entry.en, entry.Idx, lookup, duplicates);
+            AddLocalizedText(entry.jp, entry.Idx, lookup, duplicates);
+        }
+
+        foreach (string duplicate in duplicates)
+            lookup.Remove(duplicate);
+
+        return lookup;
+    }
+
+    static void AddLocalizedText(
+        string value,
+        int idx,
+        Dictionary<string, int> lookup,
+        HashSet<string> duplicates)
+    {
+        string text = NormalizeSceneText(value);
+        if (string.IsNullOrEmpty(text) || duplicates.Contains(text))
+            return;
+
+        if (lookup.TryGetValue(text, out int existingIdx) && existingIdx != idx)
+        {
+            duplicates.Add(text);
+            lookup.Remove(text);
+            return;
+        }
+
+        lookup[text] = idx;
+    }
+
+    static void RefreshLoadedSceneTexts(Dictionary<string, int> previousTextLookup)
+    {
+        if (previousTextLookup == null || previousTextLookup.Count == 0)
+            return;
+
+        TMP_Text[] textComponents = UnityEngine.Object.FindObjectsOfType<TMP_Text>(true);
+        for (int i = 0; i < textComponents.Length; i++)
+        {
+            TMP_Text textComponent = textComponents[i];
+            if (textComponent == null) continue;
+
+            string currentText = NormalizeSceneText(textComponent.text);
+            if (!previousTextLookup.TryGetValue(currentText, out int idx))
+                continue;
+
+            string localizedText = Get(idx);
+            if (!string.IsNullOrEmpty(localizedText) && textComponent.text != localizedText)
+                textComponent.text = localizedText;
+        }
+    }
+
+    static string NormalizeSceneText(string text)
+        => string.IsNullOrEmpty(text) ? text : text.TrimEnd('\r', '\n');
 
     static string ResolveLanguageFromRogueLikeOrPrefs()
     {
@@ -675,6 +764,9 @@ public static class GameTextDB
         if (s == "kr" || s == "kor" || s == "ko" || s == "korean") return "kr";
         if (s == "en" || s == "eng" || s == "english") return "en";
         if (s == "jp" || s == "ja" || s == "jpn" || s == "japanese") return "jp";
+        if (s == "0") return "kr";
+        if (s == "1") return "en";
+        if (s == "2") return "jp";
 
         // 혹시 "Korean"처럼 길게 들어오면 앞 2글자로도 처리
         if (s.Length >= 2)

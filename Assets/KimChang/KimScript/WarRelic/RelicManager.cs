@@ -179,15 +179,19 @@ public class RelicManager
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
     {
         var available = GetAvailableRelics(grade, action);
-        if (available.Count == 0) return null;
+        if (available.Count == 0)
+            return null;
 
         var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
-            AcquireRelic(selected.id);
-        else
-            RogueLikeData.Instance.RemoveRelicById(selected.id);
+        {
+            return TryAcquireRelic(selected.id, out WarRelic acquiredRelic)
+                ? acquiredRelic
+                : null;
+        }
 
+        RogueLikeData.Instance.RemoveRelicById(selected.id);
         return selected;
     }
 
@@ -507,19 +511,19 @@ public class RelicManager
     public static WarRelic HandleRandomRelicAllGrades(RelicAction action)
     {
         var available = GetAvailableRelicsAllGrades(action);
-        if (available.Count == 0) return null;
+        if (available.Count == 0)
+            return null;
 
         var selected = available[RogueLikeData.Instance.GetRandomInt(0, available.Count)];
 
         if (action == RelicAction.Acquire)
         {
-            AcquireRelic(selected.id);
-        }
-        else
-        {
-            RogueLikeData.Instance.RemoveRelicById(selected.id);
+            return TryAcquireRelic(selected.id, out WarRelic acquiredRelic)
+                ? acquiredRelic
+                : null;
         }
 
+        RogueLikeData.Instance.RemoveRelicById(selected.id);
         return selected;
     }
 
@@ -919,9 +923,19 @@ public class RelicManager
         return filtered[index].id;
     }
 
-    // 사용처: 이벤트/상점/테스트/특수보상 등 모든 직접 유물 획득 진입점
+    // 사용처: 이벤트/상점/테스트/특수보상 등 모든 직접 유산 획득 진입점
     public static bool AcquireRelic(int relicId)
     {
+        return TryAcquireRelic(relicId, out _);
+    }
+
+    /// <summary>
+    /// 사용처: 무작위/직접 유산 획득 후 실제로 보유 목록에 추가된 유산 객체를 호출부에 전달한다.
+    /// </summary>
+    public static bool TryAcquireRelic(int relicId, out WarRelic acquiredRelic)
+    {
+        acquiredRelic = null;
+
         if (!InitializeRelicCatalog())
             return false;
 
@@ -934,23 +948,29 @@ public class RelicManager
 
         WarRelicDatabase.RebindRuntime(relic);
 
-        // 사용처: 53번은 자기 자신을 제외한 다른 전설 유산으로 대체
+        // 사용처: 53번 유산은 조건 충족 시 자신이 아닌 다른 전설 유산으로 대체한다.
         if (relicId == 53)
         {
             var vals = relic.GetAllValuesAsFloatListOrNull();
             if (vals != null && vals.Count > 1 && RogueLikeData.Instance.GetRandomFloat() < vals[1])
             {
                 int replaceId = GetRandomRelicIdExcept(10, RelicAction.Acquire, 53);
-                if (replaceId >= 0)
-                    return AcquireRelic(replaceId);
+                if (replaceId < 0)
+                    return false;
+
+                return TryAcquireRelic(replaceId, out acquiredRelic);
             }
         }
 
         if (!RogueLikeData.Instance.TryAddOwnedRelic(relic))
             return false;
 
-        if (relic.HasType(RelicType.GetEffect))
-            relic.Execute();
+        acquiredRelic = RogueLikeData.Instance.GetOwnedRelicById(relic.id);
+        if (acquiredRelic == null)
+            return false;
+
+        if (acquiredRelic.HasType(RelicType.GetEffect))
+            acquiredRelic.Execute();
 
         UnitStateChange.ChangeStateMyUnits();
         return true;
