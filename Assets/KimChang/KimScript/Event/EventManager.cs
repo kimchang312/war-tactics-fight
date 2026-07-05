@@ -298,10 +298,10 @@ public class EventManager
                     if (energyValue < 0)
                     {
                         int requiredEnergy = Mathf.Abs(energyValue);
-                        return myTeam.Count(unit => unit != null && unit.Energy >= requiredEnergy) >= requiredCount;
+                        return myTeam.Count(unit => unit != null && !unit.IsEnergyLockedByRarity && unit.Energy >= requiredEnergy) >= requiredCount;
                     }
 
-                    return myTeam.Count(unit => unit != null && unit.Energy > energyValue) >= requiredCount;
+                    return myTeam.Count(unit => unit != null && !unit.IsEnergyLockedByRarity && unit.Energy > energyValue) >= requiredCount;
                 }
                 break;
 
@@ -561,6 +561,9 @@ public class EventManager
                 if (unit == null)
                     continue;
 
+                if (unit.IsEnergyLockedByRarity)
+                    continue;
+
                 if (value == "-1")
                     unit.SetEnergyDirect(Mathf.Max(0, unit.Energy - 1));
 
@@ -577,7 +580,7 @@ public class EventManager
         int unitCount = SafeParseInt(count);
 
         List<RogueUnitDataBase> candidates = RogueLikeData.Instance.GetMyTeam()
-            .Where(unit => unit != null && unit.Energy > targetEnergy)
+            .Where(unit => unit != null && !unit.IsEnergyLockedByRarity && unit.Energy > targetEnergy)
             .ToList();
 
         for (int i = 0; i < unitCount && candidates.Count > 0; i++)
@@ -775,6 +778,9 @@ public class EventManager
                             if (unit == null)
                                 continue;
 
+                            if (unit.IsEnergyLockedByRarity)
+                                continue;
+
                             int nextEnergy = Mathf.Clamp(unit.Energy + energy, 1, unit.MaxEnergy);
                             unit.SetEnergyDirect(nextEnergy);
                         }
@@ -789,7 +795,7 @@ public class EventManager
                         {
                             foreach (RogueUnitDataBase unit in targets)
                             {
-                                if (unit != null)
+                                if (unit != null && !unit.IsEnergyLockedByRarity)
                                 {
                                     resultLog += $"- 기력 회복 {unit.unitName}\n";
                                     PushResultToken(resultTokens, unit.unitName);
@@ -848,7 +854,8 @@ public class EventManager
                                     if (selected != null && selected.Count > 0 && selected[0] != null)
                                     {
                                         selected[0].endless = true;
-                                        selected[0].SetEnergyDirect(1);
+                                        if (!selected[0].IsEnergyLockedByRarity)
+                                            selected[0].SetEnergyDirect(1);
                                     }
                                 }
                             }
@@ -1348,7 +1355,7 @@ public class EventManager
                                 case 3:
                                     {
                                         List<RogueUnitDataBase> candidates = RogueLikeData.Instance.GetMyTeam()
-                                            .Where(unit => unit != null && unit.Energy > 1)
+                                            .Where(unit => unit != null && !unit.IsEnergyLockedByRarity && unit.Energy > 1)
                                             .ToList();
 
                                         if (candidates.Count == 0)

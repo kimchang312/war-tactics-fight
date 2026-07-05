@@ -15,7 +15,8 @@ public enum SaveProgressState
     BattlePlacement,
     RestOpen,
     TreasureOpen,
-    RewardOpen
+    RewardOpen,
+    BattleInProgress
 }
 
 [System.Serializable]
@@ -26,6 +27,19 @@ public class EventSnapshot
     public bool resultApplied;
     public string resultText;
     public bool closeEventAfterResult;
+}
+
+[System.Serializable]
+public class BattleResumeSnapshot
+{
+    public bool active;
+    public bool fromEvent;
+    public int presetID = -1;
+    public StageType stageType = StageType.Combat;
+    public int fieldId;
+    public int stageX = -1;
+    public int stageY = -1;
+    public List<int> placedUniqueIds = new();
 }
 
 [System.Serializable]
@@ -65,6 +79,7 @@ public class SavePlayerData
     public int score;
     public StoreSnapshot currentStore;
     public EventSnapshot currentEvent;
+    public BattleResumeSnapshot battleResume;
     public SaveProgressState progressState = SaveProgressState.StageSelect;
 
     // 추가: 누락 필드
@@ -86,7 +101,7 @@ public class SavePlayerData
         // 추가 파라미터
         int language, int fieldId, int presetID, int rerollChance, int unitOrder, bool nextEventToTreasure)
     {
-        saveVersion = 2;
+        saveVersion = 3;
         this.id = id;
         this.myUnits = myUnits;
         this.warRelics = warRelics;
@@ -170,6 +185,7 @@ public class SaveData
     {
         try
         {
+            CaptureTransientSaveState();
             SaveDataFile();
             if (TrySaveMapData(mapGenerator, true))
                 return true;
@@ -190,6 +206,12 @@ public class SaveData
             Debug.LogError($"게임 저장 실패: {ex.Message}");
             return false;
         }
+    }
+
+    private static void CaptureTransientSaveState()
+    {
+        if (GameManager.Instance != null)
+            GameManager.Instance.TryCaptureBattlePlacementSnapshot();
     }
 
     public bool LoadGame()
@@ -219,6 +241,7 @@ public class SaveData
             return false;
 
         ApplyStageSaveToRunData(stageSaveData);
+        RogueLikeData.Instance.RestoreBattleResumeContextIfNeeded();
         ClearContinueLoadRequest();
         return true;
     }
@@ -452,6 +475,7 @@ public class SaveData
 
             RogueLikeData.Instance.SetCurrentStoreSnapshot(savePlayerData.currentStore);
             RogueLikeData.Instance.SetCurrentEventSnapshot(savePlayerData.currentEvent);
+            RogueLikeData.Instance.SetBattleResumeSnapshot(savePlayerData.battleResume);
             RogueLikeData.Instance.SetProgressState(savePlayerData.progressState);
             RogueLikeData.Instance.SetUpgradeValues(savePlayerData.unitUpgrades);
             RogueLikeData.Instance.SetHasLoadedSaveData(true);

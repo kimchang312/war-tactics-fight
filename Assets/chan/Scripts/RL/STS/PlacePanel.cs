@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using TMPro;
 using UnityEngine;
@@ -9,6 +10,9 @@ using UnityEngine.UI;
 
 public class PlacePanel : MonoBehaviour
 {
+    private const int MinLoadingDelayMilliseconds = 80;
+    private bool isStartingBattle;
+
     [SerializeField] private Button startBattleButton;   // 전투 시작 버튼
     [SerializeField] private Button backButton;
     [SerializeField] private GameObject enemyInfoPanel;
@@ -120,6 +124,42 @@ public class PlacePanel : MonoBehaviour
         UpdateCountTexts();
         RefreshPlayerUnitStripLayout();
     }
+
+    public void RestorePlacedUnits(List<RogueUnitDataBase> units)
+    {
+        placedUnits.Clear();
+        PlacedUniqueIds.Clear();
+
+        int maxUnits = RogueLikeData.Instance.GetMaxUnits();
+        if (units != null)
+        {
+            foreach (RogueUnitDataBase unit in units)
+            {
+                if (unit == null || PlacedUniqueIds.Contains(unit.UniqueId))
+                    continue;
+
+                if (placedUnits.Count >= maxUnits)
+                    break;
+
+                placedUnits.Add(unit);
+                PlacedUniqueIds.Add(unit.UniqueId);
+            }
+        }
+
+        RebuildPlayerSlots();
+        UpdateCountTexts();
+        GameManager.Instance?.LineUpBarComponent?.UpdateLineupNumbers(PlacedUniqueIds);
+        RefreshPlayerUnitStripLayout();
+    }
+
+    public bool StartBattleFromResume()
+    {
+        if (placedUnits.Count <= 0)
+            return false;
+
+        OnStartBattleClicked();
+        return true;
+    }
     
     public void ClearEnemyPrefabs()
     {
@@ -150,13 +190,20 @@ public class PlacePanel : MonoBehaviour
         RefreshPlayerUnitStripLayout();
     }
     
-    private void OnStartBattleClicked()
+    private async void OnStartBattleClicked()
     {
+        if (isStartingBattle)
+            return;
+
+        isStartingBattle = true;
+        List<int> placedUniqueIds = new List<int>(PlacedUniqueIds);
         RogueLikeData.Instance.SetAllMyUnits(placedUnits);
-        RogueLikeData.Instance.SetProgressState(SaveProgressState.BattlePlacement);
+        RogueLikeData.Instance.MarkBattleResumeInProgress(placedUniqueIds);
         RogueLikeData.Instance.SaveNow();
         GameManager.Instance.HideAllPanels();
         ClearPlacePanel();
+        await Task.Delay(MinLoadingDelayMilliseconds);
+        isStartingBattle = false;
         SceneManager.LoadScene("AutoBattleScene");
     }
     

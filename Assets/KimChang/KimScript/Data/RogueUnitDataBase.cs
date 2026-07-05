@@ -67,6 +67,7 @@ public class RogueUnitDataBase
         set
         {
             if (_energy == value) return;
+            if (IsEnergyLockedByRarity) return;
 
             int oldValue = _energy;
             int newValue = value;
@@ -103,6 +104,7 @@ public class RogueUnitDataBase
             _energy = newValue;
         }
     }
+    public bool IsEnergyLockedByRarity => rarity == 4;
     public bool lightArmor; 
     public bool heavyArmor;   
     public bool rangedAttack;  

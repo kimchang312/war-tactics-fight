@@ -7,6 +7,11 @@ using UnityEngine.Experimental.GlobalIllumination;
 
 public static class RewardManager
 {
+    private const int LastChapter = 3;
+    private const int ContinueRun = 0;
+    private const int DefeatRun = 1;
+    private const int VictoryRun = 2;
+
     private static readonly Dictionary<StageType, int> stageTypeGold = new()
 {
     { StageType.Combat, 50 },
@@ -43,25 +48,16 @@ public static class RewardManager
         List<RogueUnitDataBase> deadUnits,
         List<RogueUnitDataBase> deadEnemyUnits)
     {
-        int chapter = RogueLikeData.Instance.GetChapter();
+        int battleChapter = RogueLikeData.Instance.GetChapter();
         BattleRewardData reward = RogueLikeData.Instance.GetBattleReward();
-
-        reward.battleResult = battleResult;
         var type = RogueLikeData.Instance.GetCurrentStageType();
 
-        if (battleResult == 0 && type == StageType.Boss && chapter == 1)
+        reward.battleResult = battleResult;
+
+        // 사용처: 마지막 챕터 보스 승리만 승리 종료로 처리한다.
+        if (battleResult == 0 && type == StageType.Boss && battleChapter == LastChapter)
         {
-            RogueLikeData.Instance.SetChapter(2);
-            RogueLikeData.Instance.SetClearChapter(true);
-        }
-        else if (battleResult == 0 && type == StageType.Boss && chapter == 2)
-        {
-            RogueLikeData.Instance.SetChapter(3);
-            RogueLikeData.Instance.SetClearChapter(true);
-        }
-        else if (battleResult == 0 && type == StageType.Boss && chapter == 3)
-        {
-            return 2;
+            return VictoryRun;
         }
 
         int morale = EndBattleMorale(battleResult, deadUnits, deadEnemyUnits, type);
@@ -69,13 +65,13 @@ public static class RewardManager
 
         if (currentMorale + morale <= 0)
         {
-            return 1;
+            return DefeatRun;
         }
 
         // 사용처: 현재 myTeam 원본이 아니라 전투 결과 반영 후 기준으로 게임오버 판정
         if (CheckGameOverAfterBattle(battleUnits, deadUnits))
         {
-            return 1;
+            return DefeatRun;
         }
 
         reward.morale += morale;
@@ -182,7 +178,14 @@ public static class RewardManager
             reward.relicGrade.Add(grade);
         }
 
-        return 0;
+        // 사용처: 1·2챕터 보스 승리 후 생존이 확정된 런만 다음 챕터 맵으로 전환한다.
+        if (battleResult == 0 && type == StageType.Boss && battleChapter < LastChapter)
+        {
+            RogueLikeData.Instance.SetChapter(battleChapter + 1);
+            RogueLikeData.Instance.SetClearChapter(true);
+        }
+
+        return ContinueRun;
     }
 
     //전투 종료 시 사기 계산

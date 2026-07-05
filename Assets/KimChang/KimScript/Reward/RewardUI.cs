@@ -53,8 +53,6 @@ public class RewardUI : MonoBehaviour
     private float revealDuration = 2f;
 
     SaveData saveData = new SaveData();
-    private bool isEnd = false;
-
     private Graphic[] _btnGraphics;
     private bool isMovingScene = false;
     private void Awake()
@@ -80,18 +78,7 @@ public class RewardUI : MonoBehaviour
     }
     public void InitializeAsIdle()
     {
-        isEnd = false;
         ResetUI();
-    }
-    private void Update()
-    {
-        if (!isEnd) return;
-        if (Input.GetKeyUp(KeyCode.Escape))
-        {
-            RogueLikeData.Instance.ClearBattleReward();
-            GameManager.Instance.SetCurrentStageNull();
-            SceneManager.LoadScene("Title");
-        }
     }
 
     public bool IsTreasureRewardVisible =>
@@ -171,14 +158,6 @@ public class RewardUI : MonoBehaviour
             goldResult.gameObject.SetActive(gold > 0);
             goldResult.GetComponentInChildren<TextMeshProUGUI>().text = $"{gold} 금화";
             goldResult.onClick.AddListener(() => ClickGoldResult(gold));
-
-            int chapter = RogueLikeData.Instance.GetChapter();
-            var type = RogueLikeData.Instance.GetCurrentStageType();
-            if (chapter == 3 && type == StageType.Boss)
-            {
-                isEnd = true;
-                //scoreText.text = $"점수: {RogueLikeData.Instance.GetScore()}";
-            }
 
             if (HasUnitReward(reward))
             {
