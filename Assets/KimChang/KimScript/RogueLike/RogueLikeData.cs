@@ -90,6 +90,7 @@ public class RogueLikeData
 
     // 사용처: 저장/로드 시 현재 진행 중인 UI 상태 복원
     private EventSnapshot currentEvent;
+    private BattleResumeSnapshot battleResume;
     private SaveProgressState progressState = SaveProgressState.StageSelect;
     private bool hasLoadedSaveData = false;
 
@@ -144,6 +145,7 @@ public class RogueLikeData
         );
         data.currentStore = currentStore;
         data.currentEvent = currentEvent;
+        data.battleResume = CopyBattleResumeSnapshot(battleResume);
         data.progressState = progressState;
         data.randomSeed = randomSeed;
         data.stageCallCount = stageCallCount;
@@ -222,6 +224,125 @@ public class RogueLikeData
     }
 
     // 사용처: SaveData.LoadData(), StoreUI 종료, 이벤트 종료 등에서 현재 진행 상태 갱신
+    private static BattleResumeSnapshot CopyBattleResumeSnapshot(BattleResumeSnapshot snapshot)
+    {
+        if (snapshot == null)
+            return null;
+
+        return new BattleResumeSnapshot
+        {
+            active = snapshot.active,
+            fromEvent = snapshot.fromEvent,
+            presetID = snapshot.presetID,
+            stageType = snapshot.stageType,
+            fieldId = snapshot.fieldId,
+            stageX = snapshot.stageX,
+            stageY = snapshot.stageY,
+            placedUniqueIds = snapshot.placedUniqueIds != null
+                ? new List<int>(snapshot.placedUniqueIds)
+                : new List<int>()
+        };
+    }
+
+    private static bool IsBattleResumeState(SaveProgressState state)
+    {
+        return state == SaveProgressState.BattlePending ||
+               state == SaveProgressState.BattlePlacement ||
+               state == SaveProgressState.BattleInProgress;
+    }
+
+    private void EnsureBattleResumeSnapshot(bool fromEvent)
+    {
+        if (battleResume == null)
+            battleResume = new BattleResumeSnapshot();
+
+        battleResume.active = true;
+        battleResume.fromEvent = fromEvent;
+        battleResume.presetID = presetID;
+        battleResume.stageType = currentStageType;
+        battleResume.fieldId = fieldId;
+        battleResume.stageX = currentStageX;
+        battleResume.stageY = currentStageY;
+        battleResume.placedUniqueIds ??= new List<int>();
+    }
+
+    public void BeginBattleResumeSnapshot(bool fromEvent)
+    {
+        EnsureBattleResumeSnapshot(fromEvent);
+        progressState = SaveProgressState.BattlePlacement;
+    }
+
+    public void UpdateBattleResumePlacement(List<int> placedUniqueIds)
+    {
+        EnsureBattleResumeSnapshot(battleResume != null && battleResume.fromEvent);
+        battleResume.placedUniqueIds = placedUniqueIds != null
+            ? new List<int>(placedUniqueIds)
+            : new List<int>();
+    }
+
+    public void MarkBattleResumeInProgress(List<int> placedUniqueIds)
+    {
+        UpdateBattleResumePlacement(placedUniqueIds);
+        progressState = SaveProgressState.BattleInProgress;
+    }
+
+    public void SetBattleResumeSnapshot(BattleResumeSnapshot snapshot)
+    {
+        battleResume = CopyBattleResumeSnapshot(snapshot);
+    }
+
+    public BattleResumeSnapshot GetBattleResumeSnapshot()
+    {
+        return CopyBattleResumeSnapshot(battleResume);
+    }
+
+    public void ClearBattleResumeSnapshot()
+    {
+        battleResume = null;
+    }
+
+    public void RestoreBattleResumeContextIfNeeded()
+    {
+        if (battleResume == null || !battleResume.active || !IsBattleResumeState(progressState))
+            return;
+
+        if (battleResume.stageX >= 0 && battleResume.stageY >= 0)
+        {
+            currentStageX = battleResume.stageX;
+            currentStageY = battleResume.stageY;
+        }
+
+        if (battleResume.presetID >= 0)
+            presetID = battleResume.presetID;
+
+        currentStageType = battleResume.stageType;
+        fieldId = battleResume.fieldId;
+        SetStage();
+    }
+
+    public List<RogueUnitDataBase> GetBattleResumePlacedUnits()
+    {
+        var result = new List<RogueUnitDataBase>();
+        if (battleResume == null || battleResume.placedUniqueIds == null)
+            return result;
+
+        foreach (int uniqueId in battleResume.placedUniqueIds)
+        {
+            RogueUnitDataBase unit = myTeam.Find(u => u != null && u.UniqueId == uniqueId);
+            if (unit != null && !result.Exists(u => u.UniqueId == unit.UniqueId))
+                result.Add(unit);
+        }
+
+        return result;
+    }
+
+    public bool HasBattleResumePlacement()
+    {
+        return battleResume != null &&
+               battleResume.placedUniqueIds != null &&
+               battleResume.placedUniqueIds.Count > 0;
+    }
+
     public void SetProgressState(SaveProgressState state)
     {
         progressState = state;
@@ -281,6 +402,7 @@ public class RogueLikeData
         );
         data.currentStore = currentStore;
         data.currentEvent = null;
+        data.battleResume = null;
         data.progressState = SaveProgressState.RewardOpen;
         data.randomSeed = randomSeed;
         data.stageCallCount = stageCallCount;
@@ -288,6 +410,7 @@ public class RogueLikeData
 
         myTeam = savedCopy;
         currentEvent = null;
+        battleResume = null;
         progressState = SaveProgressState.RewardOpen;
         savedMyUnits.Clear();
         return data;
@@ -1153,6 +1276,8 @@ public class RogueLikeData
         unitOrder = 0;
 
         nextEventToTreasure = false;
+        clearChapter = false;
+        resetMap = false;
         rainbowKeyUsesPerChapter?.Clear();
 
         SetMyTeam(baseUnits);
@@ -1166,6 +1291,7 @@ public class RogueLikeData
         currentStore = null;
         storeSessions = null;
         currentEvent = null;
+        battleResume = null;
         progressState = SaveProgressState.StageSelect;
         hasLoadedSaveData = false;
 
@@ -1550,4 +1676,3 @@ public class RogueLikeData
 
 
 }
-

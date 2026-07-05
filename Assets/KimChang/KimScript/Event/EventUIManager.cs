@@ -219,6 +219,7 @@ public class EventUIManager : MonoBehaviour
             // 전투 진입 정보는 전장 프리셋과 보상 큐에 저장된다.
             // 종료된 이벤트 스냅샷을 남기면 전투 후 선택지 없는 이벤트 화면으로 복원될 수 있다.
             RogueLikeData.Instance.ClearEventSnapshot();
+            RogueLikeData.Instance.BeginBattleResumeSnapshot(true);
             RogueLikeData.Instance.SaveNow();
             gameObject.SetActive(false);
             return;
@@ -275,8 +276,8 @@ public class EventUIManager : MonoBehaviour
             else if (thing == RequireThing.Energy && int.TryParse(value, out int energyValue))
             {
                 candidates = energyValue < 0
-                    ? candidates.FindAll(unit => unit != null && unit.Energy >= Mathf.Abs(energyValue))
-                    : candidates.FindAll(unit => unit != null && unit.Energy > energyValue);
+                    ? candidates.FindAll(unit => unit != null && !unit.IsEnergyLockedByRarity && unit.Energy >= Mathf.Abs(energyValue))
+                    : candidates.FindAll(unit => unit != null && !unit.IsEnergyLockedByRarity && unit.Energy > energyValue);
             }
         }
 

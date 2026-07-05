@@ -59,6 +59,7 @@ public class TestModeUI : MonoBehaviour
     List<int> warRelicIds = new List<int>();
 
     int gold = 500;
+    int chapter = 1;
     string randomSeed = null;
 
     private void Start()
@@ -94,7 +95,7 @@ public class TestModeUI : MonoBehaviour
         moraleInput.onEndEdit.AddListener((_) => UpdateMorale());
         goldInput.onSubmit.AddListener(UpdateGold);
         randomSeedInput.onSubmit.AddListener(SetRandomSeed);
-        chapterInput.onSubmit.AddListener(SetChacpter);
+        chapterInput.onEndEdit.AddListener(SetChacpter);
 
         gameStartBtn.onClick.AddListener(GameStartByTestOption);
 
@@ -107,8 +108,11 @@ public class TestModeUI : MonoBehaviour
     //설정한 데이터로 게임시작
     private void GameStartByTestOption()
     {
+        SetChacpter(chapterInput.text);
+
         SaveData saveData = new SaveData();
         saveData.ResetGameData();
+        RogueLikeData.Instance.SetChapter(chapter);
         RogueLikeData.Instance.SetResetMap(true);
         if (GameManager.Instance != null)
         {
@@ -460,7 +464,9 @@ public class TestModeUI : MonoBehaviour
     {
         if (string.IsNullOrEmpty(chacpter))
         {
-            chapterText.text = "0";
+            chapter = 1;
+            chapterText.text = chapter.ToString();
+            RogueLikeData.Instance.SetChapter(chapter);
             return;
         }
 
@@ -468,16 +474,23 @@ public class TestModeUI : MonoBehaviour
 
         if (string.IsNullOrEmpty(digitsOnly))
         {
-            chapterText.text = "0";
+            chapter = 1;
+            chapterText.text = chapter.ToString();
+            RogueLikeData.Instance.SetChapter(chapter);
             return;
         }
 
-        if (int.TryParse(digitsOnly, out int ci))
+        if (!int.TryParse(digitsOnly, out int ci))
         {
-            chapterText.text = ci.ToString();
+            chapter = 1;
+            chapterText.text = chapter.ToString();
+            RogueLikeData.Instance.SetChapter(chapter);
+            return;
         }
-        ci = ci > 3 ? 3 : ci < 1 ? 1:1;
-        RogueLikeData.Instance.SetChapter(ci);
+
+        chapter = Mathf.Clamp(ci, 1, 3);
+        chapterText.text = chapter.ToString();
+        RogueLikeData.Instance.SetChapter(chapter);
     }
 
 

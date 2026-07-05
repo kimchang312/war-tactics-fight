@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
@@ -50,6 +51,9 @@ public class GameManager : MonoBehaviour
     public bool shouldRefreshUpgradeUI = false;
     private bool mapInitializedForScene = false;
     private bool restoredSavedGameForScene = false;
+    private const float MinLoadingVisibleSeconds = 0.08f;
+    private float loadingShownAt = float.NegativeInfinity;
+    private Coroutine closeLoadingCoroutine;
 
     [Header("Player Marker")]
     // Canvas 내에서 움직일 마커(Root Canvas의 자식인 RectTransform)
@@ -282,9 +286,10 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             Vector2 pos = mapPanel.anchoredPosition;
             pos.x = 0f;
             mapPanel.anchoredPosition = pos;
-            Debug.Log("✅ mapPanel의 PosX를 0으로 초기화");
+            Debug.Log("✅ mapPanel의 PosX를 0으로 초기화"+ RogueLikeData.Instance.GetChapter());
             // 🔽 챕터 텍스트 업데이트
             UIManager.Instance.UpdateChapter(RogueLikeData.Instance.GetChapter());
+            
             if (uIGenerator == null) uIGenerator = transform.GetChild(0).GetChild(0).GetComponent<UIGenerator>();
             uIGenerator.RegenerateMap();
             mapInitializedForScene = true;
@@ -306,6 +311,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         GameManager.Instance.shouldRefreshUpgradeUI = true;
         RefreshNodeInfoButton();
 
+    }
+
+    public void UpdateChapter() { 
     }
 
     private void Start()
@@ -563,7 +571,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 RogueLikeData.Instance.SetFieldId(fieldId);
             }
 
-            RogueLikeData.Instance.SetProgressState(SaveProgressState.BattlePlacement);
+            RogueLikeData.Instance.BeginBattleResumeSnapshot(false);
             RogueLikeData.Instance.SaveNow();
             RefreshNodeInfoButton();
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
@@ -742,6 +750,17 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         // 4-2) 현재 위치는 해제하지만 선택 효과는 중지 (이미 있는 위치)
         currentStage.UnlockStage();
         currentStage.StopSelectableEffect();
+
+        SaveProgressState progressState = RogueLikeData.Instance.GetProgressState();
+        if (progressState == SaveProgressState.BattlePending ||
+            progressState == SaveProgressState.BattlePlacement ||
+            progressState == SaveProgressState.BattleInProgress)
+        {
+            enemyInfoPanel.SetActive(false);
+            PlacePanel.SetActive(false);
+            RefreshNodeInfoButton();
+            return;
+        }
         
         // 4-3) 현재 위치와 연결된 다음 스테이지만 해제 (앞으로 진행 가능)
         foreach (var nxt in currentStage.connectedStages)
@@ -903,10 +922,26 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         IsPlaceMode = open;
         RefreshNodeInfoButton();
     }
+
+    public bool TryCaptureBattlePlacementSnapshot()
+    {
+        if (RogueLikeData.Instance.GetProgressState() != SaveProgressState.BattlePlacement)
+            return false;
+
+        if (PlacePanel == null || !PlacePanel.activeInHierarchy)
+            return false;
+
+        PlacePanel placePanel = PlacePanelComponent;
+        if (placePanel == null)
+            return false;
+
+        RogueLikeData.Instance.UpdateBattleResumePlacement(placePanel.PlacedUniqueIds);
+        return true;
+    }
     
     public void HideAllPanels()
     {
-        loadingPanel.SetActive(true);
+        ShowLoadingPanel();
         openUnitOrderBtn.gameObject.SetActive(false);
         mapCanvas.SetActive(false);
         enemyInfoPanel.SetActive(false);
@@ -951,7 +986,48 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
     public void CloseLoading()
     {
-        loadingPanel.SetActive(false);
+        if (loadingPanel == null)
+            return;
+
+        if (closeLoadingCoroutine != null)
+        {
+            StopCoroutine(closeLoadingCoroutine);
+            closeLoadingCoroutine = null;
+        }
+
+        float remainingSeconds = MinLoadingVisibleSeconds - (Time.unscaledTime - loadingShownAt);
+        if (remainingSeconds <= 0f)
+        {
+            loadingPanel.SetActive(false);
+            return;
+        }
+
+        closeLoadingCoroutine = StartCoroutine(CloseLoadingAfterDelay(remainingSeconds));
+    }
+
+    private void ShowLoadingPanel()
+    {
+        if (loadingPanel == null)
+            return;
+
+        if (closeLoadingCoroutine != null)
+        {
+            StopCoroutine(closeLoadingCoroutine);
+            closeLoadingCoroutine = null;
+        }
+
+        loadingShownAt = Time.unscaledTime;
+        loadingPanel.SetActive(true);
+    }
+
+    private IEnumerator CloseLoadingAfterDelay(float delaySeconds)
+    {
+        yield return new WaitForSecondsRealtime(delaySeconds);
+
+        if (loadingPanel != null)
+            loadingPanel.SetActive(false);
+
+        closeLoadingCoroutine = null;
     }
 
 
@@ -970,8 +1046,21 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         int presetId = RogueLikeData.Instance.GetPresetID();
         StageType type = RogueLikeData.Instance.GetCurrentStageType();
+        BattleResumeSnapshot resume = RogueLikeData.Instance.GetBattleResumeSnapshot();
+        bool hasResume = resume != null && resume.active;
+
+        if (hasResume)
+        {
+            if (resume.presetID >= 0)
+                presetId = resume.presetID;
+
+            type = resume.stageType;
+        }
 
         OpenBattlePlacePanel(presetId, type, currentStage != null ? currentStage.battlefieldEffect : null);
+
+        if (hasResume)
+            RogueLikeData.Instance.SetFieldId(resume.fieldId);
     }
 
     private void RestoreSavedProgressUI()
@@ -993,8 +1082,12 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
             case SaveProgressState.BattlePending:
             case SaveProgressState.BattlePlacement:
+            case SaveProgressState.BattleInProgress:
                 OpenBattlePanel();
+                RestoreBattlePlacementSnapshot();
                 currentStage?.StopSelectableEffect();
+                if (state == SaveProgressState.BattleInProgress)
+                    StartCoroutine(ResumeBattleFromSavedPlacementNextFrame());
                 break;
 
             case SaveProgressState.RestOpen:
@@ -1014,6 +1107,32 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         }
 
         RefreshNodeInfoButton();
+    }
+
+    private void RestoreBattlePlacementSnapshot()
+    {
+        PlacePanel placePanel = PlacePanelComponent;
+        if (placePanel == null)
+            return;
+
+        List<RogueUnitDataBase> placedUnits = RogueLikeData.Instance.GetBattleResumePlacedUnits();
+        if (placedUnits.Count > 0)
+            placePanel.RestorePlacedUnits(placedUnits);
+    }
+
+    private IEnumerator ResumeBattleFromSavedPlacementNextFrame()
+    {
+        yield return null;
+
+        PlacePanel placePanel = PlacePanelComponent;
+        if (placePanel == null)
+            yield break;
+
+        if (!placePanel.StartBattleFromResume())
+        {
+            RogueLikeData.Instance.SetProgressState(SaveProgressState.BattlePlacement);
+            RogueLikeData.Instance.SaveNow();
+        }
     }
 
     private void OpenBattlePlacePanel(int presetId, StageType stageType, BattlefieldEffect? battlefieldEffect)

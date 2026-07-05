@@ -1,6 +1,7 @@
 using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class TopBar : MonoBehaviour
 {
@@ -27,6 +28,7 @@ public class TopBar : MonoBehaviour
     [SerializeField] private Button optionButton;
     [SerializeField] private Button continueButton;
     [SerializeField] private Button saveAndGoTitleButton;
+
 
     [SerializeField] private GameObject loadingCanvas;
 
@@ -206,4 +208,5 @@ public class TopBar : MonoBehaviour
 
         UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // 씬 이름이 정확해야 함
     }
+
     }
