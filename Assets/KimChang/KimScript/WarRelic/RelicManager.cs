@@ -179,6 +179,9 @@ public class RelicManager
     public static WarRelic HandleRandomRelic(int grade, RelicAction action)
     {
         var available = GetAvailableRelics(grade, action);
+        if (action == RelicAction.Acquire)
+            available.RemoveAll(relic => relic != null && relic.id == 79);
+
         if (available.Count == 0)
             return null;
 
@@ -511,6 +514,9 @@ public class RelicManager
     public static WarRelic HandleRandomRelicAllGrades(RelicAction action)
     {
         var available = GetAvailableRelicsAllGrades(action);
+        if (action == RelicAction.Acquire)
+            available.RemoveAll(relic => relic != null && relic.id == 79);
+
         if (available.Count == 0)
             return null;
 
@@ -674,8 +680,9 @@ public class RelicManager
     {
         float damage = 0;
         WarRelic relic = GetRelicById(106);
+        WarRelicDatabase.NormalizeRuntimeValues(relic);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if (vals != null)
+        if (vals != null && vals.Count > 1)
         {
             damage += vals[1];
         }
@@ -727,10 +734,12 @@ public class RelicManager
     {
         int id = 113;
         WarRelic relic = GetRelicById(113);
+        WarRelicDatabase.NormalizeRuntimeValues(relic);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count <= 4) return;
 
         vals[4] += deadCount;
+        relic.SetValues(vals.Select(v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray());
         var myUnits = RogueLikeData.Instance.GetMyUnits();
 
         foreach (var unit in myUnits)
@@ -766,10 +775,12 @@ public class RelicManager
     {
         int id = 123;
         WarRelic relic = GetRelicById(123);
+        WarRelicDatabase.NormalizeRuntimeValues(relic);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count <= 1) return;
 
         vals[1] = vals[0] * deadCount;
+        relic.SetValues(vals.Select(v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray());
         var myUnits = RogueLikeData.Instance.GetMyUnits();
 
         foreach (var unit in myUnits)
@@ -942,16 +953,16 @@ public class RelicManager
         if (RogueLikeData.Instance.HasOwnedRelic(relicId))
             return false;
 
-        WarRelic relic = WarRelicDatabase.GetRelicById(relicId);
-        if (relic == null)
+        WarRelic relicTemplate = WarRelicDatabase.GetRelicById(relicId);
+        if (relicTemplate == null)
             return false;
 
-        WarRelicDatabase.RebindRuntime(relic);
+        WarRelicDatabase.RebindRuntime(relicTemplate);
 
         // 사용처: 53번 유산은 조건 충족 시 자신이 아닌 다른 전설 유산으로 대체한다.
         if (relicId == 53)
         {
-            var vals = relic.GetAllValuesAsFloatListOrNull();
+            var vals = relicTemplate.GetAllValuesAsFloatListOrNull();
             if (vals != null && vals.Count > 1 && RogueLikeData.Instance.GetRandomFloat() < vals[1])
             {
                 int replaceId = GetRandomRelicIdExcept(10, RelicAction.Acquire, 53);
@@ -961,6 +972,9 @@ public class RelicManager
                 return TryAcquireRelic(replaceId, out acquiredRelic);
             }
         }
+
+        WarRelic relic = relicTemplate.CloneForRun();
+        WarRelicDatabase.RebindRuntime(relic);
 
         if (!RogueLikeData.Instance.TryAddOwnedRelic(relic))
             return false;

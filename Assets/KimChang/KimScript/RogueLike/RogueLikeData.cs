@@ -645,6 +645,7 @@ public class RogueLikeData
         {
             //골드 애니메이션
             UIManager.Instance.AnimateGoldChange(baseGold, gold);
+
         }
 
 
