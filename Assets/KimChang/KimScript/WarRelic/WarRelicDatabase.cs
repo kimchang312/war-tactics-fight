@@ -349,7 +349,7 @@ public static class WarRelicDatabase
         }
 
         // value 재바인딩(저장본이 value를 들고있다면 필요없지만, 안전하게)
-        if (s_valuesById != null && s_valuesById.TryGetValue(relic.id, out var vals))
+        if (!relic.HasConfigValues && s_valuesById != null && s_valuesById.TryGetValue(relic.id, out var vals))
         {
             relic.BindConfig(vals);
         }
@@ -358,6 +358,35 @@ public static class WarRelicDatabase
         {
             relic.BindTypes(types);
             relic.type = GetPrimaryType(types);
+        }
+
+        NormalizeRuntimeValues(relic);
+    }
+
+    public static void NormalizeRuntimeValues(WarRelic relic)
+    {
+        if (relic == null)
+            return;
+
+        switch (relic.id)
+        {
+            case 68:
+            case 70:
+                relic.EnsureValueCount(2, "2");
+                break;
+
+            case 106:
+            case 123:
+                relic.EnsureValueCount(2, "0");
+                break;
+
+            case 113:
+                relic.EnsureValueCount(5, "0");
+                break;
+
+            case 122:
+                relic.EnsureValueCount(4, "0");
+                break;
         }
     }
 
@@ -954,16 +983,16 @@ public static class WarRelicDatabase
     {
         int morale = RogueLikeData.Instance.GetMorale();
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count < 3) return;
 
         float addValue;
         if (morale <= vals[0])
         {
             addValue = vals[1];
         }
-        else if (morale >= vals[2])
+        else if (morale >= (vals.Count > 3 ? vals[2] : 70f))
         {
-            addValue = vals[3];
+            addValue = vals.Count > 3 ? vals[3] : vals[2];
         }
         else
         {
@@ -1581,12 +1610,12 @@ public static class WarRelicDatabase
         int id = 65;
         var units = RogueLikeData.Instance.GetMyTeam();
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (units == null || vals == null || vals.Count < 3)
+        if (units == null || vals == null || vals.Count < 2)
             return;
 
-        int rarityThreshold = Mathf.RoundToInt(vals[0]);
-        float highRarityRate = vals[1];
-        float lowRarityRate = vals[2];
+        int rarityThreshold = vals.Count >= 3 ? Mathf.RoundToInt(vals[0]) : 4;
+        float highRarityRate = vals.Count >= 3 ? vals[1] : vals[0];
+        float lowRarityRate = vals.Count >= 3 ? vals[2] : vals[1];
 
         foreach (var unit in units)
         {
@@ -1657,13 +1686,20 @@ public static class WarRelicDatabase
     private static void LootBag(WarRelic relic)
     {
         var units = RogueLikeData.Instance.GetMyUnits();
+        WarRelicDatabase.NormalizeRuntimeValues(relic);
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null || units == null || units.Count == 0) return;
+        if (vals == null || vals.Count < 2 || units == null || units.Count == 0) return;
 
+        bool hasPlunder = false;
         for (int i = 0; i < units.Count; i++)
         {
-            if (units[i].plunder) return;
+            if (units[i].plunder)
+            {
+                hasPlunder = true;
+                break;
+            }
         }
+        if (!hasPlunder) return;
 
         List<RogueUnitDataBase> candidates = new List<RogueUnitDataBase>(units.Count);
         for (int i = 0; i < units.Count; i++)
@@ -1731,8 +1767,9 @@ public static class WarRelicDatabase
     private static void VanguardBoots(WarRelic relic)
     {
         var units = RogueLikeData.Instance.GetMyTeam(); // 사용처: 내 팀 중 branchIdx==5 유닛 2명 무작위 선택
+        WarRelicDatabase.NormalizeRuntimeValues(relic);
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null || units == null || units.Count == 0) return;
+        if (vals == null || vals.Count == 0 || units == null || units.Count == 0) return;
 
         // 후보 수집: branchIdx == 5만
         List<RogueUnitDataBase> candidates = new List<RogueUnitDataBase>(units.Count);
@@ -2438,8 +2475,9 @@ public static class WarRelicDatabase
     private static void BloodSoakedDye(WarRelic relic)
     {
         int id = 113;
+        WarRelicDatabase.NormalizeRuntimeValues(relic);
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count <= 4) return;
         var myUnits = RogueLikeData.Instance.GetMyUnits();
         int addAttack = (int)vals[4] / 5;
         if (addAttack > 0)
@@ -2565,8 +2603,9 @@ public static class WarRelicDatabase
     //피에 젖은 서약 122
     private static void BloodstainedOath(WarRelic relic)
     {
+        WarRelicDatabase.NormalizeRuntimeValues(relic);
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count <= 3) return;
 
         if (vals[3] < vals[1]) return;
         int id = 122;
@@ -2589,8 +2628,9 @@ public static class WarRelicDatabase
     //끝없는 탄막 123
     private static void EndlessBarrage(WarRelic relic)
     {
+        WarRelicDatabase.NormalizeRuntimeValues(relic);
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count <= 1) return;
         if (vals[1] == 0) return;
         int id = 123;
         var myUnits = RogueLikeData.Instance.GetMyUnits();

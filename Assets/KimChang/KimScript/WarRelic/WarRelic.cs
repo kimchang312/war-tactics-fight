@@ -33,7 +33,7 @@ public class WarRelic
 
     private Action<WarRelic> executeAction;
 
-    private string[] _values;
+    [UnityEngine.SerializeField] private string[] _values;
     private float[] _cachedValues;
     private bool _cacheValid;
     private bool _cacheOk;
@@ -46,7 +46,53 @@ public class WarRelic
 
     public void BindExecute(Action<WarRelic> action) => executeAction = action;
 
-    public void BindConfig(string[] values) => _values = values;
+    public void BindConfig(string[] values)
+    {
+        _values = CloneValues(values);
+        InvalidateValueCache();
+    }
+
+    public bool HasConfigValues => _values != null && _values.Length > 0;
+
+    public int ConfigValueCount => _values?.Length ?? 0;
+
+    public void EnsureValueCount(int minCount, string fillValue = "0")
+    {
+        if (minCount <= 0)
+            return;
+
+        int currentCount = _values?.Length ?? 0;
+        if (currentCount >= minCount)
+            return;
+
+        string[] nextValues = new string[minCount];
+        for (int i = 0; i < currentCount; i++)
+            nextValues[i] = _values[i];
+
+        for (int i = currentCount; i < minCount; i++)
+            nextValues[i] = fillValue;
+
+        _values = nextValues;
+        InvalidateValueCache();
+    }
+
+    public WarRelic CloneForRun()
+    {
+        var clone = new WarRelic
+        {
+            id = this.id,
+            grade = this.grade,
+            used = this.used,
+            type = this.type,
+            types = this.types != null ? (RelicType[])this.types.Clone() : null,
+            name = this.name,
+            description = this.description
+        };
+
+        clone.BindConfig(_values);
+        clone.BindExecute(executeAction);
+        return clone;
+    }
 
     public void BindTypes(RelicType[] relicTypes)
     {
@@ -190,9 +236,24 @@ public class WarRelic
     }
     public void SetValues(string[] values)
     {
-        _values = values;
+        _values = CloneValues(values);
+        InvalidateValueCache();
+    }
+
+    private void InvalidateValueCache()
+    {
         _cacheValid = false;
         _cacheOk = false;
+    }
+
+    private static string[] CloneValues(string[] values)
+    {
+        if (values == null)
+            return null;
+
+        var clone = new string[values.Length];
+        Array.Copy(values, clone, values.Length);
+        return clone;
     }
 }
 

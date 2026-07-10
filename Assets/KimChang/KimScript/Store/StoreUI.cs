@@ -328,6 +328,12 @@ public class StoreUI : MonoBehaviour
             return;
         }
 
+        if (info.data.isRelic && info.data.relicId == 79)
+        {
+            OpenStrangePiecePurchase(type, slotIndex, checkedBtn, price);
+            return;
+        }
+
         if (!RogueLikeData.Instance.TryMarkSold(type, slotIndex))
             return;
 
@@ -386,6 +392,79 @@ public class StoreUI : MonoBehaviour
 
 
     //아이템 클릭 시 
+    private void OpenStrangePiecePurchase(StoreSlotType type, int slotIndex, Button btn, int price)
+    {
+        if (!RogueLikeData.Instance.CanSpendGold(price))
+            return;
+
+        if (unitListUI == null)
+            return;
+
+        List<RogueUnitDataBase> candidates = RogueLikeData.Instance.GetMyTeam();
+        if (candidates == null || candidates.Count == 0)
+            return;
+
+        SetStoreMainButtonsInteractable(false);
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
+
+        unitListUI.Show(
+            1,
+            candidates,
+            () => CompleteStrangePiecePurchase(type, slotIndex, btn, price),
+            () => SetStoreMainButtonsInteractable(true)
+        );
+    }
+
+    private void CompleteStrangePiecePurchase(StoreSlotType type, int slotIndex, Button btn, int price)
+    {
+        if (!RogueLikeData.Instance.TryMarkSold(type, slotIndex))
+        {
+            SetStoreMainButtonsInteractable(true);
+            return;
+        }
+
+        if (!RelicManager.AcquireRelic(79))
+        {
+            RogueLikeData.Instance.UnmarkSold(type, slotIndex);
+            SetStoreMainButtonsInteractable(true);
+            Debug.LogError("[StoreUI] Failed to acquire relicId=79");
+            return;
+        }
+
+        if (!SpendGold(price))
+        {
+            RogueLikeData.Instance.RemoveRelicById(79);
+            RogueLikeData.Instance.UnmarkSold(type, slotIndex);
+            SetStoreMainButtonsInteractable(true);
+            return;
+        }
+
+        List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+        for (int i = 0; i < selectedUnits.Count; i++)
+        {
+            if (selectedUnits[i] != null)
+                selectedUnits[i].endless = true;
+        }
+        RogueLikeData.Instance.ClearSelectedUnis();
+
+        RogueLikeData.Instance.SaveNow();
+
+        if (btn != null)
+        {
+            SoldOutItemBtn(btn);
+            if (btn.transform.childCount > 3)
+                btn.transform.GetChild(3).gameObject.SetActive(false);
+        }
+
+        if (checkedBtn == btn)
+            checkedBtn = null;
+
+        SetStoreMainButtonsInteractable(true);
+
+        if (lineUpBar != null)
+            lineUpBar.RefreshUnitList();
+    }
+
     private void ClickItemAndCheck(Button btn)
     {
         if (!btn.interactable) return;

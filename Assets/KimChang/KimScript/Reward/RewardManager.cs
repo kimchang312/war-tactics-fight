@@ -122,8 +122,9 @@ public static class RewardManager
                 if (RelicManager.CheckRelicById(106))
                 {
                     WarRelic relic = RelicManager.GetRelicById(106);
+                    WarRelicDatabase.NormalizeRuntimeValues(relic);
                     var relicValue = relic.GetAllValuesAsFloatListOrNull();
-                    if (relicValue != null)
+                    if (relicValue != null && relicValue.Count > 1)
                     {
                         relicValue[1] += relicValue[0];
                         string[] updated = relicValue.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray();
@@ -154,8 +155,9 @@ public static class RewardManager
             if (RelicManager.CheckRelicById(122))
             {
                 WarRelic relic = RelicManager.GetRelicById(122);
+                WarRelicDatabase.NormalizeRuntimeValues(relic);
                 var relicValue = relic.GetAllValuesAsFloatListOrNull();
-                if (relicValue != null && relicValue[3] < relicValue[1])
+                if (relicValue != null && relicValue.Count > 3 && relicValue[3] < relicValue[1])
                 {
                     relicValue[3]++;
                     string[] updated = relicValue.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray();
