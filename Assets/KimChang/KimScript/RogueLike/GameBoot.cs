@@ -5,11 +5,11 @@ public sealed class GameBoot : MonoBehaviour
 {
     void Awake()
     {
+        UnitLoader.Instance.LoadUnitsFromJson();
         SaveData save = new();
         save.LoadData();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
-        UnitLoader.Instance.LoadUnitsFromJson();
         GameTextDB.Boot();
         DontDestroyOnLoad(gameObject);
     }

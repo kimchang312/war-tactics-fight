@@ -411,6 +411,33 @@ public class AutoBattleManager : MonoBehaviour
         );
     }
 
+    // 사용처: 전투 중 현재 전열 유닛의 회피율 텍스트만 빠르게 갱신한다.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void UpdateDodgeUI()
+    {
+        if (autoBattleUI == null)
+            return;
+
+        RogueUnitDataBase myFront = GetFrontUnitOrNull(myUnits);
+        RogueUnitDataBase enemyFront = GetFrontUnitOrNull(enemyUnits);
+
+        float myDodge = myFront != null
+            ? abilityManager.CalculateDodge(myFront, true, isFirstAttack)
+            : 0f;
+
+        float enemyDodge = enemyFront != null
+            ? abilityManager.CalculateDodge(enemyFront, false, isFirstAttack)
+            : 0f;
+
+        autoBattleUI.UpdateDodgeText(myDodge, enemyDodge, myFront != null, enemyFront != null);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static RogueUnitDataBase GetFrontUnitOrNull(List<RogueUnitDataBase> units)
+    {
+        return units != null && units.Count > 0 ? units[0] : null;
+    }
+
     // 사용처: 전열을 제외한 유닛이 현재 위치에서 원거리 공격 가능한지 판정한다.
     // range 2 = 2번째 유닛만 가능, range 3 = 2~3번째 유닛 가능.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -714,6 +741,7 @@ public class AutoBattleManager : MonoBehaviour
         {
             ProcessBeforeBattle(myUnits, enemyUnits, true);
             ProcessBeforeBattle(enemyUnits, myUnits, false);
+            UpdateDodgeUI();
         }
 
         if (!CanRunBattlePhase())
@@ -753,6 +781,7 @@ public class AutoBattleManager : MonoBehaviour
 
         UpdateUnitUI();
         bool result = PreparationPhase();
+        UpdateDodgeUI();
         await Task.Yield();
         return result;
     }
@@ -1217,6 +1246,7 @@ public class AutoBattleManager : MonoBehaviour
 
         var data = BuildHpViewData();
         autoBattleUI.ApplyHp(data, myUnits, enemyUnits);
+        UpdateDodgeUI();
     }
 
     // 도메인 규칙(예: 2번 유닛은 체력 0 이하면 숨김)을 적용한 뷰 스냅샷 생성

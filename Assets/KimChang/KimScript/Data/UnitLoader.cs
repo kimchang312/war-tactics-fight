@@ -32,7 +32,18 @@ public class UnitLoader
         //unitCache.Clear();
 
         TextAsset jsonFile = Resources.Load<TextAsset>("JsonData/UnitStatus_Re");
+        if (jsonFile == null || string.IsNullOrEmpty(jsonFile.text))
+        {
+            Debug.LogError("[UnitLoader] Resources/JsonData/UnitStatus_Re.json 파일을 찾을 수 없거나 비어 있습니다.");
+            return;
+        }
+
         var unitsData = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(jsonFile.text);
+        if (unitsData == null)
+        {
+            Debug.LogError("[UnitLoader] UnitStatus_Re.json 파싱 결과가 비어 있습니다.");
+            return;
+        }
 
         foreach (var unitData in unitsData)
         {
@@ -90,12 +101,16 @@ public class UnitLoader
     // id 기반으로 유닛을 복사하여 반환하는 함수
     public RogueUnitDataBase GetCloneUnitById(int id ,bool isTeam=true)
     {
+        if (unitCache == null || unitCache.Count == 0)
+            LoadUnitsFromJson();
+
         if (unitCache != null && unitCache.ContainsKey(id))
         {
             RogueUnitDataBase unit = unitCache[id].Clone();
             unit.UniqueId = RogueUnitDataBase.BuildUnitUniqueId(unit.branchIdx, unit.idx,isTeam);
             return unit;
         }
+        Debug.LogWarning($"[UnitLoader] Unit id={id}를 찾을 수 없습니다.");
         return null;
     }
     // 모든 캐시된 유닛을 리스트로 반환
@@ -105,7 +120,14 @@ public class UnitLoader
     }
     public RogueUnitDataBase GetUnitById(int id)
     {
-        return unitCache[id];
+        if (unitCache == null || unitCache.Count == 0)
+            LoadUnitsFromJson();
+
+        if (unitCache != null && unitCache.TryGetValue(id, out RogueUnitDataBase unit))
+            return unit;
+
+        Debug.LogWarning($"[UnitLoader] Unit id={id}를 찾을 수 없습니다.");
+        return null;
     }
 
 }

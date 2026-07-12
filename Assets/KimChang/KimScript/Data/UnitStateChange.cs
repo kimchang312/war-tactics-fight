@@ -14,6 +14,10 @@ public static class UnitStateChange
 
         foreach (var team in myTeam)
         {
+            if (team == null)
+                continue;
+
+            team.NormalizeStatBlock();
             team.NormalizeStateModifiers();
         }
 
@@ -28,6 +32,12 @@ public static class UnitStateChange
 
         //강화 계산
         UpgradeManager.Instance.ProcessUpgrade();
+
+        foreach (var team in myTeam)
+        {
+            if (team != null)
+                team.ApplyModifiers();
+        }
     }
     //사기 계산 함수
     public static void ApplyMoralState()

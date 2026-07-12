@@ -2223,7 +2223,11 @@ public static class WarRelicDatabase
     private static void BeginningOfTheRainbow(WarRelic relic)
     {
         int id = 100;
-        RogueUnitDataBase unit = RogueLikeData.Instance.GetMyTeam()[0];
+        var myTeam = RogueLikeData.Instance.GetMyTeam();
+        if (myTeam == null || myTeam.Count == 0 || myTeam[0] == null)
+            return;
+
+        RogueUnitDataBase unit = myTeam[0];
         var vals = relic.GetAllValuesAsFloatListOrNull();
         if (vals == null) return;
 

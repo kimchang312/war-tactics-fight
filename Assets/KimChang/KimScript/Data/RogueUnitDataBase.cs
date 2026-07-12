@@ -372,7 +372,7 @@ public class RogueUnitDataBase
             UnitLoader.Instance.GetCloneUnitById(2),
 
         };
-        return units;
+        return units.Where(unit => unit != null).ToList();
     }
     public void NormalizeStatBlock()
     {
@@ -389,6 +389,11 @@ public class RogueUnitDataBase
     public void NormalizeStateModifiers()
     {
         RogueUnitDataBase unitEx = UnitLoader.Instance.GetUnitById(idx);
+        if (unitEx == null)
+        {
+            Debug.LogWarning($"[RogueUnitDataBase] Unit data not found for idx={idx}. State trait reset skipped.");
+            return;
+        }
         
         lightArmor = unitEx.lightArmor;
         heavyArmor = unitEx.heavyArmor;
