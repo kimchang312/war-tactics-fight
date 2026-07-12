@@ -48,7 +48,8 @@ public class RogueLikeData
     private float myFinalDamage = 1;
     private float enemyFinalDamage = 1;
 
-    private UnitUpgrade[] upgradeValues = new UnitUpgrade[9];
+    private const int UpgradeSlotCount = 9;
+    private UnitUpgrade[] upgradeValues = new UnitUpgrade[UpgradeSlotCount];
 
     private int sariStack = 0;
 
@@ -123,10 +124,7 @@ public class RogueLikeData
             relicsByType[type] = new List<WarRelic>();
             relicIdsByType[type] = new HashSet<int>();
         }
-        for (int i = 0; i < upgradeValues.Length; i++)
-        {
-            upgradeValues[i] = new UnitUpgrade();
-        }
+        EnsureUpgradeValues();
 
         LoadAudioSettings();
     }
@@ -990,13 +988,20 @@ public class RogueLikeData
         this.score = score;
         SetStage();
     }
-    // 사용처: 저장 데이터 로드 시 전술 개량 수치를 복원
-    public void SetUpgradeValues(UnitUpgrade[] values)
-    {
-        if (values == null || values.Length == 0)
-            return;
 
-        upgradeValues = values;
+    private void EnsureUpgradeValues()
+    {
+        if (upgradeValues == null || upgradeValues.Length != UpgradeSlotCount)
+        {
+            UnitUpgrade[] normalized = new UnitUpgrade[UpgradeSlotCount];
+            if (upgradeValues != null)
+            {
+                int copyCount = Mathf.Min(upgradeValues.Length, normalized.Length);
+                Array.Copy(upgradeValues, normalized, copyCount);
+            }
+
+            upgradeValues = normalized;
+        }
 
         for (int i = 0; i < upgradeValues.Length; i++)
         {
@@ -1005,21 +1010,34 @@ public class RogueLikeData
         }
     }
 
+    // 사용처: 저장 데이터 로드 시 전술 개량 수치를 복원
+    public void SetUpgradeValues(UnitUpgrade[] values)
+    {
+        upgradeValues = values;
+        EnsureUpgradeValues();
+    }
+
     //강화 반환
     public UnitUpgrade[] GetUpgradeValue()
     {
+        EnsureUpgradeValues();
         return upgradeValues;
     }
 
     // 강화 수치 반환
     public int GetUpgrade(int unitTypeIndex, bool isAttack)
     {
+        EnsureUpgradeValues();
+        if (unitTypeIndex < 0 || unitTypeIndex >= upgradeValues.Length)
+            return 0;
+
         return isAttack ? upgradeValues[unitTypeIndex].attackLevel : upgradeValues[unitTypeIndex].defenseLevel;
     }
 
     // 강화 수치 증가 (강화 비용 차감 포함)
     public void IncreaseUpgrade(int unitTypeIndex, bool isAttack, bool isPurchase = true)
     {
+        EnsureUpgradeValues();
         if (unitTypeIndex < 0 || unitTypeIndex >= upgradeValues.Length)
             return;
 
@@ -1270,7 +1288,8 @@ public class RogueLikeData
         nextUnitUniqueId = 0;
         rerollChance = 2;
         score = 0;
-        upgradeValues = new UnitUpgrade[9];
+        upgradeValues = new UnitUpgrade[UpgradeSlotCount];
+        EnsureUpgradeValues();
         var baseUnits = RogueUnitDataBase.GetBaseUnits();
         currentStageSeedBase = 0;
         stageCallCount = 0;

@@ -1119,6 +1119,23 @@ public class AutoBattleUI : MonoBehaviour
         }
     }
 
+    public void UpdateDodgeText(float myDodge, float enemyDodge, bool hasMyFront, bool hasEnemyFront)
+    {
+        SetDodgeText(_myDodge, hasMyFront, myDodge);
+        SetDodgeText(_enemyDodge, hasEnemyFront, enemyDodge);
+    }
+
+    private static void SetDodgeText(TextMeshProUGUI dodgeText, bool isActive, float dodge)
+    {
+        if (dodgeText == null)
+            return;
+
+        dodgeText.gameObject.SetActive(isActive);
+
+        if (isActive)
+            dodgeText.text = $"회피율: {dodge}%";
+    }
+
     /// <summary>
     /// 유닛 인덱스로 UnitCardUI RectTransform 가져오기 (이펙트 재생용)
     /// </summary>

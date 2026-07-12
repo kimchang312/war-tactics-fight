@@ -771,6 +771,8 @@ public class AbilityManager
         }
         //유산 104
         RelicManager.RunDoubleEdgedAxeOfPride(myUnits, myDeathUnits, enemyUnits, enemyDeathUnits);
+        ApplyBattleStatModifiers(myUnits);
+        ApplyBattleStatModifiers(enemyUnits);
 
         // 사용처: 이번 사망 정리에서 실제 사망자가 있었는지 저장한다.
         bool anyUnitDiedThisStep = tempMyDeathUnits.Count > 0 || tempEnemyDeathUnits.Count > 0;
@@ -919,11 +921,22 @@ public class AbilityManager
             CalculateEndLess(frontAttacker, isTeam);
         }
 
-        foreach (var unit in attackers)
+        ApplyBattleStatModifiers(attackers);
+    }
+    private static void ApplyBattleStatModifiers(List<RogueUnitDataBase> units)
+    {
+        if (units == null)
+            return;
+
+        foreach (RogueUnitDataBase unit in units)
         {
+            if (unit == null || unit.stats == null || unit.health <= 0)
+                continue;
+
             unit.ApplyModifiers(true);
         }
     }
+
     //선제 타격
     private bool CalculateFirstStrike(List<RogueUnitDataBase> attakers, List<RogueUnitDataBase> defenders, float finalDamage, bool isTeam)
     {
@@ -1310,13 +1323,12 @@ public class AbilityManager
         };
             //폭풍의 창
             float extra = CalculateSpearOfStormDodge(unit, isTeam, isFirstAttack);
-            dodge = (2 + ((mulityDodge / 9) * (unit.Mobility - 1))) + (unit.agility ? 10f : 0) + addDodge + extra;
             foreach (var key in dodgeEffects.Keys)
             {
                 if (unit.effectDictionary.ContainsKey(key)) dodgeEffects[key]();
             }
 
-            dodge = (2 + ((mulityDodge / 9) * (unit.Mobility - 1))) + (unit.agility ? 10.0f : 0) + addDodge;
+            dodge = (2 + ((mulityDodge / 9) * (mobility - 1))) + (unit.agility ? 10.0f : 0) + addDodge + extra;
         }
 
         return MathF.Floor(Mathf.Clamp(dodge, 0, 100));

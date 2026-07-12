@@ -118,11 +118,11 @@ public class GameManager : MonoBehaviour
         HideAllPanels();
         SceneManager.sceneLoaded += OnSceneLoaded;
 
+        UnitLoader.Instance.LoadUnitsFromJson();
         SaveData save = new();
         save.LoadData();
         EventManager.LoadEventData();
         StoreManager.LoadStoreData();
-        UnitLoader.Instance.LoadUnitsFromJson();
         GameTextDB.Boot();
         RelicManager.InitializeRelicCatalog();
 

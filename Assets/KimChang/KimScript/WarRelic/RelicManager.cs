@@ -708,7 +708,11 @@ public class RelicManager
         var vals = relic?.GetAllValuesAsFloatListOrNull();
         if (vals == null) return;
 
-        var front = RogueLikeData.Instance.GetMyUnits()[0];
+        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        if (myUnits == null || myUnits.Count == 0 || myUnits[0] == null)
+            return;
+
+        var front = myUnits[0];
         for (int i = (int)vals[0]; i > 0; i--)
         {
             bool isAttack = RogueLikeData.Instance.GetRandomInt(0, 2) == 0;

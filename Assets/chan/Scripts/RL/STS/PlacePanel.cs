@@ -274,6 +274,7 @@ public class PlacePanel : MonoBehaviour
             
             // 적 유닛 설정 (Context.Enemy로 설정)
             ui.SetupIMG(enemy, Context.Enemy, enemy.UniqueId);
+            ApplyEnemyUnitFrame(go, enemy, ui);
             ui.SetupEnergy(enemy);
             ui.SetNumber(i + 1); // 적 유닛 번호 설정
         }
@@ -281,6 +282,64 @@ public class PlacePanel : MonoBehaviour
         // 적 유닛 수 텍스트 업데이트
         UpdateEnemyUnitCount(enemies.Count);
         RefreshEnemyUnitStripLayout();
+    }
+
+    private static void ApplyEnemyUnitFrame(GameObject enemyUnitObject, RogueUnitDataBase enemy, UnitUIPrefab ui)
+    {
+        if (enemyUnitObject == null || enemy == null)
+            return;
+
+        Image frameImage = GetEnemySlotFrameImage(enemyUnitObject);
+        if (frameImage == null)
+        {
+            Debug.LogWarning("[PlacePanel] Enemy unit frame image not found. Expected second child named SlotImg.");
+            return;
+        }
+
+        Sprite frameSprite = SpriteCacheManager.GetFrameByRarity(enemy.rarity);
+        if (frameSprite == null)
+            return;
+
+        frameImage.gameObject.SetActive(true);
+        frameImage.sprite = frameSprite;
+
+        RectTransform frameRect = frameImage.rectTransform;
+        float unitSize = GetEnemyUnitImageSize(ui);
+        float frameSize = unitSize * (enemy.rarity == 4 ? 1.185f : 1.17f);
+
+        frameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, frameSize);
+        frameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, frameSize);
+    }
+
+    private static Image GetEnemySlotFrameImage(GameObject enemyUnitObject)
+    {
+        if (enemyUnitObject == null)
+            return null;
+
+        Transform root = enemyUnitObject.transform;
+        Transform frameTransform = root.childCount > 1 ? root.GetChild(1) : null;
+
+        if (frameTransform == null || !string.Equals(frameTransform.name, "SlotImg", StringComparison.Ordinal))
+            frameTransform = root.Find("SlotImg");
+
+        return frameTransform != null ? frameTransform.GetComponent<Image>() : null;
+    }
+
+    private static float GetEnemyUnitImageSize(UnitUIPrefab ui)
+    {
+        if (ui != null && ui.unitImage != null)
+        {
+            RectTransform unitImageRect = ui.unitImage.rectTransform;
+            float unitSize = unitImageRect.rect.width;
+
+            if (unitSize <= 0f)
+                unitSize = unitImageRect.sizeDelta.x;
+
+            if (unitSize > 0f)
+                return unitSize;
+        }
+
+        return 100f;
     }
 
     private void RefreshPlayerUnitStripLayout()
