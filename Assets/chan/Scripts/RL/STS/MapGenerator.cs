@@ -208,10 +208,21 @@ public class MapGenerator : MonoBehaviour
     /// <param name="savedData">저장된 데이터</param>
     public void LoadSpecialPresetData(Dictionary<int, List<int>> savedData)
     {
+        if (savedData == null || savedData.Count == 0)
+        {
+            specialPresetsInitialized = false;
+            InitializeSpecialPresets();
+            return;
+        }
+
         if (savedData != null)
         {
             specialPresetUnits = new Dictionary<int, List<int>>(savedData);
             specialPresetsInitialized = true;
+            foreach (int presetId in specialPresetUnits.Keys)
+            {
+                UpdateSpecialPresetForStage(presetId);
+            }
             Debug.Log($"[MapGenerator] 특수 프리셋 데이터 로드 완료 - 프리셋 수: {savedData.Count}");
         }
     }
@@ -613,21 +624,22 @@ public class MapGenerator : MonoBehaviour
                     
                     // 전장효과 설정 (지휘관 정보 포함)
                     string commanderName = "";
+                    int selectedPresetId = -1;
                     if (StagePresetLoader.I != null)
                     {
-                        int presetId = PickPresetID(lvl + 1, type);
-                        if (presetId != -1)
+                        selectedPresetId = PickPresetID(lvl + 1, type);
+                        node.presetID = selectedPresetId;
+
+                        if (selectedPresetId != -1)
                         {
-                            var preset = StagePresetLoader.I.GetByID(presetId);
+                            var preset = StagePresetLoader.I.GetByID(selectedPresetId);
                             commanderName = preset?.Commander ?? "";
                         }
                     }
                     node.battlefieldEffect = GenerateBattlefieldEffect(lvl + 1, type, commanderName);
                     
                     // ① StagePresetLoader.I 가 준비되어 있는지 확인
-                    if (StagePresetLoader.I != null)
-                        node.presetID = PickPresetID(lvl + 1, type);
-                    else
+                    if (StagePresetLoader.I == null)
                         Debug.LogWarning("[MapGenerator] StagePresetLoader.I is null; presetID skipped");
                 }
             }
@@ -658,18 +670,19 @@ public class MapGenerator : MonoBehaviour
         
         // 보스 스테이지 전장효과 설정 (지휘관 정보 포함)
         string bossCommanderName = "";
+        int selectedBossPresetId = -1;
         if (StagePresetLoader.I != null)
         {
-            int bossPresetId = PickPresetID(normalLevels, StageType.Boss);
-            if (bossPresetId != -1)
+            selectedBossPresetId = PickPresetID(normalLevels, StageType.Boss);
+            bossNode.presetID = selectedBossPresetId;
+
+            if (selectedBossPresetId != -1)
             {
-                var bossPreset = StagePresetLoader.I.GetByID(bossPresetId);
+                var bossPreset = StagePresetLoader.I.GetByID(selectedBossPresetId);
                 bossCommanderName = bossPreset?.Commander ?? "";
             }
         }
         bossNode.battlefieldEffect = GenerateBattlefieldEffect(normalLevels, StageType.Boss, bossCommanderName);
-        
-        bossNode.presetID = PickPresetID(normalLevels, StageType.Boss);
         string bossKey = normalLevels + "_3";
         nodeDict[bossKey] = bossNode;
 

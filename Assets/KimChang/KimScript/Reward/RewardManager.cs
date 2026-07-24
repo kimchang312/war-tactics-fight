@@ -138,7 +138,11 @@ public static class RewardManager
                     var relicValue = relic.GetAllValuesAsFloatListOrNull();
                     if (relicValue != null)
                     {
-                        relicValue[0] += relicValue[1];
+                        float increment = 10f;
+                        if (relicValue.Count > 1 && Mathf.Abs(relicValue[1]) >= 1f)
+                            increment = relicValue[1];
+
+                        relicValue[0] += increment;
                         string[] updated = relicValue.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray();
                         relic.SetValues(updated);
                     }

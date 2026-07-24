@@ -123,6 +123,7 @@ public class UIGenerator : MonoBehaviour
     {
         EnsureMapGeneratorReference();
         mapGenerator.ClearAll();
+        mapGenerator.LoadSpecialPresetData(savedData.GetSpecialPresetData());
         var dict = new Dictionary<string, StageNode>();
 
         // 노드 생성

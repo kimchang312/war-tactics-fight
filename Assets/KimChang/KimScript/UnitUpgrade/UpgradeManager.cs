@@ -272,18 +272,16 @@ public class UpgradeManager
                 }
             }
         }
-        if (RelicManager.CheckRelicById(119))
+        WarRelic imperialThornWall = RelicManager.GetRelicById(119);
+        if (imperialThornWall != null && imperialThornWall.used)
         {
-            WarRelic relic = RelicManager.GetRelicById(119);
-            if (relic.used)
+            var vals = imperialThornWall.GetAllValuesAsFloatListOrNull();
+            if (vals != null && vals.Count > 1)
             {
-                var vals = relic.GetAllValuesAsFloatListOrNull();
-                if (vals != null)
+                float reduction = vals[1] > 1f ? vals[1] * 0.01f : vals[1];
+                if (!isTeam && defenderClass == 0)
                 {
-                    if (isTeam && defenderClass == 0)
-                    {
-                        value += vals[1];
-                    }
+                    value -= reduction;
                 }
             }
         }
@@ -322,15 +320,15 @@ public class UpgradeManager
         }
         if (RelicManager.CheckRelicById(134))
         {
-            WarRelic relic = RelicManager.GetRelicById(131);
+            WarRelic relic = RelicManager.GetRelicById(134);
             var vals = relic?.GetAllValuesAsFloatListOrNull();
             if (vals != null)
             {
-                if (isTeam && attackerClass == 3 && defenderClass == 0)
+                if (isTeam && attackerClass == 6 && defenderClass == 0)
                 {
                     value += vals[0];
                 }
-                else if(!isTeam && attackerClass == 0  && defenderClass == 3)
+                else if(!isTeam && attackerClass == 0  && defenderClass == 6)
                 {
                     value += vals[1];
                 }

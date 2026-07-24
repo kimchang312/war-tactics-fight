@@ -40,6 +40,7 @@ public class PlacePanel : MonoBehaviour
     public List<int> PlacedUniqueIds { get; } = new List<int>();
 
     private List<RogueUnitDataBase> placedUnits = new List<RogueUnitDataBase>();
+    private int currentEnemyUnitCount;
 
     private PlacePanelStripScroll _playerStripScroll;
     private PlacePanelStripScroll _enemyStripScroll;
@@ -81,7 +82,7 @@ public class PlacePanel : MonoBehaviour
     public int AddUnitToBattle(RogueUnitDataBase unit)
     {
         // 배치 최대치 초과 방지
-        if (placedUnits.Count >= RogueLikeData.Instance.GetMaxUnits())
+        if (!CanAddUnit())
         return 0;
 
 
@@ -130,7 +131,7 @@ public class PlacePanel : MonoBehaviour
         placedUnits.Clear();
         PlacedUniqueIds.Clear();
 
-        int maxUnits = RogueLikeData.Instance.GetMaxUnits();
+        int maxUnits = GetEffectiveMaxUnits();
         if (units != null)
         {
             foreach (RogueUnitDataBase unit in units)
@@ -163,6 +164,7 @@ public class PlacePanel : MonoBehaviour
     
     public void ClearEnemyPrefabs()
     {
+        currentEnemyUnitCount = 0;
         if (EnemyPrefabsContainer != null)
         {
             foreach (Transform child in EnemyPrefabsContainer)
@@ -220,11 +222,21 @@ public class PlacePanel : MonoBehaviour
     public void UpdateMaxUnitText()
     {
         // 최대 배치 가능 수 표시
-        int maxUnits = RogueLikeData.Instance.GetMaxUnits();
+        int maxUnits = GetEffectiveMaxUnits();
         maxUnitCount.text = $"/ {maxUnits.ToString()}";
         RebuildPlayerSlots();
     }
     
+    public bool CanAddUnit()
+    {
+        return placedUnits.Count < GetEffectiveMaxUnits();
+    }
+
+    private int GetEffectiveMaxUnits()
+    {
+        return RogueLikeData.Instance.GetEffectiveMaxUnitsForCurrentBattle(currentEnemyUnitCount);
+    }
+
     public void UpdateEnemyUnitCount(int count)
     {
         if (enemyUnitCountText != null)
@@ -239,19 +251,23 @@ public class PlacePanel : MonoBehaviour
     
     public void CreateEnemyPrefabs(List<RogueUnitDataBase> enemies)
     {
+        currentEnemyUnitCount = enemies?.Count ?? 0;
         if (enemyUnitPrefab == null || EnemyPrefabsContainer == null)
         {
             Debug.LogWarning("Enemy prefab or container not assigned!");
+            UpdateMaxUnitText();
             return;
         }
         
         if (enemies == null || enemies.Count == 0)
         {
             Debug.LogWarning("Enemy list is null or empty!");
+            UpdateMaxUnitText();
             return;
         }
         
         ClearEnemyPrefabs();
+        currentEnemyUnitCount = enemies.Count;
         
         for (int i = 0; i < enemies.Count; i++)
         {
@@ -281,6 +297,7 @@ public class PlacePanel : MonoBehaviour
         
         // 적 유닛 수 텍스트 업데이트
         UpdateEnemyUnitCount(enemies.Count);
+        UpdateMaxUnitText();
         RefreshEnemyUnitStripLayout();
     }
 
@@ -373,7 +390,7 @@ public class PlacePanel : MonoBehaviour
         foreach (Transform child in PrefabContainer)
             Destroy(child.gameObject);
 
-        int maxUnits = RogueLikeData.Instance.GetMaxUnits();
+        int maxUnits = GetEffectiveMaxUnits();
         for (int i = 0; i < maxUnits; i++)
         {
             if (i < placedUnits.Count)

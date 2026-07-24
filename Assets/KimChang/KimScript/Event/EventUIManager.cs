@@ -235,7 +235,10 @@ public class EventUIManager : MonoBehaviour
         if (choiceData == null || choiceData.requireForm == null || choiceData.requireThing == null)
             return;
 
-        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam();
+        if (unitListUI == null)
+            return;
+
+        List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam() ?? new List<RogueUnitDataBase>();
         int selectIndex = choiceData.requireForm.FindIndex(form => form == RequireForm.Select);
         if (selectIndex < 0)
             return;
@@ -248,7 +251,7 @@ public class EventUIManager : MonoBehaviour
             requiredCount = Mathf.Max(1, parsedCount);
         }
 
-        List<RogueUnitDataBase> candidates = new List<RogueUnitDataBase>(myUnits);
+        List<RogueUnitDataBase> candidates = myUnits.FindAll(unit => unit != null);
         for (int i = 0; i < choiceData.requireForm.Count; i++)
         {
             if (choiceData.requireForm[i] != RequireForm.Select)

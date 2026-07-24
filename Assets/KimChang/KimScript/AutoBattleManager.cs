@@ -1202,6 +1202,16 @@ public class AutoBattleManager : MonoBehaviour
     //유산 호출 및 초기화
     private void ProcessRelic()
     {
+        RelicManager.RunBattleSetupRelic();
+        if (myUnits != null)
+        {
+            foreach (var unit in myUnits)
+            {
+                if (unit != null)
+                    unit.ApplyModifiers(true);
+            }
+        }
+
         //유산 이미지 생성
         if (autoBattleUI != null)
             autoBattleUI.CreateWarRelic();

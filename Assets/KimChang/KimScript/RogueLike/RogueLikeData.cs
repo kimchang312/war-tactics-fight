@@ -1170,6 +1170,29 @@ public class RogueLikeData
 
         return maxCount;
     }
+    public int GetCurrentEliteCommanderId()
+    {
+        if (currentStageType != StageType.Elite || StagePresetLoader.I == null)
+            return 0;
+
+        StagePreset preset = StagePresetLoader.I.GetByID(presetID);
+        int commanderId = preset?.CommanderNumericId ?? 0;
+        return commanderId >= 1 && commanderId <= 20 ? commanderId : 0;
+    }
+
+    public int GetEffectiveMaxUnitsForCurrentBattle(int enemyUnitCount = -1)
+    {
+        int maxCount = GetMaxUnits();
+
+        if (GetCurrentEliteCommanderId() != 1)
+            return maxCount;
+
+        if (enemyUnitCount < 0)
+            enemyUnitCount = enemyUnits?.Count ?? 0;
+
+        return enemyUnitCount > 0 ? Mathf.Min(maxCount, enemyUnitCount) : maxCount;
+    }
+
     public void SetMaxUnits(int maxUnits)
     {
         this.maxUnits = maxUnits;
