@@ -87,6 +87,7 @@ public class UnitListUI : MonoBehaviour
         _selectedUnits.Clear();
         _onSelectAction = null;
         _sourceUnits = null;
+        _selectionRemain = 0;
         _unitOrder = -1;
 
         _onClosedAction?.Invoke();
@@ -138,8 +139,15 @@ public class UnitListUI : MonoBehaviour
         }
 
         if (!enabled) enabled = true;
-        if (!gameObject.activeSelf) gameObject.SetActive(true);
-        else ApplyModeUI();
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+        else
+        {
+            ApplyModeUI();
+            CreateUnitList();
+        }
     }
     // 사용처: 모드별 상단 UI 전환
     private void ApplyModeUI()
@@ -179,6 +187,7 @@ public class UnitListUI : MonoBehaviour
         List<RogueUnitDataBase> units = _sourceUnits != null
             ? new List<RogueUnitDataBase>(_sourceUnits)
             : RogueLikeData.Instance.GetMyTeam(); // 항상 현재 보유 유닛 기준
+        units.RemoveAll(unit => unit == null);
 
         // 캐시된 정렬 기준으로 정렬
         GetSortedUnits(ref units, GetUnitOrderCached());
@@ -279,7 +288,7 @@ public class UnitListUI : MonoBehaviour
         }
 
         // 남는 아이템 반환
-        for (int i = units.Count; i < childCount; i++)
+        for (int i = childCount - 1; i >= units.Count; i--)
         {
             var go = unitList.GetChild(i).gameObject;
 

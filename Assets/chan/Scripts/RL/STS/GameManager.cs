@@ -851,6 +851,12 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             unitIdList = preset.UnitList;
         }
 
+        if ((presetID == 190 || presetID == 191 || presetID == 192) && unitIdList != null && unitIdList.Count > 0)
+        {
+            preset.UnitList = new List<int>(unitIdList);
+            preset.UnitCount = unitIdList.Count;
+        }
+
         // 2) 프리셋의 UnitList(int idx 리스트) → UnitLoader로부터 복제해서 반환
         return unitIdList
                      .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, /*isTeam=*/ false))

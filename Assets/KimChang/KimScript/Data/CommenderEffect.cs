@@ -17,24 +17,11 @@ public static class CommenderEffect
     public static void CalculateHendrix() 
     { 
         var myUnits= RogueLikeData.Instance.GetMyUnits();
-        var enemyUnits =RogueLikeData.Instance.GetEnemyUnits();
         foreach (var unit in myUnits)
         {
             if(unit.branchIdx == 5)
             {
                 unit.Mobility = Math.Max(1, unit.Mobility - 1);
-
-            }
-            else if(unit.branchIdx == 4)
-            {
-                unit.effectDictionary[12] = new(12, 0, 1, -1);
-            }
-        }
-        foreach (var unit in enemyUnits)
-        {
-            if (unit.branchIdx == 5 || unit.branchIdx == 4)
-            {
-                unit.effectDictionary[12] = new(12, 0, 1, -1);
             }
         }
     }
@@ -69,6 +56,10 @@ public static class CommenderEffect
 
         }
     }
+    public static void CalculateMorrison()
+    {
+        CalcualteMorrison();
+    }
     //커트
     public static void CalculateKurt() 
     { 
@@ -84,7 +75,15 @@ public static class CommenderEffect
             unit.Armor = Math.Max(0, unit.Armor - 2);
         }
     }
-    public static void CalculateOzzy() { }
+    public static void CalculateOzzy()
+    {
+        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+        foreach (var unit in enemyUnits)
+        {
+            if (unit.branchIdx == 3)
+                unit.martyrdom = true;
+        }
+    }
     //슬래시
     public static void CalculateSlash()
     {
@@ -102,16 +101,7 @@ public static class CommenderEffect
     }
     public static void CalculateCobain() { }
 
-    public static void CalculateClapton()
-    {
-        var allUnits = RogueLikeData.Instance.GetMyUnits();
-        allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
-
-        foreach (var unit in allUnits)
-        {
-            unit.antiCavalry *= 2;
-        }
-    }
+    public static void CalculateClapton() { }
     //액슬
     public static void CalculateAxl() 
     { 
@@ -158,7 +148,7 @@ public static class CommenderEffect
             {
                 unit.maxHealth += 150;
                 unit.health = unit.maxHealth;
-                unit.attackDamage -= Mathf.Round(unit.baseAttackDamage * 0.1f);
+                unit.attackDamage = Mathf.Max(0, unit.attackDamage - Mathf.Round(unit.baseAttackDamage * 0.1f));
             }
         }
     }
@@ -171,7 +161,7 @@ public static class CommenderEffect
 
         foreach (var unit in myUnits)
         {
-            unit.attackDamage -= 10;
+            unit.attackDamage = Mathf.Max(0, unit.attackDamage - 10);
         }
     }
 

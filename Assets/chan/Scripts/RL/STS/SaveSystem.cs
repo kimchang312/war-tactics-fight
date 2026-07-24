@@ -28,6 +28,10 @@ public static class SaveSystem
                 allNodes = new List<StageNodeSaveEntry>()
             };
 
+            MapGenerator mapGenerator = UnityEngine.Object.FindObjectOfType<MapGenerator>();
+            if (mapGenerator != null)
+                data.SetSpecialPresetData(mapGenerator.GetSpecialPresetDataForSave());
+
         foreach (var node in allNodes.Values)
         {
             StageNodeSaveEntry entry = new()

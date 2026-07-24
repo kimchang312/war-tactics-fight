@@ -442,6 +442,24 @@ public class RelicManager
         return executed;
     }
 
+    public static int RunBattleSetupRelic()
+    {
+        int executed = 0;
+        int[] battleSetupRelicIds = { 96, 97, 127 };
+
+        for (int i = 0; i < battleSetupRelicIds.Length; i++)
+        {
+            WarRelic relic = GetRelicById(battleSetupRelicIds[i]);
+            if (relic == null)
+                continue;
+
+            relic.Execute();
+            executed++;
+        }
+
+        return executed;
+    }
+
     /// <summary>
     /// 사용처: 보유/미사용 여부 검사
     /// </summary>
@@ -640,18 +658,18 @@ public class RelicManager
 
         WarRelic relic = GetRelicById(relicId);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
-        if (vals == null || vals.Count <= 2 || relic.used)
+        if (vals == null || vals.Count < 2 || relic.used)
             return;
 
-        int deathThreshold = (int)vals[1];
-        float ampRatio = vals[2];
+        int deathThreshold = Mathf.Max(1, Mathf.RoundToInt(vals[0]));
+        float ampRatio = vals[1];
 
         List<RogueUnitDataBase> targetTeam = null;
 
         if (enemyDeads != null && enemyDeads.Count >= deathThreshold)
-            targetTeam = myUnits;
-        else if (myDeads != null && myDeads.Count >= deathThreshold)
             targetTeam = enemyUnits;
+        else if (myDeads != null && myDeads.Count >= deathThreshold)
+            targetTeam = myUnits;
 
         if (targetTeam == null || targetTeam.Count == 0)
             return;
@@ -696,7 +714,7 @@ public class RelicManager
         var vals = relic?.GetAllValuesAsFloatListOrNull();
         if (vals != null)
         {
-            multy = vals[1];
+            multy = vals[0];
         }
         return multy;
     }
@@ -742,7 +760,9 @@ public class RelicManager
         var vals = relic?.GetAllValuesAsFloatListOrNull();
         if (vals == null || vals.Count <= 4) return;
 
-        vals[4] += deadCount;
+        float addStack = vals[0] * deadCount;
+        float maxStack = vals[3];
+        vals[4] = Mathf.Min(maxStack, vals[4] + addStack);
         relic.SetValues(vals.Select(v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray());
         var myUnits = RogueLikeData.Instance.GetMyUnits();
 
@@ -783,7 +803,7 @@ public class RelicManager
         var vals = relic?.GetAllValuesAsFloatListOrNull();
         if (vals == null || vals.Count <= 1) return;
 
-        vals[1] = vals[0] * deadCount;
+        vals[1] += vals[0] * deadCount;
         relic.SetValues(vals.Select(v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray());
         var myUnits = RogueLikeData.Instance.GetMyUnits();
 
@@ -816,36 +836,64 @@ public class RelicManager
     //유산 127
     public static void RunGuardiansCloak(List<RogueUnitDataBase> units, bool isTeam, ref int unitIdx, ref float damage)
     {
+        if (!isTeam || units == null || unitIdx < 0 || unitIdx >= units.Count || damage <= 0f)
+            return;
+
         //공격 당하는 유닛
         RogueUnitDataBase target = units[unitIdx];
+        if (target == null)
+            return;
 
         WarRelic relic = GetRelicById(127);
         var vals = relic?.GetAllValuesAsFloatListOrNull();
         if (vals == null) return;
 
-        if (!isTeam && !relic.used) return;
+        if (!relic.used) return;
 
         for (int i = 0; i < units.Count; i++)
         {
             RogueUnitDataBase unit = units[i];
-            if (unit.UniqueId == target.UniqueId)
-            {
-                unitIdx = i;
-            }
-            if (unit.effectDictionary.ContainsKey(15) && target.UniqueId != unit.UniqueId)
+            if (unit == null || unit.effectDictionary == null)
+                continue;
+
+            if (unit.effectDictionary.ContainsKey(15) && !ReferenceEquals(target, unit))
             {
                 if (unit.health > 0)
                 {
-                    damage *= 1 + vals[0];
+                    unitIdx = i;
+                    damage *= Mathf.Max(0f, 1f - vals[0]);
+                    return;
                 }
-                else
-                {
-                    relic.used = false;
-                }
+
+                relic.used = false;
             }
         }
+    }
 
-        return;
+    public static float RunSpectersCowlDamagePenalty(float damage, bool isTeam)
+    {
+        if (!isTeam || damage <= 0f || !CheckRelicById(130))
+            return damage;
+
+        WarRelic relic = GetRelicById(130);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+        if (vals == null || vals.Count < 2)
+            return damage;
+
+        return damage * Mathf.Max(0f, 1f - vals[1]);
+    }
+
+    public static bool RunSpectersCowlExecution()
+    {
+        if (!CheckRelicById(130))
+            return false;
+
+        WarRelic relic = GetRelicById(130);
+        var vals = relic?.GetAllValuesAsFloatListOrNull();
+        if (vals == null || vals.Count == 0)
+            return false;
+
+        return RogueLikeData.Instance.GetRandomFloat() < vals[0];
     }
 
     //유산 129
@@ -885,27 +933,27 @@ public class RelicManager
     //전투당 한번 유산 초기화
     public static void ResetBattleOnceRelic()
     {
-        if (CheckRelicById(27))
+        WarRelic heartRelic = GetRelicById(27);
+        if (heartRelic != null)
         {
-            WarRelic heartRelic = GetRelicById(27);
             heartRelic.used = false;
 
         }
-        if (CheckRelicById(104))
+        WarRelic doubleEdgedAxeOfPride = GetRelicById(104);
+        if (doubleEdgedAxeOfPride != null)
         {
-            WarRelic doubleEdgedAxeOfPride = GetRelicById(104);
             doubleEdgedAxeOfPride.used = false;
 
         }
-        if (CheckRelicById(119))
+        WarRelic imperialThornWall = GetRelicById(119);
+        if (imperialThornWall != null)
         {
-            WarRelic relic = GetRelicById(119);
-            relic.used = false;
+            imperialThornWall.used = false;
         }
-        if (CheckRelicById(127))
+        WarRelic guardiansCloak = GetRelicById(127);
+        if (guardiansCloak != null)
         {
-            WarRelic relic = GetRelicById(127);
-            relic.used = false;
+            guardiansCloak.used = false;
         }
 
     }

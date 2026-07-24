@@ -262,7 +262,7 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
             {
                 case Context.Lineup:
 
-                    if (place.PlacedUniqueIds.Count >= RogueLikeData.Instance.GetMaxUnits())
+                    if (!place.CanAddUnit())
                     {
                         Debug.Log("⚠️ 최대 배치 수에 도달했습니다.");
                         return;
@@ -270,6 +270,8 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
 
                     // ① 배치판에 추가 → 반환된 순서로 UI 갱신
                     int order = place.AddUnitToBattle(unitData);
+                    if (order <= 0)
+                        return;
 
                     canvasGroup.alpha = 0.5f;
                     canvasGroup.interactable = false;
