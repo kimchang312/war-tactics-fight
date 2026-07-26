@@ -670,11 +670,31 @@ public class AutoBattleManager : MonoBehaviour
         }
 
         int presetId = RogueLikeData.Instance.GetPresetID();
+        int chapter = RogueLikeData.Instance.GetChapter();
+        StageType stageType = RogueLikeData.Instance.GetCurrentStageType();
         var preset = (presetId != -1 && StagePresetLoader.I != null) ? StagePresetLoader.I.GetByID(presetId) : null;
 
-        if (presetId == -1 || preset == null || preset.UnitList == null)
+        if (preset != null && preset.UnitList != null)
         {
-            Debug.LogError($"[AutoBattleManager] 프리셋 데이터 오류: presetId={presetId}");
+            enemyUnits = GetUnitsById(preset.UnitList) ?? new List<RogueUnitDataBase>();
+        }
+        else if (chapter >= 2 && stageType == StageType.Combat)
+        {
+            enemyUnits = RogueLikeData.Instance.GetEnemyUnits() ?? new List<RogueUnitDataBase>();
+            if (enemyUnits.Count == 0)
+            {
+                Debug.LogError($"[AutoBattleManager] 예산 기반 적 편성 데이터가 없습니다: chapter={chapter}, stageType={stageType}, presetId={presetId}");
+
+                if (GameManager.Instance != null)
+                    GameManager.Instance.CloseLoading();
+
+                HandleEnd(false);
+                return;
+            }
+        }
+        else
+        {
+            Debug.LogError($"[AutoBattleManager] 프리셋 데이터 오류: chapter={chapter}, stageType={stageType}, presetId={presetId}");
 
             if (GameManager.Instance != null)
                 GameManager.Instance.CloseLoading();
@@ -683,9 +703,6 @@ public class AutoBattleManager : MonoBehaviour
             return;
         }
 
-        List<int> unitIds = preset.UnitList;
-
-        enemyUnits = GetUnitsById(unitIds) ?? new List<RogueUnitDataBase>();
         myUnits = RogueLikeData.Instance.GetMyUnits() ?? new List<RogueUnitDataBase>();
 
         RogueLikeData.Instance.ClearSavedMyUnits();

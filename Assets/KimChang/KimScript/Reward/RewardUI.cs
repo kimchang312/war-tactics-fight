@@ -62,14 +62,30 @@ public class RewardUI : MonoBehaviour
         {
             _btnGraphics = btns.GetComponentsInChildren<Graphic>(true);
         }
-        if (unitListUI == null)
-        {
-            unitListUI = GameManager.Instance.unitListUI;
-        }
+        EnsureUnitListUI();
         if (itemToolTip == null)
         {
             itemToolTip = GameManager.Instance.itemToolTip;
         }
+    }
+
+    private bool EnsureUnitListUI()
+    {
+        if (unitListUI != null)
+            return true;
+
+        if (GameManager.Instance != null && GameManager.Instance.unitListUI != null)
+        {
+            unitListUI = GameManager.Instance.unitListUI;
+            return true;
+        }
+
+        unitListUI = FindObjectOfType<UnitListUI>(true);
+        if (unitListUI != null)
+            return true;
+
+        Debug.LogError("[RewardUI] UnitListUI reference could not be found.");
+        return false;
     }
 
     private void OnEnable()
@@ -485,6 +501,9 @@ public class RewardUI : MonoBehaviour
             if (info.data.relicId == 79)
             {
                 //일단 안쓰는걸로
+                if (!EnsureUnitListUI())
+                    return;
+
                 unitListUI.Show(1, null, SelectUnitEndless);
 
                 return;
@@ -497,10 +516,11 @@ public class RewardUI : MonoBehaviour
     // 이 함수는 유물 79 처리 후 선택 완료 시 호출한다.
     private void SelectUnitEndless()
     {
-        List<RogueUnitDataBase> units = RogueLikeData.Instance.GetSelectedUnits();
+        List<RogueUnitDataBase> units = RogueLikeData.Instance.GetSelectedUnits() ?? new List<RogueUnitDataBase>();
         foreach (var unit in units)
         {
-            unit.endless = true;
+            if (unit != null)
+                unit.endless = true;
         }
         RogueLikeData.Instance.ClearSelectedUnis();
         SkipSelectReward();

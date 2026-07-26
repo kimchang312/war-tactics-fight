@@ -133,6 +133,7 @@ public class RogueLikeData
         SavePlayerData data = new(
             0,
             new List<RogueUnitDataBase>(myTeam),
+            new List<RogueUnitDataBase>(enemyUnits),
             ownedRelicsById.Values.ToList(),
             encounteredEvent.Values.ToList(),
             currentGold, spentGold, playerMorale,
@@ -390,6 +391,7 @@ public class RogueLikeData
         SavePlayerData data = new(
             0,
             savedCopy,
+            new List<RogueUnitDataBase>(enemyUnits),
             ownedRelicsById.Values.ToList(),
             encounteredEvent.Values.ToList(),
             currentGold, spentGold, playerMorale,
@@ -445,7 +447,7 @@ public class RogueLikeData
     //상대 유닛 전부 수정하기
     public void SetAllEnemyUnits(List<RogueUnitDataBase> units)
     {
-        enemyUnits = new List<RogueUnitDataBase>(units);
+        enemyUnits = units != null ? new List<RogueUnitDataBase>(units) : new List<RogueUnitDataBase>();
     }
 
     //내 유닛 가져오기

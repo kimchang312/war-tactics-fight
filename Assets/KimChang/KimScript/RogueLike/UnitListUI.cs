@@ -17,6 +17,7 @@ public class UnitListUI : MonoBehaviour
     [SerializeField] private Button branchOrderBtn;
     [SerializeField] private Button energyOrderBtn;
     [SerializeField] private Button nameOrderBtn;
+    [SerializeField] private Button closeBtn;
     [SerializeField] private GameObject selectUnitObj;
     [SerializeField] private TextMeshProUGUI selectUnitText;
     [SerializeField] private ObjectPool objectPool;
@@ -43,12 +44,19 @@ public class UnitListUI : MonoBehaviour
 
     // 선택 모드 상태
     private int _selectionRemain = 0; // 0이면 열람 모드
-    private bool IsSelectionMode => _selectionRemain > 0;
+    private int _requiredSelectionCount = 0;
+    private bool _isSelectionMode = false;
+    private Button _selectUnitButton;
+    private bool IsSelectionMode => _isSelectionMode;
+    public bool IsSelectionModeActive => IsSelectionMode && gameObject.activeInHierarchy;
     // 사용처: 외부(UI 호출자)에서 UnitListUI 닫힘 시점 후처리
     private Action _onClosedAction;
     private void Awake()
     {
+        EnsureReferences();
         AddOrderButtonListeners();
+        BindCloseButton();
+        BindSelectionProceedButton();
 
         orderButtonMap[0] = dateOrderBtn;
         orderButtonMap[1] = dateOrderBtn;
@@ -66,7 +74,7 @@ public class UnitListUI : MonoBehaviour
     private void Start()
     {
         if (objectPool == null)
-            objectPool = GameManager.Instance.objectPool;
+            objectPool = GameManager.Instance != null ? GameManager.Instance.objectPool : null;
     }
 
     private void OnEnable()
@@ -74,7 +82,7 @@ public class UnitListUI : MonoBehaviour
         ApplyModeUI();
         PlayOpenAnimation();
         CreateUnitList();
-        transform.SetAsFirstSibling();
+        transform.SetAsLastSibling();
     }
 
     // 사용처: 비활성화 시 세션 상태 정리 및 외부 닫힘 콜백 호출
@@ -88,7 +96,15 @@ public class UnitListUI : MonoBehaviour
         _onSelectAction = null;
         _sourceUnits = null;
         _selectionRemain = 0;
+        _requiredSelectionCount = 0;
+        _isSelectionMode = false;
         _unitOrder = -1;
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetUnitListToggleVisible(true);
+            GameManager.Instance.SetUnitListToggleOpenState(false);
+        }
 
         _onClosedAction?.Invoke();
         _onClosedAction = null;
@@ -97,41 +113,45 @@ public class UnitListUI : MonoBehaviour
     // 사용처: 유닛 리스트 열기(선택 완료/닫힘 콜백 포함)
     public void Show(int unitCount = 0, List<RogueUnitDataBase> source = null, Action onSelected = null, Action onClosed = null)
     {
+        EnsureReferences();
         _onClosedAction = onClosed;
 
         if (unitCount > 0)
         {
+            _isSelectionMode = true;
+            _requiredSelectionCount = unitCount;
             _onSelectAction = onSelected;
-            _sourceUnits = source ?? RogueLikeData.Instance.GetMyTeam();
+            List<RogueUnitDataBase> defaultUnits = RogueLikeData.Instance != null
+                ? RogueLikeData.Instance.GetMyTeam()
+                : null;
+            _sourceUnits = source != null
+                ? new List<RogueUnitDataBase>(source)
+                : new List<RogueUnitDataBase>(defaultUnits ?? new List<RogueUnitDataBase>());
+            _sourceUnits.RemoveAll(unit => unit == null);
             _selectedUnits.Clear();
 
-            var resume = RogueLikeData.Instance.GetSelectedUnits();
+            var resume = RogueLikeData.Instance != null
+                ? RogueLikeData.Instance.GetSelectedUnits()
+                : null;
             if (resume != null && resume.Count > 0)
             {
                 var allow = new HashSet<RogueUnitDataBase>(_sourceUnits);
                 for (int i = 0; i < resume.Count; i++)
                 {
-                    if (allow.Contains(resume[i]))
+                    if (_selectedUnits.Count >= unitCount)
+                        break;
+
+                    if (allow.Contains(resume[i]) && !_selectedUnits.Contains(resume[i]))
                         _selectedUnits.Add(resume[i]);
                 }
-            }
-
-            if (_selectedUnits.Count >= unitCount)
-            {
-                RogueLikeData.Instance.SetSelectedUnits(_selectedUnits);
-                _onSelectAction?.Invoke();
-                _onSelectAction = null;
-                _sourceUnits = null;
-
-                _onClosedAction?.Invoke();
-                _onClosedAction = null;
-                return;
             }
 
             _selectionRemain = Math.Max(0, unitCount - _selectedUnits.Count);
         }
         else
         {
+            _isSelectionMode = false;
+            _requiredSelectionCount = 0;
             _onSelectAction = null;
             _sourceUnits = null;
             _selectedUnits.Clear();
@@ -147,22 +167,37 @@ public class UnitListUI : MonoBehaviour
         {
             ApplyModeUI();
             CreateUnitList();
+            transform.SetAsLastSibling();
         }
     }
     // 사용처: 모드별 상단 UI 전환
     private void ApplyModeUI()
     {
+        EnsureReferences();
         if (IsSelectionMode)
         {
-            buttons.SetActive(false);
-            selectUnitObj.SetActive(true);
-            if (selectUnitText != null)
-                selectUnitText.text = $"{_selectionRemain} 명 남음";
+            if (buttons != null)
+                buttons.SetActive(false);
+            if (closeBtn != null)
+                closeBtn.gameObject.SetActive(false);
+            if (selectUnitObj != null)
+                selectUnitObj.SetActive(true);
+            UpdateSelectionProceedUI();
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.SetUnitListToggleVisible(false);
         }
         else
         {
-            buttons.SetActive(true);
-            selectUnitObj.SetActive(false);
+            if (buttons != null)
+                buttons.SetActive(true);
+            if (closeBtn != null)
+                closeBtn.gameObject.SetActive(true);
+            if (selectUnitObj != null)
+                selectUnitObj.SetActive(false);
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.SetUnitListToggleVisible(true);
         }
     }
 
@@ -177,23 +212,47 @@ public class UnitListUI : MonoBehaviour
         rect.anchoredPosition = new Vector2(0f, -h);
 
         panelSeq = DOTween.Sequence();
-        panelSeq.Join(rect.DOAnchorPosY(0f, openAnimTime).SetEase(Ease.OutCubic));
+        panelSeq.SetUpdate(true);
+        panelSeq.Join(rect.DOAnchorPosY(0f, openAnimTime).SetEase(Ease.OutCubic).SetUpdate(true));
     }
 
     // 사용처: 유닛 목록 구성 및 등장 연출
     public void CreateUnitList()
     {
+        EnsureReferences();
+        if (unitList == null)
+        {
+            Debug.LogError("[UnitListUI] unitList reference is missing.");
+            return;
+        }
+
+        EnsureScrollViewport();
         // 선택 모드라면 source 우선, 아니면 보유 전체
         List<RogueUnitDataBase> units = _sourceUnits != null
             ? new List<RogueUnitDataBase>(_sourceUnits)
-            : RogueLikeData.Instance.GetMyTeam(); // 항상 현재 보유 유닛 기준
+            : new List<RogueUnitDataBase>(RogueLikeData.Instance != null
+                ? RogueLikeData.Instance.GetMyTeam() ?? new List<RogueUnitDataBase>()
+                : new List<RogueUnitDataBase>()); // 항상 현재 보유 유닛 기준
         units.RemoveAll(unit => unit == null);
 
         // 캐시된 정렬 기준으로 정렬
         GetSortedUnits(ref units, GetUnitOrderCached());
 
         if (objectPool == null)
-            objectPool = GameManager.Instance.objectPool;
+            objectPool = GameManager.Instance != null ? GameManager.Instance.objectPool : null;
+        if (objectPool == null)
+        {
+            Debug.LogError("[UnitListUI] ObjectPool reference is missing.");
+            return;
+        }
+
+        if (units.Count == 0)
+        {
+            int teamCount = RogueLikeData.Instance != null && RogueLikeData.Instance.GetMyTeam() != null
+                ? RogueLikeData.Instance.GetMyTeam().Count
+                : -1;
+            Debug.LogWarning($"[UnitListUI] No units to render. selectionMode={IsSelectionMode}, sourceCount={_sourceUnits?.Count ?? -1}, myTeamCount={teamCount}");
+        }
 
         if (!IsSelectionMode)
             ResetOrderBtn();
@@ -218,6 +277,7 @@ public class UnitListUI : MonoBehaviour
         graphicsCache.Clear();
 
         bool selectionMode = IsSelectionMode;
+        Debug.Log($"[UnitListUI] Render start. units={units.Count}, existingChildren={childCount}, selectionMode={selectionMode}");
 
         for (int i = 0; i < units.Count; i++)
         {
@@ -231,13 +291,33 @@ public class UnitListUI : MonoBehaviour
             else
             {
                 unitObj = objectPool.GetOrderUnit();
+                if (unitObj == null)
+                {
+                    Debug.LogError($"[UnitListUI] ObjectPool.GetOrderUnit returned null. index={i}, unitId={unit?.idx}");
+                    continue;
+                }
                 unitObj.transform.SetParent(unitList, false);
             }
 
+            ResetCardTransform(unitObj);
+
             // 데이터 바인딩
             OneUnitUI oneUnit = unitObj.GetComponent<OneUnitUI>();
+            if (oneUnit == null)
+            {
+                Debug.LogError($"[UnitListUI] OrderUnit prefab has no OneUnitUI component. object={unitObj.name}, index={i}, unitId={unit?.idx}");
+                continue;
+            }
+
             oneUnit.unit = unit;
-            oneUnit.SetOneUnit(unit);
+            try
+            {
+                oneUnit.SetOneUnit(unit);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[UnitListUI] Failed to bind OrderUnit. object={unitObj.name}, index={i}, unitId={unit?.idx}\n{ex}");
+            }
             //UIMaker.CreateSelectUnitEnergy(units[i], unitObj);
 
             // 선택 프레임 초기화/복원
@@ -288,6 +368,19 @@ public class UnitListUI : MonoBehaviour
         }
 
         // 남는 아이템 반환
+        var content = (RectTransform)unitList;
+        LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+        Canvas.ForceUpdateCanvases();
+
+        string firstInfo = "none";
+        if (unitList.childCount > 0)
+        {
+            var first = unitList.GetChild(0) as RectTransform;
+            if (first != null)
+                firstInfo = $"parent={first.parent?.name}, active={first.gameObject.activeSelf}, pos={first.anchoredPosition}, size={first.rect.size}";
+        }
+        Debug.Log($"[UnitListUI] Render end. childCount={unitList.childCount}, requestedUnits={units.Count}, first={firstInfo}");
+
         for (int i = childCount - 1; i >= units.Count; i--)
         {
             var go = unitList.GetChild(i).gameObject;
@@ -307,8 +400,9 @@ public class UnitListUI : MonoBehaviour
     private void AnimateScrollAndFade(RectTransform content)
     {
         listSeq = DOTween.Sequence();
+        listSeq.SetUpdate(true);
 
-        listSeq.Join(content.DOAnchorPosY(0f, sortAnimTime).SetEase(Ease.OutCubic));
+        listSeq.Join(content.DOAnchorPosY(0f, sortAnimTime).SetEase(Ease.OutCubic).SetUpdate(true));
 
         float masterAlpha = 0f;
         listSeq.Join(
@@ -328,7 +422,7 @@ public class UnitListUI : MonoBehaviour
                         gr.color = c;
                     }
                 }
-            }, 1f, sortAnimTime)
+            }, 1f, sortAnimTime).SetUpdate(true)
         );
 
         listSeq.OnComplete(() =>
@@ -352,13 +446,13 @@ public class UnitListUI : MonoBehaviour
         if (!IsSelectionMode || one == null || one.unit == null)
             return;
 
-        bool selected = one.selectFrame != null && one.selectFrame.activeSelf;
+        bool selected = _selectedUnits.Contains(one.unit);
 
         if (selected)
         {
             if (one.selectFrame != null) one.selectFrame.SetActive(false);
             _selectedUnits.Remove(one.unit);
-            _selectionRemain++;
+            _selectionRemain = Math.Min(_requiredSelectionCount, _selectionRemain + 1);
         }
         else
         {
@@ -366,28 +460,50 @@ public class UnitListUI : MonoBehaviour
                 return;
 
             if (one.selectFrame != null) one.selectFrame.SetActive(true);
-            _selectedUnits.Add(one.unit);
+            if (!_selectedUnits.Contains(one.unit))
+                _selectedUnits.Add(one.unit);
             _selectionRemain--;
         }
 
-        if (selectUnitText != null)
-            selectUnitText.text = $"{_selectionRemain} 명 남음";
+        UpdateSelectionProceedUI();
+
 
         if (_selectionRemain == 0)
-        {
-            RogueLikeData.Instance.SetSelectedUnits(_selectedUnits);
-
-            var cb = _onSelectAction;
-            _onSelectAction = null;
-            _sourceUnits = null;
-
-            if (cb != null) cb();
-
-            CloseWithAnimation();
-        }
+            RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>(_selectedUnits));
+        else
+            RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
     }
 
-    // 사용처: 선택 모드용 per-item 리스너 일괄 제거
+    // Selection mode confirmation button.
+    private void OnClickProceedSelection()
+    {
+        if (!IsSelectionMode || _selectionRemain > 0)
+            return;
+
+        RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>(_selectedUnits));
+
+        var cb = _onSelectAction;
+        _onSelectAction = null;
+        _sourceUnits = null;
+        _isSelectionMode = false;
+        _requiredSelectionCount = 0;
+        _selectionRemain = 0;
+
+        if (cb != null)
+            cb();
+
+        CloseWithAnimation();
+    }
+
+    private void UpdateSelectionProceedUI()
+    {
+        if (selectUnitText != null)
+            selectUnitText.text = _selectionRemain <= 0 ? "\uB118\uAE30\uAE30" : $"{_selectionRemain}\uBA85 \uC120\uD0DD";
+
+        if (_selectUnitButton != null)
+            _selectUnitButton.interactable = _selectionRemain <= 0;
+    }
+
     private void RemoveSelectionListeners()
     {
         if (_unitClickMap.Count == 0) return;
@@ -436,7 +552,7 @@ public class UnitListUI : MonoBehaviour
         int unitOrder = GetUnitOrderCached();
         DisableAllOrderImages();
 
-        if (orderButtonMap.TryGetValue(unitOrder, out var targetBtn))
+        if (orderButtonMap.TryGetValue(unitOrder, out var targetBtn) && targetBtn != null && targetBtn.transform.childCount > 0)
         {
             Transform imgTr = targetBtn.transform.GetChild(0);
             if (imgTr != null)
@@ -452,16 +568,27 @@ public class UnitListUI : MonoBehaviour
     // 사용처: 모든 정렬 버튼 아이콘 끄기
     private void DisableAllOrderImages()
     {
-        if (dateOrderBtn != null) dateOrderBtn.transform.GetChild(0).gameObject.SetActive(false);
-        if (rarityOrderBtn != null) rarityOrderBtn.transform.GetChild(0).gameObject.SetActive(false);
-        if (branchOrderBtn != null) branchOrderBtn.transform.GetChild(0).gameObject.SetActive(false);
-        if (energyOrderBtn != null) energyOrderBtn.transform.GetChild(0).gameObject.SetActive(false);
-        if (nameOrderBtn != null) nameOrderBtn.transform.GetChild(0).gameObject.SetActive(false);
+        SetOrderImageActive(dateOrderBtn, false);
+        SetOrderImageActive(rarityOrderBtn, false);
+        SetOrderImageActive(branchOrderBtn, false);
+        SetOrderImageActive(energyOrderBtn, false);
+        SetOrderImageActive(nameOrderBtn, false);
+    }
+
+    private static void SetOrderImageActive(Button button, bool active)
+    {
+        if (button == null || button.transform.childCount == 0)
+            return;
+
+        button.transform.GetChild(0).gameObject.SetActive(active);
     }
 
     // 사용처: 정렬 버튼 클릭 처리
     private void OnOrderButtonClicked(Button btn, int baseOrder)
     {
+        if (btn == null || btn.transform.childCount == 0)
+            return;
+
         Transform imgTr = btn.transform.GetChild(0);
         if (imgTr == null) return;
 
@@ -489,17 +616,59 @@ public class UnitListUI : MonoBehaviour
     // 사용처: 정렬 버튼 리스너 등록
     private void AddOrderButtonListeners()
     {
-        dateOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(dateOrderBtn, 0));
-        rarityOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(rarityOrderBtn, 2));
-        branchOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(branchOrderBtn, 4));
-        energyOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(energyOrderBtn, 6));
-        nameOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(nameOrderBtn, 8));
+        if (dateOrderBtn != null) dateOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(dateOrderBtn, 0));
+        if (rarityOrderBtn != null) rarityOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(rarityOrderBtn, 2));
+        if (branchOrderBtn != null) branchOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(branchOrderBtn, 4));
+        if (energyOrderBtn != null) energyOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(energyOrderBtn, 6));
+        if (nameOrderBtn != null) nameOrderBtn.onClick.AddListener(() => OnOrderButtonClicked(nameOrderBtn, 8));
     }
 
-    // 사용처: 닫기 애니메이션
+    // Bind buttons that may be present only on the prefab.
+    private void BindCloseButton()
+    {
+        if (closeBtn == null)
+        {
+            Transform close = FindChildByName(transform, "CloseBtn");
+            if (close != null)
+                closeBtn = close.GetComponent<Button>();
+        }
+
+        if (closeBtn == null)
+            return;
+
+        closeBtn.onClick.RemoveListener(CloseWithAnimation);
+        closeBtn.onClick.AddListener(CloseWithAnimation);
+    }
+
+    private void BindSelectionProceedButton()
+    {
+        if (selectUnitObj == null)
+        {
+            Transform select = FindChildByName(transform, "SelectUnitObj");
+            if (select != null)
+                selectUnitObj = select.gameObject;
+        }
+
+        if (selectUnitObj == null)
+            return;
+
+        _selectUnitButton = selectUnitObj.GetComponent<Button>();
+        if (_selectUnitButton == null)
+            _selectUnitButton = selectUnitObj.AddComponent<Button>();
+
+        if (_selectUnitButton.targetGraphic == null)
+            _selectUnitButton.targetGraphic = selectUnitObj.GetComponent<Graphic>();
+
+        _selectUnitButton.onClick.RemoveListener(OnClickProceedSelection);
+        _selectUnitButton.onClick.AddListener(OnClickProceedSelection);
+    }
+
     public void CloseWithAnimation()
     {
         if (!gameObject.activeInHierarchy)
+            return;
+
+        if (IsSelectionMode && _selectionRemain > 0)
             return;
 
         var rect = (RectTransform)transform;
@@ -508,6 +677,7 @@ public class UnitListUI : MonoBehaviour
 
         float h = rect.rect.height > 0 ? rect.rect.height : Screen.height;
         rect.DOAnchorPos(new Vector2(0f, -h), 0.5f)
+            .SetUpdate(true)
             .SetEase(Ease.InCubic)
             .OnComplete(() => gameObject.SetActive(false));
     }
@@ -516,8 +686,127 @@ public class UnitListUI : MonoBehaviour
     private int GetUnitOrderCached()
     {
         if (_unitOrder < 0)
-            _unitOrder = RogueLikeData.Instance.GetUnitOrder();
+            _unitOrder = RogueLikeData.Instance != null ? RogueLikeData.Instance.GetUnitOrder() : 0;
         return _unitOrder;
+    }
+
+    private void EnsureReferences()
+    {
+        if (unitList == null)
+        {
+            Transform found = FindChildByName(transform, "SelectUnitParent");
+            if (found == null)
+                found = FindChildByName(transform, "UnitList");
+            if (found != null)
+                unitList = found;
+        }
+
+        if (buttons == null)
+        {
+            Transform found = FindChildByName(transform, "Buttons");
+            if (found == null)
+                found = FindChildByName(transform, "Button");
+            if (found != null)
+                buttons = found.gameObject;
+        }
+
+        if (closeBtn == null)
+        {
+            Transform found = FindChildByName(transform, "CloseBtn");
+            if (found != null)
+                closeBtn = found.GetComponent<Button>();
+        }
+
+        if (selectUnitObj == null)
+        {
+            Transform found = FindChildByName(transform, "SelectUnitObj");
+            if (found != null)
+                selectUnitObj = found.gameObject;
+        }
+
+        if (selectUnitText == null)
+        {
+            Transform found = FindChildByName(transform, "SelectUnitText");
+            if (found != null)
+                selectUnitText = found.GetComponent<TextMeshProUGUI>();
+        }
+
+        if (objectPool == null && GameManager.Instance != null)
+            objectPool = GameManager.Instance.objectPool;
+    }
+
+    private void EnsureScrollViewport()
+    {
+        if (unitList == null)
+            return;
+
+        ScrollRect scrollRect = unitList.GetComponentInParent<ScrollRect>(true);
+        if (scrollRect == null)
+            return;
+
+        RectTransform content = unitList as RectTransform;
+        if (content != null && scrollRect.content != content)
+            scrollRect.content = content;
+
+        RectTransform viewport = scrollRect.viewport;
+        if (viewport == null)
+        {
+            Transform found = FindChildByName(scrollRect.transform, "Viewport");
+            viewport = found as RectTransform;
+            if (viewport != null)
+                scrollRect.viewport = viewport;
+        }
+
+        if (viewport == null)
+            return;
+
+        bool collapsed =
+            Mathf.Abs(viewport.rect.width) <= 1f ||
+            Mathf.Abs(viewport.rect.height) <= 1f ||
+            (viewport.anchorMin == Vector2.zero && viewport.anchorMax == Vector2.zero && viewport.sizeDelta == Vector2.zero);
+
+        if (!collapsed)
+            return;
+
+        viewport.anchorMin = Vector2.zero;
+        viewport.anchorMax = Vector2.one;
+        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMax = Vector2.zero;
+        viewport.anchoredPosition = Vector2.zero;
+        viewport.pivot = new Vector2(0.5f, 0.5f);
+        Debug.LogWarning($"[UnitListUI] Scroll viewport was collapsed and has been resized. scrollRect={scrollRect.name}, viewport={viewport.name}");
+    }
+
+    private static void ResetCardTransform(GameObject unitObj)
+    {
+        if (unitObj == null)
+            return;
+
+        var rect = unitObj.transform as RectTransform;
+        if (rect == null)
+            return;
+
+        rect.localScale = Vector3.one;
+        rect.localRotation = Quaternion.identity;
+        rect.anchoredPosition3D = Vector3.zero;
+    }
+
+    private static Transform FindChildByName(Transform root, string childName)
+    {
+        if (root == null || string.IsNullOrEmpty(childName))
+            return null;
+
+        if (root.name == childName)
+            return root;
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Transform found = FindChildByName(root.GetChild(i), childName);
+            if (found != null)
+                return found;
+        }
+
+        return null;
     }
 
 }

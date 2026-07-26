@@ -37,10 +37,7 @@ public class StoreUI : MonoBehaviour
 
     private void Awake()
     {
-        if (unitListUI == null)
-        {
-            unitListUI = GameManager.Instance.unitListUI;
-        }
+        EnsureUnitListUI();
     }
 
     private void OnEnable()
@@ -83,11 +80,31 @@ public class StoreUI : MonoBehaviour
 
 
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
-        unitListUI.gameObject.SetActive(false);
+        if (EnsureUnitListUI())
+            unitListUI.gameObject.SetActive(false);
         ClosePackageBack();
         UnCheckAllItem();
         AddClickEventItemToCheck();
         SetStoreMainButtonsInteractable(true);
+    }
+
+    private bool EnsureUnitListUI()
+    {
+        if (unitListUI != null)
+            return true;
+
+        if (GameManager.Instance != null && GameManager.Instance.unitListUI != null)
+        {
+            unitListUI = GameManager.Instance.unitListUI;
+            return true;
+        }
+
+        unitListUI = FindObjectOfType<UnitListUI>(true);
+        if (unitListUI != null)
+            return true;
+
+        Debug.LogError("[StoreUI] UnitListUI 참조를 찾을 수 없습니다.");
+        return false;
     }
 
     private void CloseStore()
@@ -397,10 +414,10 @@ public class StoreUI : MonoBehaviour
         if (!RogueLikeData.Instance.CanSpendGold(price))
             return;
 
-        if (unitListUI == null)
+        if (!EnsureUnitListUI())
             return;
 
-        List<RogueUnitDataBase> candidates = RogueLikeData.Instance.GetMyTeam();
+        List<RogueUnitDataBase> candidates = RogueLikeData.Instance.GetMyTeam()?.FindAll(unit => unit != null) ?? new List<RogueUnitDataBase>();
         if (candidates == null || candidates.Count == 0)
             return;
 
@@ -439,7 +456,7 @@ public class StoreUI : MonoBehaviour
             return;
         }
 
-        List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+        List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits() ?? new List<RogueUnitDataBase>();
         for (int i = 0; i < selectedUnits.Count; i++)
         {
             if (selectedUnits[i] != null)
@@ -520,7 +537,10 @@ public class StoreUI : MonoBehaviour
     // 사용처: 선택형 기력 아이템은 유닛 선택이 끝난 뒤에만 결제/판매/저장 처리
     private void OpenEnergySelectPurchase(StoreSlotType type, int slotIndex, Button btn, StoreItemData item, int price)
     {
-        List<RogueUnitDataBase> canSelect = RogueLikeData.Instance.GetMyTeam();
+        if (!EnsureUnitListUI())
+            return;
+
+        List<RogueUnitDataBase> canSelect = RogueLikeData.Instance.GetMyTeam() ?? new List<RogueUnitDataBase>();
         List<RogueUnitDataBase> filtered = new List<RogueUnitDataBase>(canSelect.Count);
 
         for (int i = 0; i < canSelect.Count; i++)
@@ -531,7 +551,10 @@ public class StoreUI : MonoBehaviour
         }
 
         if (filtered.Count < item.count)
+        {
+            Debug.LogWarning($"[StoreUI] 기력 회복 아이템을 적용할 유닛이 부족합니다. itemId={item.itemId}, required={item.count}, candidates={filtered.Count}");
             return;
+        }
 
         SetStoreMainButtonsInteractable(false);
         RogueLikeData.Instance.SetSelectedUnits(new List<RogueUnitDataBase>());
@@ -580,7 +603,7 @@ public class StoreUI : MonoBehaviour
     private void ApplyEnergyToSelectedUnits(StoreItemData item)
     {
         int amount = int.TryParse(item.value, out var parsed) ? parsed : 0;
-        List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits();
+        List<RogueUnitDataBase> selectedUnits = RogueLikeData.Instance.GetSelectedUnits() ?? new List<RogueUnitDataBase>();
 
         for (int i = 0; i < selectedUnits.Count; i++)
         {
@@ -619,29 +642,39 @@ public class StoreUI : MonoBehaviour
         // 사용처: 선택형 기력 아이템에서 유닛 선택 UI 오픈
         if (item.form == "Select")
         {
-            List<RogueUnitDataBase> canSelect = RogueLikeData.Instance.GetMyTeam();
+            if (!EnsureUnitListUI())
+                return;
+
+            List<RogueUnitDataBase> canSelect = RogueLikeData.Instance.GetMyTeam() ?? new List<RogueUnitDataBase>();
             var filtered = new List<RogueUnitDataBase>(canSelect.Count);
 
             for (int i = 0; i < canSelect.Count; i++)
             {
                 var u = canSelect[i];
-                if (u.Energy < u.MaxEnergy)
+                if (u != null && u.Energy < u.MaxEnergy)
                     filtered.Add(u);
             }
 
             if (filtered.Count < item.count)
+            {
+                Debug.LogWarning($"[StoreUI] 선택형 기력 아이템을 적용할 유닛이 부족합니다. itemId={item.itemId}, required={item.count}, candidates={filtered.Count}");
                 return;
-
-            int shownPrice = btn.TryGetComponent<ItemInformation>(out var info)
-                ? info.data.price
-                : CalculateDiscountedPrice(item);
+            }
 
             SetStoreMainButtonsInteractable(false);
 
             unitListUI.Show(
                 item.count,
                 filtered,
-                () => PurChaseItem(btn, item, shownPrice),
+                () =>
+                {
+                    ApplyEnergyToSelectedUnits(item);
+                    RogueLikeData.Instance.SaveNow();
+                    SetStoreMainButtonsInteractable(true);
+
+                    if (lineUpBar != null)
+                        lineUpBar.RefreshUnitList();
+                },
                 () => SetStoreMainButtonsInteractable(true)
             );
 
@@ -650,7 +683,9 @@ public class StoreUI : MonoBehaviour
         else if (item.form == "Random")
         {
             int amount = int.Parse(item.value);
-            var units = RogueLikeData.Instance.GetMyTeam().Where(u => u.Energy < u.MaxEnergy).ToList();
+            var units = (RogueLikeData.Instance.GetMyTeam() ?? new List<RogueUnitDataBase>())
+                .Where(u => u != null && u.Energy < u.MaxEnergy)
+                .ToList();
             if (units.Count == 0) return;
 
             for (int i = 0; i < units.Count; i++)

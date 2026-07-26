@@ -63,6 +63,7 @@ public class SavePlayerData
     public int saveVersion;
     public int id;
     public List<RogueUnitDataBase> myUnits;
+    public List<RogueUnitDataBase> enemyUnits = new();
     public List<WarRelic> warRelics = new();
     public List<int> eventIds = new();
     public int currentGold;
@@ -95,7 +96,7 @@ public class SavePlayerData
     public List<ChapterCounterSaveEntry> rainbowKeyUses = new();
 
     public SavePlayerData(
-        int id, List<RogueUnitDataBase> myUnits, List<WarRelic> warRelics, List<int> eventIds,
+        int id, List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, List<WarRelic> warRelics, List<int> eventIds,
         int currentGold, int spentGold, int playerMorale, int currentStageX, int currentStageY, int chapter,
         StageType currentStageType, UnitUpgrade[] unitUpgrades, int sariStack, BattleRewardData battleReward, int nextUniqueId, int score,
         // 추가 파라미터
@@ -104,6 +105,7 @@ public class SavePlayerData
         saveVersion = 3;
         this.id = id;
         this.myUnits = myUnits;
+        this.enemyUnits = enemyUnits ?? new List<RogueUnitDataBase>();
         this.warRelics = warRelics;
         this.eventIds = eventIds;
         this.currentGold = currentGold;
@@ -448,6 +450,15 @@ public class SaveData
                 if (unit != null)
                     unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
             }
+
+            List<RogueUnitDataBase> enemyUnits = new(savePlayerData.enemyUnits ?? new List<RogueUnitDataBase>());
+            foreach (var unit in enemyUnits)
+            {
+                if (unit != null)
+                    unit.effectDictionary = new Dictionary<int, BuffDebuffData>();
+            }
+            RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
+
             RogueLikeData.Instance.SetRelicBySaveData(new List<WarRelic>(savePlayerData.warRelics ?? new List<WarRelic>()));
 
             RogueLikeData.Instance.SetLoadData(

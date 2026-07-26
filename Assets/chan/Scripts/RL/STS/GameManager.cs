@@ -126,8 +126,11 @@ public class GameManager : MonoBehaviour
         GameTextDB.Boot();
         RelicManager.InitializeRelicCatalog();
 
-        openUnitOrderBtn.onClick.RemoveAllListeners();
-        openUnitOrderBtn.onClick.AddListener(ClickOpenUnitOrderUI);
+        if (openUnitOrderBtn != null)
+        {
+            openUnitOrderBtn.onClick.RemoveAllListeners();
+            openUnitOrderBtn.onClick.AddListener(ClickOpenUnitOrderUI);
+        }
     }
 
     /// <summary>전투 씬 등으로 RLmap이 언로드될 때 씬 오브젝트 참조가 끊깁니다. 맵 씬 로드 직후 UIGenerator·MapGenerator를 다시 잡습니다.</summary>
@@ -220,7 +223,7 @@ public class GameManager : MonoBehaviour
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
  {
-     openUnitOrderBtn.gameObject.SetActive(scene.name == "RLmap");
+     SetUnitListToggleVisible(scene.name == "RLmap");
      if (scene.name != "RLmap")
      {
         mapInitializedForScene = false;
@@ -540,7 +543,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             PlacePanelComponent.UpdateMaxUnitText();
 
             var enemies = LoadEnemyUnits(newStage.PresetID);
-            var preset = StagePresetLoader.I.GetByID(newStage.PresetID);
+            var preset = StagePresetLoader.I != null ? StagePresetLoader.I.GetByID(newStage.PresetID) : null;
 
             string cmdName = preset?.Commander ?? "";
             int? eliteCmdId = preset?.CommanderNumericId;
@@ -720,7 +723,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         mapCanvas.SetActive(true);
         loadingPanel.SetActive(false);
-        openUnitOrderBtn.gameObject.SetActive(true);
+        if (unitListUI != null && unitListUI.gameObject.activeSelf)
+            unitListUI.gameObject.SetActive(false);
+        SetUnitListToggleVisible(true);
         // 1) 씬 안의 모든 StageNodeUI 다시 가져오기
         var all = FindObjectsOfType<StageNodeUI>().ToList();
         
@@ -802,32 +807,39 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
                 Debug.LogError("→ 임시로 프리셋 기반 구성을 사용합니다.");
                 
                 // 프리셋 기반으로 폴백
-                var fallbackPreset = StagePresetLoader.I.GetByID(presetID);
+                var fallbackPreset = StagePresetLoader.I != null ? StagePresetLoader.I.GetByID(presetID) : null;
                 if (fallbackPreset != null && fallbackPreset.UnitList != null)
                 {
-                    return fallbackPreset.UnitList
+                    var fallbackEnemies = fallbackPreset.UnitList
                         .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, false))
                         .Where(u => u != null)
                         .ToList();
+                    RogueLikeData.Instance.SetAllEnemyUnits(fallbackEnemies);
+                    return fallbackEnemies;
                 }
-                return new List<RogueUnitDataBase>();
+                var emptyEnemies = new List<RogueUnitDataBase>();
+                RogueLikeData.Instance.SetAllEnemyUnits(emptyEnemies);
+                return emptyEnemies;
             }
             
             int budget = CalculateEnemyBudget(chapter, currentStage?.level ?? 0);
             var composition = EnemyBudgetComposer.Instance.ComposeEnemyArmy(budget);
-            
-            return composition.finalComposition;
+            var enemies = composition.finalComposition ?? new List<RogueUnitDataBase>();
+            RogueLikeData.Instance.SetAllEnemyUnits(enemies);
+            return enemies;
         }
         
         // ✅ 그 외(챕터 1, 엘리트, 보스) - 기존 방식: StagePresets.json 사용
         Debug.Log($"[GameManager] 챕터 {chapter} {stageType} 스테이지 - 기존 프리셋 방식 사용");
         
         // 1) StagePresetLoader에서 프리셋 가져오기
-        var preset = StagePresetLoader.I.GetByID(presetID);
+        var preset = StagePresetLoader.I != null ? StagePresetLoader.I.GetByID(presetID) : null;
         if (preset == null)
         {
             Debug.LogError($"[GameManager] Preset {presetID} 을(를) 찾을 수 없습니다.");
-            return new List<RogueUnitDataBase>();
+            var emptyEnemies = new List<RogueUnitDataBase>();
+            RogueLikeData.Instance.SetAllEnemyUnits(emptyEnemies);
+            return emptyEnemies;
         }
 
         // 특수 프리셋 190, 191, 192번인 경우 MapGenerator에서 동적 유닛 구성 가져오기
@@ -851,6 +863,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             unitIdList = preset.UnitList;
         }
 
+        unitIdList ??= new List<int>();
+
         if ((presetID == 190 || presetID == 191 || presetID == 192) && unitIdList != null && unitIdList.Count > 0)
         {
             preset.UnitList = new List<int>(unitIdList);
@@ -858,10 +872,12 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         }
 
         // 2) 프리셋의 UnitList(int idx 리스트) → UnitLoader로부터 복제해서 반환
-        return unitIdList
+        var presetEnemies = unitIdList
                      .Select(idx => UnitLoader.Instance.GetCloneUnitById(idx, /*isTeam=*/ false))
                      .Where(u => u != null)
                      .ToList();
+        RogueLikeData.Instance.SetAllEnemyUnits(presetEnemies);
+        return presetEnemies;
     }
     
     /// <summary>
@@ -948,7 +964,9 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     public void HideAllPanels()
     {
         ShowLoadingPanel();
-        openUnitOrderBtn.gameObject.SetActive(false);
+        if (unitListUI != null && unitListUI.gameObject.activeSelf)
+            unitListUI.gameObject.SetActive(false);
+        SetUnitListToggleVisible(false);
         mapCanvas.SetActive(false);
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
@@ -1042,6 +1060,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         eventManager.SetActive(false);
         storeManager.SetActive(false);
         unitDetail.gameObject.SetActive(false);
+        if (unitListUI != null && unitListUI.gameObject.activeSelf)
+            unitListUI.gameObject.SetActive(false);
         restPanel.SetActive(false);
         enemyInfoPanel.SetActive(false);
         //rewardUI.gameObject.SetActive(false);
@@ -1152,7 +1172,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
         List<RogueUnitDataBase> enemies = LoadEnemyUnits(presetId);
 
-        var preset = StagePresetLoader.I.GetByID(presetId);
+        var preset = StagePresetLoader.I != null ? StagePresetLoader.I.GetByID(presetId) : null;
         string commanderName = preset?.Commander ?? "";
         int? eliteCommanderId = preset?.CommanderNumericId;
 
@@ -1246,17 +1266,46 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         Debug.LogWarning($"⚠️ Level {x}, Row {y}에 해당하는 스테이지를 찾을 수 없습니다.");
     }
 
+    public void SetUnitListToggleVisible(bool visible)
+    {
+        if (openUnitOrderBtn == null)
+            return;
+
+        bool shouldShow = visible && SceneManager.GetActiveScene().name == "RLmap";
+        openUnitOrderBtn.gameObject.SetActive(shouldShow);
+
+        if (shouldShow)
+            SetUnitListToggleOpenState(unitListUI != null && unitListUI.gameObject.activeInHierarchy);
+    }
+
+    public void SetUnitListToggleOpenState(bool opened)
+    {
+        if (openUnitOrderBtn == null)
+            return;
+
+        Image img = openUnitOrderBtn.GetComponent<Image>();
+        if (img == null)
+            return;
+
+        img.sprite = SpriteCacheManager.GetSprite(opened ? "KIcon/UI/Img_CloseUnit" : "KIcon/UI/Img_OpenUnit");
+    }
+
     private void ClickOpenUnitOrderUI()
     {
-        Image img = openUnitOrderBtn.GetComponent<Image>();
-        if (unitListUI.gameObject.activeSelf) {
-            img.sprite = SpriteCacheManager.GetSprite("KIcon/UI/Img_OpenUnit");
+        if (unitListUI == null || openUnitOrderBtn == null)
+            return;
+
+        if (unitListUI.IsSelectionModeActive)
+            return;
+
+        if (unitListUI.gameObject.activeInHierarchy) {
+            SetUnitListToggleOpenState(false);
             unitListUI.CloseWithAnimation();
         }
         else
         {
-            img.sprite = SpriteCacheManager.GetSprite("KIcon/UI/Img_CloseUnit");
-            unitListUI.gameObject.SetActive(true);
+            SetUnitListToggleOpenState(true);
+            unitListUI.Show();
         }
         
     }
