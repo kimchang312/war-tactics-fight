@@ -53,7 +53,6 @@ public static class RewardManager
         var type = RogueLikeData.Instance.GetCurrentStageType();
 
         reward.battleResult = battleResult;
-
         // 사용처: 마지막 챕터 보스 승리만 승리 종료로 처리한다.
         if (battleResult == 0 && type == StageType.Boss && battleChapter == LastChapter)
         {

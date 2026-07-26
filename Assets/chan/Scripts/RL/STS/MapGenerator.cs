@@ -231,6 +231,10 @@ public class MapGenerator : MonoBehaviour
     {
         int chapter = RogueLikeData.Instance.GetChapter();
 
+        // 챕터 2 이상 일반 전투는 고정 StagePreset이 아니라 EnemyBudgetComposer가 적 편성을 만든다.
+        if (chapter >= 2 && stageType == StageType.Combat)
+            return -1;
+
         // StageType → JSON 문자열 매핑
         string jsonType = stageType switch
         {

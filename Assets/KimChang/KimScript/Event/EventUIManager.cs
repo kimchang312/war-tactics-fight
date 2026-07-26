@@ -44,6 +44,7 @@ public class EventUIManager : MonoBehaviour
 
     private void Awake()
     {
+        EnsureUnitListUI();
         ConfigureChoiceButtonParentLayout();
         ResetUI();
     }
@@ -235,7 +236,7 @@ public class EventUIManager : MonoBehaviour
         if (choiceData == null || choiceData.requireForm == null || choiceData.requireThing == null)
             return;
 
-        if (unitListUI == null)
+        if (!EnsureUnitListUI())
             return;
 
         List<RogueUnitDataBase> myUnits = RogueLikeData.Instance.GetMyTeam() ?? new List<RogueUnitDataBase>();
@@ -286,6 +287,7 @@ public class EventUIManager : MonoBehaviour
 
         if (candidates.Count < requiredCount)
         {
+            Debug.LogWarning($"[EventUIManager] 선택 가능한 유닛이 부족합니다. choiceId={choiceData.choiceId}, required={requiredCount}, candidates={candidates.Count}");
             RefreshChoiceButtonViews();
             return;
         }
@@ -298,10 +300,30 @@ public class EventUIManager : MonoBehaviour
     private void ResetUI()
     {
         ResetButtonUI();
-        unitListUI.gameObject.SetActive(false);
+        if (EnsureUnitListUI())
+            unitListUI.gameObject.SetActive(false);
         leaveBtn.onClick.RemoveListener(ClickLeaveBtn);
         leaveBtn.onClick.AddListener(ClickLeaveBtn);
         leaveBtn.gameObject.SetActive(false);
+    }
+
+    private bool EnsureUnitListUI()
+    {
+        if (unitListUI != null)
+            return true;
+
+        if (GameManager.Instance != null && GameManager.Instance.unitListUI != null)
+        {
+            unitListUI = GameManager.Instance.unitListUI;
+            return true;
+        }
+
+        unitListUI = FindObjectOfType<UnitListUI>(true);
+        if (unitListUI != null)
+            return true;
+
+        Debug.LogError("[EventUIManager] UnitListUI 참조를 찾을 수 없습니다.");
+        return false;
     }
     //버튼 전부 비활성화 
     private void ResetButtonUI()
