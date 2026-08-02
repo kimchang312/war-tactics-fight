@@ -79,6 +79,8 @@ public class UpgradeUI : MonoBehaviour
             // UI 텍스트 업데이트
             UpdateCostTexts();
         }
+
+        NotifyTutorialReady();
     }
 
     private void UpdateCostTexts()
@@ -218,6 +220,7 @@ public class UpgradeUI : MonoBehaviour
             btn.onClick.AddListener(() => OnOptionClicked(opt));
         }
         UpdateRerollButton();
+        NotifyTutorialReady();
     }
 
     private void OnOptionClicked(UpgradeOption opt)
@@ -228,6 +231,7 @@ public class UpgradeUI : MonoBehaviour
             return;
         }
 
+        TutorialHook.CancelCurrentStageContext("TacticalUpgrade");
         int before = RogueLikeData.Instance.GetUpgrade(opt.unitType, opt.isAttack);
 
         RogueLikeData.Instance.IncreaseUpgrade(opt.unitType, opt.isAttack, true);
@@ -281,6 +285,7 @@ public class UpgradeUI : MonoBehaviour
 
         // 리롤 차감
         RogueLikeData.Instance.AddReroll(- 1);
+        TutorialHook.CancelCurrentStageContext("TacticalUpgrade");
         ShowRandomChoices();
         UIManager.Instance.UIUpdateAll();
     }
@@ -289,5 +294,19 @@ public class UpgradeUI : MonoBehaviour
     {
         (int, bool) reroll = RogueLikeData.Instance.GetRerollChance();
         rerollButton.interactable = (reroll.Item1 > 0 && reroll.Item2);
+    }
+
+    private void NotifyTutorialReady()
+    {
+        if (!gameObject.activeInHierarchy || _currentChoices == null || _currentChoices.Count == 0)
+            return;
+
+        TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.SYS_01_TACTICAL_UPGRADE, "TacticalUpgrade");
+
+        if (rerollButton != null && rerollButton.interactable)
+        {
+            TutorialHook.EnqueueCurrentStage(TutorialId.RES_04_REROLL, "TacticalUpgrade", "RerollReady");
+            TutorialHook.NotifyCurrentStage("TacticalUpgrade", "RerollReady");
+        }
     }
 }

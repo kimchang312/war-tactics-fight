@@ -62,6 +62,7 @@ public class StoreUI : MonoBehaviour
         BindRelics(snap);
         BindItems(snap);
         BindReroll(snap);
+        TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.STG_05_SHOP, "Shop");
     }
 
     private void OnDisable()
@@ -109,6 +110,7 @@ public class StoreUI : MonoBehaviour
 
     private void CloseStore()
     {
+        TutorialHook.CancelCurrentStageContext("Shop");
         RogueLikeData.Instance.ClearStoreOpenState();
         RogueLikeData.Instance.SaveNow();
         gameObject.SetActive(false);

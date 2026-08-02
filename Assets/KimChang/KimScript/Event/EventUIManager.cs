@@ -109,6 +109,7 @@ public class EventUIManager : MonoBehaviour
         }
 
         RefreshChoiceButtonViews();
+        TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.STG_04_EVENT, "Event");
     }
 
     // 사용처: 이벤트 진입 후와 반복 선택지 처리 후 선택 버튼의 문구와 활성 상태를 다시 맞춘다.
@@ -184,6 +185,7 @@ public class EventUIManager : MonoBehaviour
             return;
         }
 
+        TutorialHook.CancelCurrentStageContext("Event");
         EventManager.ReduceRequire(choiceData);
         (string resultText, bool startsBattle) = EventManager.ApplyChoiceResult(choiceData, selectedUnits);
         eventDescriptionText.text = NormalizeChoiceDisplayText(resultText);
@@ -336,6 +338,7 @@ public class EventUIManager : MonoBehaviour
     //
     private void ClickLeaveBtn()
     {
+        TutorialHook.CancelCurrentStageContext("Event");
         RogueLikeData.Instance.ClearEventSnapshot();
         RogueLikeData.Instance.SaveNow();
         gameObject.SetActive(false);

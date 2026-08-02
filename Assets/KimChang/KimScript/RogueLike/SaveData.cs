@@ -58,6 +58,29 @@ public class ChapterCounterSaveEntry
 }
 
 [System.Serializable]
+public class TutorialCompletedVersionSaveEntry
+{
+    public string tutorialId;
+    public int contentVersion;
+
+    public TutorialCompletedVersionSaveEntry() { }
+
+    public TutorialCompletedVersionSaveEntry(string tutorialId, int contentVersion)
+    {
+        this.tutorialId = tutorialId;
+        this.contentVersion = contentVersion;
+    }
+}
+
+[System.Serializable]
+public class TutorialSaveData
+{
+    public int schemaVersion = 1;
+    public bool autoPopupDisabled;
+    public List<TutorialCompletedVersionSaveEntry> completedVersions = new();
+}
+
+[System.Serializable]
 public class SavePlayerData
 {
     public int saveVersion;
@@ -94,6 +117,7 @@ public class SavePlayerData
     public int randomSeed;
     public int stageCallCount;
     public List<ChapterCounterSaveEntry> rainbowKeyUses = new();
+    public TutorialSaveData tutorialSaveData = new();
 
     public SavePlayerData(
         int id, List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits, List<WarRelic> warRelics, List<int> eventIds,
@@ -489,6 +513,7 @@ public class SaveData
             RogueLikeData.Instance.SetBattleResumeSnapshot(savePlayerData.battleResume);
             RogueLikeData.Instance.SetProgressState(savePlayerData.progressState);
             RogueLikeData.Instance.SetUpgradeValues(savePlayerData.unitUpgrades);
+            RogueLikeData.Instance.SetTutorialSaveData(savePlayerData.tutorialSaveData);
             RogueLikeData.Instance.SetHasLoadedSaveData(true);
 
             // 언어 반영: 텍스트 DB 재로딩
@@ -524,10 +549,31 @@ public class SaveData
     public void ResetGameData()
     {
         ClearContinueLoadRequest();
+        TutorialSaveData preservedTutorialData = LoadTutorialSaveDataFromFile() ?? RogueLikeData.Instance.GetTutorialSaveData();
         DeleteSaveFile();
         SaveSystem.Clear();
         RogueLikeData.Instance.ResetToDefault();
+        RogueLikeData.Instance.SetTutorialSaveData(preservedTutorialData);
         SaveDataFile();
         LoadData();
+    }
+
+    private TutorialSaveData LoadTutorialSaveDataFromFile()
+    {
+        try
+        {
+            string path = Application.persistentDataPath + "/PlayerData.json";
+            if (!File.Exists(path))
+                return null;
+
+            string jsonData = File.ReadAllText(path);
+            SavePlayerData savePlayerData = JsonUtility.FromJson<SavePlayerData>(jsonData);
+            return savePlayerData?.tutorialSaveData;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"튜토리얼 저장 데이터 보존 실패: {ex.Message}");
+            return null;
+        }
     }
 }

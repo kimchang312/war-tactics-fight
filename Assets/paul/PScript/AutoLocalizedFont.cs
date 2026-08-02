@@ -1,40 +1,73 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class AutoLocalizedFont : MonoBehaviour
 {
     private TMP_Text textComponent;
+    private TMP_InputField inputField;
+    private bool subscribedToEvent;
 
     private void Awake()
     {
-        textComponent = GetComponent<TMP_Text>();
+        CacheComponents();
     }
 
     private void OnEnable()
     {
-        // 이벤트 구독 시작 (활성화될 때마다 최신 폰트 적용)
-        FontManager.OnFontChanged += UpdateFont;
+        CacheComponents();
 
-        // 켜질 때 현재 설정된 언어 폰트로 즉시 동기화
         if (FontManager.Instance != null)
         {
-            FontManager.Instance.ApplyLanguageFont(RogueLikeData.Instance.GetLanguage());
+            FontManager.Instance.Register(this);
+            return;
         }
+
+        FontManager.OnFontChanged += ApplyFont;
+        subscribedToEvent = true;
     }
 
     private void OnDisable()
     {
-        // 이벤트 구독 해제 (메모리 누수 방지)
-        FontManager.OnFontChanged -= UpdateFont;
+        if (FontManager.Instance != null)
+            FontManager.Instance.Unregister(this);
+
+        if (subscribedToEvent)
+        {
+            FontManager.OnFontChanged -= ApplyFont;
+            subscribedToEvent = false;
+        }
     }
 
-    private void UpdateFont(TMP_FontAsset newFont)
+    public void ApplyFont(TMP_FontAsset newFont)
     {
-        if (textComponent != null && newFont != null)
-        {
-            textComponent.font = newFont;
-        }
+        if (newFont == null)
+            return;
+
+        ApplyFontToText(textComponent, newFont);
+
+        if (inputField == null)
+            return;
+
+        ApplyFontToText(inputField.textComponent, newFont);
+
+        TMP_Text placeholderText = inputField.placeholder as TMP_Text;
+        ApplyFontToText(placeholderText, newFont);
+    }
+
+    private void CacheComponents()
+    {
+        if (textComponent == null)
+            textComponent = GetComponent<TMP_Text>();
+
+        if (inputField == null)
+            inputField = GetComponent<TMP_InputField>();
+    }
+
+    private static void ApplyFontToText(TMP_Text text, TMP_FontAsset font)
+    {
+        if (text == null || text.font == font)
+            return;
+
+        text.font = font;
     }
 }

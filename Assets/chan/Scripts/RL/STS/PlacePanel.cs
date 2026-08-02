@@ -76,6 +76,7 @@ public class PlacePanel : MonoBehaviour
     private void OnBackClicked()
     {
         // 결합 모드에서도 뒤로가기를 누르면 적 정보만 남기고 배치 패널을 닫을 수 있게 처리
+        TutorialHook.CancelCurrentStageContext("BattlePrep");
         gameObject.SetActive(false);
         enemyInfoPanel.SetActive(true);
     }
@@ -96,6 +97,10 @@ public class PlacePanel : MonoBehaviour
 
         // 배치 유닛 수 갱신
         UpdateCountTexts();
+
+        if (order == 1)
+            TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.INF_03_MATCHUP, "BattlePrep", TutorialHook.StepFirstUnitPlaced);
+
         return order;
     }
     private void CreateBattleUnitUI(RogueUnitDataBase unit, int uniqueId, int order)
@@ -202,6 +207,7 @@ public class PlacePanel : MonoBehaviour
         RogueLikeData.Instance.SetAllMyUnits(placedUnits);
         RogueLikeData.Instance.MarkBattleResumeInProgress(placedUniqueIds);
         RogueLikeData.Instance.SaveNow();
+        TutorialHook.CancelCurrentStageContext("BattlePrep");
         GameManager.Instance.HideAllPanels();
         ClearPlacePanel();
         await Task.Delay(MinLoadingDelayMilliseconds);

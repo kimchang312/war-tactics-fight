@@ -94,6 +94,7 @@ public class RogueLikeData
     private BattleResumeSnapshot battleResume;
     private SaveProgressState progressState = SaveProgressState.StageSelect;
     private bool hasLoadedSaveData = false;
+    private TutorialSaveData tutorialSaveData = new TutorialSaveData();
 
     // 사용처: 상점 좌표 → 유니크 키
     private string BuildStoreKey(int chapter, int x, int y) => $"{chapter}:{x}:{y}";
@@ -149,6 +150,7 @@ public class RogueLikeData
         data.randomSeed = randomSeed;
         data.stageCallCount = stageCallCount;
         data.rainbowKeyUses = GetRainbowKeyUsesSnapshot();
+        data.tutorialSaveData = CopyTutorialSaveData(tutorialSaveData);
         return data;
     }
 
@@ -407,6 +409,7 @@ public class RogueLikeData
         data.randomSeed = randomSeed;
         data.stageCallCount = stageCallCount;
         data.rainbowKeyUses = GetRainbowKeyUsesSnapshot();
+        data.tutorialSaveData = CopyTutorialSaveData(tutorialSaveData);
 
         myTeam = savedCopy;
         currentEvent = null;
@@ -1340,6 +1343,87 @@ public class RogueLikeData
         progressState = SaveProgressState.StageSelect;
         hasLoadedSaveData = false;
 
+    }
+
+    public TutorialSaveData GetTutorialSaveData()
+    {
+        tutorialSaveData ??= new TutorialSaveData();
+        return CopyTutorialSaveData(tutorialSaveData);
+    }
+
+    public void SetTutorialSaveData(TutorialSaveData data)
+    {
+        tutorialSaveData = CopyTutorialSaveData(data);
+    }
+
+    public int GetTutorialCompletedVersion(TutorialId id)
+    {
+        tutorialSaveData ??= new TutorialSaveData();
+        tutorialSaveData.completedVersions ??= new List<TutorialCompletedVersionSaveEntry>();
+
+        string idText = id.ToString();
+        TutorialCompletedVersionSaveEntry entry = tutorialSaveData.completedVersions
+            .FirstOrDefault(e => e != null && e.tutorialId == idText);
+
+        return entry != null ? entry.contentVersion : 0;
+    }
+
+    public void SetTutorialCompletedVersion(TutorialId id, int contentVersion)
+    {
+        tutorialSaveData ??= new TutorialSaveData();
+        tutorialSaveData.completedVersions ??= new List<TutorialCompletedVersionSaveEntry>();
+
+        string idText = id.ToString();
+        TutorialCompletedVersionSaveEntry entry = tutorialSaveData.completedVersions
+            .FirstOrDefault(e => e != null && e.tutorialId == idText);
+
+        if (entry == null)
+            tutorialSaveData.completedVersions.Add(new TutorialCompletedVersionSaveEntry(idText, Mathf.Max(1, contentVersion)));
+        else
+            entry.contentVersion = Mathf.Max(1, contentVersion);
+    }
+
+    public bool IsTutorialAutoPopupDisabled()
+    {
+        tutorialSaveData ??= new TutorialSaveData();
+        return tutorialSaveData.autoPopupDisabled;
+    }
+
+    public void SetTutorialAutoPopupDisabled(bool disabled)
+    {
+        tutorialSaveData ??= new TutorialSaveData();
+        tutorialSaveData.autoPopupDisabled = disabled;
+    }
+
+    public void ResetTutorialProgress()
+    {
+        tutorialSaveData = new TutorialSaveData();
+    }
+
+    private static TutorialSaveData CopyTutorialSaveData(TutorialSaveData source)
+    {
+        var copy = new TutorialSaveData();
+        if (source == null)
+            return copy;
+
+        copy.schemaVersion = source.schemaVersion <= 0 ? 1 : source.schemaVersion;
+        copy.autoPopupDisabled = source.autoPopupDisabled;
+        copy.completedVersions = new List<TutorialCompletedVersionSaveEntry>();
+
+        if (source.completedVersions == null)
+            return copy;
+
+        foreach (TutorialCompletedVersionSaveEntry entry in source.completedVersions)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.tutorialId))
+                continue;
+
+            copy.completedVersions.Add(new TutorialCompletedVersionSaveEntry(
+                entry.tutorialId,
+                Mathf.Max(0, entry.contentVersion)));
+        }
+
+        return copy;
     }
 
     public bool GetResetMap()

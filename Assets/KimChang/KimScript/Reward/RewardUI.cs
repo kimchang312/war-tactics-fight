@@ -109,6 +109,7 @@ public class RewardUI : MonoBehaviour
         CloseTeasureBoxImg();
         teasureBtn.onClick.RemoveAllListeners();
         teasureBtn.onClick.AddListener(CreateTeasureUI);
+        TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.STG_06_TREASURE, "Treasure");
     }
 
     // 이 함수는 보물 상자 클릭 시 보상 UI를 생성할 때 사용한다.
@@ -192,6 +193,7 @@ public class RewardUI : MonoBehaviour
             RogueLikeData.Instance.AddReroll(reward.rerollChance);
             reward.rerollChance = 0;
             RogueLikeData.Instance.SaveNow();
+            TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.RWD_01_BATTLE_REWARD, "Reward");
         }
 
     }
@@ -279,6 +281,9 @@ public class RewardUI : MonoBehaviour
     // 사용처: 보상창 종료 시 보물상자/배경까지 확실하게 정리하고 맵으로 복귀
     private void LeaveReward()
     {
+        TutorialHook.CancelCurrentStageContext("Reward");
+        TutorialHook.CancelCurrentStageContext("Treasure");
+
         if (teasureBox != null)
         {
             teasureBox.gameObject.SetActive(false);
@@ -307,6 +312,7 @@ public class RewardUI : MonoBehaviour
 
         ResetUI();
         GameManager.Instance?.RefreshNodeInfoButtonVisibility();
+        TutorialHook.NotifyMapHudResource();
     }
 
     // 이 함수는 유닛/유물 보상 선택창을 열 때 사용한다.
@@ -389,6 +395,15 @@ public class RewardUI : MonoBehaviour
         rerollBtn.gameObject.SetActive(true);
         skipBtn.gameObject.SetActive(true);
         DisableRewardWindow();
+
+        if (!isUnit)
+            TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.RWD_02_WAR_LEGACY, "Reward", TutorialHook.StepWarLegacy);
+
+        if (rerollBtn.interactable)
+        {
+            TutorialHook.EnqueueCurrentStage(TutorialId.RES_04_REROLL, "Reward", "RerollReady");
+            TutorialHook.NotifyCurrentStage("Reward", "RerollReady");
+        }
     }
 
     // 이 함수는 보상 버튼 클릭 시 실제 보상 적용을 처리할 때 사용한다.
@@ -913,6 +928,7 @@ public class RewardUI : MonoBehaviour
         if (reward != null)
             reward.gold = 0;
         UIManager.Instance.UpdateGold(); // 금화 UI 즉시 갱신
+        TutorialHook.EnqueueMapHudResource(TutorialId.RES_01_GOLD);
         goldResult.onClick.RemoveAllListeners();
         goldResult.gameObject.SetActive(false);
         RogueLikeData.Instance.SaveNow();

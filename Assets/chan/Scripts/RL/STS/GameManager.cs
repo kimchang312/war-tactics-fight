@@ -111,6 +111,8 @@ public class GameManager : MonoBehaviour
                 topBarCanvas = topBarTransform.gameObject;
         }
 
+        EnsureTutorialSystem();
+
         if (nodeInfoUIImage != null)
             nodeInfoUIImage.SetActive(false);
       
@@ -154,6 +156,33 @@ public class GameManager : MonoBehaviour
         }
 
         EnsureNodeInfoButtonReference();
+    }
+
+    private void EnsureTutorialSystem()
+    {
+        Transform tutorialRoot = null;
+
+        if (topBarCanvas != null)
+            tutorialRoot = topBarCanvas.transform.Find("TutorialObj");
+
+        if (tutorialRoot == null)
+            tutorialRoot = transform.Find("TopBarCanvas/TutorialObj");
+
+        if (tutorialRoot == null)
+            return;
+
+        if (!tutorialRoot.gameObject.activeSelf)
+            tutorialRoot.gameObject.SetActive(true);
+
+        TutorialPopupUI popup = tutorialRoot.GetComponent<TutorialPopupUI>();
+        if (popup == null)
+            popup = tutorialRoot.gameObject.AddComponent<TutorialPopupUI>();
+
+        TutorialService service = tutorialRoot.GetComponent<TutorialService>();
+        if (service == null)
+            service = tutorialRoot.gameObject.AddComponent<TutorialService>();
+
+        service.ConfigurePopup(popup);
     }
 
     private void EnsureNodeInfoButtonReference()
@@ -249,6 +278,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         SetTopBarCanvasVisible(true);
 
         EnsureMapSceneUIReferences();
+        EnsureTutorialSystem();
 
         CloseAllUI();
 
@@ -576,6 +606,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
             RogueLikeData.Instance.BeginBattleResumeSnapshot(false);
             RogueLikeData.Instance.SaveNow();
+            EnqueueBattlePreparationTutorials(newStage.stageType);
             RefreshNodeInfoButton();
             return;  // 여기서 메서드를 끝내고, 맵 UI는 건드리지 않음
         }
@@ -743,6 +774,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             }
             Debug.Log("🆕 첫 진입: 레벨 0 전투 스테이지 해제");
             RefreshNodeInfoButton();
+            NotifyMapTutorialReady();
             return;
         }
 
@@ -789,7 +821,33 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         enemyInfoPanel.SetActive(false);
         PlacePanel.SetActive(false);
         RefreshNodeInfoButton();
+        NotifyMapTutorialReady();
     }
+
+    private void NotifyMapTutorialReady()
+    {
+        if (RogueLikeData.Instance != null &&
+            RogueLikeData.Instance.GetProgressState() != SaveProgressState.StageSelect)
+            return;
+
+        if (!IsMapPanelViewActive())
+            return;
+
+        TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.INF_01_ROUTE, "Map");
+        TutorialHook.NotifyMapHudResource();
+    }
+
+    private void EnqueueBattlePreparationTutorials(StageType stageType)
+    {
+        TutorialHook.EnqueueStageTypeGuide(stageType, "BattlePrep");
+        TutorialHook.EnqueueCurrentStage(TutorialId.INF_02_DEPLOY_AUTO, "BattlePrep");
+
+        if (stageType == StageType.Elite || stageType == StageType.Boss)
+            TutorialHook.EnqueueCurrentStage(TutorialId.INF_04_BATTLE_INFO, "BattlePrep");
+
+        TutorialHook.NotifyCurrentStage("BattlePrep");
+    }
+
     private List<RogueUnitDataBase> LoadEnemyUnits(int presetID)
     {
         int chapter = RogueLikeData.Instance.GetChapter();
@@ -1194,6 +1252,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             RogueLikeData.Instance.SetFieldId(fieldId);
         }
 
+        EnqueueBattlePreparationTutorials(stageType);
         RefreshNodeInfoButton();
     }
 

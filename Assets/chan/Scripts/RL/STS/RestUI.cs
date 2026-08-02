@@ -43,6 +43,11 @@ public class RestUI : MonoBehaviour
         
     }
 
+    private void OnEnable()
+    {
+        TutorialHook.EnqueueAndNotifyCurrentStage(TutorialId.STG_07_REST, "Rest");
+    }
+
     public void Hide()
     {
         RogueLikeData.Instance.SetProgressState(SaveProgressState.StageSelect);
@@ -51,11 +56,13 @@ public class RestUI : MonoBehaviour
         UIManager.Instance.UIUpdateAll();
         GameManager.Instance.RefreshNodeInfoButtonVisibility();
         GameManager.Instance.itemToolTip.SetActive(false);
+        TutorialHook.NotifyMapHudResource();
         Debug.Log("[RestUI] Hide() 호출됨");
     }
 
     private void OnTraining()
     {
+        TutorialHook.CancelCurrentStageContext("Rest");
         Debug.Log("훈련");
         //다음 전술 개량의 비용을 0으로
         PlayFadeEffect(() =>
@@ -73,17 +80,20 @@ public class RestUI : MonoBehaviour
 
     private void OnParty()
     {
+        TutorialHook.CancelCurrentStageContext("Rest");
         Debug.Log("연회");
         //부대 전체의 사기를 30만큼 회복
         PlayFadeEffect(() =>
         {
             RogueLikeData.Instance.ChangeMorale(30);
             UIManager.Instance.UpdateMorale();
+            TutorialHook.EnqueueMapHudResource(TutorialId.RES_02_MORALE);
             Hide();
         });
     }
     private void OnRest()
     {
+        TutorialHook.CancelCurrentStageContext("Rest");
         Debug.Log("휴식");
         PlayFadeEffect(() =>
         {
@@ -101,6 +111,7 @@ public class RestUI : MonoBehaviour
                     ui.SetupEnergy(ui.unitData);
             }
 
+            TutorialHook.EnqueueMapHudResource(TutorialId.RES_03_ENERGY);
             Hide();
         });
     }
