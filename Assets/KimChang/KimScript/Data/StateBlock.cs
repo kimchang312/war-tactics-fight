@@ -18,6 +18,9 @@ public class StatModifier
 [Serializable]
 public class StatBlock
 {
+    private const float MinArmor = 1f;
+    private const float MinMobility = 1f;
+
     public float baseHealth;
     public float baseAttackDamage;
     public float baseArmor;
@@ -64,7 +67,15 @@ public class StatBlock
         float flatBonus = modifiers.Where(m => m.stat == type && !m.isPercent).Sum(m => m.value);
         float percentBonus = modifiers.Where(m => m.stat == type && m.isPercent).Sum(m => m.value);
 
-        return (baseValue + flatBonus) * (1 + percentBonus);
+        float result = (baseValue + flatBonus) * (1 + percentBonus);
+
+        if (type == StatType.Armor)
+            return Math.Max(MinArmor, result);
+
+        if (type == StatType.Mobility)
+            return Math.Max(MinMobility, result);
+
+        return result;
     }
     public IEnumerable<StatModifier> GetAllModifiers() => modifiers;
 

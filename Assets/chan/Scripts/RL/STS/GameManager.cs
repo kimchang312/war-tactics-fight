@@ -234,7 +234,11 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    public void RefreshNodeInfoButtonVisibility() => RefreshNodeInfoButton();
+    public void RefreshNodeInfoButtonVisibility()
+    {
+        RefreshNodeInfoButton();
+        RefreshUnitListToggleVisibility();
+    }
 
     private void RefreshNodeInfoButton()
     {
@@ -248,6 +252,15 @@ public class GameManager : MonoBehaviour
 
         if (!show && nodeInfoUIImage != null && nodeInfoUIImage.activeSelf)
             nodeInfoUIImage.SetActive(false);
+    }
+
+    private void RefreshUnitListToggleVisibility()
+    {
+        bool listOpen = unitListUI != null &&
+                        unitListUI.gameObject.activeInHierarchy &&
+                        !unitListUI.IsSelectionModeActive;
+
+        SetUnitListToggleVisible(IsMapPanelViewActive() || listOpen);
     }
 
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -1330,11 +1343,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         if (openUnitOrderBtn == null)
             return;
 
-        bool shouldShow = visible && SceneManager.GetActiveScene().name == "RLmap";
+        bool shouldShow = visible && CanUseUnitListToggle();
         openUnitOrderBtn.gameObject.SetActive(shouldShow);
 
         if (shouldShow)
+        {
             SetUnitListToggleOpenState(unitListUI != null && unitListUI.gameObject.activeInHierarchy);
+            BringUnitListToggleToFrontIfOpen();
+        }
     }
 
     public void SetUnitListToggleOpenState(bool opened)
@@ -1354,7 +1370,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         if (unitListUI == null || openUnitOrderBtn == null)
             return;
 
-        if (unitListUI.IsSelectionModeActive)
+        if (!CanUseUnitListToggle())
             return;
 
         if (unitListUI.gameObject.activeInHierarchy) {
@@ -1365,7 +1381,36 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             SetUnitListToggleOpenState(true);
             unitListUI.Show();
+            BringUnitListToggleToFrontIfOpen();
         }
         
+    }
+
+    private bool CanUseUnitListToggle()
+    {
+        if (SceneManager.GetActiveScene().name != "RLmap")
+            return false;
+
+        if (unitListUI != null && unitListUI.IsSelectionModeActive)
+            return false;
+
+        if (eventManager != null && eventManager.activeInHierarchy)
+            return false;
+
+        if (storeManager != null && storeManager.activeInHierarchy)
+            return false;
+
+        return true;
+    }
+
+    private void BringUnitListToggleToFrontIfOpen()
+    {
+        if (openUnitOrderBtn == null || unitListUI == null)
+            return;
+
+        if (!unitListUI.gameObject.activeInHierarchy || unitListUI.IsSelectionModeActive)
+            return;
+
+        openUnitOrderBtn.transform.SetAsLastSibling();
     }
 }
