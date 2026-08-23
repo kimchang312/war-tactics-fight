@@ -820,6 +820,7 @@ public class RewardUI : MonoBehaviour
     {
         // 초기화
         ResetUI();
+        GameManager.Instance?.SetTopBarCanvasVisible(false);
 
         // 활성 루트 세팅
         SafeSetActive(gameOverPanel, true);

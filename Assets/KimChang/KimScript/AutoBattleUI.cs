@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -61,6 +62,8 @@ public class AutoBattleUI : MonoBehaviour
 
     private const float BaseWaittingTime = 500f;
     private float waittingTime = BaseWaittingTime;
+    private bool isCrashPhaseVisualActive;
+    private int crashAnimationRequestCount;
 
     // 사용처: 데미지 텍스트가 "처음부터" 더 위에서 뜨게 하는 스폰 오프셋
     [SerializeField] private float damageTextSpawnYOffset = 100f;
@@ -135,6 +138,8 @@ public class AutoBattleUI : MonoBehaviour
 
     private void OnDisable()
     {
+        isCrashPhaseVisualActive = false;
+
         var speedManager = GameSpeedManager.Instance;
         if (speedManager != null)
             speedManager.OnGameSpeedChanged -= ChangeWaittingTime;
@@ -395,10 +400,12 @@ public class AutoBattleUI : MonoBehaviour
         bool isThrowSpearProjectile = ContainsBattleText(text, "투창");
 
         // 원거리/투창은 유닛 돌진 애니메이션을 사용하지 않고 투사체만 사용
-        if (!isRangedProjectile && !isThrowSpearProjectile)
+        if (!isRangedProjectile && !isThrowSpearProjectile && !isCrashPhaseVisualActive)
         {
-            // 사용처: team은 피격 팀이므로 충돌 이동 애니메이션은 공격자인 반대 팀에서 실행한다.
-            BattleAnimation(damage, text, !team, isAttack);
+            // 충돌 페이즈의 기본 이동/검 연출은 HandleCrash에서 한 번만 실행한다.
+            // 그 외 근접 공격은 기존처럼 공격자 이동만 실행한다.
+            if (isAttack)
+                PlayUnitAttackMovement(!team);
         }
 
         // team은 피격 팀이다. 그대로 그 팀의 유닛을 찾는다.
@@ -810,10 +817,8 @@ public class AutoBattleUI : MonoBehaviour
     }
 
 
-    private void BattleAnimation(float damage, string text, bool team, bool isAttack)
+    private void PlayUnitAttackMovement(bool team)
     {
-        if (!isAttack) return;
-
         GameObject unit = FindUnit(0, team);
         if (unit == null) return;
 
@@ -834,9 +839,6 @@ public class AutoBattleUI : MonoBehaviour
         float forwardSec = 0.20f * speedRate;
         float returnSec = 0.05f * speedRate;
 
-        // 전투 애니 시작 시점에 검을 먼저 "생성"
-        StartCoroutine(RunCrashAnimation(team));
-
         Sequence attackSequence = DOTween.Sequence();
         attackSequence
             .Append(rectTransform.DOAnchorPos(moveBackPos, backSec))
@@ -845,15 +847,51 @@ public class AutoBattleUI : MonoBehaviour
             .Append(rectTransform.DOAnchorPos(originPos, returnSec));
     }
 
-
-    private IEnumerator RunCrashAnimation(bool team)
+    // 사용처: AutoBattleManager.HandleCrash에서 충돌 페이즈당 정확히 한 번 호출한다.
+    public void BeginCrashPhaseVisual()
     {
-        if (battleAnim == null || objectPool == null) yield break;
+        isCrashPhaseVisualActive = true;
+
+        // 충돌은 양쪽 전열이 동시에 공격하므로 이동도 한 번씩만 시작한다.
+        PlayUnitAttackMovement(true);
+        PlayUnitAttackMovement(false);
+
+        int requestId = ++crashAnimationRequestCount;
+        LogCrashDiagnostic(
+            $"[CrashVisual] frame={Time.frameCount} RunCrashAnimation request={requestId} " +
+            $"activeWeaponImagesBefore={objectPool?.ActiveWeaponImageCount ?? 0}");
+
+        PlayCrashWeaponAnimation(requestId);
+    }
+
+    // 사용처: 동기식 충돌 계산이 끝난 뒤 개별 피해가 일반 근접 이동을 다시 시작할 수 있도록 해제한다.
+    public void EndCrashPhaseVisual()
+    {
+        isCrashPhaseVisualActive = false;
+    }
+
+    private async void PlayCrashWeaponAnimation(int requestId)
+    {
+        try
+        {
+            await RunCrashAnimationAsync(requestId);
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e, this);
+        }
+    }
+
+    private async Task RunCrashAnimationAsync(int requestId)
+    {
+        if (battleAnim == null || objectPool == null)
+            return;
 
         // 전열 기준 오브젝트 찾기
         GameObject myFrontObj = FindUnit(0, true);
         GameObject enFrontObj = FindUnit(0, false);
-        if (myFrontObj == null || enFrontObj == null) yield break;
+        if (myFrontObj == null || enFrontObj == null)
+            return;
 
         RectTransform myAttach = myFrontObj.GetComponent<RectTransform>();
         RectTransform enAttach = enFrontObj.GetComponent<RectTransform>();
@@ -862,8 +900,7 @@ public class AutoBattleUI : MonoBehaviour
         var myIds = new List<int> { 1 };
         var enIds = new List<int> { 1 };
 
-        // Task를 코루틴으로 대기
-        var task = battleAnim.PlayPhaseAsync(
+        Task task = battleAnim.PlayPhaseAsync(
             phase: 4,                  // 내부 매핑에서 4=충돌
             myAttach: myAttach,
             enemyAttach: enAttach,
@@ -872,7 +909,22 @@ public class AutoBattleUI : MonoBehaviour
             enemyStyleIds: enIds
         );
 
-        while (!task.IsCompleted) yield return null;
+        LogCrashDiagnostic(
+            $"[CrashVisual] frame={Time.frameCount} PlayCrashAsync started request={requestId} " +
+            $"activeWeaponImages={objectPool.ActiveWeaponImageCount}");
+
+        await task;
+
+        LogCrashDiagnostic(
+            $"[CrashVisual] frame={Time.frameCount} PlayCrashAsync completed request={requestId} " +
+            $"activeWeaponImages={objectPool.ActiveWeaponImageCount}");
+    }
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+    private static void LogCrashDiagnostic(string message)
+    {
+        Debug.Log(message);
     }
 
 

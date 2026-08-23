@@ -2926,10 +2926,13 @@ public static class WarRelicDatabase
     {
         int id = 136;
         var vals = relic.GetAllValuesAsFloatListOrNull();
-        if (vals == null) return;
+        if (vals == null || vals.Count < 2) return;
         var myUnits = RogueLikeData.Instance.GetMyUnits();
         foreach (var unit in myUnits)
         {
+            if (unit == null || unit.branchIdx != 7)
+                continue;
+
             unit.stats.AddModifier(new StatModifier
             {
                 stat = StatType.Range,

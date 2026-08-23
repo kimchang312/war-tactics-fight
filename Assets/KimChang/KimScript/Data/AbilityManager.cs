@@ -2627,7 +2627,7 @@ public class AbilityManager
             //초기화 및 추가 적용
             foreach (var attacker in attackers)
             {
-                attacker.stats.RemoveModifiersBySourceAndId(SourceType.Skill, sariId);
+                attacker.stats.RemoveModifiersBySourceAndId(SourceType.Relic, sariId);
 
                 attacker.stats.AddModifier(new StatModifier
                 {

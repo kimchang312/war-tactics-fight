@@ -8,6 +8,9 @@ using UnityEngine;
 [System.Serializable]
 public class RogueUnitDataBase 
 {
+    private const int MinArmor = 1;
+    private const int MinMobility = 1;
+
     public int idx;
     public string unitName; 
     public string unitBranch;
@@ -36,13 +39,7 @@ public class RogueUnitDataBase
     public int Armor
     {
         get => _armor;
-        set
-        {
-            if(value < 1)
-                _armor = 1;
-            else
-                _armor = value;
-        }
+        set => _armor = Math.Max(MinArmor, value);
     }
 
     public float attackDamage;
@@ -50,13 +47,7 @@ public class RogueUnitDataBase
     public int Mobility
     {
         get => _mobility;
-        set
-        {
-            if (value < 1)
-                _mobility = 1;
-            else
-                _mobility = value;
-        }
+        set => _mobility = Math.Max(MinMobility, value);
     }
     public int range;
     public float antiCavalry;
@@ -208,13 +199,13 @@ public class RogueUnitDataBase
         this.defaultPrice = defaultPrice;
         this.rarity = rarity;
 
-        this.baseHealth = health;
-        this.baseArmor = armor;
-        this.baseAttackDamage = attackDamage;
-        this.baseMobility = mobility;
-        this.baseRange = range;
-        this.baseAntiCavalry = antiCavalry;
-        this.baseEnergy = energy;
+        this.baseHealth = baseHealth;
+        this.baseArmor = Mathf.RoundToInt(baseArmor);
+        this.baseAttackDamage = baseAttackDamage;
+        this.baseMobility = Mathf.RoundToInt(baseMobility);
+        this.baseRange = Mathf.RoundToInt(baseRange);
+        this.baseAntiCavalry = baseAntiCavalry;
+        this.baseEnergy = baseEnergy;
 
         this.health = health;
         this.Armor = armor;

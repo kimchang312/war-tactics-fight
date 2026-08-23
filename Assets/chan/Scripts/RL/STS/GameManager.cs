@@ -234,7 +234,11 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    public void RefreshNodeInfoButtonVisibility() => RefreshNodeInfoButton();
+    public void RefreshNodeInfoButtonVisibility()
+    {
+        RefreshNodeInfoButton();
+        RefreshUnitListToggleVisibility();
+    }
 
     private void RefreshNodeInfoButton()
     {
@@ -250,6 +254,15 @@ public class GameManager : MonoBehaviour
             nodeInfoUIImage.SetActive(false);
     }
 
+    private void RefreshUnitListToggleVisibility()
+    {
+        bool listOpen = unitListUI != null &&
+                        unitListUI.gameObject.activeInHierarchy &&
+                        !unitListUI.IsSelectionModeActive;
+
+        SetUnitListToggleVisible(IsMapPanelViewActive() || listOpen);
+    }
+
 private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
  {
      SetUnitListToggleVisible(scene.name == "RLmap");
@@ -257,6 +270,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      {
         mapInitializedForScene = false;
         restoredSavedGameForScene = false;
+        if (scene.name == "Title" && mapCanvas != null)
+            mapCanvas.SetActive(false);
         // GameManager가 DontDestroyOnLoad라서 RLmap UI가 남아있을 수 있으므로
         // 타이틀/전투 등 RLmap 외 씬 진입 시에는 관련 패널을 즉시 정리한다.
         if(scene.name != "Title")
@@ -1033,7 +1048,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         RefreshNodeInfoButton();
     }
 
-    private void SetTopBarCanvasVisible(bool visible)
+    public void SetTopBarCanvasVisible(bool visible)
     {
         if (topBarCanvas == null)
         {
@@ -1330,11 +1345,14 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         if (openUnitOrderBtn == null)
             return;
 
-        bool shouldShow = visible && SceneManager.GetActiveScene().name == "RLmap";
+        bool shouldShow = visible && CanUseUnitListToggle();
         openUnitOrderBtn.gameObject.SetActive(shouldShow);
 
         if (shouldShow)
+        {
             SetUnitListToggleOpenState(unitListUI != null && unitListUI.gameObject.activeInHierarchy);
+            BringUnitListToggleToFrontIfOpen();
+        }
     }
 
     public void SetUnitListToggleOpenState(bool opened)
@@ -1354,7 +1372,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         if (unitListUI == null || openUnitOrderBtn == null)
             return;
 
-        if (unitListUI.IsSelectionModeActive)
+        if (!CanUseUnitListToggle())
             return;
 
         if (unitListUI.gameObject.activeInHierarchy) {
@@ -1365,7 +1383,36 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             SetUnitListToggleOpenState(true);
             unitListUI.Show();
+            BringUnitListToggleToFrontIfOpen();
         }
         
+    }
+
+    private bool CanUseUnitListToggle()
+    {
+        if (SceneManager.GetActiveScene().name != "RLmap")
+            return false;
+
+        if (unitListUI != null && unitListUI.IsSelectionModeActive)
+            return false;
+
+        if (eventManager != null && eventManager.activeInHierarchy)
+            return false;
+
+        if (storeManager != null && storeManager.activeInHierarchy)
+            return false;
+
+        return true;
+    }
+
+    private void BringUnitListToggleToFrontIfOpen()
+    {
+        if (openUnitOrderBtn == null || unitListUI == null)
+            return;
+
+        if (!unitListUI.gameObject.activeInHierarchy || unitListUI.IsSelectionModeActive)
+            return;
+
+        openUnitOrderBtn.transform.SetAsLastSibling();
     }
 }

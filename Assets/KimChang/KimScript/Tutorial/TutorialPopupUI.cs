@@ -52,12 +52,20 @@ public class TutorialPopupUI : MonoBehaviour
             ShowPreviousPage();
     }
 
+    private void LateUpdate()
+    {
+        if (isOpen)
+            BringToFront();
+    }
+
     public void OpenAuto(TutorialGuideData guide, Action<TutorialPopupResult> closed)
     {
         InitializeIfNeeded();
 
         if (guide == null || guide.Pages == null || guide.Pages.Count == 0)
             return;
+
+        BindButtons();
 
         mode = TutorialMode.Auto;
         activeGuide = guide;
@@ -78,6 +86,8 @@ public class TutorialPopupUI : MonoBehaviour
 
         if (pages == null || pages.Count == 0)
             return;
+
+        BindButtons();
 
         mode = TutorialMode.Manual;
         activeGuide = null;
@@ -209,6 +219,9 @@ public class TutorialPopupUI : MonoBehaviour
                 ? (mode == TutorialMode.Auto ? "확인" : "닫기")
                 : "다음";
 
+        EnsureButtonReceivesInput(confirmButton);
+        EnsureButtonReceivesInput(nextButton);
+
         if (previousButton != null)
             previousButton.interactable = pageIndex > 0;
         if (nextButton != null)
@@ -331,6 +344,9 @@ public class TutorialPopupUI : MonoBehaviour
         if (visible && !gameObject.activeSelf)
             gameObject.SetActive(true);
 
+        if (visible)
+            BringToFront();
+
         isOpen = visible;
 
         if (popupRoot != null && popupRoot != gameObject)
@@ -345,6 +361,36 @@ public class TutorialPopupUI : MonoBehaviour
         fallbackCanvasGroup.alpha = visible ? 1f : 0f;
         fallbackCanvasGroup.interactable = visible;
         fallbackCanvasGroup.blocksRaycasts = visible;
+    }
+
+    private void BringToFront()
+    {
+        SetAsLastSiblingIfNeeded(transform);
+
+        if (popupRoot != null && popupRoot != gameObject)
+            SetAsLastSiblingIfNeeded(popupRoot.transform);
+    }
+
+    private static void SetAsLastSiblingIfNeeded(Transform target)
+    {
+        if (target == null || target.parent == null)
+            return;
+
+        int lastSiblingIndex = target.parent.childCount - 1;
+        if (target.GetSiblingIndex() != lastSiblingIndex)
+            target.SetAsLastSibling();
+    }
+
+    private static void EnsureButtonReceivesInput(Button button)
+    {
+        if (button == null)
+            return;
+
+        button.gameObject.SetActive(true);
+        button.interactable = true;
+
+        if (button.targetGraphic != null)
+            button.targetGraphic.raycastTarget = true;
     }
 
     private static Transform FindDeepChild(Transform root, string targetName)

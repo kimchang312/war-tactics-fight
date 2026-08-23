@@ -33,10 +33,11 @@ public class UnitListUI : MonoBehaviour
     private float openAnimTime = 0.5f;
     private float sortAnimTime = 0.5f;
     private float scrollStartYOffset = -75f;
-
+    [SerializeField, Range(0.05f, 1f)] private float scrollbarHandleSize = 0.18f;
     private readonly Dictionary<int, Button> orderButtonMap = new Dictionary<int, Button>(10);
     private Sequence panelSeq;
     private Sequence listSeq;
+    private Scrollbar activeVerticalScrollbar;
 
     // 페이드 캐시(인스턴스 단위)
     private readonly List<CanvasGroup> cgCache = new List<CanvasGroup>(64);
@@ -79,6 +80,7 @@ public class UnitListUI : MonoBehaviour
 
     private void OnEnable()
     {
+        Canvas.willRenderCanvases += ApplyActiveScrollbarHandleSize;
         ApplyModeUI();
         PlayOpenAnimation();
         CreateUnitList();
@@ -88,6 +90,9 @@ public class UnitListUI : MonoBehaviour
     // 사용처: 비활성화 시 세션 상태 정리 및 외부 닫힘 콜백 호출
     private void OnDisable()
     {
+        Canvas.willRenderCanvases -= ApplyActiveScrollbarHandleSize;
+        activeVerticalScrollbar = null;
+
         if (_unitOrder >= 0)
             RogueLikeData.Instance.SetUnitOrder(_unitOrder);
 
@@ -368,19 +373,6 @@ public class UnitListUI : MonoBehaviour
         }
 
         // 남는 아이템 반환
-        var content = (RectTransform)unitList;
-        LayoutRebuilder.ForceRebuildLayoutImmediate(content);
-        Canvas.ForceUpdateCanvases();
-
-        string firstInfo = "none";
-        if (unitList.childCount > 0)
-        {
-            var first = unitList.GetChild(0) as RectTransform;
-            if (first != null)
-                firstInfo = $"parent={first.parent?.name}, active={first.gameObject.activeSelf}, pos={first.anchoredPosition}, size={first.rect.size}";
-        }
-        Debug.Log($"[UnitListUI] Render end. childCount={unitList.childCount}, requestedUnits={units.Count}, first={firstInfo}");
-
         for (int i = childCount - 1; i >= units.Count; i--)
         {
             var go = unitList.GetChild(i).gameObject;
@@ -394,6 +386,21 @@ public class UnitListUI : MonoBehaviour
 
             objectPool.ReturnOrderUnit(go);
         }
+
+        var content = (RectTransform)unitList;
+        LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+        Canvas.ForceUpdateCanvases();
+        UpdateScrollContentSizeAndScrollbar(units.Count);
+        Canvas.ForceUpdateCanvases();
+
+        string firstInfo = "none";
+        if (unitList.childCount > 0)
+        {
+            var first = unitList.GetChild(0) as RectTransform;
+            if (first != null)
+                firstInfo = $"parent={first.parent?.name}, active={first.gameObject.activeSelf}, pos={first.anchoredPosition}, size={first.rect.size}";
+        }
+        Debug.Log($"[UnitListUI] Render end. childCount={unitList.childCount}, requestedUnits={units.Count}, first={firstInfo}");
     }
 
     // 사용처: 목록 스크롤/페이드 연출
@@ -498,7 +505,7 @@ public class UnitListUI : MonoBehaviour
     private void UpdateSelectionProceedUI()
     {
         if (selectUnitText != null)
-            selectUnitText.text = _selectionRemain <= 0 ? "\uB118\uAE30\uAE30" : $"{_selectionRemain}\uBA85 \uC120\uD0DD";
+            selectUnitText.text = _selectionRemain <= 0 ? "\uC120\uD0DD\uC644\uB8CC" : $"{_selectionRemain}\uBA85 \uC120\uD0DD";
 
         if (_selectUnitButton != null)
             _selectUnitButton.interactable = _selectionRemain <= 0;
@@ -775,6 +782,153 @@ public class UnitListUI : MonoBehaviour
         viewport.anchoredPosition = Vector2.zero;
         viewport.pivot = new Vector2(0.5f, 0.5f);
         Debug.LogWarning($"[UnitListUI] Scroll viewport was collapsed and has been resized. scrollRect={scrollRect.name}, viewport={viewport.name}");
+    }
+
+    private void UpdateScrollContentSizeAndScrollbar(int itemCount)
+    {
+        if (unitList == null)
+            return;
+
+        ScrollRect scrollRect = unitList.GetComponentInParent<ScrollRect>(true);
+        if (scrollRect == null)
+            return;
+
+        RectTransform content = scrollRect.content != null
+            ? scrollRect.content
+            : unitList as RectTransform;
+        RectTransform viewport = scrollRect.viewport;
+
+        if (content == null || viewport == null)
+            return;
+
+        float viewportHeight = viewport.rect.height;
+        if (viewportHeight <= 1f)
+            return;
+
+        float requiredHeight = CalculateGridContentHeight(content, itemCount);
+        content.SetSizeWithCurrentAnchors(
+            RectTransform.Axis.Vertical,
+            Mathf.Max(requiredHeight, viewportHeight));
+
+        bool needsScroll = requiredHeight > viewportHeight + 1f;
+        scrollRect.vertical = needsScroll;
+        if (needsScroll)
+        {
+            scrollRect.verticalNormalizedPosition = 1f;
+            Canvas.ForceUpdateCanvases();
+        }
+
+        if (scrollRect.verticalScrollbar != null)
+        {
+            activeVerticalScrollbar = needsScroll ? scrollRect.verticalScrollbar : null;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
+            scrollRect.verticalScrollbar.gameObject.SetActive(needsScroll);
+
+            if (needsScroll)
+                ApplyScrollbarHandleSize(scrollRect.verticalScrollbar);
+
+            if (!needsScroll)
+            {
+                scrollRect.verticalNormalizedPosition = 1f;
+                scrollRect.verticalScrollbar.size = 1f;
+            }
+        }
+    }
+
+    private void LateUpdate()
+    {
+        ApplyActiveScrollbarHandleSize();
+    }
+
+    private void ApplyActiveScrollbarHandleSize()
+    {
+        ApplyScrollbarHandleSize(activeVerticalScrollbar);
+    }
+
+    private void ApplyScrollbarHandleSize(Scrollbar scrollbar)
+    {
+        if (scrollbar == null || !scrollbar.gameObject.activeInHierarchy)
+            return;
+
+        float targetSize = Mathf.Clamp01(scrollbarHandleSize);
+        if (targetSize <= 0f || targetSize >= 1f)
+            return;
+
+        scrollbar.size = Mathf.Min(scrollbar.size, targetSize);
+    }
+
+    private static float CalculateGridContentHeight(RectTransform content, int itemCount)
+    {
+        if (content == null || itemCount <= 0)
+            return 0f;
+
+        GridLayoutGroup grid = content.GetComponent<GridLayoutGroup>();
+        if (grid == null)
+            return content.rect.height;
+
+        int rows;
+        if (grid.constraint == GridLayoutGroup.Constraint.FixedColumnCount)
+        {
+            int columns = Mathf.Max(1, grid.constraintCount);
+            rows = Mathf.CeilToInt(itemCount / (float)columns);
+        }
+        else if (grid.constraint == GridLayoutGroup.Constraint.FixedRowCount)
+        {
+            rows = Mathf.Max(1, Mathf.Min(itemCount, grid.constraintCount));
+        }
+        else
+        {
+            float availableWidth = content.rect.width - grid.padding.horizontal;
+            float cellWidth = Mathf.Max(1f, grid.cellSize.x + grid.spacing.x);
+            int columns = Mathf.Max(1, Mathf.FloorToInt((availableWidth + grid.spacing.x) / cellWidth));
+            rows = Mathf.CeilToInt(itemCount / (float)columns);
+        }
+
+        rows = Mathf.Max(1, rows);
+        float gridHeight = grid.padding.vertical +
+               rows * grid.cellSize.y +
+               Mathf.Max(0, rows - 1) * grid.spacing.y;
+
+        return Mathf.Max(gridHeight, CalculateActiveChildVisualHeight(content, itemCount));
+    }
+
+    private static float CalculateActiveChildVisualHeight(RectTransform content, int itemCount)
+    {
+        if (content == null || itemCount <= 0)
+            return 0f;
+
+        int count = Mathf.Min(itemCount, content.childCount);
+        if (count <= 0)
+            return 0f;
+
+        bool hasBounds = false;
+        float minY = 0f;
+        float maxY = 0f;
+
+        for (int i = 0; i < count; i++)
+        {
+            RectTransform child = content.GetChild(i) as RectTransform;
+            if (child == null || !child.gameObject.activeSelf)
+                continue;
+
+            Bounds bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(content, child);
+            if (!hasBounds)
+            {
+                minY = bounds.min.y;
+                maxY = bounds.max.y;
+                hasBounds = true;
+            }
+            else
+            {
+                minY = Mathf.Min(minY, bounds.min.y);
+                maxY = Mathf.Max(maxY, bounds.max.y);
+            }
+        }
+
+        if (!hasBounds)
+            return 0f;
+
+        return Mathf.Max(0f, -minY) + Mathf.Max(0f, maxY);
     }
 
     private static void ResetCardTransform(GameObject unitObj)

@@ -29,6 +29,7 @@ public sealed class BattleCrashAnimation : MonoBehaviour
     // 사용처: PlayCrashAsync에서 무기가 유닛 중심이 아니라 전방에서 시작하도록 하는 거리
     private float weaponFrontStartDistance = 250f;
     private float crashEffectYOffset = 30f;
+    private int crashPlayCount;
 
     private void OnEnable()
     {
@@ -117,6 +118,8 @@ public sealed class BattleCrashAnimation : MonoBehaviour
     {
         if (myAttach == null || enemyAttach == null || pool == null) return;
 
+        int playId = ++crashPlayCount;
+
         // 사용처: AutoBattleUI의 공격 시퀀스(뒤로 0.05 + 대기 0.2 + 앞으로 0.2)에 맞춘 타이밍
         // 500ms 기준: preDelay=0.25s / approach=0.2s
         float preDelaySec = Mathf.Clamp(waittingTime * 0.0005f, 0.01f, 2.0f);
@@ -127,6 +130,12 @@ public sealed class BattleCrashAnimation : MonoBehaviour
         GameObject myGo = pool.GetWeaponImage();
         GameObject enemyGo = pool.GetWeaponImage();
         GameObject crashGo = pool.GetCrashEffect();
+
+        LogCrashDiagnostic(
+            $"[CrashVisual] frame={Time.frameCount} PlayCrashAsync call={playId} " +
+            $"myWeaponId={(myGo != null ? myGo.GetInstanceID() : 0)} " +
+            $"enemyWeaponId={(enemyGo != null ? enemyGo.GetInstanceID() : 0)} " +
+            $"activeWeaponImages={pool.ActiveWeaponImageCount}");
 
         // 사용처: 예외 시 풀 반환
         if (myGo == null || enemyGo == null || crashGo == null)
@@ -244,6 +253,18 @@ public sealed class BattleCrashAnimation : MonoBehaviour
         pool.ReturnWeaponImage(myGo);
         pool.ReturnWeaponImage(enemyGo);
         pool.ReturnCrashEffect(crashGo);
+
+        LogCrashDiagnostic(
+            $"[CrashVisual] frame={Time.frameCount} PlayCrashAsync returned call={playId} " +
+            $"myWeaponId={myGo.GetInstanceID()} enemyWeaponId={enemyGo.GetInstanceID()} " +
+            $"activeWeaponImages={pool.ActiveWeaponImageCount}");
+    }
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+    private static void LogCrashDiagnostic(string message)
+    {
+        Debug.Log(message);
     }
 
 

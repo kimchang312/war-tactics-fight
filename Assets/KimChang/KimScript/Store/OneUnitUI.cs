@@ -31,6 +31,7 @@ public class OneUnitUI : MonoBehaviour, IPointerClickHandler
 
         energyText.text = $"{unit.Energy}/{unit.MaxEnergy}";
         unitNameText.text = GameTextDB.GetByForeignKey(TextKind.Unit, unit.idx);
+        unitNameText.color = Color.white;
         UIMaker.CreateSelectUnitEnergy(unit, gameObject);
 
         unitFrameImg.sprite = SpriteCacheManager.GetFrameByRarity(unit.rarity);
