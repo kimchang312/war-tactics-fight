@@ -811,7 +811,16 @@ public class AutoBattleManager : MonoBehaviour
         // 충돌 전 이펙트 재생 (타임아웃 5초)
         await PlayPhaseEffect("Crash");
 
-        ChrashPhase();
+        // 기본 충돌 검/이동 연출은 피해 텍스트가 아니라 충돌 페이즈에서 한 번만 시작한다.
+        autoBattleUI?.BeginCrashPhaseVisual();
+        try
+        {
+            ChrashPhase();
+        }
+        finally
+        {
+            autoBattleUI?.EndCrashPhaseVisual();
+        }
 
         await Task.Yield();
         return true;

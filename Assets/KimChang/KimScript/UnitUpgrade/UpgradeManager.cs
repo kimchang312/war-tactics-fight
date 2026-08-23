@@ -84,7 +84,7 @@ public class UpgradeManager
                     value = 0.1f * atkLv* helmetValue,
                     source = SourceType.Upgrade,
                     modifierId = id,
-                    isPercent = false
+                    isPercent = true
                 });
             }
 
@@ -94,6 +94,31 @@ public class UpgradeManager
                 {
                     stat = StatType.Health,
                     value = 0.1f * defLv * helmetValue,
+                    source = SourceType.Upgrade,
+                    modifierId = id,
+                    isPercent = true
+                });
+            }
+
+            // 5단계 설명에 명시된 추가 공격력/장갑 효과를 기본 퍼센트 강화와 같은 방식으로 적용한다.
+            if (atkLv == 5 && (idx == 0 || idx == 1 || idx == 3 || idx == 4))
+            {
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.AttackDamage,
+                    value = 0.15f * helmetValue,
+                    source = SourceType.Upgrade,
+                    modifierId = id,
+                    isPercent = true
+                });
+            }
+
+            if (defLv == 5 && (idx == 0 || idx == 1 || idx == 3 || idx == 5 || idx == 6 || idx == 7))
+            {
+                unit.stats.AddModifier(new StatModifier
+                {
+                    stat = StatType.Armor,
+                    value = 5 * helmetValue,
                     source = SourceType.Upgrade,
                     modifierId = id,
                     isPercent = false
@@ -109,17 +134,6 @@ public class UpgradeManager
                     break;
 
                 case 1:
-                    if (atkLv == 5)
-                    {
-                        unit.stats.AddModifier(new StatModifier
-                        {
-                            stat = StatType.AttackDamage,
-                            value = unit.baseAttackDamage * 0.15f * helmetValue,
-                            source = SourceType.Upgrade,
-                            modifierId = id,
-                            isPercent = false
-                        });
-                    }
                     break;
 
                 case 2:
@@ -148,31 +162,9 @@ public class UpgradeManager
                     break;
 
                 case 3:
-                    if (atkLv == 5)
-                    {
-                        unit.stats.AddModifier(new StatModifier
-                        {
-                            stat = StatType.AttackDamage,
-                            value = unit.baseAttackDamage * 0.15f * helmetValue,
-                            source = SourceType.Upgrade,
-                            modifierId = id,
-                            isPercent = false
-                        });
-                    }
                     break;
 
                 case 4:
-                    if (atkLv == 5)
-                    {
-                        unit.stats.AddModifier(new StatModifier
-                        {
-                            stat = StatType.AttackDamage,
-                            value = unit.baseAttackDamage * 0.15f * helmetValue,
-                            source = SourceType.Upgrade,
-                            modifierId = id,
-                            isPercent = false
-                        });
-                    }
                     if (defLv == 5)
                     {
                         unit.stats.AddModifier(new StatModifier

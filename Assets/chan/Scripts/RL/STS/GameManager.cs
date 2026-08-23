@@ -270,6 +270,8 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
      {
         mapInitializedForScene = false;
         restoredSavedGameForScene = false;
+        if (scene.name == "Title" && mapCanvas != null)
+            mapCanvas.SetActive(false);
         // GameManager가 DontDestroyOnLoad라서 RLmap UI가 남아있을 수 있으므로
         // 타이틀/전투 등 RLmap 외 씬 진입 시에는 관련 패널을 즉시 정리한다.
         if(scene.name != "Title")
@@ -1046,7 +1048,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         RefreshNodeInfoButton();
     }
 
-    private void SetTopBarCanvasVisible(bool visible)
+    public void SetTopBarCanvasVisible(bool visible)
     {
         if (topBarCanvas == null)
         {

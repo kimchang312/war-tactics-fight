@@ -21,6 +21,8 @@ public class ObjectPool : MonoBehaviour
 
     private readonly Queue<GameObject> weaponImagePool = new();
     private readonly Queue<GameObject> crashEffectPool = new();
+    private readonly HashSet<GameObject> weaponImagesInPool = new();
+    private readonly HashSet<GameObject> activeWeaponImages = new();
     private readonly Queue<GameObject> damageTextPool = new();
     private readonly Queue<GameObject> battleUnitPool = new();
     private readonly Queue<GameObject> abilityPool = new();
@@ -32,6 +34,8 @@ public class ObjectPool : MonoBehaviour
     private readonly List<GameObject> activeBattleUnits = new(); // 활성화된 유닛을 추적
     private readonly List<GameObject> activeAbilitys= new();      //활성화된 능력 아이콘 추적
     private int poolSize = 20;
+
+    public int ActiveWeaponImageCount => activeWeaponImages.Count;
 
     // 초기 풀 생성
     private void Awake()
@@ -94,6 +98,7 @@ public class ObjectPool : MonoBehaviour
             crashImgInstance.SetActive(false);
 
             weaponImagePool.Enqueue(weaponImgInstance);
+            weaponImagesInPool.Add(weaponImgInstance);
             crashEffectPool.Enqueue(crashImgInstance);
         }
     }
@@ -341,6 +346,19 @@ public class ObjectPool : MonoBehaviour
             ? weaponImagePool.Dequeue()
             : Instantiate(weaponImagePrefab, transform);
 
+        weaponImagesInPool.Remove(instance);
+
+        // 같은 인스턴스가 큐에 중복으로 들어간 과거 상태가 있더라도 활성 오브젝트를 재대여하지 않는다.
+        if (!activeWeaponImages.Add(instance))
+        {
+            Debug.LogError(
+                $"[WeaponPool] frame={Time.frameCount} duplicate dequeue InstanceID={instance.GetInstanceID()}. " +
+                "새 인스턴스로 교체합니다.",
+                this);
+            instance = Instantiate(weaponImagePrefab, transform);
+            activeWeaponImages.Add(instance);
+        }
+
         instance.SetActive(true);
         instance.transform.SetParent(canvasTransform, false);
 
@@ -359,6 +377,17 @@ public class ObjectPool : MonoBehaviour
     public void ReturnWeaponImage(GameObject go)
     {
         if (go == null) return;
+
+        if (weaponImagesInPool.Contains(go))
+        {
+            Debug.LogWarning(
+                $"[WeaponPool] frame={Time.frameCount} duplicate return ignored InstanceID={go.GetInstanceID()} " +
+                $"activeWeaponImages={activeWeaponImages.Count}",
+                this);
+            return;
+        }
+
+        activeWeaponImages.Remove(go);
         go.SetActive(false);
         go.transform.SetParent(canvasTransform, false);
 
@@ -371,6 +400,7 @@ public class ObjectPool : MonoBehaviour
         var img = go.GetComponent<Image>();
         if (img != null) img.sprite = null;
 
+        weaponImagesInPool.Add(go);
         weaponImagePool.Enqueue(go);
     }
 

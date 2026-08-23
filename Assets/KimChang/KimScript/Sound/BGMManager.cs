@@ -210,6 +210,10 @@ public class BGMManager : MonoBehaviour
     // 사용처: 씬 진입 시 현재 씬에 맞는 BGM 재생 및 버튼 클릭음 자동 등록
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // 전투 씬을 벗어날 때 PlayOneShot으로 남아 있는 타격/승패 효과음을 정리한다.
+        if (scene.name != "AutoBattleScene" && battleSource != null)
+            battleSource.Stop();
+
         switch (scene.name)
         {
             case "Title":

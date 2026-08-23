@@ -903,11 +903,12 @@ public class RogueLikeData
                 var vals = relic.GetAllValuesAsFloatListOrNull();
                 if (vals != null && vals.Count > 0)
                 {
-                    var unit = RogueUnitDataBase.GetRandomUnitByRarity((int)vals[0]);
+                    const int commonRarity = 1;
+                    var unit = RogueUnitDataBase.GetRandomUnitByRarity(commonRarity);
                     if (unit != null)
                     {
-                        // 에너지 값이 없으면 기본 0으로 처리해서 인덱스 예외를 방지한다.
-                        int energy = (vals.Count > 1) ? (int)vals[1] : 0;
+                        // 유산 60의 단일 값은 설명대로 지급 유닛의 기력이다.
+                        int energy = Mathf.Max(0, Mathf.RoundToInt(vals[0]));
                         unit.SetEnergyDirect(energy);
                         AddMyTeam(unit);
                     }
@@ -1084,12 +1085,14 @@ public class RogueLikeData
         {
             WarRelic relic = RelicManager.GetRelicById(51);
             var vals = relic.GetAllValuesAsFloatListOrNull();
-            if (vals != null)
+            if (vals != null && vals.Count > 0)
             {
                 if (GetRandomFloat() < vals[0])
                 {
-                    RogueUnitDataBase addUnit = RogueUnitDataBase.GetRandomUnitByBranchAndRarity(unitTypeIndex, (int)vals[1]);
-                    AddMyTeam(addUnit);
+                    const int commonRarity = 1;
+                    RogueUnitDataBase addUnit = RogueUnitDataBase.GetRandomUnitByBranchAndRarity(unitTypeIndex, commonRarity);
+                    if (addUnit != null)
+                        AddMyTeam(addUnit);
                 }
             }
 
@@ -1120,16 +1123,15 @@ public class RogueLikeData
         if (atkLv == 5 || defLv == 5)
         {
             var vals = relic.GetAllValuesAsFloatListOrNull();
-            if (vals != null && vals.Count > 1)
+            if (vals != null && vals.Count > 0)
             {
-                int gold = Mathf.RoundToInt(vals[1]);
+                int gold = Mathf.RoundToInt(vals[0]);
                 if (gold > 0)
                 {
                     RogueLikeData.Instance.EarnGold(gold);
+                    relic.used = true; // 보상이 실제 지급된 경우에만 1회 사용 처리
                 }
             }
-
-            relic.used = true; // 유산 사용 처리 (1회만)
         }
     }
     public (int unitType, bool isAttack) GetRandomUpgradeTarget()
