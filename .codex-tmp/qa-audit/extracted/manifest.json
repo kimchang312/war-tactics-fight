@@ -1,0 +1,76 @@
+[
+  {
+    "fileName": "WTF_QA_스테이지 프리셋.xlsx",
+    "outputPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\WTF_QA_스테이지 프리셋.json",
+    "sheets": [
+      {
+        "name": "Info",
+        "address": "B2:I18",
+        "rows": 17,
+        "columns": 8,
+        "renderPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\WTF_QA_스테이지 프리셋__Info.png"
+      },
+      {
+        "name": "챕터1 스테이지 프리셋",
+        "address": "A2:N85",
+        "rows": 84,
+        "columns": 14,
+        "renderPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\WTF_QA_스테이지 프리셋__챕터1 스테이지 프리셋.png"
+      },
+      {
+        "name": "챕터2 스테이지 프리셋",
+        "address": "A2:N60",
+        "rows": 59,
+        "columns": 14,
+        "renderPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\WTF_QA_스테이지 프리셋__챕터2 스테이지 프리셋.png"
+      },
+      {
+        "name": "챕터3 스테이지 프리셋",
+        "address": "A2:N60",
+        "rows": 59,
+        "columns": 14,
+        "renderPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\WTF_QA_스테이지 프리셋__챕터3 스테이지 프리셋.png"
+      },
+      {
+        "name": "데이터 시트",
+        "address": "A1:Q1000",
+        "rows": 1000,
+        "columns": 17,
+        "renderPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\WTF_QA_스테이지 프리셋__데이터 시트.png"
+      }
+    ]
+  },
+  {
+    "fileName": "남은 작업 리스트 (1).xlsx",
+    "outputPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\남은 작업 리스트 (1).json",
+    "sheets": [
+      {
+        "name": "시트1",
+        "address": "A1:N1003",
+        "rows": 1003,
+        "columns": 14,
+        "renderPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\남은 작업 리스트 (1)__시트1.png"
+      }
+    ]
+  },
+  {
+    "fileName": "지휘관 시트 (1).xlsx",
+    "outputPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\지휘관 시트 (1).json",
+    "sheets": [
+      {
+        "name": "시트1",
+        "address": "A1:D38",
+        "rows": 38,
+        "columns": 4,
+        "renderPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\지휘관 시트 (1)__시트1.png"
+      },
+      {
+        "name": "valueseet",
+        "address": "A1:Z1000",
+        "rows": 1000,
+        "columns": 26,
+        "renderPath": "C:\\Users\\user\\Documents\\GitHub\\war-tactics-fight\\.codex-tmp\\qa-audit\\extracted\\지휘관 시트 (1)__valueseet.png"
+      }
+    ]
+  }
+]

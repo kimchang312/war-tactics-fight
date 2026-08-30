@@ -29,6 +29,7 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
     public int uniqueId;
 
     [HideInInspector] public RogueUnitDataBase unitData;
+    private bool isHidden;
 
     private void Awake()
     {
@@ -47,6 +48,7 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
         }
         
         unitData = unit;
+        isHidden = false;
         unitId = unit.idx;
         this.uniqueId = unit.UniqueId;
         PrefabType = ctx;
@@ -95,6 +97,35 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
         if (ctx == Context.Lineup || ctx == Context.Placed)
         {
             SetupUnitFrame(unit);
+        }
+    }
+
+    public void SetHidden(bool hidden)
+    {
+        isHidden = hidden;
+        if (!hidden)
+            return;
+
+        Sprite hiddenSprite = Resources.Load<Sprite>("UnitImages/hiddenSprite");
+        if (unitImage != null && hiddenSprite != null)
+            unitImage.sprite = hiddenSprite;
+
+        if (unitFrame != null)
+            unitFrame.gameObject.SetActive(false);
+        if (energyText != null)
+            energyText.gameObject.SetActive(false);
+        if (unitNumbering != null)
+            unitNumbering.gameObject.SetActive(false);
+        if (placeOrder != null)
+            placeOrder.gameObject.SetActive(false);
+        if (numberTextObject != null)
+            numberTextObject.SetActive(false);
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
         }
     }
     
@@ -251,6 +282,9 @@ public class UnitUIPrefab : MonoBehaviour, IPointerClickHandler
     }
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (isHidden)
+            return;
+
         if (eventData.button.Equals(PointerEventData.InputButton.Left))
         {
             if (!GameManager.Instance.IsPlaceMode || !GameManager.Instance.PlacePanelComponent.gameObject.activeSelf) 

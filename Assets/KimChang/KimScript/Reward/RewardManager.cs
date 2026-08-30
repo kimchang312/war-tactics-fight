@@ -68,7 +68,9 @@ public static class RewardManager
         }
 
         // 사용처: 현재 myTeam 원본이 아니라 전투 결과 반영 후 기준으로 게임오버 판정
-        if (CheckGameOverAfterBattle(battleUnits, deadUnits))
+        // 승리 보상에는 새 유닛 선택이 포함되므로 보상 화면에 진입하기 전에
+        // 기력 0만으로 런을 종료하면 복구 기회가 사라진다.
+        if (ShouldCheckEmptyRoster(battleResult) && CheckGameOverAfterBattle(battleUnits, deadUnits))
         {
             return DefeatRun;
         }
@@ -415,6 +417,11 @@ public static class RewardManager
         }
 
         return true;
+    }
+
+    private static bool ShouldCheckEmptyRoster(int battleResult)
+    {
+        return battleResult != 0;
     }
 
     // 사용처: 전투 참가 유닛의 최종 기력 상태를 실제 보유 유닛 복사본에 반영

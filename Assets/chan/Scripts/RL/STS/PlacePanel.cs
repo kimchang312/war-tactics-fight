@@ -255,7 +255,7 @@ public class PlacePanel : MonoBehaviour
         }
     }
     
-    public void CreateEnemyPrefabs(List<RogueUnitDataBase> enemies)
+    public void CreateEnemyPrefabs(List<RogueUnitDataBase> enemies, bool hideEnemyDeployment = false)
     {
         currentEnemyUnitCount = enemies?.Count ?? 0;
         if (enemyUnitPrefab == null || EnemyPrefabsContainer == null)
@@ -299,6 +299,7 @@ public class PlacePanel : MonoBehaviour
             ApplyEnemyUnitFrame(go, enemy, ui);
             ui.SetupEnergy(enemy);
             ui.SetNumber(i + 1); // 적 유닛 번호 설정
+            ui.SetHidden(hideEnemyDeployment);
         }
         
         // 적 유닛 수 텍스트 업데이트

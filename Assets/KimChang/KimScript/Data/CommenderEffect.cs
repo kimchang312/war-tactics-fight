@@ -1,363 +1,452 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public static class CommenderEffect
 {
-    //프레디
-    public static void CalculateFreddy()
+    public static void ApplyBattleStart(
+        int commanderId,
+        List<RogueUnitDataBase> myUnits,
+        List<RogueUnitDataBase> enemyUnits,
+        Func<int, int, int> randomRange)
     {
-        //플레이어는 적보다 유닛을 많이 배치할 수 없다
+        if (!CommanderCatalog.IsKnownId(commanderId))
+            return;
+
+        myUnits ??= new List<RogueUnitDataBase>();
+        enemyUnits ??= new List<RogueUnitDataBase>();
+
+        RemoveCommanderModifiers(myUnits, commanderId);
+        RemoveCommanderModifiers(enemyUnits, commanderId);
+
+        switch (commanderId)
+        {
+            case 101: ApplyHendrix(myUnits, commanderId); break;
+            case 103: ApplyMorrison(myUnits, enemyUnits, commanderId); break;
+            case 106: ApplyOzzy(enemyUnits); break;
+            case 107: ApplySlash(enemyUnits, commanderId); break;
+            case 111: ApplyBowie(myUnits, enemyUnits, commanderId); break;
+            case 113: ApplyUlrich(myUnits, enemyUnits, commanderId); break;
+            case 115: ApplyBonJovi(myUnits, commanderId); break;
+            case 116: ApplyTyler(myUnits); break;
+            case 201: ApplyBruno(enemyUnits, commanderId); break;
+            case 205: ApplyErebos(myUnits, enemyUnits); break;
+            case 206: ApplyLazarus(enemyUnits); break;
+            case 207: ApplyAgmar(myUnits, enemyUnits, commanderId); break;
+            case 208: ApplyTordan(myUnits, enemyUnits, commanderId); break;
+            case 211: ApplyHosh(myUnits, commanderId); break;
+            case 212: ApplyStein(enemyUnits, commanderId); break;
+            case 213: ApplyAziras(enemyUnits, commanderId); break;
+            case 214: ApplyChromhold(enemyUnits); break;
+            case 215: ApplyBelphegor(myUnits, enemyUnits, randomRange); break;
+            case 216: ApplyMelsedec(myUnits, commanderId); break;
+        }
+
+        ApplyModifiers(myUnits);
+        ApplyModifiers(enemyUnits);
     }
 
-    //핸드릭슨
-    public static void CalculateHendrix() 
-    { 
-        var myUnits= RogueLikeData.Instance.GetMyUnits();
-        foreach (var unit in myUnits)
+    private static void ApplyHendrix(List<RogueUnitDataBase> myUnits, int commanderId)
+    {
+        for (int i = 0; i < myUnits.Count; i++)
         {
-            if(unit.branchIdx == 5)
-            {
-                unit.Mobility = Math.Max(1, unit.Mobility - 1);
-            }
+            RogueUnitDataBase unit = myUnits[i];
+            if (unit != null && unit.branchIdx == 5)
+                AddModifier(unit, StatType.Mobility, -1f, commanderId, false);
         }
     }
-    //레논
-    public static void CalculateLennon() 
-    {
 
-    }
-    //모리슨
-    public static void CalcualteMorrison()
+    private static void ApplyMorrison(
+        List<RogueUnitDataBase> myUnits,
+        List<RogueUnitDataBase> enemyUnits,
+        int commanderId)
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach (var unit in myUnits)
-        {
-            if (unit.branchIdx == 5 || unit.branchIdx == 6)
-            {
-                unit.Mobility -= 2;
-            }
-        }
-        foreach (var unit in enemyUnits)
-        {
-            if (unit.branchIdx == 2)
-            {
-                unit.range++;
-                unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.15f);
-            }
-            else if (unit.branchIdx == 5 || unit.branchIdx == 6)
-            {
-                unit.Mobility -= 2;
-            }
+        ApplyCavalryMobilityPenalty(myUnits, commanderId, -2f);
+        ApplyCavalryMobilityPenalty(enemyUnits, commanderId, -2f);
 
-        }
-    }
-    public static void CalculateMorrison()
-    {
-        CalcualteMorrison();
-    }
-    //커트
-    public static void CalculateKurt() 
-    { 
+        for (int i = 0; i < enemyUnits.Count; i++)
+        {
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit == null || unit.branchIdx != 2)
+                continue;
 
-    }
-    //잰더
-    public static void CalculateZander(bool isTeam,int index) 
-    { 
-        if(RogueLikeData.Instance.GetPresetID() == 54 && !isTeam)
-        {
-            var myUnits = RogueLikeData.Instance.GetMyUnits();
-            RogueUnitDataBase unit = myUnits[index];
-            unit.Armor = Math.Max(0, unit.Armor - 2);
+            AddModifier(unit, StatType.Range, 1f, commanderId, false);
+            AddModifier(unit, StatType.AttackDamage, 0.15f, commanderId, true);
         }
     }
-    public static void CalculateOzzy()
+
+    private static void ApplyCavalryMobilityPenalty(List<RogueUnitDataBase> units, int commanderId, float value)
     {
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach (var unit in enemyUnits)
+        for (int i = 0; i < units.Count; i++)
         {
-            if (unit.branchIdx == 3)
+            RogueUnitDataBase unit = units[i];
+            if (unit != null && (unit.branchIdx == 5 || unit.branchIdx == 6))
+                AddModifier(unit, StatType.Mobility, value, commanderId, false);
+        }
+    }
+
+    private static void ApplyOzzy(List<RogueUnitDataBase> enemyUnits)
+    {
+        for (int i = 0; i < enemyUnits.Count; i++)
+        {
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit != null && unit.branchIdx == 3)
                 unit.martyrdom = true;
         }
     }
-    //슬래시
-    public static void CalculateSlash()
+
+    private static void ApplySlash(List<RogueUnitDataBase> enemyUnits, int commanderId)
     {
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-
-        foreach (var unit in enemyUnits)
+        for (int i = 0; i < enemyUnits.Count; i++)
         {
-            if (unit.branchIdx == 1 || unit.branchIdx == 4)
-            {
-                unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.2f);
-                unit.maxHealth -= Mathf.Round(unit.baseHealth * 0.1f);
-                unit.health = unit.maxHealth;
-            }
-        }
-    }
-    public static void CalculateCobain() { }
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit == null || (unit.branchIdx != 1 && unit.branchIdx != 4))
+                continue;
 
-    public static void CalculateClapton() { }
-    //액슬
-    public static void CalculateAxl() 
-    { 
-        if(RogueLikeData.Instance.GetPresetID() == 55)
-        {
-            var allUnits = RogueLikeData.Instance.GetMyUnits();
-            allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
-            foreach(var unit in allUnits)
-            {
-                if(unit.health <= 50)
-                {
-                    unit.health = 0;
-                }
-            }
-
+            AddModifier(unit, StatType.AttackDamage, 0.20f, commanderId, true);
+            AddModifier(unit, StatType.Health, -0.10f, commanderId, true);
         }
     }
 
-    public static void CalculateBowie()
+    private static void ApplyBowie(
+        List<RogueUnitDataBase> myUnits,
+        List<RogueUnitDataBase> enemyUnits,
+        int commanderId)
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach (var unit in myUnits)
+        for (int i = 0; i < myUnits.Count; i++)
         {
-            int traitCount = CountUnitTrait(unit);
-            unit.health -= 5 * traitCount;
+            RogueUnitDataBase unit = myUnits[i];
+            if (unit != null)
+                AddModifier(unit, StatType.Health, -5f * CountUnitTrait(unit), commanderId, false);
         }
-        foreach (var unit in enemyUnits)
+
+        for (int i = 0; i < enemyUnits.Count; i++)
         {
-            unit.suppression =true;
-        }
-    }
-
-    public static void CalculateDylan() { }
-
-    public static void CalculateUlrich()
-    {
-        var allUnits = RogueLikeData.Instance.GetMyUnits();
-        allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
-
-        foreach (var unit in allUnits)
-        {
-            if (unit.branchIdx == 3)
-            {
-                unit.maxHealth += 150;
-                unit.health = unit.maxHealth;
-                unit.attackDamage = Mathf.Max(0, unit.attackDamage - Mathf.Round(unit.baseAttackDamage * 0.1f));
-            }
+            if (enemyUnits[i] != null)
+                enemyUnits[i].suppression = true;
         }
     }
 
-    public static void CalculatePerry() { }
-
-    public static void CalculateBonJovi()
+    private static void ApplyUlrich(
+        List<RogueUnitDataBase> myUnits,
+        List<RogueUnitDataBase> enemyUnits,
+        int commanderId)
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
+        ApplyHeavyInfantryBonus(myUnits, commanderId);
+        ApplyHeavyInfantryBonus(enemyUnits, commanderId);
+    }
 
-        foreach (var unit in myUnits)
+    private static void ApplyHeavyInfantryBonus(List<RogueUnitDataBase> units, int commanderId)
+    {
+        for (int i = 0; i < units.Count; i++)
         {
-            unit.attackDamage = Mathf.Max(0, unit.attackDamage - 10);
+            RogueUnitDataBase unit = units[i];
+            if (unit == null || unit.branchIdx != 3)
+                continue;
+
+            AddModifier(unit, StatType.Health, 150f, commanderId, false);
+            AddModifier(unit, StatType.AttackDamage, -0.10f, commanderId, true);
         }
     }
 
-    public static void CalculateTyler()
+    private static void ApplyBonJovi(List<RogueUnitDataBase> myUnits, int commanderId)
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-
-        foreach (var unit in myUnits)
+        for (int i = 0; i < myUnits.Count; i++)
         {
-            unit.effectDictionary[0] = new BuffDebuffData(0, 1, 1, 2);
+            if (myUnits[i] != null)
+                AddModifier(myUnits[i], StatType.AttackDamage, -10f, commanderId, false);
         }
     }
 
-    public static void CalculateVedder() { }
-    //페이지
-    public static void CalculatePage() 
-    { 
-        //더 많은 부대가치
-    }
-    public static void CalculateSyd() { }
-    //아마록
-    public static void CalculateAmarok() 
+    private static void ApplyTyler(List<RogueUnitDataBase> myUnits)
     {
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach(var unit in enemyUnits)
+        const int burningId = 0;
+        for (int i = 0; i < myUnits.Count; i++)
         {
-            unit.effectDictionary[11] = new(11, 0, 1, -1);
+            RogueUnitDataBase unit = myUnits[i];
+            if (unit != null && !unit.effectDictionary.ContainsKey(burningId))
+                unit.effectDictionary[burningId] = new BuffDebuffData(burningId, 1, 1, 2);
         }
     }
-    public static void CalculateBruennar() { }
-    //시리온
-    public static void CalculateSirion() 
+
+    private static void ApplyBruno(List<RogueUnitDataBase> enemyUnits, int commanderId)
     {
-        //적 유닛이 죽으면 적이 원거리 공격가능 유닛이 원거리 공격
-        //구현
-    }
-    public static void CalculateValeric() { }
-    public static void CalculateGrondal() { }
-    public static void CalculateErebos()
-    {
-        var allUnits = RogueLikeData.Instance.GetMyUnits();
-        allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
-        foreach (var unit in allUnits)
+        for (int i = 0; i < enemyUnits.Count; i++)
         {
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit != null && unit.branchIdx == 1)
+                AddModifier(unit, StatType.AttackDamage, 0.15f, commanderId, true);
+        }
+    }
+
+    private static void ApplyErebos(List<RogueUnitDataBase> myUnits, List<RogueUnitDataBase> enemyUnits)
+    {
+        ClearSkills(myUnits);
+        ClearSkills(enemyUnits);
+    }
+
+    private static void ClearSkills(List<RogueUnitDataBase> units)
+    {
+        for (int i = 0; i < units.Count; i++)
+        {
+            RogueUnitDataBase unit = units[i];
+            if (unit == null)
+                continue;
+
             ClearUnitSkill(unit);
+            unit.effectDictionary.Remove(12);
+            unit.effectDictionary.Remove(13);
         }
     }
-    //라자루스
-    public static void CalculateLazaros()
+
+    private static void ApplyLazarus(List<RogueUnitDataBase> enemyUnits)
     {
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach (var unit in enemyUnits)
+        for (int i = 0; i < enemyUnits.Count; i++)
         {
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit == null)
+                continue;
+
             unit.drain = true;
             unit.lifeDrain = true;
         }
     }
-    public static void CalculateAgmar()
+
+    private static void ApplyAgmar(
+        List<RogueUnitDataBase> myUnits,
+        List<RogueUnitDataBase> enemyUnits,
+        int commanderId)
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach (var unit in myUnits)
+        for (int i = 0; i < myUnits.Count; i++)
         {
-            unit.Armor = Mathf.Max(0, unit.Armor - 2);
+            if (myUnits[i] != null)
+                AddModifier(myUnits[i], StatType.Armor, -2f, commanderId, false);
         }
-        foreach (var unit in enemyUnits)
+
+        for (int i = 0; i < enemyUnits.Count; i++)
         {
-            if (unit.branchIdx == 3)
-            {
-                unit.attackDamage += Mathf.Round(unit.baseAttackDamage * 0.15f);
-                unit.Armor += (int)((float)unit.baseArmor*0.15f);
-            }
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit == null || !unit.heavyArmor)
+                continue;
+
+            AddModifier(unit, StatType.AttackDamage, 0.15f, commanderId, true);
+            AddModifier(unit, StatType.Armor, 0.15f, commanderId, true);
         }
     }
-    public static void CalculateTorhdan()
+
+    private static void ApplyTordan(
+        List<RogueUnitDataBase> myUnits,
+        List<RogueUnitDataBase> enemyUnits,
+        int commanderId)
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach (var unit in enemyUnits)
+        ApplyLightArmorHealth(myUnits, commanderId);
+        ApplyLightArmorHealth(enemyUnits, commanderId);
+
+        for (int i = 0; i < enemyUnits.Count; i++)
         {
-            if (unit.lightArmor)
-            {
-                unit.maxHealth += 50;
-                unit.health = unit.maxHealth;
-            }
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit == null)
+                continue;
+
             if (unit.branchIdx == 0)
-            {
-                unit.vengeance =true;
-            }
-            else if (unit.branchIdx == 2)
-            {
-                unit.attackDamage += 10;
-            }
-        }
-        foreach(var unit in myUnits)
-        {
-            if (unit.lightArmor) { 
-}           unit.maxHealth += 50;
-            unit.health = unit.maxHealth;
+                unit.vengeance = true;
+            if (unit.branchIdx == 2)
+                AddModifier(unit, StatType.AttackDamage, 10f, commanderId, false);
         }
     }
-    public static void CalculateOrtheon() { }
-    public static void CalculateAsmodeus() { }
-    //호쉬
-    public static void CalculateHosh()
+
+    private static void ApplyLightArmorHealth(List<RogueUnitDataBase> units, int commanderId)
     {
-        var allUnits = RogueLikeData.Instance.GetMyUnits();
-        allUnits.AddRange(RogueLikeData.Instance.GetEnemyUnits());
-        foreach (var unit in allUnits)
+        for (int i = 0; i < units.Count; i++)
         {
-            unit.Mobility = 1;
-        }
-        //구현
-    }
-    //슈타인
-    public static void CalculateStein()
-    {
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach (var unit in enemyUnits)
-        {
-            if (unit.idx == 60)
-            {
-                unit.maxHealth = unit.baseHealth * 2;
-                unit.health = unit.maxHealth;
-            }
-            int traitCount = CountUnitTrait(unit);
-            unit.attackDamage += (5 * traitCount);
+            RogueUnitDataBase unit = units[i];
+            if (unit != null && unit.lightArmor)
+                AddModifier(unit, StatType.Health, 50f, commanderId, false);
         }
     }
-    public static void CalculateAziras(){ }
-    public static void CalculateChromehold()
+
+    private static void ApplyHosh(List<RogueUnitDataBase> myUnits, int commanderId)
     {
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
-        foreach (var unit in enemyUnits)
+        for (int i = 0; i < myUnits.Count; i++)
         {
+            RogueUnitDataBase unit = myUnits[i];
+            if (unit == null)
+                continue;
+
+            float currentMobility = unit.stats?.GetStat(StatType.Mobility) ?? unit.Mobility;
+            AddModifier(unit, StatType.Mobility, 1f - currentMobility, commanderId, false);
+        }
+    }
+
+    private static void ApplyStein(List<RogueUnitDataBase> enemyUnits, int commanderId)
+    {
+        for (int i = 0; i < enemyUnits.Count; i++)
+        {
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit == null)
+                continue;
+
+            if (unit.idx == 52)
+                AddModifier(unit, StatType.Health, 1f, commanderId, true);
+
+            AddModifier(unit, StatType.AttackDamage, 0.05f * CountUnitTrait(unit), commanderId, true);
+        }
+    }
+
+    private static void ApplyAziras(List<RogueUnitDataBase> enemyUnits, int commanderId)
+    {
+        for (int i = 0; i < enemyUnits.Count; i++)
+        {
+            if (enemyUnits[i] != null)
+                AddModifier(enemyUnits[i], StatType.AttackDamage, 0.50f, commanderId, true, true);
+        }
+    }
+
+    private static void ApplyChromhold(List<RogueUnitDataBase> enemyUnits)
+    {
+        for (int i = 0; i < enemyUnits.Count; i++)
+        {
+            RogueUnitDataBase unit = enemyUnits[i];
+            if (unit == null)
+                continue;
+
             if (unit.branchIdx == 0)
-            {
                 unit.throwSpear = true;
-            }
-            else if (unit.branchIdx == 1)
-            {
+            if (unit.branchIdx == 1)
                 unit.assassination = true;
-            }
         }
     }
-    //벨페고르
-    public static void CalculateBelphegor()
+
+    private static void ApplyBelphegor(
+        List<RogueUnitDataBase> myUnits,
+        List<RogueUnitDataBase> enemyUnits,
+        Func<int, int, int> randomRange)
     {
-        var myUnits = RogueLikeData.Instance.GetMyUnits();
-        var enemyUnits = RogueLikeData.Instance.GetEnemyUnits();
+        int candidateCount = 0;
+        for (int i = 0; i < myUnits.Count; i++)
+        {
+            if (myUnits[i] != null && myUnits[i].rarity != 4)
+                candidateCount++;
+        }
 
-        if (myUnits.Count == 0) return;
+        if (candidateCount == 0)
+            return;
 
-        var selectedUnit = myUnits[RogueLikeData.Instance.GetRandomInt(0, myUnits.Count)];
+        int selectedCandidate = randomRange != null
+            ? Mathf.Clamp(randomRange(0, candidateCount), 0, candidateCount - 1)
+            : 0;
 
-        selectedUnit.attackDamage = Mathf.Round(selectedUnit.baseAttackDamage * 1.3f);
-        selectedUnit.maxHealth = Mathf.RoundToInt(selectedUnit.baseHealth * 1.3f);
-        selectedUnit.health = selectedUnit.maxHealth;
+        int selectedIndex = -1;
+        for (int i = 0; i < myUnits.Count; i++)
+        {
+            if (myUnits[i] == null || myUnits[i].rarity == 4)
+                continue;
 
-        enemyUnits.Add(selectedUnit);
-        myUnits.Remove(selectedUnit);
-        RogueLikeData.Instance.SetAllEnemyUnits(enemyUnits);
-        RogueLikeData.Instance.SetAllMyUnits(myUnits);
+            if (selectedCandidate-- == 0)
+            {
+                selectedIndex = i;
+                break;
+            }
+        }
+
+        if (selectedIndex < 0)
+            return;
+
+        RogueUnitDataBase selectedUnit = myUnits[selectedIndex];
+        myUnits.RemoveAt(selectedIndex);
+        enemyUnits.Insert(0, selectedUnit);
     }
 
-    public static void CalculateMelsedec(){ }
+    private static void ApplyMelsedec(List<RogueUnitDataBase> myUnits, int commanderId)
+    {
+        for (int i = 0; i < myUnits.Count; i++)
+        {
+            if (myUnits[i] != null)
+                AddModifier(myUnits[i], StatType.AttackDamage, -0.10f, commanderId, true);
+        }
+    }
 
+    public static void RefreshSteinTraitAttack(RogueUnitDataBase unit)
+    {
+        if (unit == null || unit.stats == null)
+            return;
+
+        unit.stats.RemoveModifiersBySourceAndId(SourceType.Commander, 212);
+        if (unit.idx == 52)
+            AddModifier(unit, StatType.Health, 1f, 212, true);
+        AddModifier(unit, StatType.AttackDamage, 0.05f * CountUnitTrait(unit), 212, true);
+        unit.ApplyModifiers(true);
+    }
+
+    public static void RemoveCommanderEffect(List<RogueUnitDataBase> units, int commanderId)
+    {
+        if (units == null)
+            return;
+
+        for (int i = 0; i < units.Count; i++)
+        {
+            RogueUnitDataBase unit = units[i];
+            if (unit == null || unit.stats == null)
+                continue;
+
+            unit.stats.RemoveModifiersBySourceAndId(SourceType.Commander, commanderId);
+            unit.ApplyModifiers(true);
+        }
+    }
+
+    public static void AddCommanderPercentAttack(
+        List<RogueUnitDataBase> units,
+        int commanderId,
+        float percent)
+    {
+        if (units == null)
+            return;
+
+        for (int i = 0; i < units.Count; i++)
+        {
+            RogueUnitDataBase unit = units[i];
+            if (unit == null)
+                continue;
+
+            AddModifier(unit, StatType.AttackDamage, percent, commanderId, true);
+            unit.ApplyModifiers(true);
+        }
+    }
 
     public static int CountUnitTrait(RogueUnitDataBase unit)
     {
+        if (unit == null)
+            return 0;
+
         int count = 0;
         if (unit.lightArmor) count++;
         if (unit.heavyArmor) count++;
         if (unit.rangedAttack) count++;
-        if(unit.bluntWeapon) count++;
-        if(unit.pierce) count++;
-        if(unit.agility) count++;
-        if(unit.strongCharge) count++;
-        if(unit.perfectAccuracy) count++;
-        if(unit.slaughter) count++;
-        if(unit.bindingForce) count++;
-        if(unit.bravery) count++;
-        if(unit.suppression) count++;
-        if(unit.plunder) count++;
-        if(unit.doubleShot) count++;
-        if(unit.scorching) count++;
-        if(unit.thorns) count++;
-        if(unit.endless) count++;
-        if(unit.impact) count++;
-        if(unit.healing) count++;
-        if(unit.lifeDrain) count++;
+        if (unit.bluntWeapon) count++;
+        if (unit.pierce) count++;
+        if (unit.agility) count++;
+        if (unit.strongCharge) count++;
+        if (unit.perfectAccuracy) count++;
+        if (unit.slaughter) count++;
+        if (unit.bindingForce) count++;
+        if (unit.bravery) count++;
+        if (unit.suppression) count++;
+        if (unit.plunder) count++;
+        if (unit.doubleShot) count++;
+        if (unit.scorching) count++;
+        if (unit.thorns) count++;
+        if (unit.endless) count++;
+        if (unit.impact) count++;
+        if (unit.healing) count++;
+        if (unit.lifeDrain) count++;
         return count;
     }
 
     public static void ClearUnitSkill(RogueUnitDataBase unit)
     {
+        if (unit == null)
+            return;
+
         unit.charge = false;
         unit.defense = false;
         unit.throwSpear = false;
@@ -372,6 +461,51 @@ public static class CommenderEffect
         unit.counter = false;
         unit.firstStrike = false;
         unit.challenge = false;
+        unit.smokeScreen = false;
     }
 
+    private static void AddModifier(
+        RogueUnitDataBase unit,
+        StatType stat,
+        float value,
+        int commanderId,
+        bool isPercent,
+        bool isMultiplicativePercent = false)
+    {
+        if (unit == null)
+            return;
+
+        if (unit.stats == null)
+            unit.NormalizeStatBlock();
+
+        unit.stats.AddModifier(new StatModifier
+        {
+            stat = stat,
+            value = value,
+            source = SourceType.Commander,
+            modifierId = commanderId,
+            isPercent = isPercent,
+            isMultiplicativePercent = isMultiplicativePercent
+        });
+    }
+
+    private static void RemoveCommanderModifiers(List<RogueUnitDataBase> units, int commanderId)
+    {
+        for (int i = 0; i < units.Count; i++)
+        {
+            RogueUnitDataBase unit = units[i];
+            if (unit?.stats != null)
+                unit.stats.RemoveModifiersBySourceAndId(SourceType.Commander, commanderId);
+        }
+    }
+
+    private static void ApplyModifiers(List<RogueUnitDataBase> units)
+    {
+        for (int i = 0; i < units.Count; i++)
+        {
+            RogueUnitDataBase unit = units[i];
+            if (unit != null && unit.stats != null && unit.health > 0f)
+                unit.ApplyModifiers(true);
+        }
+    }
 }

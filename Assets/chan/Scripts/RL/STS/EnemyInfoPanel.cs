@@ -82,14 +82,16 @@ public class EnemyInfoPanel : MonoBehaviour
 
         // 생성 순서 표시
         int order = 1;
+        bool hideEnemyDeployment = CommanderCatalog.GetId(stageType, eliteCommanderNumericId, commanderName) == 215;
 
         // 3) 적 유닛마다 UI 생성
         foreach (var enemy in enemies)
         {
             var go = Instantiate(enemyUIPrefab, enemyContainer);
-            go.GetComponent<UnitUIPrefab>().SetupIMG(enemy,Context.Enemy,order);
             var ui = go.GetComponent<UnitUIPrefab>();
+            ui.SetupIMG(enemy, Context.Enemy, order);
             ui.unitNumbering.text = order.ToString();
+            ui.SetHidden(hideEnemyDeployment);
             order++;
         }
         unitCountText.text = $"{enemies.Count}";

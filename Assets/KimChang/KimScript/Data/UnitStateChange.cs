@@ -151,7 +151,7 @@ public static class UnitStateChange
             .Where(m => m.stat == statType && m.isPercent)
             .Sum(m => m.value);
 
-        float finalValue = (baseValue + flatBonus) * (1 + percentBonus);
+        float finalValue = statBlock.GetStat(statType);
 
         if(stateId == -1)
         {
