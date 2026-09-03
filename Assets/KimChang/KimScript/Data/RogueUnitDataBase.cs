@@ -8,7 +8,7 @@ using UnityEngine;
 [System.Serializable]
 public class RogueUnitDataBase 
 {
-    private const int MinArmor = 1;
+    private const int MinArmor = 0;
     private const int MinMobility = 1;
 
     public int idx;

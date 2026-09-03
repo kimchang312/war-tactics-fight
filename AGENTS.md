@@ -318,3 +318,43 @@ instance.GetComponent<UIComponent>().Initialize(data);
 ## Unity Version
 
 This project uses Unity 2022.3 LTS (check `ProjectSettings/ProjectVersion.txt` for exact version).
+
+
+## QA / Bug Fix Validation
+
+For QA and bug-fix tasks:
+
+- Excel QA documents provided for the task may be used as verification specifications.
+- When a task explicitly identifies an Excel file as the authoritative specification, that file takes precedence over existing implementation behavior.
+- Existing QA reports are evidence of previously observed behavior, not necessarily the current truth. Reproduce and verify them against the current code.
+- Fix root causes rather than adding symptom-specific patches.
+- Do not modify unrelated systems while fixing QA issues.
+- After a fix, verify related battle, reward, scene transition, save/load, and relic behavior for regressions where applicable.
+
+### Testing
+
+The project currently relies primarily on manual Test scenes and helper scripts.
+
+However, when a task explicitly requests regression tests:
+- It is allowed to add Unity Test Framework EditMode/PlayMode tests when practical.
+- Prefer deterministic tests for battle logic and commander effects.
+- Control RNG with fixed seeds or injectable/random abstractions when required.
+- Do not report a test as passed unless it was actually executed.
+- If Unity cannot be executed in the current environment, clearly report that limitation.
+
+### Performance
+
+When modifying runtime battle code, priorities are:
+
+1. Runtime performance
+2. Readability
+3. Stability
+
+Avoid introducing unnecessary:
+- LINQ in combat hot paths
+- allocations per turn/frame
+- Find / FindObjectOfType calls
+- repeated GetComponent calls
+- work in Update/LateUpdate
+
+Reuse existing caches and manager references where available.

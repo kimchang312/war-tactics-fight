@@ -642,6 +642,7 @@ public class AutoBattleManager : MonoBehaviour
 
 
         UnitStateChange.ChangeStateMyUnits();
+        myUnits = RogueLikeData.Instance.GetMyUnits() ?? myUnits;
 
         ProcessRelic();
 
@@ -674,27 +675,23 @@ public class AutoBattleManager : MonoBehaviour
         StageType stageType = RogueLikeData.Instance.GetCurrentStageType();
         var preset = (presetId != -1 && StagePresetLoader.I != null) ? StagePresetLoader.I.GetByID(presetId) : null;
 
-        if (preset != null && preset.UnitList != null)
+        bool useRuntimeEnemyUnits = ShouldUseRuntimeEnemyUnits(chapter, stageType, presetId);
+        if (useRuntimeEnemyUnits)
+        {
+            enemyUnits = RogueLikeData.Instance.GetEnemyUnits() ?? new List<RogueUnitDataBase>();
+        }
+        else if (preset != null && preset.UnitList != null && preset.UnitList.Count > 0)
         {
             enemyUnits = GetUnitsById(preset.UnitList) ?? new List<RogueUnitDataBase>();
         }
-        else if (chapter >= 2 && stageType == StageType.Combat)
-        {
-            enemyUnits = RogueLikeData.Instance.GetEnemyUnits() ?? new List<RogueUnitDataBase>();
-            if (enemyUnits.Count == 0)
-            {
-                Debug.LogError($"[AutoBattleManager] 예산 기반 적 편성 데이터가 없습니다: chapter={chapter}, stageType={stageType}, presetId={presetId}");
-
-                if (GameManager.Instance != null)
-                    GameManager.Instance.CloseLoading();
-
-                HandleEnd(false);
-                return;
-            }
-        }
         else
         {
-            Debug.LogError($"[AutoBattleManager] 프리셋 데이터 오류: chapter={chapter}, stageType={stageType}, presetId={presetId}");
+            enemyUnits = new List<RogueUnitDataBase>();
+        }
+
+        if (enemyUnits.Count == 0)
+        {
+            Debug.LogError($"[AutoBattleManager] 적 편성 데이터가 없습니다: chapter={chapter}, stageType={stageType}, presetId={presetId}, runtime={useRuntimeEnemyUnits}");
 
             if (GameManager.Instance != null)
                 GameManager.Instance.CloseLoading();
@@ -702,7 +699,6 @@ public class AutoBattleManager : MonoBehaviour
             HandleEnd(false);
             return;
         }
-
         myUnits = RogueLikeData.Instance.GetMyUnits() ?? new List<RogueUnitDataBase>();
 
         RogueLikeData.Instance.ClearSavedMyUnits();
@@ -714,6 +710,9 @@ public class AutoBattleManager : MonoBehaviour
 
         // 로그라이크 전투 진입 시 사기/유산/전술개량 상태를 즉시 반영한다.
         UnitStateChange.ChangeStateMyUnits();
+        // State relics can reorder or insert battle units (for example relics 11 and 72).
+        // Keep the battle manager's structural list in sync with RogueLikeData.
+        myUnits = RogueLikeData.Instance.GetMyUnits() ?? myUnits;
 
         RogueLikeData.Instance.SaveNow();
 
@@ -747,6 +746,16 @@ public class AutoBattleManager : MonoBehaviour
         currentState = BattleState.Check;
     }
 
+    // 챕터 2+ 일반전투와 동적 엘리트 프리셋은 배치 화면에서 이미 생성한
+    // 런타임 편성을 사용해야 한다. 정적 UnitList를 다시 읽으면 서로 다른 적이
+    // 전투에 들어가거나 빈 편성으로 즉시 패배한다.
+    private static bool ShouldUseRuntimeEnemyUnits(int chapter, StageType stageType, int presetId)
+    {
+        return (chapter >= 2 && stageType == StageType.Combat)
+            || presetId < 0
+            || (presetId >= 190 && presetId <= 192);
+    }
+
     // 확인 단계 처리 (전투 시작 전에 필요한 확인 작업 수행)
     private async Task HandleCheck()
     {
@@ -758,6 +767,8 @@ public class AutoBattleManager : MonoBehaviour
         {
             ProcessBeforeBattle(myUnits, enemyUnits, true);
             ProcessBeforeBattle(enemyUnits, myUnits, false);
+            abilityManager.ProcessCommenderEffect(myUnits, enemyUnits);
+            UpdateUnitUI();
             UpdateDodgeUI();
         }
 
@@ -833,6 +844,9 @@ public class AutoBattleManager : MonoBehaviour
         await PlayPhaseEffect("Support");
 
         SupportPhase();
+        bool commanderEffect = abilityManager.ProcessCommanderTurnEnd(battleTurn, myUnits, enemyUnits);
+        if (commanderEffect)
+            ResolveDeathsAndCheckFrontPairChanged();
 
         await Task.Yield();
         return true;
@@ -1210,7 +1224,77 @@ public class AutoBattleManager : MonoBehaviour
         }
 
         SaveData saveData = new SaveData();
-        saveData.SaveDataBattaleEnd(myUnits, myDeathUnits);
+        List<RogueUnitDataBase> trackedMyUnits = BuildBattleEndTrackedMyUnits(
+            myUnits,
+            myDeathUnits,
+            enemyUnits,
+            enemyDeathUnits,
+            RogueLikeData.Instance.GetMyTeam());
+        saveData.SaveDataBattaleEnd(trackedMyUnits, myDeathUnits);
+    }
+
+    // 벨페고르처럼 플레이어 소유 유닛이 적 진영으로 이동해도 전투 참가에 따른
+    // 기력 변화는 전투 종료 저장에 반영되어야 한다. 소유권은 UniqueId로 판별한다.
+    private static List<RogueUnitDataBase> BuildBattleEndTrackedMyUnits(
+        List<RogueUnitDataBase> livingMyUnits,
+        List<RogueUnitDataBase> deadMyUnits,
+        List<RogueUnitDataBase> livingEnemyUnits,
+        List<RogueUnitDataBase> deadEnemyUnits,
+        List<RogueUnitDataBase> ownedRoster)
+    {
+        var result = livingMyUnits != null
+            ? new List<RogueUnitDataBase>(livingMyUnits)
+            : new List<RogueUnitDataBase>();
+
+        if (ownedRoster == null || ownedRoster.Count == 0)
+            return result;
+
+        var ownedIds = new HashSet<int>();
+        for (int i = 0; i < ownedRoster.Count; i++)
+        {
+            RogueUnitDataBase unit = ownedRoster[i];
+            if (unit != null && unit.UniqueId >= 0)
+                ownedIds.Add(unit.UniqueId);
+        }
+
+        var trackedIds = new HashSet<int>();
+        AddUnitIds(trackedIds, livingMyUnits);
+        AddUnitIds(trackedIds, deadMyUnits);
+        AddOwnedEnemyUnits(result, trackedIds, ownedIds, livingEnemyUnits);
+        AddOwnedEnemyUnits(result, trackedIds, ownedIds, deadEnemyUnits);
+        return result;
+    }
+
+    private static void AddUnitIds(HashSet<int> ids, List<RogueUnitDataBase> units)
+    {
+        if (units == null)
+            return;
+
+        for (int i = 0; i < units.Count; i++)
+        {
+            RogueUnitDataBase unit = units[i];
+            if (unit != null && unit.UniqueId >= 0)
+                ids.Add(unit.UniqueId);
+        }
+    }
+
+    private static void AddOwnedEnemyUnits(
+        List<RogueUnitDataBase> result,
+        HashSet<int> trackedIds,
+        HashSet<int> ownedIds,
+        List<RogueUnitDataBase> enemySideUnits)
+    {
+        if (enemySideUnits == null)
+            return;
+
+        for (int i = 0; i < enemySideUnits.Count; i++)
+        {
+            RogueUnitDataBase unit = enemySideUnits[i];
+            if (unit == null || !ownedIds.Contains(unit.UniqueId) || !trackedIds.Add(unit.UniqueId))
+                continue;
+
+            result.Add(unit);
+        }
     }
 
 
@@ -1335,6 +1419,7 @@ public class AutoBattleManager : MonoBehaviour
         enemyFrontUnit = null;
 
         isFirstAttack = true;
+        battleTurn = 0;
 
         isProcessing = false;
 

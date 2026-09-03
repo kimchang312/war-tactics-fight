@@ -1187,11 +1187,20 @@ public class RogueLikeData
         return commanderId >= 1 && commanderId <= 20 ? commanderId : 0;
     }
 
+    public int GetCurrentCommanderId()
+    {
+        if (StagePresetLoader.I == null)
+            return 0;
+
+        StagePreset preset = StagePresetLoader.I.GetByID(presetID);
+        return CommanderCatalog.GetId(preset);
+    }
+
     public int GetEffectiveMaxUnitsForCurrentBattle(int enemyUnitCount = -1)
     {
         int maxCount = GetMaxUnits();
 
-        if (GetCurrentEliteCommanderId() != 1)
+        if (GetCurrentCommanderId() != 100)
             return maxCount;
 
         if (enemyUnitCount < 0)

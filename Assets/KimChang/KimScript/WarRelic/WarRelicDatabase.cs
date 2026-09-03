@@ -1832,6 +1832,8 @@ public static class WarRelicDatabase
         if (vals == null) return;
 
         var hero = RogueUnitDataBase.GetRandomUnitByRarity(4);
+        if (hero == null)
+            return;
 
         if (RogueLikeData.Instance.GetRandomFloat() >= vals[0])
         {

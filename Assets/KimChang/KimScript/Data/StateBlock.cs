@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public enum StatType { Health, AttackDamage, Armor, Range, Mobility }
-public enum SourceType { Relic, Trait, Skill, Buff, Morale, Synergy, Upgrade, Field,Passive }
+public enum SourceType { Relic, Trait, Skill, Buff, Morale, Synergy, Upgrade, Field, Passive, Commander }
 
 [Serializable]
 public class StatModifier
@@ -13,12 +12,13 @@ public class StatModifier
     public SourceType source;
     public int modifierId;
     public bool isPercent;
+    public bool isMultiplicativePercent;
 }
 
 [Serializable]
 public class StatBlock
 {
-    private const float MinArmor = 1f;
+    private const float MinArmor = 0f;
     private const float MinMobility = 1f;
 
     public float baseHealth;
@@ -36,8 +36,15 @@ public class StatBlock
 
     public void UpdateModifierValue(SourceType source, StatType stat, float newValue)
     {
-        var mod = modifiers.FirstOrDefault(m => m.source == source && m.stat == stat);
-        if (mod != null) mod.value = newValue;
+        for (int i = 0; i < modifiers.Count; i++)
+        {
+            StatModifier modifier = modifiers[i];
+            if (modifier.source != source || modifier.stat != stat)
+                continue;
+
+            modifier.value = newValue;
+            return;
+        }
     }
     public  void RemoveModifiersBySourceAndId(SourceType source, int modifierId)
     {
@@ -64,13 +71,42 @@ public class StatBlock
             _ => 0
         };
 
-        float flatBonus = modifiers.Where(m => m.stat == type && !m.isPercent).Sum(m => m.value);
-        float percentBonus = modifiers.Where(m => m.stat == type && m.isPercent).Sum(m => m.value);
+        float flatBonus = 0f;
+        float percentBonus = 0f;
+        float multiplicativePercent = 1f;
+        bool splitShieldMinimum = false;
 
-        float result = (baseValue + flatBonus) * (1 + percentBonus);
+        for (int i = 0; i < modifiers.Count; i++)
+        {
+            StatModifier modifier = modifiers[i];
+            if (modifier.stat != type)
+                continue;
+
+            if (modifier.isPercent)
+            {
+                if (modifier.isMultiplicativePercent)
+                    multiplicativePercent *= 1f + modifier.value;
+                else
+                    percentBonus += modifier.value;
+            }
+            else
+                flatBonus += modifier.value;
+
+            if (type == StatType.Armor
+                && modifier.source == SourceType.Relic
+                && modifier.modifierId == 32)
+            {
+                splitShieldMinimum = true;
+            }
+        }
+
+        float result = (baseValue + flatBonus) * (1 + percentBonus) * multiplicativePercent;
 
         if (type == StatType.Armor)
-            return Math.Max(MinArmor, result);
+        {
+            float minimumArmor = splitShieldMinimum ? 1f : MinArmor;
+            return Math.Max(minimumArmor, result);
+        }
 
         if (type == StatType.Mobility)
             return Math.Max(MinMobility, result);
@@ -81,7 +117,15 @@ public class StatBlock
 
     public static bool HasModifier(StatBlock state, SourceType source, int modifierId)
     {
-        return state.GetAllModifiers()
-                    .Any(m => m.source == source && m.modifierId == modifierId);
+        if (state == null)
+            return false;
+
+        foreach (StatModifier modifier in state.modifiers)
+        {
+            if (modifier.source == source && modifier.modifierId == modifierId)
+                return true;
+        }
+
+        return false;
     }
 }

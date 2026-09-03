@@ -592,11 +592,12 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
             string cmdName = preset?.Commander ?? "";
             int? eliteCmdId = preset?.CommanderNumericId;
+            bool hideEnemyDeployment = CommanderCatalog.GetId(newStage.stageType, eliteCmdId, cmdName) == 215;
             var panel = enemyInfoPanel.GetComponent<EnemyInfoPanel>();
             panel.ShowEnemyInfo(newStage.stageType, enemies, cmdName, /*combined:*/ true, eliteCmdId);
             
             // 적 프리팹을 PlacePanel에 생성
-            PlacePanelComponent.CreateEnemyPrefabs(enemies);
+            PlacePanelComponent.CreateEnemyPrefabs(enemies, hideEnemyDeployment);
             
             // PlacePanel에 지휘관 정보 표시
             PlacePanelComponent.ShowCommanderInfo(cmdName, newStage.stageType, eliteCmdId);
@@ -1248,6 +1249,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         var preset = StagePresetLoader.I != null ? StagePresetLoader.I.GetByID(presetId) : null;
         string commanderName = preset?.Commander ?? "";
         int? eliteCommanderId = preset?.CommanderNumericId;
+        bool hideEnemyDeployment = CommanderCatalog.GetId(stageType, eliteCommanderId, commanderName) == 215;
 
         if (enemyInfoPanel != null)
             enemyInfoPanel.SetActive(false);
@@ -1256,7 +1258,7 @@ private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 
         placePanel.ClearPlacePanel();
         placePanel.UpdateMaxUnitText();
-        placePanel.CreateEnemyPrefabs(enemies);
+        placePanel.CreateEnemyPrefabs(enemies, hideEnemyDeployment);
         placePanel.ShowCommanderInfo(commanderName, stageType, eliteCommanderId);
 
         if (battlefieldEffect.HasValue)
